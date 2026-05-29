@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telos — UI spec (flow + test tree + results)</title>
+<style>
+  :root{
+    --bg:#1b1b1b; --card:#262624; --border:rgba(255,255,255,0.13);
+    --text:#e8e6df; --muted:#a3a199; --faint:#76746c; --line:rgba(255,255,255,0.18);
+    --neutral-bg:#3a3a37; --neutral-tx:#d9d7cf;
+    --blue-bg:#0c447c; --blue-tx:#cfe2f6; --blue-sub:#9cc2ec;
+    --amber-bg:#6b4708; --amber-tx:#f7d79a; --amber-sub:#e0b46a;
+    --teal-bg:#0c5a47; --teal-tx:#bfe9da;
+    --purple-bg:#3c3489; --purple-tx:#d7d3f3;
+    --coral-bg:#7a2d16; --coral-tx:#f4c4b0;
+    --todo-bg:#3a3a37; --todo-tx:#a3a199;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f0efe9; --card:#ffffff; --border:rgba(0,0,0,0.12);
+      --text:#2c2c2a; --muted:#5f5e5a; --faint:#888780; --line:rgba(0,0,0,0.22);
+      --neutral-bg:#555450; --neutral-tx:#ffffff;
+      --blue-bg:#185fa5; --blue-tx:#ffffff; --blue-sub:#cfe2f6;
+      --amber-bg:#9a6a12; --amber-tx:#ffffff; --amber-sub:#f7d79a;
+      --teal-bg:#0f6e56; --teal-tx:#ffffff;
+      --purple-bg:#534ab7; --purple-tx:#ffffff;
+      --coral-bg:#993c1d; --coral-tx:#ffffff;
+      --todo-bg:#888780; --todo-tx:#ffffff;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:34px 16px;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--text);line-height:1.5;}
+  .wrap{max-width:780px;margin:0 auto;}
+  h1.page{font-size:20px;font-weight:600;margin:0 0 20px;text-align:center;}
+  h2.sec{font-size:15px;font-weight:600;color:var(--muted);margin:34px 0 14px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
+
+  /* flow */
+  .nav{background:var(--purple-bg);color:var(--purple-tx);border-radius:12px;padding:14px 18px;text-align:center;font-size:14px;font-weight:500;margin-bottom:22px;}
+  .col{display:flex;flex-direction:column;align-items:center;}
+  .node{border-radius:12px;padding:14px 20px;text-align:center;width:340px;max-width:100%;}
+  .node .t{font-size:16px;font-weight:600;}
+  .node .s{font-size:13px;margin-top:4px;opacity:0.95;}
+  .arrow{width:2px;height:26px;background:var(--line);position:relative;margin:0;}
+  .arrow::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--line);}
+  .arrow .lbl{position:absolute;left:14px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:13px;color:var(--muted);}
+  .neutral{background:var(--neutral-bg);color:var(--neutral-tx);}
+  .blue{background:var(--blue-bg);color:var(--blue-tx);} .blue .s{color:var(--blue-sub);}
+  .amber{background:var(--amber-bg);color:var(--amber-tx);} .amber .s{color:var(--amber-sub);}
+  .purple{background:var(--purple-bg);color:var(--purple-tx);}
+  .todo{background:var(--todo-bg);color:var(--todo-tx);}
+  .config{background:var(--teal-bg);border-radius:14px;padding:18px;width:560px;max-width:100%;}
+  .config .ttl{font-size:16px;font-weight:600;color:var(--teal-tx);text-align:center;margin-bottom:14px;}
+  .config .inner{border-radius:10px;padding:11px 16px;text-align:center;margin:0 0 0;}
+  .config .inner .t{font-size:14.5px;font-weight:600;}
+  .config .inner .s{font-size:12.5px;margin-top:3px;}
+  .config .note{text-align:center;font-size:13px;color:var(--teal-tx);opacity:0.85;margin-top:14px;}
+  .mini-arrow{width:2px;height:18px;background:var(--line);margin:0 auto;position:relative;}
+  .mini-arrow::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid var(--line);}
+  .later{background:var(--coral-bg);color:var(--coral-tx);border-radius:12px;padding:16px 20px;text-align:center;width:480px;max-width:100%;margin-top:8px;}
+  .later .t{font-size:15px;font-weight:600;} .later .s{font-size:13px;margin-top:5px;opacity:0.95;}
+
+  /* tree */
+  .picktree{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:20px 24px;width:560px;max-width:100%;text-align:left;}
+  .pt-title{font-size:16px;font-weight:600;text-align:center;margin-bottom:12px;}
+  .tree{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:22px 26px;}
+  .hint{font-size:13px;color:var(--muted);margin:0 0 16px;padding-bottom:12px;border-bottom:0.5px solid var(--border);}
+  .fam{font-size:15px;font-weight:600;margin:16px 0 6px;}
+  .fam:first-of-type{margin-top:2px;}
+  .branch{margin-left:14px;border-left:0.5px solid var(--line);padding-left:18px;}
+  .sub{font-size:13px;font-weight:600;color:var(--muted);margin:9px 0 4px;}
+  .leaf{display:flex;align-items:center;gap:10px;margin:4px 0;font-size:14.5px;}
+  .box{width:17px;height:17px;border-radius:4px;border:1.5px solid var(--muted);flex-shrink:0;}
+  .nt{color:var(--faint);font-size:12.5px;}
+  .tbd{opacity:0.6;font-weight:600;font-size:15px;margin-top:16px;}
+  .tbd .nt{font-weight:400;}
+
+  /* results screen (in-flow card) */
+  .rcard{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:18px;width:560px;max-width:100%;text-align:left;}
+  .rcard .ttl{font-size:16px;font-weight:600;text-align:center;margin-bottom:14px;}
+  .rcard .inner{border-radius:10px;padding:11px 16px;text-align:center;margin:0;}
+  .rcard .inner .t{font-size:14.5px;font-weight:600;}
+  .rcard .inner .s{font-size:12.5px;margin-top:3px;}
+  .rcard .note{text-align:center;font-size:13px;color:var(--muted);margin-top:14px;}
+  .preview-test{border:0.5px solid var(--line);border-radius:8px;padding:11px 14px;margin:10px 0 0;}
+  .preview-test .ph{font-size:13.5px;font-weight:600;margin-bottom:6px;}
+  .preview-test .pr{font-size:12.5px;color:var(--muted);margin:3px 0;}
+  .repeat{text-align:center;font-size:12px;color:var(--faint);margin:8px 0 0;}
+  .explain{border:0.5px dashed var(--line);border-radius:8px;padding:9px 13px;margin-top:9px;}
+  .explain .eh{font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+  .explain p{margin:0;font-size:12.5px;color:var(--muted);}
+  .opts{margin:10px 0 0;}
+  .opt{display:flex;align-items:flex-start;gap:10px;margin:8px 0;font-size:14px;}
+  .opt .box{margin-top:1px;}
+  .opt .ol{font-weight:500;}
+  .opt .od{font-size:12px;color:var(--faint);margin-top:1px;}
+
+  /* detail panels */
+  .panel{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:20px 24px;}
+  .rules{font-size:13.5px;color:var(--muted);margin:0;padding-left:0;list-style:none;}
+  .rules li{margin:9px 0;padding-left:18px;position:relative;line-height:1.5;}
+  .rules li:first-child{margin-top:0;}
+  .rules li::before{content:"\203A";position:absolute;left:3px;color:var(--faint);}
+  .rules b{color:var(--text);font-weight:600;}
+  .zip{background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:15px 18px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.7;color:var(--muted);overflow-x:auto;white-space:pre;margin:0 0 16px;}
+  .zip b{color:var(--text);font-weight:600;}
+  .zip i{color:var(--blue-sub);font-style:normal;}
+  .zip .c{color:var(--faint);}
+  .pipe{counter-reset:step;list-style:none;padding:0;margin:0 0 14px;}
+  .pipe li{position:relative;padding:9px 0 9px 32px;font-size:13.5px;border-bottom:0.5px solid var(--border);line-height:1.45;}
+  .pipe li:last-child{border-bottom:none;}
+  .pipe li::before{counter-increment:step;content:counter(step);position:absolute;left:0;top:9px;width:21px;height:21px;border-radius:50%;background:var(--neutral-bg);color:var(--neutral-tx);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .pipe b{color:var(--text);font-weight:600;}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;background:var(--neutral-bg);color:var(--neutral-tx);padding:1px 6px;border-radius:4px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+  .chip{font-size:12px;border:0.5px solid var(--line);border-radius:6px;padding:5px 10px;color:var(--text);}
+  .note-row{font-size:13px;color:var(--muted);margin:9px 0 0;line-height:1.5;}
+  .note-row b{color:var(--text);font-weight:600;}
+
+  /* dynamic navigator illustration */
+  .navwrap{margin-bottom:22px;}
+  .navbar{background:var(--purple-bg);color:var(--purple-tx);border-radius:12px;padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:7px;justify-content:center;font-size:13px;font-weight:500;}
+  .navbar .nstep{white-space:nowrap;}
+  .navbar .nsep{opacity:0.5;}
+  .navbar .ngroup{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;padding:4px 8px;border:1px dashed rgba(255,255,255,0.45);border-radius:10px;}
+  @media (prefers-color-scheme:light){.navbar .ngroup{border-color:rgba(255,255,255,0.7);}}
+  .navbar .npill{background:rgba(255,255,255,0.18);border-radius:999px;padding:2px 10px;font-size:12px;white-space:nowrap;}
+  .navcap{text-align:center;font-size:12.5px;color:var(--muted);margin:10px 0;line-height:1.5;}
+  .navcap b{color:var(--text);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="page">Telos — UI spec</h1>
+
+  <h2 class="sec">Screen flow</h2>
+  <div class="navwrap">
+    <div class="navbar">
+      <span class="nstep">Upload</span><span class="nsep">&rsaquo;</span>
+      <span class="nstep">Guide</span><span class="nsep">&rsaquo;</span>
+      <span class="nstep">Configure data</span><span class="nsep">&rsaquo;</span>
+      <span class="nstep">Pick tests</span><span class="nsep">&rsaquo;</span>
+      <span class="nstep">Results</span>
+    </div>
+    <div class="navcap">&darr; the moment tests are picked at step 5, the bar <b>expands</b> — every selected test becomes its own configure step, in selection order</div>
+    <div class="navbar">
+      <span class="nstep">Upload</span><span class="nsep">&rsaquo;</span>
+      <span class="nstep">Guide</span><span class="nsep">&rsaquo;</span>
+      <span class="nstep">Configure data</span><span class="nsep">&rsaquo;</span>
+      <span class="nstep">Pick tests</span><span class="nsep">&rsaquo;</span>
+      <span class="ngroup"><span class="npill">&#9312; t-test</span><span class="npill">&#9313; ANOVA</span><span class="npill">&#9314; correlation</span></span><span class="nsep">&rsaquo;</span>
+      <span class="nstep">Results</span>
+    </div>
+    <div class="navcap">Sticky · back steps clickable · each test step opens only once the steps before it are complete</div>
+  </div>
+
+  <div class="col">
+    <div class="node neutral"><div class="t">Opens browser link</div></div>
+    <div class="arrow"></div>
+
+    <div class="node blue"><div class="t">1 · Welcome / about</div><div class="s">What Telos is, services, analysis types, credits</div></div>
+    <div class="arrow"><span class="lbl">Click "Get started"</span></div>
+
+    <div class="node blue"><div class="t">2 · Upload data</div><div class="s">Choose CSV or Excel file, auto-detect on parse</div></div>
+    <div class="arrow"><span class="lbl">File parsed</span></div>
+
+    <div class="node amber"><div class="t">3 · Terms guide</div><div class="s">Type vs level · the 4 levels · missing-data handling</div></div>
+    <div class="arrow"><span class="lbl">Click "Continue"</span></div>
+
+    <div class="config">
+      <div class="ttl">4 · Configure data</div>
+      <div class="inner neutral"><div class="t">a · Missing-data handling — global, at top</div><div class="s">Drop rows · Impute (default) · Leave as-is</div></div>
+      <div class="mini-arrow"></div>
+      <div class="inner neutral"><div class="t">b · File summary banner</div><div class="s">rows · cols · encoding (read-only)</div></div>
+      <div class="mini-arrow"></div>
+      <div class="inner blue"><div class="t">c · Auto-detected type per column (read-only)</div><div class="s">int64 · float64 · object · bool · datetime64</div></div>
+      <div class="mini-arrow"></div>
+      <div class="inner amber"><div class="t">d · Student sets measurement level + name + Use</div><div class="s">nominal · ordinal · interval · ratio · exclude toggle</div></div>
+      <div class="note">"Confirm &amp; pick test" — disabled until every used column has a level</div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="picktree">
+      <div class="pt-title">5 · Pick a test</div>
+      <p class="hint">Folders expand only · tick individual tests · multi-select on · greyed + reason if data unsupported</p>
+
+      <div class="fam">1 · Descriptive statistics</div>
+      <div class="branch">
+        <div class="leaf"><span class="box"></span>Summary statistics</div>
+        <div class="leaf"><span class="box"></span>Frequencies &amp; cross-tabs</div>
+        <div class="leaf"><span class="box"></span>Distribution &amp; normality</div>
+      </div>
+
+      <div class="fam">2 · Group comparisons</div>
+      <div class="branch">
+        <div class="sub">Parametric</div>
+        <div class="leaf"><span class="box"></span>One-sample t-test</div>
+        <div class="leaf"><span class="box"></span>Independent t-test</div>
+        <div class="leaf"><span class="box"></span>Paired t-test</div>
+        <div class="leaf"><span class="box"></span>One-way ANOVA</div>
+        <div class="leaf"><span class="box"></span>Factorial ANOVA</div>
+        <div class="leaf"><span class="box"></span>Repeated-measures ANOVA</div>
+        <div class="leaf"><span class="box"></span>Nested ANOVA</div>
+        <div class="leaf"><span class="box"></span>Welch's ANOVA</div>
+        <div class="leaf"><span class="box"></span>ANCOVA</div>
+        <div class="leaf"><span class="box"></span>MANOVA</div>
+        <div class="leaf"><span class="box"></span>MANCOVA</div>
+        <div class="sub">Nonparametric</div>
+        <div class="leaf"><span class="box"></span>Mann-Whitney U</div>
+        <div class="leaf"><span class="box"></span>Wilcoxon signed-rank</div>
+        <div class="leaf"><span class="box"></span>Kruskal-Wallis</div>
+        <div class="leaf"><span class="box"></span>Friedman</div>
+      </div>
+
+      <div class="fam">3 · Association</div>
+      <div class="branch">
+        <div class="sub">Correlation</div>
+        <div class="leaf"><span class="box"></span>Pearson</div>
+        <div class="leaf"><span class="box"></span>Spearman</div>
+        <div class="leaf"><span class="box"></span>Kendall's tau</div>
+        <div class="sub">Categorical</div>
+        <div class="leaf"><span class="box"></span>Chi-square independence</div>
+        <div class="leaf"><span class="box"></span>Chi-square goodness-of-fit</div>
+        <div class="leaf"><span class="box"></span>Fisher's exact</div>
+      </div>
+
+      <div class="fam">4 · Regression &amp; prediction</div>
+      <div class="branch">
+        <div class="leaf"><span class="box"></span>Simple linear regression</div>
+        <div class="leaf"><span class="box"></span>Multiple linear regression</div>
+        <div class="leaf"><span class="box"></span>Logistic regression</div>
+        <div class="leaf"><span class="box"></span>Poisson / negative binomial</div>
+      </div>
+
+      <div class="fam">5 · Econometrics</div>
+      <div class="branch">
+        <div class="sub">Time series</div>
+        <div class="leaf"><span class="box"></span>ARIMA / SARIMA</div>
+        <div class="leaf"><span class="box"></span>Stationarity tests (ADF, KPSS)</div>
+        <div class="leaf"><span class="box"></span>Granger causality</div>
+        <div class="leaf"><span class="box"></span>VAR</div>
+        <div class="sub">Panel data</div>
+        <div class="leaf"><span class="box"></span>Fixed effects</div>
+        <div class="leaf"><span class="box"></span>Random effects</div>
+        <div class="leaf"><span class="box"></span>Hausman test</div>
+        <div class="sub">Causal inference</div>
+        <div class="leaf"><span class="box"></span>Difference-in-differences (DiD)</div>
+        <div class="leaf"><span class="box"></span>Regression discontinuity (RDD)</div>
+        <div class="leaf"><span class="box"></span>Instrumental variables (IV / 2SLS)</div>
+        <div class="leaf"><span class="box"></span>Propensity score matching</div>
+      </div>
+
+      <div class="fam">6 · Latent variable models</div>
+      <div class="branch">
+        <div class="sub">Reliability</div>
+        <div class="leaf"><span class="box"></span>Cronbach's alpha</div>
+        <div class="leaf"><span class="box"></span>Average variance extracted (AVE)</div>
+        <div class="leaf"><span class="box"></span>Composite reliability (CR)</div>
+        <div class="sub">Factor analysis</div>
+        <div class="leaf"><span class="box"></span>Exploratory factor analysis (EFA)</div>
+        <div class="leaf"><span class="box"></span>Principal component analysis (PCA)</div>
+        <div class="sub">Structural equation modeling</div>
+        <div class="leaf"><span class="box"></span>CB-SEM <span class="nt">— auto-runs EFA &rarr; CFA &rarr; structural; includes path analysis &amp; mediation/moderation</span></div>
+        <div class="leaf"><span class="box"></span>PLS-SEM <span class="nt">— includes path analysis &amp; mediation/moderation</span></div>
+      </div>
+
+      <div class="tbd">7 · Assumption diagnostics <span class="nt">— behavior TBD, collapsed</span></div>
+    </div>
+    <div class="arrow"><span class="lbl">Confirm selection — bar expands</span></div>
+
+    <div class="config">
+      <div class="ttl">6 · Configure each test</div>
+      <div class="inner blue"><div class="t">Top progress bar expands</div><div class="s">one step per selected test, in selection order — you walk them in turn</div></div>
+      <div class="mini-arrow"></div>
+      <div class="inner amber"><div class="t">Per test · assign columns to the test's roles</div><div class="s">e.g. grouping variable · dependent variable · factor(s) · variable pair — only Used, level-compatible columns offered; the rest greyed + reason</div></div>
+      <div class="mini-arrow"></div>
+      <div class="inner amber"><div class="t">Per test · test-specific options</div><div class="s">alpha · one- / two-tailed · CI % · post-hoc method · reference group · etc.</div></div>
+      <div class="note">Repeats for every selected test · "Run analysis" stays disabled until each one is fully configured</div>
+    </div>
+    <div class="repeat">step 4 prepares the dataset once (types · levels · missing data) — step 6 maps those columns into each test's required roles</div>
+    <div class="arrow"><span class="lbl">Click "Run analysis"</span></div>
+
+    <div class="rcard">
+      <div class="ttl">7 · Results — preview + export</div>
+
+      <div class="inner blue"><div class="t">Preview · rendered inline</div><div class="s">every selected test, in the configured selection order</div></div>
+
+      <div class="preview-test">
+        <div class="ph">NN · Test name</div>
+        <div class="pr">• APA 7 table(s) of values</div>
+        <div class="pr">• supporting figure(s) / diagram(s)</div>
+        <div class="explain">
+          <div class="eh">How to read this test</div>
+          <p>Generic explainer for this test type — the same text that lands in the PDF &amp; LaTeX. Teaches how the test is read in general; never interprets your specific result and never points to specific cells.</p>
+        </div>
+      </div>
+      <div class="repeat">&uarr; repeats per selected test · a single SEM selection expands into EFA &rarr; CFA &rarr; fit &rarr; structural &rarr; mediation/moderation</div>
+
+      <div class="mini-arrow"></div>
+
+      <div class="inner amber"><div class="t">Export · tick one or more</div></div>
+      <div class="opts">
+        <div class="opt"><span class="box"></span><div><div class="ol">PDF report</div><div class="od">APA-7 tables, figures, how-to-read text — in selection order</div></div></div>
+        <div class="opt"><span class="box"></span><div><div class="ol">LaTeX file (.tex)</div><div class="od">the same report as a LaTeX source</div></div></div>
+        <div class="opt"><span class="box"></span><div><div class="ol">R script (.R)</div><div class="od">reproduces every computation &amp; figure, same sequence · ships with the cleaned dataset</div></div></div>
+        <div class="opt"><span class="box"></span><div><div class="ol">Table images (.png)</div><div class="od">each test's tables as standalone images</div></div></div>
+        <div class="opt"><span class="box"></span><div><div class="ol">Figure images (.png)</div><div class="od">each test's graphs / diagrams as standalone images</div></div></div>
+      </div>
+      <div class="note">"Download (.zip)" — bundles only the formats you tick</div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="later"><div class="t">Branch · if SEM is selected</div><div class="s">SEM runs its own missing-data path (FIML)<br/>see Open items re: overriding step 4a</div></div>
+  </div>
+
+  <h2 class="sec">Results — the "how to read" layer</h2>
+  <div class="panel">
+    <ul class="rules">
+      <li><b>Generic per test type.</b> Written and reviewed once, then stored as static content. It is <b>not</b> computed from the student's data, so there is nothing to hallucinate or get wrong at run time.</li>
+      <li><b>Teaches the general reading</b> — what each statistic means, what a significant vs. non-significant result indicates, and the usual effect-size conventions.</li>
+      <li><b>Never interprets the student's specific result</b>, and <b>never points to specific cells or values</b> in their output — edge cases and data-specific issues could send them in the wrong direction.</li>
+      <li><b>Identical everywhere.</b> The exact same text appears in the PDF, the LaTeX, and the on-screen preview.</li>
+    </ul>
+  </div>
+
+  <h2 class="sec">Results — bundle (.zip)</h2>
+  <div class="panel">
+    <div class="zip"><b>telos-results/</b>
+&#9500;&#9472; report.pdf
+&#9500;&#9472; report.tex
+&#9500;&#9472; analysis.R
+&#9500;&#9472; <i>data/</i>
+&#9474;  &#9492;&#9472; cleaned.csv              <span class="c">&larr; only when R script is selected</span>
+&#9500;&#9472; <i>01_independent-t-test/</i>
+&#9474;  &#9500;&#9472; table_group-statistics.png
+&#9474;  &#9500;&#9472; table_t-test.png
+&#9474;  &#9492;&#9472; figure_boxplot.png
+&#9500;&#9472; <i>02_one-way-anova/</i>
+&#9474;  &#9500;&#9472; table_anova.png
+&#9474;  &#9500;&#9472; table_tukey-posthoc.png
+&#9474;  &#9492;&#9472; figure_means-plot.png
+&#9492;&#9472; <i>03_cb-sem/</i>
+   &#9500;&#9472; table_efa-loadings.png
+   &#9500;&#9472; table_cfa-loadings.png
+   &#9500;&#9472; table_fit-indices.png
+   &#9500;&#9472; table_structural-paths.png
+   &#9492;&#9472; figure_path-diagram.png</div>
+    <ul class="rules">
+      <li><b>One .zip</b> no matter how many formats or tests are selected — never N separate downloads. (Tree above shows everything ticked.)</li>
+      <li><b>Each selected test gets its own folder</b>, prefixed <code>NN_</code> in configured order; files inside are labelled by content (<code>table_*</code>, <code>figure_*</code>).</li>
+      <li><b>report.pdf / report.tex / analysis.R</b> sit at the root.</li>
+      <li><b>data/cleaned.csv rides along whenever the R script is selected</b>, so <code>analysis.R</code> runs via a relative path on the student's own machine — not just on the server.</li>
+      <li><b>A folder or file appears only if its format was ticked</b> — per-test image folders require table and/or figure images; each report file requires its own tick.</li>
+    </ul>
+  </div>
+
+  <h2 class="sec">Results — engine &amp; formats (our side)</h2>
+  <div class="panel">
+    <ol class="pipe">
+      <li>Each test produces one <b>canonical result object</b> — <code>{ metadata · table data · figure spec · how-to-read text }</code>.</li>
+      <li>Objects are assembled <b>in configured order</b> into a single <b>Quarto</b> <code>.qmd</code>.</li>
+      <li><code>quarto render</code> &rarr; <b>report.pdf</b> (APA 7).</li>
+      <li>The <b>.tex</b> is produced as a byproduct of that same render &rarr; <b>report.tex</b>.</li>
+      <li><code>knitr::purl()</code> extracts the executable code &rarr; <b>analysis.R</b> — literally the code that made the PDF, so it reproduces it exactly.</li>
+      <li>Figures saved as PNG via <b>ggplot2</b>; APA tables saved as PNG via <b>gt / flextable</b>.</li>
+      <li>Everything (plus <code>cleaned.csv</code> if R was selected) is zipped per the structure above.</li>
+    </ol>
+    <div class="chips">
+      <span class="chip">report.pdf</span>
+      <span class="chip">report.tex</span>
+      <span class="chip">analysis.R</span>
+      <span class="chip">table_*.png</span>
+      <span class="chip">figure_*.png</span>
+    </div>
+    <div class="note-row"><b>Tables</b> render in APA 7th (gt / flextable); <b>figures</b> render in ggplot2.</div>
+    <div class="note-row"><b>Reproducibility guarantee</b> — because all five outputs derive from one render, the R script, LaTeX, and PDF can't drift apart.</div>
+    <div class="note-row"><b>Cost</b> — figures are styled by the R/ggplot theme rather than the web theme, and the backend container ships Quarto + TinyTeX + the R packages.</div>
+  </div>
+
+  <h2 class="sec">Open items</h2>
+  <div class="panel">
+    <ul class="rules">
+      <li><b>SEM missing data.</b> SEM uses its own FIML handling — open question whether it overrides or only warns against the global step-4a setting.</li>
+      <li><b>Export defaults.</b> Which formats are pre-ticked on the Results screen (e.g. PDF on by default)? — TBD.</li>
+      <li><b>Single-format download.</b> When only one format is selected, still wrap it in a .zip, or hand back the lone file directly? — TBD.</li>
+      <li><b>Per-test config layout.</b> One screen per test (a sub-wizard) or one long scrollable page listing every test? — TBD.</li>
+      <li><b>Unsatisfiable test.</b> If the Used columns can't fill a picked test's roles, block it at step 6 with the reason — consistent with the greyed-out rule at step 5.</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>
