@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telos — test configuration (step 6 detail)</title>
+<style>
+  :root{
+    --bg:#1b1b1b; --card:#262624; --border:rgba(255,255,255,0.13);
+    --text:#e8e6df; --muted:#a3a199; --faint:#76746c; --line:rgba(255,255,255,0.18);
+    --neutral-bg:#3a3a37; --neutral-tx:#d9d7cf;
+    --blue-bg:#0c447c; --blue-tx:#cfe2f6; --blue-sub:#9cc2ec;
+    --amber-bg:#6b4708; --amber-tx:#f7d79a; --amber-sub:#e0b46a;
+    --teal-bg:#0c5a47; --teal-tx:#bfe9da;
+    --purple-bg:#3c3489; --purple-tx:#d7d3f3;
+    --coral-bg:#7a2d16; --coral-tx:#f4c4b0;
+    --green-bg:#1f5e2e; --green-tx:#bfe9c6;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f0efe9; --card:#ffffff; --border:rgba(0,0,0,0.12);
+      --text:#2c2c2a; --muted:#5f5e5a; --faint:#888780; --line:rgba(0,0,0,0.22);
+      --neutral-bg:#555450; --neutral-tx:#ffffff;
+      --blue-bg:#185fa5; --blue-tx:#ffffff; --blue-sub:#cfe2f6;
+      --amber-bg:#9a6a12; --amber-tx:#ffffff; --amber-sub:#f7d79a;
+      --teal-bg:#0f6e56; --teal-tx:#ffffff;
+      --purple-bg:#534ab7; --purple-tx:#ffffff;
+      --coral-bg:#993c1d; --coral-tx:#ffffff;
+      --green-bg:#2c7a3f; --green-tx:#ffffff;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:34px 16px 80px;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--text);line-height:1.5;}
+  .wrap{max-width:820px;margin:0 auto;}
+  h1.page{font-size:21px;font-weight:600;margin:0 0 6px;text-align:center;}
+  .sub-note{text-align:center;font-size:13px;color:var(--muted);margin:0 auto 12px;max-width:680px;line-height:1.5;}
+  .companion{text-align:center;font-size:12.5px;color:var(--blue-tx);background:var(--blue-bg);border-radius:8px;padding:9px 14px;max-width:680px;margin:0 auto 26px;}
+  .companion a{color:inherit;}
+  h2.sec{font-size:14px;font-weight:600;color:var(--muted);margin:34px 0 12px;padding-bottom:7px;border-bottom:0.5px solid var(--border);}
+  h2.fam{font-size:16px;font-weight:700;color:var(--text);margin:46px 0 6px;padding:12px 16px;background:var(--card);border:0.5px solid var(--border);border-radius:10px;}
+  .fam-sub{font-size:12.5px;color:var(--muted);margin:0 0 14px;padding-left:4px;}
+  .kicker{font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--amber-sub);margin:24px 0 8px;}
+  .kicker.ref{color:var(--blue-sub);}
+
+  /* navigator */
+  .navbar{background:var(--purple-bg);color:var(--purple-tx);border-radius:10px;padding:11px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:7px;justify-content:center;font-size:12.5px;font-weight:500;margin-bottom:8px;}
+  .navbar .nstep{white-space:nowrap;opacity:0.6;}
+  .navbar .nsep{opacity:0.4;}
+  .navbar .ngroup{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;padding:4px 8px;border:1px dashed rgba(255,255,255,0.45);border-radius:10px;}
+  .navbar .npill{background:rgba(255,255,255,0.16);border-radius:999px;padding:2px 10px;font-size:12px;white-space:nowrap;}
+  .navbar .npill.active{background:var(--amber-bg);color:var(--amber-tx);font-weight:700;}
+  .navcap{text-align:center;font-size:12px;color:var(--muted);margin:0 0 22px;}
+
+  /* config card shell */
+  .config{background:var(--teal-bg);border-radius:14px;padding:18px;width:100%;}
+  .config .ttl{font-size:16px;font-weight:600;color:var(--teal-tx);text-align:center;margin-bottom:5px;}
+  .config .sttl{font-size:12.5px;color:var(--teal-tx);opacity:0.85;text-align:center;margin-bottom:14px;}
+  .inner{border-radius:10px;padding:13px 16px;margin:0;background:var(--card);}
+  .inner.lbl-wrap{position:relative;}
+  .zone-tag{position:absolute;top:-9px;left:12px;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;background:var(--amber-bg);color:var(--amber-tx);border-radius:5px;padding:2px 7px;}
+  .mini-arrow{width:2px;height:18px;background:var(--line);margin:9px auto;position:relative;}
+  .mini-arrow::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid var(--line);}
+  .note{text-align:center;font-size:13px;color:var(--teal-tx);opacity:0.9;margin-top:14px;}
+  .note b{font-weight:700;}
+  .arrow{width:2px;height:24px;background:var(--line);position:relative;margin:6px auto;}
+  .arrow::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--line);}
+
+  /* palette + slots */
+  .pl-h{font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .palette{display:flex;flex-wrap:wrap;gap:7px;}
+  .colchip{display:inline-flex;align-items:center;gap:7px;background:var(--neutral-bg);color:var(--neutral-tx);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600;border:0.5px solid var(--line);cursor:grab;}
+  .colchip .grip{opacity:0.45;font-size:13px;letter-spacing:-2px;}
+  .colchip .lv{font-size:10.5px;opacity:0.7;font-weight:500;}
+  .colchip.greyed{background:transparent;color:var(--faint);border:0.5px dashed var(--line);cursor:not-allowed;font-weight:500;}
+  .colchip.greyed .reason{font-size:10.5px;font-style:italic;}
+  .colchip.dragging{background:var(--amber-bg);color:var(--amber-tx);border:0.5px solid var(--amber-sub);transform:rotate(-3deg);box-shadow:0 6px 16px rgba(0,0,0,0.4);}
+
+  .map{display:grid;grid-template-columns:1fr 34px 1.05fr;gap:10px;align-items:start;}
+  @media (max-width:640px){.map{grid-template-columns:1fr;}.map .dragcue{display:none;}}
+  .dragcue{align-self:center;text-align:center;color:var(--amber-sub);font-size:22px;}
+  .slots{display:flex;flex-direction:column;gap:9px;}
+  .slot{border:1.5px dashed var(--line);border-radius:10px;padding:9px 12px;}
+  .slot .sl-label{font-size:13px;font-weight:700;}
+  .slot .sl-cons{font-size:10.5px;color:var(--muted);margin-top:1px;}
+  .slot .placeholder{font-size:12px;color:var(--faint);font-style:italic;margin-top:7px;border-top:0.5px dotted var(--line);padding-top:6px;}
+  .slot.target{border-color:var(--amber-sub);background:rgba(224,180,106,0.07);}
+  .slot.filled{border-style:solid;border-color:var(--amber-sub);background:rgba(224,180,106,0.10);}
+  .slot.filled .filledchip{display:inline-flex;align-items:center;gap:7px;background:var(--amber-bg);color:var(--amber-tx);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:600;margin-top:7px;margin-right:5px;}
+  .slot.filled .filledchip .x{opacity:0.6;font-weight:400;}
+
+  /* options */
+  .optstrip{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .optpill{display:inline-flex;align-items:center;gap:6px;font-size:12px;border:0.5px solid var(--line);border-radius:7px;padding:5px 10px;color:var(--text);background:var(--bg);}
+  .optpill .k{color:var(--muted);}
+  .optpill .v{font-weight:600;}
+  .optpill .caret{color:var(--faint);font-size:10px;}
+
+  /* the configure guide (NEW layer, distinct from results' "how to read") */
+  .cfgguide{border:0.5px dashed var(--amber-sub);border-radius:9px;padding:10px 14px;margin-top:12px;background:rgba(224,180,106,0.05);}
+  .cfgguide .gh{font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--amber-sub);margin-bottom:5px;}
+  .cfgguide p{margin:0;font-size:12.5px;color:var(--text);opacity:0.92;line-height:1.55;}
+
+  /* assumptions + outputs preview */
+  .meta-row{display:flex;flex-wrap:wrap;gap:8px;font-size:11.5px;color:var(--muted);margin-top:8px;}
+  .meta-row .tag{border:0.5px solid var(--line);border-radius:6px;padding:3px 8px;}
+  .meta-row .tag b{color:var(--text);font-weight:600;}
+
+  /* SEM canvas */
+  .canvas{border:0.5px solid rgba(255,255,255,0.13);border-radius:11px;padding:16px;background:var(--bg);}
+  @media (prefers-color-scheme:light){.canvas{border-color:rgba(0,0,0,0.12);}}
+  .sem-flow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;}
+  .construct{border:1.5px solid var(--purple-bg);border-radius:11px;padding:10px 11px;min-width:120px;text-align:center;background:rgba(60,52,137,0.12);}
+  @media (prefers-color-scheme:light){.construct{background:rgba(83,74,183,0.10);}}
+  .construct .cn{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:7px;}
+  .construct .inds{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;}
+  .indchip{font-size:10.5px;background:var(--neutral-bg);color:var(--neutral-tx);border-radius:5px;padding:2px 6px;}
+  .patharrow{color:var(--purple-tx);font-size:18px;font-weight:700;}
+  @media (prefers-color-scheme:light){.patharrow{color:var(--purple-bg);}}
+  .sem-cap{text-align:center;font-size:11.5px;color:var(--faint);margin-top:11px;}
+
+  /* registry */
+  .regentry{border:0.5px solid var(--border);border-radius:11px;padding:12px 15px;margin:9px 0;background:var(--card);}
+  .regentry .re-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .re-name{font-weight:700;font-size:14px;}
+  .re-grid{margin-top:8px;display:grid;grid-template-columns:78px 1fr;gap:5px 12px;font-size:12.5px;}
+  .re-grid .k{color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:0.03em;font-size:10px;padding-top:2px;}
+  .re-grid .vv{color:var(--muted);}
+  .re-grid .vv b{color:var(--text);font-weight:600;}
+  .re-grid .vv.guide{color:var(--text);opacity:0.9;font-style:italic;}
+  .role-token{display:inline-block;background:var(--neutral-bg);color:var(--neutral-tx);border-radius:6px;padding:1px 7px;font-size:11.5px;margin:1px 3px 1px 0;}
+  .role-token .c{color:var(--blue-sub);}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;background:var(--neutral-bg);color:var(--neutral-tx);padding:1px 6px;border-radius:4px;}
+  .more{font-size:12.5px;color:var(--faint);border:0.5px dashed var(--line);border-radius:9px;padding:13px 16px;margin-top:14px;line-height:1.6;}
+  .more b{color:var(--text);}
+
+  .legend{font-size:12px;color:var(--muted);background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px 16px;margin-top:24px;}
+  .legend b{color:var(--text);}
+  .swatch{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin-right:5px;}
+  .ds-note{font-size:11.5px;color:var(--faint);margin-top:8px;font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="page">Telos — test configuration <span style="color:var(--muted);font-weight:500;">(step 6 detail)</span></h1>
+  <p class="sub-note">How each selected test is configured by the student: <b>drag the right columns into the test's role slots</b>, then <b>set its options</b>. One test per family is drawn in full; every other test is a reference entry with the same anatomy. SEM gets its own model-building canvas.</p>
+  <p class="companion">Companion to <a href="telos_ui_spec.html">telos_ui_spec.html</a> &middot; step 6 ("Configure each test") points here.</p>
+
+  <!-- navigator context -->
+  <h2 class="sec">Where we are</h2>
+  <div class="navbar">
+    <span class="nstep">Upload</span><span class="nsep">&rsaquo;</span>
+    <span class="nstep">Guide</span><span class="nsep">&rsaquo;</span>
+    <span class="nstep">Configure data</span><span class="nsep">&rsaquo;</span>
+    <span class="nstep">Pick tests</span><span class="nsep">&rsaquo;</span>
+    <span class="ngroup"><span class="npill active">&#9312; selected test</span><span class="npill">&#9313; &hellip;</span><span class="npill">&#9314; &hellip;</span></span><span class="nsep">&rsaquo;</span>
+    <span class="nstep">Results</span>
+  </div>
+  <p class="navcap">The bar gains <b>one configure step per selected test</b> — the student only ever configures the tests they picked, in selection order.</p>
+
+  <!-- shared rule -->
+  <h2 class="sec">The shared rule (every test's screen is built this way)</h2>
+  <div class="config">
+    <div class="ttl">6 · Configure each selected test</div>
+    <div class="sttl">for each test in turn: drag compatible columns into its role slots, then set its options</div>
+    <div class="inner">
+      <div class="t" style="font-weight:600;">Every configure screen has the same four parts</div>
+      <div class="s" style="color:var(--muted);font-size:12.5px;margin-top:4px;">&#9312; a palette of the <b>Used, level-compatible</b> columns &middot; &#9313; the test's <b>role slots</b> (incompatible columns greyed + reason) &middot; &#9314; the test's <b>options</b> &middot; &#9315; a plain-language <b>"how to configure this test"</b> guide, plus a read-only note of which outputs it will produce.</div>
+    </div>
+    <div class="note">Repeats per selected test &middot; <b>"Run analysis" stays disabled until every selected test is fully configured</b></div>
+  </div>
+
+  <!-- example dataset -->
+  <h2 class="sec">The example dataset (the drag sources used in the drawn screens below)</h2>
+  <div class="pl-h">Used columns · with student-set measurement level</div>
+  <div class="palette">
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>post_score <span class="lv">ratio</span></span>
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>pre_score <span class="lv">ratio</span></span>
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>age <span class="lv">ratio</span></span>
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>group <span class="lv">nom&middot;2</span></span>
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>method <span class="lv">nom&middot;3</span></span>
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>gender <span class="lv">nom&middot;2</span></span>
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>satisfaction <span class="lv">ordinal</span></span>
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu1&ndash;eu3 <span class="lv">ordinal</span></span>
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>pu1&ndash;pu3 <span class="lv">ordinal</span></span>
+    <span class="colchip"><span class="grip">&#9783;&#9783;</span>int1&ndash;int3 <span class="lv">ordinal</span></span>
+  </div>
+  <p class="ds-note">Econometrics screens assume a time-indexed / panel dataset instead — those screens show their own columns (e.g. month, sales, firm_id, year, treated, post).</p>
+
+
+  <!-- =================================================================== -->
+  <!-- FAMILY 1 · DESCRIPTIVE STATISTICS -->
+  <!-- =================================================================== -->
+  <h2 class="fam">1 · Descriptive statistics</h2>
+  <p class="fam-sub">Describe and summarize variables — no hypothesis test.</p>
+
+  <div class="kicker">Drawn in full</div>
+  <div class="config">
+    <div class="ttl">Summary statistics</div>
+    <div class="sttl">averages, spread and shape of your numeric variables</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · drag columns into roles</span>
+      <div class="map">
+        <div>
+          <div class="pl-h">Compatible columns</div>
+          <div class="palette">
+            <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>post_score <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>pre_score <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>age <span class="lv">ratio</span></span>
+          </div>
+          <div class="pl-h" style="margin-top:11px;">Greyed (why)</div>
+          <div class="palette">
+            <span class="colchip greyed">group <span class="reason">categorical &rarr; use Frequencies</span></span>
+          </div>
+        </div>
+        <div class="dragcue">&rArr;</div>
+        <div class="slots">
+          <div class="slot target">
+            <div class="sl-label">Variables to summarize</div>
+            <div class="sl-cons">interval / ratio &middot; one or more</div>
+            <span class="filledchip">pre_score <span class="x">&times;</span></span><span class="filledchip">age <span class="x">&times;</span></span>
+            <div class="placeholder">&hellip; dropping <b>post_score</b> here too</div>
+          </div>
+          <div class="slot">
+            <div class="sl-label">Group by <span style="font-weight:400;color:var(--faint);">(optional)</span></div>
+            <div class="sl-cons">nominal / ordinal &middot; 0 or 1</div>
+            <div class="placeholder">drag a category column to split the table by group</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">statistics</span><span class="v">mean, SD, median, min/max</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">add</span><span class="v">skew / kurtosis</span><span class="caret">&#9662;</span></span>
+      </div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this to describe your numeric variables — averages, spread, and shape. Drag any numeric columns you want summarized into <b>Variables to summarize</b> (you can add several). Optionally drag one category column into <b>Group by</b> to get the statistics separately for each group.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; table:</b> descriptive statistics</span>
+      <span class="tag"><b>figure:</b> optional histograms</span>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Frequencies &amp; cross-tabs</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Variable(s) <span class="c">nom/ord &middot; 1&ndash;2</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>counts / percentages</b> &middot; cross-tab when 2 variables</div>
+      <div class="k">Outputs</div><div class="vv">frequency / cross-tabulation table &middot; bar chart</div>
+      <div class="k">Guide</div><div class="vv guide">Counts for categorical data. Drag one category column for a frequency table, or two for a cross-tab.</div>
+      <div class="k">R</div><div class="vv"><code>janitor::tabyl()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Distribution &amp; normality</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Variable <span class="c">int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>normality test</b> Shapiro-Wilk / Kolmogorov-Smirnov &middot; bins</div>
+      <div class="k">Outputs</div><div class="vv">normality test table &middot; histogram + Q-Q plot</div>
+      <div class="k">Guide</div><div class="vv guide">Check whether a numeric variable is normally distributed. Drag one numeric column in; you get a histogram, Q-Q plot, and a normality test.</div>
+      <div class="k">R</div><div class="vv"><code>shapiro.test()</code></div>
+    </div>
+  </div>
+
+
+  <!-- =================================================================== -->
+  <!-- FAMILY 2 · GROUP COMPARISONS -->
+  <!-- =================================================================== -->
+  <h2 class="fam">2 · Group comparisons</h2>
+  <p class="fam-sub">Do groups (or conditions) differ on an outcome?</p>
+
+  <div class="kicker">Drawn in full</div>
+  <div class="config">
+    <div class="ttl">Independent t-test</div>
+    <div class="sttl">does the outcome differ between two groups?</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · drag columns into roles</span>
+      <div class="map">
+        <div>
+          <div class="pl-h">Compatible columns</div>
+          <div class="palette">
+            <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>post_score <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>pre_score <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>group <span class="lv">nom&middot;2</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>gender <span class="lv">nom&middot;2</span></span>
+          </div>
+          <div class="pl-h" style="margin-top:11px;">Greyed (why)</div>
+          <div class="palette">
+            <span class="colchip greyed">method <span class="reason">3 categories, needs 2</span></span>
+            <span class="colchip greyed">satisfaction <span class="reason">ordinal, DV needs interval/ratio</span></span>
+          </div>
+        </div>
+        <div class="dragcue">&rArr;</div>
+        <div class="slots">
+          <div class="slot target">
+            <div class="sl-label">Outcome (DV)</div>
+            <div class="sl-cons">interval / ratio &middot; exactly 1</div>
+            <div class="placeholder">&hellip; dropping <b>post_score</b> here</div>
+          </div>
+          <div class="slot filled">
+            <div class="sl-label">Grouping variable</div>
+            <div class="sl-cons">nominal / ordinal &middot; exactly 1 &middot; 2 categories</div>
+            <span class="filledchip">group <span class="x">&times;</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">&alpha;</span><span class="v">0.05</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">tails</span><span class="v">two</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">equal variance</span><span class="v">off &middot; Welch</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">CI</span><span class="v">95%</span><span class="caret">&#9662;</span></span>
+      </div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this when you're comparing the average of one numeric outcome between <b>exactly two independent groups</b> — e.g. post-test scores for a control group vs. a treatment group. Drag your numeric outcome into <b>Outcome (DV)</b> and the variable that splits people into the two groups into <b>Grouping variable</b>. Keep <b>tails</b> at two-tailed unless you have a directional hypothesis. If the two groups have very different spread, switch <b>equal variance off</b> to use Welch's correction.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; tables:</b> group statistics, t-test</span>
+      <span class="tag"><b>figure:</b> boxplot</span>
+      <span class="tag"><b>checks after run:</b> normality / equal variance</span>
+    </div>
+  </div>
+
+  <div class="arrow"></div>
+
+  <div class="kicker">Drawn in full · a different shape (3+ groups, post-hoc)</div>
+  <div class="config">
+    <div class="ttl">One-way ANOVA + post-hoc</div>
+    <div class="sttl">does the outcome differ across three or more groups?</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · drag columns into roles</span>
+      <div class="map">
+        <div>
+          <div class="pl-h">Compatible columns</div>
+          <div class="palette">
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>post_score <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>pre_score <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>method <span class="lv">nom&middot;3</span></span>
+          </div>
+          <div class="pl-h" style="margin-top:11px;">Greyed (why)</div>
+          <div class="palette">
+            <span class="colchip greyed">group <span class="reason">only 2 categories</span></span>
+          </div>
+        </div>
+        <div class="dragcue">&rArr;</div>
+        <div class="slots">
+          <div class="slot filled">
+            <div class="sl-label">Outcome (DV)</div>
+            <div class="sl-cons">interval / ratio &middot; exactly 1</div>
+            <span class="filledchip">post_score <span class="x">&times;</span></span>
+          </div>
+          <div class="slot filled">
+            <div class="sl-label">Factor (grouping)</div>
+            <div class="sl-cons">nominal / ordinal &middot; exactly 1 &middot; 3+ categories</div>
+            <span class="filledchip">method <span class="x">&times;</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">&alpha;</span><span class="v">0.05</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">post-hoc</span><span class="v">Tukey HSD</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">CI</span><span class="v">95%</span><span class="caret">&#9662;</span></span>
+      </div>
+      <div class="s" style="color:var(--faint);font-size:11.5px;margin-top:8px;">post-hoc choices: Tukey HSD &middot; Bonferroni &middot; Scheff&eacute; &middot; Games-Howell</div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this when comparing one numeric outcome across <b>three or more independent groups</b> — e.g. scores across three teaching methods. Drag the numeric outcome into <b>Outcome (DV)</b> and the grouping variable into <b>Factor</b>. The ANOVA tells you whether the groups differ <i>overall</i>; the <b>post-hoc</b> test (Tukey by default) then shows <i>which specific pairs</i> differ. Leave a post-hoc method selected if you want those pairwise comparisons.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; tables:</b> ANOVA, post-hoc comparisons</span>
+      <span class="tag"><b>figure:</b> means plot</span>
+      <span class="tag"><b>checks after run:</b> normality / equal variance</span>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries · parametric</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">One-sample t-test</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome <span class="c">int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>test value (&mu;&#8320;)</b> &middot; <b>&alpha;</b> &middot; <b>tails</b> &middot; <b>CI</b></div>
+      <div class="k">Outputs</div><div class="vv">descriptives, t-test &middot; distribution with reference line</div>
+      <div class="k">Guide</div><div class="vv guide">Compare one numeric variable's mean against a known or hypothesized value. Drag the variable into Outcome and type the value to test against.</div>
+      <div class="k">R</div><div class="vv"><code>t.test(x, mu=)</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Paired t-test</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Condition A <span class="c">int/ratio &times;1</span></span><span class="role-token">Condition B <span class="c">int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>tails</b> &middot; <b>CI</b></div>
+      <div class="k">Outputs</div><div class="vv">paired descriptives, t-test &middot; difference plot</div>
+      <div class="k">Guide</div><div class="vv guide">Same people measured twice (e.g. pre vs post). Drag the two measurement columns into Condition A and Condition B.</div>
+      <div class="k">R</div><div class="vv"><code>t.test(paired=TRUE)</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Factorial ANOVA</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Factors <span class="c">nom/ord &times;2..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>interactions</b> on/off &middot; <b>post-hoc</b> &middot; <b>CI</b></div>
+      <div class="k">Outputs</div><div class="vv">ANOVA (main + interaction), post-hoc &middot; interaction plot</div>
+      <div class="k">Guide</div><div class="vv guide">Two or more grouping factors at once (e.g. method &times; gender). Drag the numeric outcome into DV and each grouping column into Factors; keep interactions on to test combined effects.</div>
+      <div class="k">R</div><div class="vv"><code>aov()</code> / <code>afex</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Repeated-measures ANOVA</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Subject ID <span class="c">any &times;1</span></span><span class="role-token">Repeated measures <span class="c">int/ratio &times;2..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>sphericity</b> GG / HF correction &middot; <b>post-hoc</b></div>
+      <div class="k">Outputs</div><div class="vv">RM-ANOVA, sphericity, post-hoc &middot; profile plot</div>
+      <div class="k">Guide</div><div class="vv guide">Same people measured under 3+ conditions or timepoints. Drag the subject identifier into Subject ID and each repeated-measure column into Repeated measures.</div>
+      <div class="k">R</div><div class="vv"><code>afex::aov_ez()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Nested ANOVA</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Factor <span class="c">nom/ord &times;1</span></span><span class="role-token">Nested factor <span class="c">nom/ord &times;1 &middot; within Factor</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; random / fixed nesting</div>
+      <div class="k">Outputs</div><div class="vv">nested ANOVA table &middot; grouped means plot</div>
+      <div class="k">Guide</div><div class="vv guide">Use when one factor sits inside another (e.g. classrooms nested within schools). Drag the outcome into DV, the top factor into Factor, and the factor nested inside it into Nested factor.</div>
+      <div class="k">R</div><div class="vv"><code>aov(y ~ A/B)</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Welch's ANOVA</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Factor <span class="c">nom/ord &times;1 &middot; 3+ cats</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>post-hoc</b> Games-Howell</div>
+      <div class="k">Outputs</div><div class="vv">Welch ANOVA, post-hoc &middot; means plot</div>
+      <div class="k">Guide</div><div class="vv guide">One-way ANOVA for when the groups have unequal variances. Configure it like one-way ANOVA; Telos applies the Welch correction and Games-Howell post-hoc.</div>
+      <div class="k">R</div><div class="vv"><code>oneway.test(var.equal=FALSE)</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">ANCOVA</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Factor <span class="c">nom/ord &times;1..k</span></span><span class="role-token">Covariate(s) <span class="c">int/ratio &times;1..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>post-hoc</b> (adjusted means) &middot; <b>CI</b></div>
+      <div class="k">Outputs</div><div class="vv">ANCOVA table, adjusted means &middot; adjusted means plot</div>
+      <div class="k">Guide</div><div class="vv guide">Compare group means while controlling for a numeric covariate (e.g. compare post-scores across groups adjusting for pre-score). Drag the outcome into DV, the grouping variable into Factor, and the control variable into Covariate.</div>
+      <div class="k">R</div><div class="vv"><code>car::Anova()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">MANOVA</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcomes (DVs) <span class="c">int/ratio &times;2..k</span></span><span class="role-token">Factor(s) <span class="c">nom/ord &times;1..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>test statistic</b> Pillai / Wilks &middot; follow-up ANOVAs</div>
+      <div class="k">Outputs</div><div class="vv">MANOVA table, per-DV follow-ups &middot; means plot</div>
+      <div class="k">Guide</div><div class="vv guide">Compare groups on several numeric outcomes at once. Drag two or more numeric outcomes into Outcomes and the grouping variable(s) into Factor.</div>
+      <div class="k">R</div><div class="vv"><code>manova()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">MANCOVA</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcomes (DVs) <span class="c">int/ratio &times;2..k</span></span><span class="role-token">Factor(s) <span class="c">nom/ord &times;1..k</span></span><span class="role-token">Covariate(s) <span class="c">int/ratio &times;1..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>test statistic</b> Pillai / Wilks</div>
+      <div class="k">Outputs</div><div class="vv">MANCOVA table, adjusted follow-ups &middot; adjusted means plot</div>
+      <div class="k">Guide</div><div class="vv guide">MANOVA with one or more numeric controls. Add the covariate(s) alongside the outcomes and factor(s).</div>
+      <div class="k">R</div><div class="vv"><code>car::Manova()</code></div>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries · nonparametric</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Mann-Whitney U</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome <span class="c">ord/int/ratio &times;1</span></span><span class="role-token">Grouping var <span class="c">nom/ord &times;1 &middot; 2 cats</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>tails</b> &middot; continuity correction</div>
+      <div class="k">Outputs</div><div class="vv">rank stats, U test &middot; boxplot</div>
+      <div class="k">Guide</div><div class="vv guide">Nonparametric alternative to the independent t-test (ordinal outcome or non-normal data). Drag the outcome into Outcome and the two-group variable into Grouping.</div>
+      <div class="k">R</div><div class="vv"><code>wilcox.test()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Wilcoxon signed-rank</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Condition A <span class="c">ord/int/ratio &times;1</span></span><span class="role-token">Condition B <span class="c">ord/int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>tails</b> &middot; continuity correction</div>
+      <div class="k">Outputs</div><div class="vv">signed-rank test &middot; difference plot</div>
+      <div class="k">Guide</div><div class="vv guide">Nonparametric alternative to the paired t-test. Drag the two paired measurement columns into Condition A and Condition B.</div>
+      <div class="k">R</div><div class="vv"><code>wilcox.test(paired=TRUE)</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Kruskal-Wallis</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome <span class="c">ord/int/ratio &times;1</span></span><span class="role-token">Grouping var <span class="c">nom/ord &times;1 &middot; 3+ cats</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>post-hoc</b> Dunn's test</div>
+      <div class="k">Outputs</div><div class="vv">Kruskal-Wallis, Dunn post-hoc &middot; boxplot</div>
+      <div class="k">Guide</div><div class="vv guide">Nonparametric alternative to one-way ANOVA (3+ groups). Drag the outcome into Outcome and the grouping variable into Grouping.</div>
+      <div class="k">R</div><div class="vv"><code>kruskal.test()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Friedman</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Subject ID <span class="c">any &times;1</span></span><span class="role-token">Repeated measures <span class="c">ord/int/ratio &times;2..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>post-hoc</b> (Nemenyi)</div>
+      <div class="k">Outputs</div><div class="vv">Friedman test, post-hoc &middot; profile plot</div>
+      <div class="k">Guide</div><div class="vv guide">Nonparametric alternative to repeated-measures ANOVA. Drag the subject identifier into Subject ID and each repeated-measure column into Repeated measures.</div>
+      <div class="k">R</div><div class="vv"><code>friedman.test()</code></div>
+    </div>
+  </div>
+
+
+  <!-- =================================================================== -->
+  <!-- FAMILY 3 · ASSOCIATION -->
+  <!-- =================================================================== -->
+  <h2 class="fam">3 · Association</h2>
+  <p class="fam-sub">How are two variables related?</p>
+
+  <div class="kicker">Drawn in full · correlation</div>
+  <div class="config">
+    <div class="ttl">Pearson correlation</div>
+    <div class="sttl">strength &amp; direction of a straight-line relationship between two numeric variables</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · drag columns into roles</span>
+      <div class="map">
+        <div>
+          <div class="pl-h">Compatible columns</div>
+          <div class="palette">
+            <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>pre_score <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>post_score <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>age <span class="lv">ratio</span></span>
+          </div>
+          <div class="pl-h" style="margin-top:11px;">Greyed (why)</div>
+          <div class="palette">
+            <span class="colchip greyed">satisfaction <span class="reason">ordinal &rarr; use Spearman</span></span>
+            <span class="colchip greyed">group <span class="reason">categorical, not numeric</span></span>
+          </div>
+        </div>
+        <div class="dragcue">&rArr;</div>
+        <div class="slots">
+          <div class="slot target">
+            <div class="sl-label">Variable A</div>
+            <div class="sl-cons">interval / ratio &middot; exactly 1</div>
+            <div class="placeholder">&hellip; dropping <b>pre_score</b> here</div>
+          </div>
+          <div class="slot filled">
+            <div class="sl-label">Variable B</div>
+            <div class="sl-cons">interval / ratio &middot; exactly 1</div>
+            <span class="filledchip">post_score <span class="x">&times;</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">&alpha;</span><span class="v">0.05</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">tails</span><span class="v">two</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">CI</span><span class="v">95%</span><span class="caret">&#9662;</span></span>
+      </div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this to measure how strongly two numeric variables move together in a straight line — e.g. pre-score and post-score. Drag one numeric variable into <b>Variable A</b> and the other into <b>Variable B</b> (order doesn't matter). If either variable is ordinal or clearly non-linear, use Spearman instead.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; table:</b> correlation (r, p, CI)</span>
+      <span class="tag"><b>figure:</b> scatter plot</span>
+    </div>
+  </div>
+
+  <div class="arrow"></div>
+
+  <div class="kicker">Drawn in full · categorical (a different shape)</div>
+  <div class="config">
+    <div class="ttl">Chi-square independence</div>
+    <div class="sttl">are two categorical variables related?</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · drag columns into roles</span>
+      <div class="map">
+        <div>
+          <div class="pl-h">Compatible columns</div>
+          <div class="palette">
+            <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>group <span class="lv">nom&middot;2</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>gender <span class="lv">nom&middot;2</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>method <span class="lv">nom&middot;3</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>satisfaction <span class="lv">ordinal</span></span>
+          </div>
+          <div class="pl-h" style="margin-top:11px;">Greyed (why)</div>
+          <div class="palette">
+            <span class="colchip greyed">post_score <span class="reason">numeric, not categorical</span></span>
+          </div>
+        </div>
+        <div class="dragcue">&rArr;</div>
+        <div class="slots">
+          <div class="slot target">
+            <div class="sl-label">Row variable</div>
+            <div class="sl-cons">nominal / ordinal &middot; exactly 1</div>
+            <div class="placeholder">&hellip; dropping <b>group</b> here</div>
+          </div>
+          <div class="slot filled">
+            <div class="sl-label">Column variable</div>
+            <div class="sl-cons">nominal / ordinal &middot; exactly 1</div>
+            <span class="filledchip">gender <span class="x">&times;</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">&alpha;</span><span class="v">0.05</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">continuity correction</span><span class="v">on (2&times;2)</span><span class="caret">&#9662;</span></span>
+      </div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this to test whether two categorical variables are associated — e.g. whether group membership relates to gender. Drag one category column into <b>Row variable</b> and the other into <b>Column variable</b>. Telos builds the contingency table for you; if any expected counts are very small it will suggest Fisher's exact instead.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; tables:</b> contingency, &chi;&sup2;</span>
+      <span class="tag"><b>figure:</b> mosaic / grouped bar</span>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Spearman correlation</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Variable A <span class="c">ord/int/ratio &times;1</span></span><span class="role-token">Variable B <span class="c">ord/int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>tails</b> &middot; <b>CI</b></div>
+      <div class="k">Outputs</div><div class="vv">rank correlation (&rho;) &middot; scatter plot</div>
+      <div class="k">Guide</div><div class="vv guide">Rank-based correlation for ordinal data or non-linear (but monotonic) relationships. Drag the two variables into A and B.</div>
+      <div class="k">R</div><div class="vv"><code>cor.test(method="spearman")</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Kendall's tau</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Variable A <span class="c">ord/int/ratio &times;1</span></span><span class="role-token">Variable B <span class="c">ord/int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>tails</b></div>
+      <div class="k">Outputs</div><div class="vv">rank correlation (&tau;) &middot; scatter plot</div>
+      <div class="k">Guide</div><div class="vv guide">Rank correlation that handles ties and small samples well. Drag the two variables into A and B.</div>
+      <div class="k">R</div><div class="vv"><code>cor.test(method="kendall")</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Chi-square goodness-of-fit</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Variable <span class="c">nom/ord &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>expected proportions</b> (equal by default) &middot; <b>&alpha;</b></div>
+      <div class="k">Outputs</div><div class="vv">observed vs expected, &chi;&sup2; &middot; bar chart</div>
+      <div class="k">Guide</div><div class="vv guide">Test whether one category variable's counts match an expected split. Drag the category column into Variable and set the expected proportions (equal unless you specify).</div>
+      <div class="k">R</div><div class="vv"><code>chisq.test(x, p=)</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Fisher's exact</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Row variable <span class="c">nom/ord &times;1</span></span><span class="role-token">Column variable <span class="c">nom/ord &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>tails</b></div>
+      <div class="k">Outputs</div><div class="vv">contingency table, exact p, odds ratio &middot; mosaic</div>
+      <div class="k">Guide</div><div class="vv guide">Exact alternative to chi-square for small samples (often 2&times;2). Drag the two category columns into Row and Column.</div>
+      <div class="k">R</div><div class="vv"><code>fisher.test()</code></div>
+    </div>
+  </div>
+
+
+  <!-- =================================================================== -->
+  <!-- FAMILY 4 · REGRESSION & PREDICTION -->
+  <!-- =================================================================== -->
+  <h2 class="fam">4 · Regression &amp; prediction</h2>
+  <p class="fam-sub">Predict / explain an outcome from one or more predictors.</p>
+
+  <div class="kicker">Drawn in full</div>
+  <div class="config">
+    <div class="ttl">Multiple linear regression</div>
+    <div class="sttl">predict a numeric outcome from several predictors</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · drag columns into roles</span>
+      <div class="map">
+        <div>
+          <div class="pl-h">Compatible columns</div>
+          <div class="palette">
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>post_score <span class="lv">ratio</span></span>
+            <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>age <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>pre_score <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>group <span class="lv">nom&middot;2</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>gender <span class="lv">nom&middot;2</span></span>
+          </div>
+        </div>
+        <div class="dragcue">&rArr;</div>
+        <div class="slots">
+          <div class="slot filled">
+            <div class="sl-label">Outcome (DV)</div>
+            <div class="sl-cons">interval / ratio &middot; exactly 1</div>
+            <span class="filledchip">post_score <span class="x">&times;</span></span>
+          </div>
+          <div class="slot target">
+            <div class="sl-label">Predictors</div>
+            <div class="sl-cons">any level &middot; one or more</div>
+            <span class="filledchip">pre_score <span class="x">&times;</span></span><span class="filledchip">group <span class="x">&times;</span></span>
+            <div class="placeholder">&hellip; dropping <b>age</b> here too</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">&alpha;</span><span class="v">0.05</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">CI</span><span class="v">95%</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">standardize</span><span class="v">off</span><span class="caret">&#9662;</span></span>
+      </div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this to explain or predict one numeric outcome from several variables at once — e.g. predicting post-score from pre-score, age, and group. Drag the numeric outcome into <b>Outcome (DV)</b> and each predictor into <b>Predictors</b> (add as many as you need; categorical predictors are dummy-coded for you). Turn <b>standardize</b> on if you want comparable (beta) coefficients.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; tables:</b> coefficients, model fit</span>
+      <span class="tag"><b>figures:</b> residual diagnostics</span>
+      <span class="tag"><b>checks after run:</b> linearity, normality, homoscedasticity, multicollinearity</span>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Simple linear regression</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Predictor <span class="c">int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>CI</b></div>
+      <div class="k">Outputs</div><div class="vv">coefficients, model fit &middot; fitted-line + residual plots</div>
+      <div class="k">Guide</div><div class="vv guide">Predict a numeric outcome from a single numeric predictor. Drag the outcome into DV and the one predictor into Predictor.</div>
+      <div class="k">R</div><div class="vv"><code>lm()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Logistic regression</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">binary nominal &times;1</span></span><span class="role-token">Predictors <span class="c">any &times;1..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>CI</b> &middot; report odds ratios</div>
+      <div class="k">Outputs</div><div class="vv">coefficients (odds ratios), classification &middot; ROC curve</div>
+      <div class="k">Guide</div><div class="vv guide">Predict a yes/no outcome from predictors. Drag the binary outcome into DV and each predictor into Predictors; results report odds ratios.</div>
+      <div class="k">R</div><div class="vv"><code>glm(family=binomial)</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Poisson / negative binomial</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">count &middot; ratio &times;1</span></span><span class="role-token">Predictors <span class="c">any &times;1..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>model</b> Poisson / negative binomial &middot; <b>&alpha;</b> &middot; <b>CI</b> &middot; offset (optional)</div>
+      <div class="k">Outputs</div><div class="vv">coefficients (rate ratios), fit, dispersion check &middot; residual plot</div>
+      <div class="k">Guide</div><div class="vv guide">Model a count outcome (e.g. number of events). Drag the count column into DV and predictors into Predictors; switch to negative binomial if the counts are over-dispersed.</div>
+      <div class="k">R</div><div class="vv"><code>glm(family=poisson)</code> / <code>MASS::glm.nb()</code></div>
+    </div>
+  </div>
+
+
+  <!-- =================================================================== -->
+  <!-- FAMILY 5 · ECONOMETRICS -->
+  <!-- =================================================================== -->
+  <h2 class="fam">5 · Econometrics</h2>
+  <p class="fam-sub">Time series, panel data, and causal inference. These screens assume a time-indexed or panel dataset, so they add roles like <b>Time</b> and <b>Entity</b>.</p>
+
+  <div class="kicker">Drawn in full · time series</div>
+  <div class="config">
+    <div class="ttl">ARIMA / SARIMA</div>
+    <div class="sttl">model and forecast a single series over time</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · drag columns into roles</span>
+      <div class="map">
+        <div>
+          <div class="pl-h">Compatible columns <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);">(time-series dataset)</span></div>
+          <div class="palette">
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>month <span class="lv">datetime</span></span>
+            <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>sales <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>visitors <span class="lv">ratio</span></span>
+          </div>
+        </div>
+        <div class="dragcue">&rArr;</div>
+        <div class="slots">
+          <div class="slot filled">
+            <div class="sl-label">Time variable</div>
+            <div class="sl-cons">datetime / ordered &middot; exactly 1</div>
+            <span class="filledchip">month <span class="x">&times;</span></span>
+          </div>
+          <div class="slot target">
+            <div class="sl-label">Series (value)</div>
+            <div class="sl-cons">interval / ratio &middot; exactly 1</div>
+            <div class="placeholder">&hellip; dropping <b>sales</b> here</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">order</span><span class="v">auto-select</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">seasonal period</span><span class="v">12</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">forecast horizon</span><span class="v">12</span><span class="caret">&#9662;</span></span>
+      </div>
+      <div class="s" style="color:var(--faint);font-size:11.5px;margin-top:8px;">manual order: (p, d, q)(P, D, Q) if you don't want auto-selection</div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this to model a single variable measured repeatedly over time and forecast it forward — e.g. monthly sales. Drag your date/time column into <b>Time variable</b> and the numeric series into <b>Series</b>. Let Telos <b>auto-select</b> the orders, or set them yourself; set a <b>seasonal period</b> (e.g. 12 for monthly data) to use SARIMA.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; tables:</b> model summary, residual diagnostics</span>
+      <span class="tag"><b>figure:</b> forecast plot</span>
+    </div>
+  </div>
+
+  <div class="arrow"></div>
+
+  <div class="kicker">Drawn in full · panel data (a different shape)</div>
+  <div class="config">
+    <div class="ttl">Fixed effects</div>
+    <div class="sttl">panel regression controlling for stable entity differences</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · drag columns into roles</span>
+      <div class="map">
+        <div>
+          <div class="pl-h">Compatible columns <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);">(panel dataset)</span></div>
+          <div class="palette">
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>firm_id <span class="lv">nominal</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>year <span class="lv">ordered</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>roa <span class="lv">ratio</span></span>
+            <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>leverage <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>rd_spend <span class="lv">ratio</span></span>
+          </div>
+        </div>
+        <div class="dragcue">&rArr;</div>
+        <div class="slots">
+          <div class="slot filled">
+            <div class="sl-label">Entity</div>
+            <div class="sl-cons">nominal / ordinal &middot; exactly 1</div>
+            <span class="filledchip">firm_id <span class="x">&times;</span></span>
+          </div>
+          <div class="slot filled">
+            <div class="sl-label">Time</div>
+            <div class="sl-cons">datetime / ordered &middot; exactly 1</div>
+            <span class="filledchip">year <span class="x">&times;</span></span>
+          </div>
+          <div class="slot filled">
+            <div class="sl-label">Outcome (DV)</div>
+            <div class="sl-cons">interval / ratio &middot; exactly 1</div>
+            <span class="filledchip">roa <span class="x">&times;</span></span>
+          </div>
+          <div class="slot target">
+            <div class="sl-label">Regressors</div>
+            <div class="sl-cons">any level &middot; one or more</div>
+            <span class="filledchip">rd_spend <span class="x">&times;</span></span>
+            <div class="placeholder">&hellip; dropping <b>leverage</b> here too</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">effects</span><span class="v">entity</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">std. errors</span><span class="v">clustered by entity</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">&alpha;</span><span class="v">0.05</span><span class="caret">&#9662;</span></span>
+      </div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this for panel data (many entities observed over time) when you want to control for stable, unobserved differences between entities — e.g. firms over years. Drag the entity identifier into <b>Entity</b>, the time column into <b>Time</b>, the outcome into <b>Outcome</b>, and the explanatory variables into <b>Regressors</b>. Choose entity, time, or two-way effects.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; tables:</b> within-estimator coefficients, model fit</span>
+      <span class="tag"><b>figure:</b> coefficient plot</span>
+    </div>
+  </div>
+
+  <div class="arrow"></div>
+
+  <div class="kicker">Drawn in full · causal inference (a different shape)</div>
+  <div class="config">
+    <div class="ttl">Difference-in-differences (DiD)</div>
+    <div class="sttl">estimate a treatment effect from before/after, treated/control</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · drag columns into roles</span>
+      <div class="map">
+        <div>
+          <div class="pl-h">Compatible columns <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);">(policy dataset)</span></div>
+          <div class="palette">
+            <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>employment <span class="lv">ratio</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>treated <span class="lv">nom&middot;2</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>post <span class="lv">nom&middot;2</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>state_id <span class="lv">nominal</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>year <span class="lv">ordered</span></span>
+          </div>
+        </div>
+        <div class="dragcue">&rArr;</div>
+        <div class="slots">
+          <div class="slot target">
+            <div class="sl-label">Outcome (DV)</div>
+            <div class="sl-cons">interval / ratio &middot; exactly 1</div>
+            <div class="placeholder">&hellip; dropping <b>employment</b> here</div>
+          </div>
+          <div class="slot filled">
+            <div class="sl-label">Treatment group</div>
+            <div class="sl-cons">binary nominal &middot; exactly 1</div>
+            <span class="filledchip">treated <span class="x">&times;</span></span>
+          </div>
+          <div class="slot filled">
+            <div class="sl-label">Period (pre / post)</div>
+            <div class="sl-cons">binary nominal &middot; exactly 1</div>
+            <span class="filledchip">post <span class="x">&times;</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">&alpha;</span><span class="v">0.05</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">std. errors</span><span class="v">clustered</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">covariates</span><span class="v">none</span><span class="caret">&#9662;</span></span>
+      </div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this to estimate the effect of a policy or treatment by comparing the before&rarr;after change in a treated group against the change in an untreated control group. Drag the numeric outcome into <b>Outcome</b>, the treated/control indicator into <b>Treatment group</b>, and the before/after indicator into <b>Period</b>. The treatment&times;period interaction is the DiD estimate; check the parallel-trends plot.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; tables:</b> DiD estimate, model</span>
+      <span class="tag"><b>figure:</b> parallel-trends plot</span>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries · time series</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Stationarity tests (ADF, KPSS)</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Time <span class="c">datetime/ordered &times;1</span></span><span class="role-token">Series <span class="c">int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>test</b> ADF / KPSS / both &middot; lags</div>
+      <div class="k">Outputs</div><div class="vv">stationarity test table &middot; series + differenced plot</div>
+      <div class="k">Guide</div><div class="vv guide">Check whether a time series is stationary (a prerequisite for many models). Drag the time column into Time and the series into Series.</div>
+      <div class="k">R</div><div class="vv"><code>tseries::adf.test()</code> / <code>kpss.test()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Granger causality</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Time <span class="c">datetime/ordered &times;1</span></span><span class="role-token">Series X <span class="c">int/ratio &times;1</span></span><span class="role-token">Series Y <span class="c">int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>max lag</b> &middot; <b>&alpha;</b></div>
+      <div class="k">Outputs</div><div class="vv">Granger test table &middot; cross-series plot</div>
+      <div class="k">Guide</div><div class="vv guide">Test whether past values of one series help predict another. Drag the time column into Time and the two series into Series X and Series Y.</div>
+      <div class="k">R</div><div class="vv"><code>lmtest::grangertest()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">VAR</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Time <span class="c">datetime/ordered &times;1</span></span><span class="role-token">Series <span class="c">int/ratio &times;2..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>lag order</b> (auto / manual) &middot; IRF horizon</div>
+      <div class="k">Outputs</div><div class="vv">VAR coefficients, lag selection &middot; impulse-response plots</div>
+      <div class="k">Guide</div><div class="vv guide">Model several interrelated time series together. Drag the time column into Time and two or more series into Series.</div>
+      <div class="k">R</div><div class="vv"><code>vars::VAR()</code></div>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries · panel data</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Random effects</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Entity <span class="c">nom/ord &times;1</span></span><span class="role-token">Time <span class="c">datetime/ordered &times;1</span></span><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Regressors <span class="c">any &times;1..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; std. errors</div>
+      <div class="k">Outputs</div><div class="vv">random-effects coefficients, model fit &middot; coefficient plot</div>
+      <div class="k">Guide</div><div class="vv guide">Panel model that treats entity differences as random (lets you keep time-invariant predictors). Configure the same roles as fixed effects.</div>
+      <div class="k">R</div><div class="vv"><code>plm(model="random")</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Hausman test</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Entity <span class="c">nom/ord &times;1</span></span><span class="role-token">Time <span class="c">datetime/ordered &times;1</span></span><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Regressors <span class="c">any &times;1..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b></div>
+      <div class="k">Outputs</div><div class="vv">Hausman test statistic &amp; decision (fixed vs random)</div>
+      <div class="k">Guide</div><div class="vv guide">Decides whether fixed or random effects is appropriate. Configure the same panel model and Telos runs both and compares them.</div>
+      <div class="k">R</div><div class="vv"><code>plm::phtest()</code></div>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries · causal inference</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Regression discontinuity (RDD)</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Running variable <span class="c">int/ratio &times;1</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>cutoff value</b> &middot; bandwidth &middot; polynomial order</div>
+      <div class="k">Outputs</div><div class="vv">RD estimate table &middot; RD plot</div>
+      <div class="k">Guide</div><div class="vv guide">Estimate an effect at a threshold (e.g. a passing cutoff). Drag the outcome into Outcome and the score that determines treatment into Running variable, then set the cutoff value.</div>
+      <div class="k">R</div><div class="vv"><code>rdrobust::rdrobust()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Instrumental variables (IV / 2SLS)</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Endogenous regressor <span class="c">any &times;1..k</span></span><span class="role-token">Instrument(s) <span class="c">any &times;1..k</span></span><span class="role-token">Controls <span class="c">any &times;0..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; std. errors &middot; weak-instrument test</div>
+      <div class="k">Outputs</div><div class="vv">first-stage + 2SLS coefficients, diagnostics &middot; coefficient plot</div>
+      <div class="k">Guide</div><div class="vv guide">Estimate a causal effect when a predictor is endogenous, using instruments. Drag the outcome, the endogenous predictor, and one or more instruments into their slots.</div>
+      <div class="k">R</div><div class="vv"><code>AER::ivreg()</code> / <code>fixest::feols()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Propensity score matching</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Treatment <span class="c">binary nominal &times;1</span></span><span class="role-token">Covariates <span class="c">any &times;1..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>matching method</b> nearest / caliper &middot; ratio</div>
+      <div class="k">Outputs</div><div class="vv">balance table, ATT estimate &middot; love plot</div>
+      <div class="k">Guide</div><div class="vv guide">Estimate a treatment effect by matching treated and untreated cases on covariates. Drag the outcome, the treatment indicator, and the covariates to match on into their slots.</div>
+      <div class="k">R</div><div class="vv"><code>MatchIt::matchit()</code></div>
+    </div>
+  </div>
+
+
+  <!-- =================================================================== -->
+  <!-- FAMILY 6 · LATENT VARIABLE MODELS -->
+  <!-- =================================================================== -->
+  <h2 class="fam">6 · Latent variable models</h2>
+  <p class="fam-sub">Constructs measured by several items — reliability, factor analysis, and SEM.</p>
+
+  <div class="kicker">Drawn in full · the exception (its own canvas)</div>
+  <div class="config">
+    <div class="ttl">CB-SEM</div>
+    <div class="sttl">not slot-filling &mdash; the student <b>builds a model</b>: constructs from items, then paths between constructs</div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">1 · build the model</span>
+      <div class="canvas">
+        <div class="sem-flow">
+          <div class="construct"><div class="cn">Ease of Use</div><div class="inds"><span class="indchip">eu1</span><span class="indchip">eu2</span><span class="indchip">eu3</span></div></div>
+          <span class="patharrow">&rarr;</span>
+          <div class="construct"><div class="cn">Usefulness</div><div class="inds"><span class="indchip">pu1</span><span class="indchip">pu2</span><span class="indchip">pu3</span></div></div>
+          <span class="patharrow">&rarr;</span>
+          <div class="construct"><div class="cn">Intention</div><div class="inds"><span class="indchip">int1</span><span class="indchip">int2</span><span class="indchip">int3</span></div></div>
+        </div>
+        <div class="sem-cap">drag items into a construct (measurement model) &middot; draw arrows between constructs (structural model) &middot; + optional mediation / moderation</div>
+      </div>
+    </div>
+    <div class="mini-arrow"></div>
+    <div class="inner lbl-wrap">
+      <span class="zone-tag">2 · set this test's options</span>
+      <div class="optstrip">
+        <span class="optpill"><span class="k">estimator</span><span class="v">ML / MLR</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">missing</span><span class="v">FIML</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">bootstrap</span><span class="v">5000</span><span class="caret">&#9662;</span></span>
+      </div>
+    </div>
+    <div class="cfgguide">
+      <div class="gh">How to configure this test</div>
+      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (each needs at least 2&ndash;3 items). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs, including any mediation or moderation. Telos runs EFA &rarr; CFA &rarr; fit &rarr; structural automatically; FIML handles missing data.</p>
+    </div>
+    <div class="meta-row">
+      <span class="tag"><b>Produces &mdash; tables:</b> EFA, CFA loadings, fit indices, structural paths</span>
+      <span class="tag"><b>figure:</b> path diagram</span>
+    </div>
+    <div class="note">auto-runs EFA &rarr; CFA &rarr; fit &rarr; structural &middot; FIML missing-data path <span style="opacity:0.8;">(open item: override vs warn vs step 4a)</span></div>
+  </div>
+
+  <div class="kicker ref">Reference entries · reliability</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Cronbach's alpha</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Scale items <span class="c">ord/int &times;2..k &middot; one construct</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>standardized</b> alpha &middot; drop-item statistics</div>
+      <div class="k">Outputs</div><div class="vv">alpha, item-total correlations &middot; item-total plot</div>
+      <div class="k">Guide</div><div class="vv guide">Internal-consistency reliability of one multi-item scale. Drag the items that make up the scale into Scale items.</div>
+      <div class="k">R</div><div class="vv"><code>psych::alpha()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Average variance extracted (AVE)</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Construct items <span class="c">ord/int &times;2..k per construct</span></span> <span style="font-size:11px;color:var(--faint);">(define one or more constructs)</span></div>
+      <div class="k">Options</div><div class="vv"><b>estimator</b> (from CFA)</div>
+      <div class="k">Outputs</div><div class="vv">AVE per construct &middot; (with discriminant-validity matrix)</div>
+      <div class="k">Guide</div><div class="vv guide">Convergent validity from a measurement model. Define each construct by dragging its items together; AVE is computed from the CFA loadings (usually reported with CR).</div>
+      <div class="k">R</div><div class="vv"><code>semTools::AVE()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Composite reliability (CR)</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Construct items <span class="c">ord/int &times;2..k per construct</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>estimator</b> (from CFA)</div>
+      <div class="k">Outputs</div><div class="vv">CR per construct</div>
+      <div class="k">Guide</div><div class="vv guide">Construct reliability from a measurement model. Define each construct by its items; CR is computed from the CFA loadings (usually reported with AVE and alpha).</div>
+      <div class="k">R</div><div class="vv"><code>semTools::compRelSEM()</code></div>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries · factor analysis</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Exploratory factor analysis (EFA)</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Items <span class="c">ord/int/ratio &times;3..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>n factors</b> auto / scree / parallel &middot; <b>rotation</b> varimax / oblimin &middot; extraction</div>
+      <div class="k">Outputs</div><div class="vv">loadings, variance explained, communalities &middot; scree plot</div>
+      <div class="k">Guide</div><div class="vv guide">Discover the underlying factors behind a set of items. Drag all the candidate items into Items; let Telos suggest the number of factors or set it yourself.</div>
+      <div class="k">R</div><div class="vv"><code>psych::fa()</code></div>
+    </div>
+  </div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">Principal component analysis (PCA)</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Variables <span class="c">int/ratio &times;2..k</span></span></div>
+      <div class="k">Options</div><div class="vv"><b>n components</b> &middot; <b>rotation</b> (optional) &middot; standardize</div>
+      <div class="k">Outputs</div><div class="vv">component loadings, variance explained &middot; scree plot / biplot</div>
+      <div class="k">Guide</div><div class="vv guide">Reduce many numeric variables into a few components. Drag the numeric variables into Variables; choose how many components to keep.</div>
+      <div class="k">R</div><div class="vv"><code>prcomp()</code> / <code>psych::principal()</code></div>
+    </div>
+  </div>
+
+  <div class="kicker ref">Reference entries · SEM</div>
+
+  <div class="regentry">
+    <div class="re-top"><span class="re-name">PLS-SEM</span></div>
+    <div class="re-grid">
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Constructs &larr; items <span class="c">ord/int &times;2..k each</span></span><span class="role-token">Paths <span class="c">construct &rarr; construct</span></span> <span style="font-size:11px;color:var(--faint);">(same model-building canvas as CB-SEM)</span></div>
+      <div class="k">Options</div><div class="vv"><b>weighting</b> path / factor &middot; <b>bootstrap</b> &middot; reflective / formative</div>
+      <div class="k">Outputs</div><div class="vv">outer loadings/weights, path coefficients, R&sup2;, reliability &middot; path diagram</div>
+      <div class="k">Guide</div><div class="vv guide">Variance-based SEM for prediction or smaller samples / formative constructs. Build constructs and paths on the same canvas as CB-SEM; includes path analysis &amp; mediation/moderation.</div>
+      <div class="k">R</div><div class="vv"><code>seminr</code> / <code>plspm</code></div>
+    </div>
+  </div>
+
+
+  <!-- =================================================================== -->
+  <!-- FAMILY 7 · ASSUMPTION DIAGNOSTICS -->
+  <!-- =================================================================== -->
+  <h2 class="fam" style="opacity:0.6;">7 · Assumption diagnostics</h2>
+  <p class="fam-sub">Behavior still TBD (open item). Likely surfaced as the "checks after run" attached to each test above (normality, homoscedasticity, multicollinearity, etc.) rather than as standalone tests — to be decided with Benjie.</p>
+
+
+  <!-- how to read -->
+  <div class="legend">
+    <b>How to read this page:</b><br>
+    <span class="swatch" style="background:var(--amber-bg);"></span><b>Amber kicker</b> = drawn in full (the student-facing screen).&nbsp;&nbsp;
+    <span class="swatch" style="background:var(--blue-bg);"></span><b>Blue kicker</b> = reference entries (same screen, listed not re-drawn).<br>
+    Every full screen has the same parts — &#9312; drag columns into roles, &#9313; set options, &#9314; a <b>"How to configure this test"</b> guide, &#9315; what it produces.<br>
+    The dashed amber <b>"How to configure this test"</b> box is a <b>configure-time guide</b> — separate from the results-screen <b>"How to read this test"</b> layer in the main spec. One teaches <i>setup</i>; the other teaches <i>interpretation</i>.
+  </div>
+
+</div>
+</body>
+</html>
