@@ -251,10 +251,10 @@
   <div class="regentry">
     <div class="re-top"><span class="re-name">Frequencies &amp; cross-tabs</span></div>
     <div class="re-grid">
-      <div class="k">Roles</div><div class="vv"><span class="role-token">Variable(s) <span class="c">nom/ord &middot; 1&ndash;2</span></span></div>
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Variable(s) <span class="c">nom/ord &times;1..2</span></span></div>
       <div class="k">Options</div><div class="vv"><b>counts / percentages</b> &middot; cross-tab when 2 variables</div>
       <div class="k">Outputs</div><div class="vv">frequency / cross-tabulation table &middot; bar chart</div>
-      <div class="k">Guide</div><div class="vv guide">Counts for categorical data. Drag one category column for a frequency table, or two for a cross-tab.</div>
+      <div class="k">Guide</div><div class="vv guide">Counts for categorical data. Drag one category column for a frequency table, or two for a cross-tab. To test whether two categories are <i>related</i>, use Chi-square independence (Association family).</div>
       <div class="k">R</div><div class="vv"><code>janitor::tabyl()</code></div>
     </div>
   </div>
@@ -263,10 +263,10 @@
     <div class="re-top"><span class="re-name">Distribution &amp; normality</span></div>
     <div class="re-grid">
       <div class="k">Roles</div><div class="vv"><span class="role-token">Variable <span class="c">int/ratio &times;1</span></span></div>
-      <div class="k">Options</div><div class="vv"><b>normality test</b> Shapiro-Wilk / Kolmogorov-Smirnov &middot; bins</div>
+      <div class="k">Options</div><div class="vv"><b>normality test</b> Shapiro-Wilk / Kolmogorov-Smirnov (Lilliefors) &middot; bins</div>
       <div class="k">Outputs</div><div class="vv">normality test table &middot; histogram + Q-Q plot</div>
-      <div class="k">Guide</div><div class="vv guide">Check whether a numeric variable is normally distributed. Drag one numeric column in; you get a histogram, Q-Q plot, and a normality test.</div>
-      <div class="k">R</div><div class="vv"><code>shapiro.test()</code></div>
+      <div class="k">Guide</div><div class="vv guide">Check whether a numeric variable is normally distributed. Drag one numeric column in; you get a histogram, Q-Q plot, and a normality test. (Shapiro-Wilk runs for 3&ndash;5000 cases; with larger samples lean on the Q-Q plot, since the test turns over-sensitive.)</div>
+      <div class="k">R</div><div class="vv"><code>shapiro.test()</code> / <code>nortest::lillie.test()</code></div>
     </div>
   </div>
 
@@ -378,7 +378,7 @@
         <span class="optpill"><span class="k">post-hoc</span><span class="v">Tukey HSD</span><span class="caret">&#9662;</span></span>
         <span class="optpill"><span class="k">CI</span><span class="v">95%</span><span class="caret">&#9662;</span></span>
       </div>
-      <div class="s" style="color:var(--faint);font-size:11.5px;margin-top:8px;">post-hoc choices: Tukey HSD &middot; Bonferroni &middot; Scheff&eacute; &middot; Games-Howell</div>
+      <div class="s" style="color:var(--faint);font-size:11.5px;margin-top:8px;">post-hoc choices: Tukey HSD &middot; Bonferroni &middot; Scheff&eacute; <span style="opacity:0.85;">(Games-Howell lives under Welch's ANOVA, for unequal variances)</span></div>
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
@@ -444,7 +444,7 @@
       <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; random / fixed nesting</div>
       <div class="k">Outputs</div><div class="vv">nested ANOVA table &middot; grouped means plot</div>
       <div class="k">Guide</div><div class="vv guide">Use when one factor sits inside another (e.g. classrooms nested within schools). Drag the outcome into DV, the top factor into Factor, and the factor nested inside it into Nested factor.</div>
-      <div class="k">R</div><div class="vv"><code>aov(y ~ A/B)</code></div>
+      <div class="k">R</div><div class="vv"><code>aov(y ~ A + Error(A:B))</code> for random nesting &middot; <code>aov(y ~ A/B)</code> for fixed</div>
     </div>
   </div>
 
@@ -465,7 +465,7 @@
       <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Factor <span class="c">nom/ord &times;1..k</span></span><span class="role-token">Covariate(s) <span class="c">int/ratio &times;1..k</span></span></div>
       <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>post-hoc</b> (adjusted means) &middot; <b>CI</b></div>
       <div class="k">Outputs</div><div class="vv">ANCOVA table, adjusted means &middot; adjusted means plot</div>
-      <div class="k">Guide</div><div class="vv guide">Compare group means while controlling for a numeric covariate (e.g. compare post-scores across groups adjusting for pre-score). Drag the outcome into DV, the grouping variable into Factor, and the control variable into Covariate.</div>
+      <div class="k">Guide</div><div class="vv guide">Compare group means while controlling for a numeric covariate (e.g. compare post-scores across groups adjusting for pre-score). Drag the outcome into DV, the grouping variable into Factor, and the control variable into Covariate. It assumes the covariate&rarr;outcome relationship is the same in every group (parallel slopes) &mdash; Telos checks this after running.</div>
       <div class="k">R</div><div class="vv"><code>car::Anova()</code></div>
     </div>
   </div>
@@ -660,7 +660,7 @@
     <div class="re-top"><span class="re-name">Spearman correlation</span></div>
     <div class="re-grid">
       <div class="k">Roles</div><div class="vv"><span class="role-token">Variable A <span class="c">ord/int/ratio &times;1</span></span><span class="role-token">Variable B <span class="c">ord/int/ratio &times;1</span></span></div>
-      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>tails</b> &middot; <b>CI</b></div>
+      <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>tails</b> <span style="color:var(--faint);">(no CI &mdash; cor.test gives none for rank correlation)</span></div>
       <div class="k">Outputs</div><div class="vv">rank correlation (&rho;) &middot; scatter plot</div>
       <div class="k">Guide</div><div class="vv guide">Rank-based correlation for ordinal data or non-linear (but monotonic) relationships. Drag the two variables into A and B.</div>
       <div class="k">R</div><div class="vv"><code>cor.test(method="spearman")</code></div>
@@ -694,7 +694,7 @@
     <div class="re-grid">
       <div class="k">Roles</div><div class="vv"><span class="role-token">Row variable <span class="c">nom/ord &times;1</span></span><span class="role-token">Column variable <span class="c">nom/ord &times;1</span></span></div>
       <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>tails</b></div>
-      <div class="k">Outputs</div><div class="vv">contingency table, exact p, odds ratio &middot; mosaic</div>
+      <div class="k">Outputs</div><div class="vv">contingency table, exact p, odds ratio (2&times;2 only) &middot; mosaic</div>
       <div class="k">Guide</div><div class="vv guide">Exact alternative to chi-square for small samples (often 2&times;2). Drag the two category columns into Row and Column.</div>
       <div class="k">R</div><div class="vv"><code>fisher.test()</code></div>
     </div>
@@ -702,7 +702,7 @@
 
 
   <!-- =================================================================== -->
-  <!-- FAMILY 4 · REGRESSION & PREDICTION -->
+  <!-- FAMILY 4 · REGRESSION AND PREDICTION -->
   <!-- =================================================================== -->
   <h2 class="fam">4 · Regression &amp; prediction</h2>
   <p class="fam-sub">Predict / explain an outcome from one or more predictors.</p>
@@ -765,7 +765,7 @@
   <div class="regentry">
     <div class="re-top"><span class="re-name">Simple linear regression</span></div>
     <div class="re-grid">
-      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Predictor <span class="c">int/ratio &times;1</span></span></div>
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Predictor <span class="c">any level &times;1</span></span></div>
       <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; <b>CI</b></div>
       <div class="k">Outputs</div><div class="vv">coefficients, model fit &middot; fitted-line + residual plots</div>
       <div class="k">Guide</div><div class="vv guide">Predict a numeric outcome from a single numeric predictor. Drag the outcome into DV and the one predictor into Predictor.</div>
@@ -787,7 +787,7 @@
   <div class="regentry">
     <div class="re-top"><span class="re-name">Poisson / negative binomial</span></div>
     <div class="re-grid">
-      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">count &middot; ratio &times;1</span></span><span class="role-token">Predictors <span class="c">any &times;1..k</span></span></div>
+      <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">count &middot; non-negative integers &times;1</span></span><span class="role-token">Predictors <span class="c">any &times;1..k</span></span></div>
       <div class="k">Options</div><div class="vv"><b>model</b> Poisson / negative binomial &middot; <b>&alpha;</b> &middot; <b>CI</b> &middot; offset (optional)</div>
       <div class="k">Outputs</div><div class="vv">coefficients (rate ratios), fit, dispersion check &middot; residual plot</div>
       <div class="k">Guide</div><div class="vv guide">Model a count outcome (e.g. number of events). Drag the count column into DV and predictors into Predictors; switch to negative binomial if the counts are over-dispersed.</div>
@@ -844,7 +844,7 @@
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
-      <p>Use this to model a single variable measured repeatedly over time and forecast it forward — e.g. monthly sales. Drag your date/time column into <b>Time variable</b> and the numeric series into <b>Series</b>. Let Telos <b>auto-select</b> the orders, or set them yourself; set a <b>seasonal period</b> (e.g. 12 for monthly data) to use SARIMA.</p>
+      <p>Use this to model a single variable measured repeatedly over time and forecast it forward — e.g. monthly sales. Drag your date/time column into <b>Time variable</b> and the numeric series into <b>Series</b>. Let Telos <b>auto-select</b> the orders, or set them yourself; set the <b>seasonal period</b> to your data's real cycle length (12 = monthly, 4 = quarterly) to use SARIMA &mdash; and only if you have at least two full cycles of data.</p>
     </div>
     <div class="meta-row">
       <span class="tag"><b>Produces &mdash; tables:</b> model summary, residual diagnostics</span>
@@ -908,7 +908,7 @@
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
-      <p>Use this for panel data (many entities observed over time) when you want to control for stable, unobserved differences between entities — e.g. firms over years. Drag the entity identifier into <b>Entity</b>, the time column into <b>Time</b>, the outcome into <b>Outcome</b>, and the explanatory variables into <b>Regressors</b>. Choose entity, time, or two-way effects.</p>
+      <p>Use this for panel data (many entities observed over time) when you want to control for stable, unobserved differences between entities — e.g. firms over years. Drag the entity identifier into <b>Entity</b>, the time column into <b>Time</b>, the outcome into <b>Outcome</b>, and the explanatory variables into <b>Regressors</b>. Choose entity, time, or two-way effects. Predictors that never change within an entity (e.g. industry) are absorbed by the entity effects and drop out &mdash; use random effects if you need to keep them.</p>
     </div>
     <div class="meta-row">
       <span class="tag"><b>Produces &mdash; tables:</b> within-estimator coefficients, model fit</span>
@@ -952,6 +952,16 @@
             <div class="sl-cons">binary nominal &middot; exactly 1</div>
             <span class="filledchip">post <span class="x">&times;</span></span>
           </div>
+          <div class="slot filled">
+            <div class="sl-label">Entity / cluster unit <span style="font-weight:400;color:var(--faint);">(for clustered SEs)</span></div>
+            <div class="sl-cons">nominal / ordinal &middot; exactly 1</div>
+            <span class="filledchip">state_id <span class="x">&times;</span></span>
+          </div>
+          <div class="slot filled">
+            <div class="sl-label">Time <span style="font-weight:400;color:var(--faint);">(for parallel-trends plot)</span></div>
+            <div class="sl-cons">datetime / ordered &middot; exactly 1</div>
+            <span class="filledchip">year <span class="x">&times;</span></span>
+          </div>
         </div>
       </div>
     </div>
@@ -966,7 +976,7 @@
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
-      <p>Use this to estimate the effect of a policy or treatment by comparing the before&rarr;after change in a treated group against the change in an untreated control group. Drag the numeric outcome into <b>Outcome</b>, the treated/control indicator into <b>Treatment group</b>, and the before/after indicator into <b>Period</b>. The treatment&times;period interaction is the DiD estimate; check the parallel-trends plot.</p>
+      <p>Use this to estimate the effect of a policy or treatment by comparing the before&rarr;after change in a treated group against the change in an untreated control group. Drag the numeric outcome into <b>Outcome</b>, the treated/control indicator into <b>Treatment group</b>, and the before/after indicator into <b>Period</b>; add the <b>Entity</b> (for clustered standard errors) and the finer <b>Time</b> column (for the trends plot). The treatment&times;period interaction is the DiD estimate. <b>It is only valid if the treated and control groups were trending together <i>before</i> treatment (the parallel-trends assumption)</b> &mdash; inspect the pre-treatment part of the trends plot; if the lines already diverge, don't trust the estimate.</p>
     </div>
     <div class="meta-row">
       <span class="tag"><b>Produces &mdash; tables:</b> DiD estimate, model</span>
@@ -993,7 +1003,7 @@
       <div class="k">Roles</div><div class="vv"><span class="role-token">Time <span class="c">datetime/ordered &times;1</span></span><span class="role-token">Series X <span class="c">int/ratio &times;1</span></span><span class="role-token">Series Y <span class="c">int/ratio &times;1</span></span></div>
       <div class="k">Options</div><div class="vv"><b>max lag</b> &middot; <b>&alpha;</b></div>
       <div class="k">Outputs</div><div class="vv">Granger test table &middot; cross-series plot</div>
-      <div class="k">Guide</div><div class="vv guide">Test whether past values of one series help predict another. Drag the time column into Time and the two series into Series X and Series Y.</div>
+      <div class="k">Guide</div><div class="vv guide">Test whether past values of one series help predict another &mdash; this is predictive precedence, <b>not</b> proof of causation, and both series should be made stationary first (run the stationarity test). Drag the time column into Time and the two series into Series X and Series Y.</div>
       <div class="k">R</div><div class="vv"><code>lmtest::grangertest()</code></div>
     </div>
   </div>
@@ -1017,7 +1027,7 @@
       <div class="k">Roles</div><div class="vv"><span class="role-token">Entity <span class="c">nom/ord &times;1</span></span><span class="role-token">Time <span class="c">datetime/ordered &times;1</span></span><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Regressors <span class="c">any &times;1..k</span></span></div>
       <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; std. errors</div>
       <div class="k">Outputs</div><div class="vv">random-effects coefficients, model fit &middot; coefficient plot</div>
-      <div class="k">Guide</div><div class="vv guide">Panel model that treats entity differences as random (lets you keep time-invariant predictors). Configure the same roles as fixed effects.</div>
+      <div class="k">Guide</div><div class="vv guide">Panel model that treats entity differences as random (lets you keep time-invariant predictors). It assumes those entity differences are uncorrelated with your predictors &mdash; if that fails the estimates are biased, so use the Hausman test to choose between fixed and random effects. Configure the same roles as fixed effects.</div>
       <div class="k">R</div><div class="vv"><code>plm(model="random")</code></div>
     </div>
   </div>
@@ -1052,7 +1062,7 @@
       <div class="k">Roles</div><div class="vv"><span class="role-token">Outcome (DV) <span class="c">int/ratio &times;1</span></span><span class="role-token">Endogenous regressor <span class="c">any &times;1..k</span></span><span class="role-token">Instrument(s) <span class="c">any &times;1..k</span></span><span class="role-token">Controls <span class="c">any &times;0..k</span></span></div>
       <div class="k">Options</div><div class="vv"><b>&alpha;</b> &middot; std. errors &middot; weak-instrument test</div>
       <div class="k">Outputs</div><div class="vv">first-stage + 2SLS coefficients, diagnostics &middot; coefficient plot</div>
-      <div class="k">Guide</div><div class="vv guide">Estimate a causal effect when a predictor is endogenous, using instruments. Drag the outcome, the endogenous predictor, and one or more instruments into their slots.</div>
+      <div class="k">Guide</div><div class="vv guide">Estimate a causal effect when a predictor is endogenous, using instruments. Drag the outcome, the endogenous predictor, and one or more instruments into their slots &mdash; you need at least as many instruments as endogenous predictors.</div>
       <div class="k">R</div><div class="vv"><code>AER::ivreg()</code> / <code>fixest::feols()</code></div>
     </div>
   </div>
@@ -1064,7 +1074,7 @@
       <div class="k">Options</div><div class="vv"><b>matching method</b> nearest / caliper &middot; ratio</div>
       <div class="k">Outputs</div><div class="vv">balance table, ATT estimate &middot; love plot</div>
       <div class="k">Guide</div><div class="vv guide">Estimate a treatment effect by matching treated and untreated cases on covariates. Drag the outcome, the treatment indicator, and the covariates to match on into their slots.</div>
-      <div class="k">R</div><div class="vv"><code>MatchIt::matchit()</code></div>
+      <div class="k">R</div><div class="vv"><code>MatchIt::matchit()</code> + estimate the ATT on the matched data (e.g. <code>lm()</code> / <code>marginaleffects</code>)</div>
     </div>
   </div>
 
@@ -1096,20 +1106,20 @@
     <div class="inner lbl-wrap">
       <span class="zone-tag">2 · set this test's options</span>
       <div class="optstrip">
-        <span class="optpill"><span class="k">estimator</span><span class="v">ML / MLR</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">estimator</span><span class="v">WLSMV (ordinal) / ML / MLR</span><span class="caret">&#9662;</span></span>
         <span class="optpill"><span class="k">missing</span><span class="v">FIML</span><span class="caret">&#9662;</span></span>
         <span class="optpill"><span class="k">bootstrap</span><span class="v">5000</span><span class="caret">&#9662;</span></span>
       </div>
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
-      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (each needs at least 2&ndash;3 items). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs, including any mediation or moderation. Telos runs EFA &rarr; CFA &rarr; fit &rarr; structural automatically; FIML handles missing data.</p>
+      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (<b>at least 3 items</b> per construct &mdash; 2 only works inside a larger model). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs, including any mediation or moderation. When your items are <b>ordinal Likert</b>, use the <b>WLSMV</b> estimator (treats them as ordered) instead of ML/MLR. Telos runs EFA &rarr; CFA &rarr; fit &rarr; structural automatically; FIML handles missing data.</p>
     </div>
     <div class="meta-row">
       <span class="tag"><b>Produces &mdash; tables:</b> EFA, CFA loadings, fit indices, structural paths</span>
       <span class="tag"><b>figure:</b> path diagram</span>
     </div>
-    <div class="note">auto-runs EFA &rarr; CFA &rarr; fit &rarr; structural &middot; FIML missing-data path <span style="opacity:0.8;">(open item: override vs warn vs step 4a)</span></div>
+    <div class="note">auto-runs EFA &rarr; CFA &rarr; fit &rarr; structural &middot; FIML missing-data path <span style="opacity:0.8;">(open items: FIML override vs warn vs step 4a &middot; EFA on the same sample is exploratory &mdash; treat it as a diagnostic, not confirmatory evidence)</span></div>
   </div>
 
   <div class="kicker ref">Reference entries · reliability</div>
@@ -1131,7 +1141,7 @@
       <div class="k">Roles</div><div class="vv"><span class="role-token">Construct items <span class="c">ord/int &times;2..k per construct</span></span> <span style="font-size:11px;color:var(--faint);">(define one or more constructs)</span></div>
       <div class="k">Options</div><div class="vv"><b>estimator</b> (from CFA)</div>
       <div class="k">Outputs</div><div class="vv">AVE per construct &middot; (with discriminant-validity matrix)</div>
-      <div class="k">Guide</div><div class="vv guide">Convergent validity from a measurement model. Define each construct by dragging its items together; AVE is computed from the CFA loadings (usually reported with CR).</div>
+      <div class="k">Guide</div><div class="vv guide">Convergent validity from a measurement model. Define each construct by dragging its items together; AVE is computed from the CFA loadings &mdash; use the same fit (WLSMV for ordinal items) as CR and report them together.</div>
       <div class="k">R</div><div class="vv"><code>semTools::AVE()</code></div>
     </div>
   </div>
@@ -1142,7 +1152,7 @@
       <div class="k">Roles</div><div class="vv"><span class="role-token">Construct items <span class="c">ord/int &times;2..k per construct</span></span></div>
       <div class="k">Options</div><div class="vv"><b>estimator</b> (from CFA)</div>
       <div class="k">Outputs</div><div class="vv">CR per construct</div>
-      <div class="k">Guide</div><div class="vv guide">Construct reliability from a measurement model. Define each construct by its items; CR is computed from the CFA loadings (usually reported with AVE and alpha).</div>
+      <div class="k">Guide</div><div class="vv guide">Construct reliability from a measurement model. Define each construct by its items; CR is computed from the CFA loadings &mdash; use the same fit (WLSMV for ordinal items) as AVE, and report them together.</div>
       <div class="k">R</div><div class="vv"><code>semTools::compRelSEM()</code></div>
     </div>
   </div>
