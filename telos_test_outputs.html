@@ -197,7 +197,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Distribution shape</div><div class="ftype">type: <b>histogram</b> + <b>Q&ndash;Q plot</b></div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>A small <b>p</b> (below .05) suggests the data depart from normality. With large samples these tests over-flag trivial deviations, so judge normality mainly from the <b>Q&ndash;Q plot</b> &mdash; points hugging the diagonal indicate normality.</p></div>
+      <div class="howread"><p>A small <b>p</b> (below .05) suggests the data depart from normality. With large samples these tests over-flag trivial deviations; with small samples they have low power, so a <b>p &gt; .05 does not prove normality</b> &mdash; it only means no departure was detected. Either way, judge normality mainly from the <b>Q&ndash;Q plot</b> &mdash; points hugging the diagonal indicate normality.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Normality was assessed with the Shapiro&ndash;Wilk test, <i>W</i>&nbsp;=&nbsp;__, <i>p</i>&nbsp;=&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>shapiro.test()</code> (returns W, p) / <code>nortest::lillie.test()</code> (returns D, p) &rarr; table &middot; <code>ggplot2</code> + <code>stat_qq()</code> &rarr; figures</div>
@@ -223,7 +223,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Value vs. test value</div><div class="ftype">type: <b>distribution / boxplot</b> with a reference line at the test value</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Compares your sample mean to a fixed value. A <b>p</b> below alpha means the mean differs from that value; the <b>mean difference</b> and <b>95% CI</b> show by how much, and <b>Cohen's d</b> gives the effect size.</p></div>
+      <div class="howread"><p>Compares your sample mean to a fixed value. A <b>p</b> below alpha means the mean differs from that value; the <b>mean difference</b> and <b>95% CI</b> show by how much (its sign tells you whether the mean is above or below the test value), and <b>Cohen's d</b> gives the effect size. A <b>p</b> at or above alpha does not prove the mean equals the test value &mdash; only that you lack evidence it differs.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A one-sample t-test showed <i>M</i>&nbsp;=&nbsp;__ differed from __, <i>t</i>(__)&nbsp;=&nbsp;__, <i>p</i>&nbsp;=&nbsp;__, <i>d</i>&nbsp;=&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>t.test(x, mu=)</code> &rarr; Table 2 &middot; <code>effectsize::cohens_d()</code> &rarr; d &middot; <code>ggplot2</code> &rarr; figure</div>
@@ -252,7 +252,7 @@
         <div class="ftype">type: <b>boxplot</b> of the DV split by the grouping variable</div>
       </div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Asks whether two groups' averages differ by more than chance. Look at <b>p</b>: below alpha (e.g. .05) means significant. The <b>mean difference</b> and <b>95% CI</b> show the size and precision of the gap; <b>Cohen's d</b> gives effect size (~0.2 small, 0.5 medium, 0.8 large).</p></div>
+      <div class="howread"><p>Asks whether two groups' averages differ by more than chance. Look at <b>p</b>: below alpha (e.g. .05) means significant. The <b>mean difference</b> and <b>95% CI</b> show the size and precision of the gap; <b>Cohen's d</b> gives effect size (~0.2 small, 0.5 medium, 0.8 large). A large <b>p</b> means no significant difference was <i>detected</i> &mdash; not that the group means are equal.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;An independent-samples t-test found a difference between Control (<i>M</i>=72.4, <i>SD</i>=8.1) and Treatment (<i>M</i>=78.9, <i>SD</i>=7.6), <i>t</i>(58)=&minus;3.21, <i>p</i>=.002, <i>d</i>=&minus;0.83.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>t.test()</code> &rarr; Table 2 &middot; summary &rarr; Table 1 &middot; <code>effectsize::cohens_d()</code> &rarr; d &middot; <code>car::leveneTest()</code> &rarr; assumption &middot; <code>geom_boxplot()</code> &rarr; figure</div>
@@ -273,10 +273,10 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Change per case</div><div class="ftype">type: <b>paired-lines / difference plot</b></div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Tests whether the average <i>change</i> between two related measurements (e.g. before vs. after) differs from zero. A <b>p</b> below alpha means a significant change; the <b>mean difference</b>, <b>CI</b> and <b>d<sub>z</sub></b> describe its size.</p></div>
+      <div class="howread"><p>Tests whether the average <i>change</i> between two related measurements (e.g. before vs. after) differs from zero. A <b>p</b> below alpha means a significant change; the <b>mean difference</b>, <b>CI</b> and <b>d<sub>z</sub></b> describe its size (their sign depends on the subtraction order, A&minus;B). A <b>p</b> at or above alpha does not prove there was no change &mdash; only that none was detected.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A paired-samples t-test showed a change of <i>M</i>=__ , <i>t</i>(__)=__, <i>p</i>=__, <i>d<sub>z</sub></i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>t.test(paired=TRUE)</code> &rarr; Table 2 &middot; <code>effectsize::cohens_d(paired=TRUE)</code> &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m"><b>R map:</b> <code>dplyr::summarise()</code> / <code>psych::describe()</code> &rarr; Table 1 (per-condition N/M/SD) &middot; <code>t.test(paired=TRUE)</code> &rarr; Table 2 &middot; <code>effectsize::cohens_d(paired=TRUE)</code> &rarr; d<sub>z</sub> &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_paired-descriptives.png &middot; table_t-test.png &middot; figure_difference.png</div>
       </div>
     </div>
@@ -317,7 +317,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Interaction</div><div class="ftype">type: <b>interaction plot</b> (one line per level of a factor)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Each factor's <b>F</b>/<b>p</b> is its main effect; the <b>A&times;B</b> row tests whether the effect of one factor depends on the other. A significant interaction usually takes priority &mdash; read it from the interaction plot before the main effects.</p></div>
+      <div class="howread"><p>Each factor's <b>F</b>/<b>p</b> is its main effect; the <b>A&times;B</b> row tests whether the effect of one factor depends on the other. A significant interaction usually takes priority &mdash; read it from the interaction plot before the main effects. A significant effect for any factor with 3+ levels tells you the levels differ <i>somewhere</i>, not which ones &mdash; use the post-hoc / simple-effects (emmeans) table to find the specific pairs.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A two-way ANOVA found a significant A&times;B interaction, <i>F</i>(__,__)=__, <i>p</i>=__, partial &eta;&sup2;=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>aov()</code> / <code>afex::aov_car()</code> &rarr; Table 2 &middot; <code>emmeans</code> &rarr; simple effects &middot; <code>ggplot2</code> &rarr; interaction plot</div>
@@ -343,7 +343,7 @@
       <div class="howread"><p>Tests whether the average differs across conditions measured on the same people. Check <b>sphericity</b> first &mdash; if violated, read the corrected <b>F</b>/<b>p</b>. A significant result means conditions differ; post-hoc tests show which.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A repeated-measures ANOVA (GG-corrected) found an effect of condition, <i>F</i>(__,__)=__, <i>p</i>=__, partial &eta;&sup2;=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>afex::aov_ez()</code> &rarr; Tables 2&ndash;3 &middot; <code>emmeans</code> &rarr; post-hoc &middot; <code>ggplot2</code> &rarr; profile plot</div>
+        <div class="m"><b>R map:</b> <code>dplyr::group_by()+summarise()</code> &rarr; Table 1 (per-condition N/M/SD) &middot; <code>afex::aov_ez()</code> &rarr; Tables 2&ndash;3 &middot; <code>emmeans</code> &rarr; post-hoc &middot; <code>ggplot2</code> &rarr; profile plot</div>
         <div class="m bundle">table_descriptives.png &middot; table_rm-anova.png &middot; table_sphericity.png &middot; figure_profile.png</div>
       </div>
     </div>
@@ -377,12 +377,12 @@
       <div class="apa-cap"><b>Table 2.</b> Welch's ANOVA</div>
       <table class="apa"><thead><tr><th>F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Games&ndash;Howell post-hoc</div>
-      <table class="apa"><thead><tr><th>Pair</th><th>M<sub>diff</sub></th><th>SE</th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Pair</th><th>M<sub>diff</sub></th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Group means</div><div class="ftype">type: <b>means plot</b> with 95% CI error bars</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>A one-way ANOVA that doesn't assume equal spread across groups. Read <b>F</b>/<b>p</b> as usual; the Games&ndash;Howell post-hoc (also variance-robust) shows which pairs differ.</p></div>
+      <div class="howread"><p>A one-way ANOVA that relaxes the equal-variance assumption but still assumes roughly normal data within each group. A significant <b>F</b> means at least one group mean differs from the others; the Games&ndash;Howell post-hoc (also variance-robust) then shows which specific pairs differ.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Welch's ANOVA found an effect of group, <i>F</i>(__,__)=__, <i>p</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>oneway.test(var.equal=FALSE)</code> &rarr; Table 2 &middot; <code>rstatix::games_howell_test()</code> &rarr; Table 3</div>
@@ -403,10 +403,10 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Adjusted means</div><div class="ftype">type: <b>adjusted means plot</b> (covariate-controlled, &plusmn; CI)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Compares group means after statistically removing the influence of a numeric covariate. Read the <b>Factor</b> row's <b>F</b>/<b>p</b> for the adjusted group effect, and the <b>adjusted means</b> for the covariate-controlled group values.</p></div>
+      <div class="howread"><p>Compares group means after statistically removing the influence of a numeric covariate. First confirm the <b>factor&times;covariate interaction is non-significant</b> (homogeneity of slopes) &mdash; if it is significant, the adjusted-means interpretation is not valid and a different model is needed. Then read the <b>Factor</b> row's <b>F</b>/<b>p</b> for the adjusted group effect, and the <b>adjusted means</b> for the covariate-controlled group values.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Controlling for the covariate, an ANCOVA found a group effect, <i>F</i>(__,__)=__, <i>p</i>=__, partial &eta;&sup2;=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>car::Anova(type=3)</code> &rarr; Table 2 &middot; <code>emmeans</code> &rarr; adjusted means &amp; post-hoc &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m"><b>R map:</b> <code>car::Anova(type=3)</code> &rarr; Table 2 (SS/df/F/p) &middot; <code>effectsize::eta_squared(partial=TRUE)</code> &rarr; partial &eta;&sup2; &middot; <code>emmeans</code> &rarr; adjusted means &amp; post-hoc &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_adjusted-means.png &middot; table_ancova.png &middot; figure_adjusted-means.png</div>
       </div>
     </div>
@@ -423,10 +423,10 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Group means per outcome</div><div class="ftype">type: <b>means plot</b> faceted by DV</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Tests whether groups differ on a <i>set</i> of outcomes jointly. Read the multivariate <b>p</b> (Pillai's trace is robust) first; if significant, the per-DV follow-up ANOVAs show which individual outcomes drive it.</p></div>
+      <div class="howread"><p>Tests whether groups differ on a <i>set</i> of outcomes jointly. Read the multivariate <b>p</b> (Pillai's trace is robust) first; if significant, the per-DV follow-up ANOVAs show which individual outcomes drive it. Because you run one ANOVA per outcome, correct those follow-up p-values for multiple comparisons (e.g. Bonferroni: divide alpha by the number of outcomes) before calling each significant.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A MANOVA found a multivariate group effect, Pillai's <i>V</i>=__, <i>F</i>(__,__)=__, <i>p</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>manova()</code> + <code>summary(.., test="Pillai")</code> &rarr; Table 1 &middot; <code>summary.aov()</code> &rarr; Table 2</div>
+        <div class="m"><b>R map:</b> <code>manova()</code> + <code>summary(.., test="Pillai")</code> &rarr; Table 1 &middot; <code>summary.aov()</code> &rarr; Table 2 (F/df/p) &middot; <code>effectsize::eta_squared(partial=TRUE)</code> &rarr; partial &eta;&sup2;</div>
         <div class="m bundle">table_multivariate.png &middot; table_univariate-followups.png &middot; figure_means.png</div>
       </div>
     </div>
@@ -444,10 +444,10 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Adjusted means per outcome</div><div class="ftype">type: <b>adjusted means plot</b> faceted by DV</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. Read the multivariate <b>p</b>, then the adjusted follow-ups.</p></div>
+      <div class="howread"><p>Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. Interpret the univariate follow-ups only if the multivariate <b>p</b> is significant, and adjust them for the number of DVs (e.g. Bonferroni) to control familywise error.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A MANCOVA found a covariate-adjusted group effect, Pillai's <i>V</i>=__, <i>F</i>(__,__)=__, <i>p</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>car::Manova()</code> &rarr; Table 1 &middot; <code>emmeans</code>/<code>car::Anova()</code> &rarr; Table 2</div>
+        <div class="m"><b>R map:</b> <code>car::Manova()</code> &rarr; Table 1 &middot; <code>car::Anova()</code> &rarr; Table 2 (F/df/p) &middot; <code>effectsize::eta_squared(partial=TRUE)</code> &rarr; partial &eta;&sup2; &middot; <code>emmeans</code> &rarr; adjusted means</div>
         <div class="m bundle">table_multivariate.png &middot; table_univariate-followups.png &middot; figure_adjusted-means.png</div>
       </div>
     </div>
@@ -468,7 +468,7 @@
       <div class="howread"><p>The nonparametric counterpart to the independent t-test, comparing whole distributions via ranks rather than means. A <b>p</b> below alpha means one group's values tend to be systematically higher or lower (stochastic dominance) &mdash; this equals a difference in medians only when the two groups have similar distribution shapes. <b>r</b> gives the effect size.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Mann&ndash;Whitney U test showed a difference, <i>U</i>=__, <i>Z</i>=__, <i>p</i>=__, <i>r</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>wilcox.test()</code> &rarr; U, p &middot; <code>coin::wilcox_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial()</code> &rarr; r &middot; <code>geom_boxplot()</code> &rarr; figure</div>
+        <div class="m"><b>R map:</b> <code>dplyr</code> rank + group_by/summarise (N, mean rank, sum of ranks) &rarr; Table 1 &middot; <code>wilcox.test()</code> &rarr; U, p &middot; <code>coin::wilcox_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial()</code> &rarr; r &middot; <code>geom_boxplot()</code> &rarr; figure</div>
         <div class="m bundle">table_rank-summary.png &middot; table_mann-whitney.png &middot; figure_boxplot.png</div>
       </div>
     </div>
@@ -485,10 +485,10 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Change per case</div><div class="ftype">type: <b>difference plot</b> / paired box</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>The nonparametric counterpart to the paired t-test. It ranks the size of each paired change; a <b>p</b> below alpha means a systematic shift between the two conditions, with <b>r</b> as the effect size.</p></div>
+      <div class="howread"><p>The nonparametric counterpart to the paired t-test. It ranks the size of each paired change; a <b>p</b> below alpha means a systematic shift between the two conditions, with <b>r</b> as the effect size. The shift maps to the median difference only when the within-pair differences are roughly symmetric; the sign of the median difference (or Hodges&ndash;Lehmann estimate) gives the direction.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Wilcoxon signed-rank test showed a change, <i>Z</i>=__, <i>p</i>=__, <i>r</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>wilcox.test(paired=TRUE)</code> &rarr; V, p &middot; <code>coin::wilcoxsign_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial(paired=TRUE)</code> &rarr; r</div>
+        <div class="m"><b>R map:</b> <code>rank(abs(d))</code> split by <code>sign(d)</code> &rarr; Table 1 (per-sign N / mean rank / sum of ranks) &middot; <code>wilcox.test(paired=TRUE)</code> &rarr; V, p &middot; <code>coin::wilcoxsign_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial(paired=TRUE)</code> &rarr; r</div>
         <div class="m bundle">table_rank-summary.png &middot; table_signed-rank.png &middot; figure_difference.png</div>
       </div>
     </div>
@@ -510,7 +510,7 @@
       <div class="howread"><p>The nonparametric counterpart to one-way ANOVA. The <b>H</b>/<b>p</b> tests whether any group tends to have systematically higher or lower values (stochastic dominance) &mdash; read it as a "median difference" only when the groups have similar distribution shapes. If significant, Dunn's post-hoc shows which pairs differ, with adjusted p-values. <b>&epsilon;&sup2;</b> is the effect size.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Kruskal&ndash;Wallis test found a difference, <i>H</i>(__)=__, <i>p</i>=__, &epsilon;&sup2;=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>kruskal.test()</code> &rarr; Table 2 &middot; <code>dunn.test</code>/<code>FSA::dunnTest()</code> &rarr; Table 3</div>
+        <div class="m"><b>R map:</b> <code>kruskal.test()</code> &rarr; H, df, p &middot; <code>rstatix::kruskal_effsize()</code> / <code>effectsize::rank_epsilon_squared()</code> &rarr; &epsilon;&sup2; &middot; <code>dunn.test</code>/<code>FSA::dunnTest()</code> &rarr; Table 3</div>
         <div class="m bundle">table_rank-summary.png &middot; table_kruskal-wallis.png &middot; table_posthoc.png &middot; figure_boxplot.png</div>
       </div>
     </div>
@@ -532,7 +532,7 @@
       <div class="howread"><p>The nonparametric counterpart to repeated-measures ANOVA. The <b>&chi;&sup2;</b>/<b>p</b> tests whether ranks differ across conditions; <b>Kendall's W</b> is the effect size (0&ndash;1 agreement). Post-hoc shows which conditions differ.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Friedman test found a difference across conditions, &chi;&sup2;(__)=__, <i>p</i>=__, <i>W</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>friedman.test()</code> &rarr; Table 2 &middot; <code>PMCMRplus</code> (Nemenyi) &rarr; Table 3</div>
+        <div class="m"><b>R map:</b> <code>colMeans(apply(data, 1, rank))</code> &rarr; Table 1 (per-condition mean rank) &middot; <code>friedman.test()</code> &rarr; &chi;&sup2;, df, p &middot; <code>rstatix::friedman_effsize()</code> / <code>effectsize::kendalls_w()</code> &rarr; Kendall's W &middot; <code>PMCMRplus</code> (Nemenyi) &rarr; Table 3</div>
         <div class="m bundle">table_rank-summary.png &middot; table_friedman.png &middot; table_posthoc.png &middot; figure_profile.png</div>
       </div>
     </div>
@@ -552,7 +552,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Relationship</div><div class="ftype">type: <b>scatter plot</b> with fitted line</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p><b>r</b> ranges from &minus;1 to +1: the sign is the direction, the magnitude the strength (~.1 small, .3 medium, .5 large). <b>p</b> tests whether it differs from zero; the <b>95% CI</b> shows the precision.</p></div>
+      <div class="howread"><p><b>r</b> ranges from &minus;1 to +1: the sign is the direction, the magnitude the strength (~.1 small, .3 medium, .5 large). <b>p</b> tests whether it differs from zero; the <b>95% CI</b> shows the precision. <b>r</b> measures only <i>linear</i> association &mdash; a strong curved relationship can give r near 0, and r is sensitive to outliers, so always inspect the scatterplot (use Spearman's r<sub>s</sub> for monotonic-but-nonlinear or outlier-affected data). Correlation does not imply causation.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;post and pre scores were correlated, <i>r</i>(__)=__, <i>p</i>=__, 95% CI [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>cor.test()</code> &rarr; table &middot; <code>geom_point()+geom_smooth(method="lm")</code> &rarr; figure</div>
@@ -610,7 +610,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Cross-classification</div><div class="ftype">type: <b>mosaic</b> or grouped bar chart</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Tests whether two categorical variables are associated. A <b>p</b> below alpha means they are related; <b>Cram&eacute;r's V</b> gives the strength of association (0&ndash;1).</p></div>
+      <div class="howread"><p>Tests whether two categorical variables are associated. A <b>p</b> below alpha means they are related; <b>Cram&eacute;r's V</b> gives the strength of association (0&ndash;1). Valid only when expected counts are mostly &ge; 5 (the app flags this and suggests Fisher's exact) and each case appears once (raw counts, not percentages).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A chi-square test of independence was significant, &chi;&sup2;(__, <i>N</i>=__)=__, <i>p</i>=__, <i>V</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>chisq.test()</code> &rarr; Table 2 &middot; <code>rcompanion::cramerV()</code> &rarr; V &middot; <code>ggplot2</code>/<code>vcd::mosaic()</code> &rarr; figure</div>
@@ -624,17 +624,17 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Observed vs. expected</div>
-      <table class="apa"><thead><tr><th>Category</th><th>Observed</th><th>Expected</th><th>Residual</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Category</th><th>Observed</th><th>Expected</th><th>Std. residual</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Goodness-of-fit test</div>
       <table class="apa"><thead><tr><th>&chi;&sup2;</th><th>df (k&minus;1)</th><th>p</th><th>Cohen's w</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">here df = number of categories &minus; 1 (not (r&minus;1)(c&minus;1) as in the independence test).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Observed vs. expected</div><div class="ftype">type: <b>bar chart</b> (observed vs. expected)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Tests whether one categorical variable's counts depart from an expected distribution (equal by default). A <b>p</b> below alpha means the observed split differs from expected; the residuals show which categories drive it.</p></div>
+      <div class="howread"><p>Tests whether one categorical variable's counts depart from an expected distribution (equal by default). A <b>p</b> below alpha means the observed split differs from expected; a <b>standardized residual</b> beyond about &plusmn;1.96 flags a category that significantly drives the result. Valid only when expected counts are mostly &ge; 5 (some texts allow &ge; 1 if no more than 20% are below 5); for sparse categories use an exact / simulated test instead.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A goodness-of-fit test, &chi;&sup2;(<i>k</i>&minus;1, <i>N</i>=__)=__, <i>p</i>=__, <i>w</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>chisq.test(x, p=)</code> &rarr; Table 2 &middot; <code>effectsize::cohens_w()</code> &rarr; w &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m"><b>R map:</b> <code>chisq.test(x, p=)</code> &rarr; Table 2 &middot; <code>chisq.test(...)$stdres</code> &rarr; Table 1 std. residuals &middot; <code>effectsize::cohens_w()</code> &rarr; w &middot; <code>chisq.test(..., simulate.p.value=TRUE)</code> for sparse data &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_observed-expected.png &middot; table_chi-square.png &middot; figure_bar.png</div>
       </div>
     </div>
@@ -652,7 +652,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Cross-classification</div><div class="ftype">type: <b>mosaic</b> / grouped bar chart</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>An exact alternative to chi-square for small samples. A <b>p</b> below alpha means the two categories are associated; for 2&times;2 tables the <b>odds ratio</b> quantifies the association.</p></div>
+      <div class="howread"><p>An exact alternative to chi-square for small samples. A <b>p</b> below alpha means the two categories are associated; for 2&times;2 tables the <b>odds ratio</b> quantifies the association &mdash; OR&gt;1 means the outcome is more likely in the first row/group, OR&lt;1 less likely, OR=1 no association. Check the row/column order before reading direction, since the OR reflects the table's orientation.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Fisher's exact test of [Var1] by [Var2] gave <i>p</i>=__.&rdquo; &middot; for 2&times;2 tables add &ldquo;(OR=__, 95% CI [__, __])&rdquo;; larger tables report the exact <i>p</i> only.</div>
         <div class="m"><b>R map:</b> <code>fisher.test()</code> &rarr; Table 2 &middot; <code>ggplot2</code>/<code>vcd::mosaic()</code> &rarr; figure</div>
@@ -671,14 +671,14 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Model fit</div>
-      <table class="apa"><thead><tr><th>R&sup2;</th><th>Adj. R&sup2;</th><th>F</th><th>df</th><th>p</th><th>SE</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>R&sup2;</th><th>Adj. R&sup2;</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>SE</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Coefficients</div>
       <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>&beta;</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td><td></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Predictor</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks: linearity, normality of residuals, homoscedasticity.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Fit &amp; residuals</div><div class="ftype">type: <b>fitted-line scatter</b> + residual diagnostic plots</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p><b>R&sup2;</b> is the share of outcome variance explained. The predictor's <b>B</b> is the slope (change in outcome per unit), with <b>p</b> testing whether it differs from zero and the <b>CI</b> showing precision.</p></div>
+      <div class="howread"><p><b>R&sup2;</b> is the share of outcome variance explained. The predictor's <b>B</b> is the slope (change in outcome per unit), with <b>p</b> testing whether it differs from zero and the <b>CI</b> showing precision. <b>&beta;</b> is the standardized slope (change in outcome in SDs per 1 SD change in the predictor), useful for comparing effect sizes on a common scale.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The predictor significantly predicted the outcome, <i>B</i>=__, <i>t</i>(__)=__, <i>p</i>=__, R&sup2;=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lm()</code> &rarr; Tables 1&ndash;2 &middot; <code>parameters::standardise_parameters()</code> &rarr; &beta; &middot; <code>broom::glance()/tidy()</code> &middot; <code>ggplot2</code> &rarr; figures</div>
@@ -692,14 +692,14 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Model fit</div>
-      <table class="apa"><thead><tr><th>R&sup2;</th><th>Adj. R&sup2;</th><th>F</th><th>df</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>R&sup2;</th><th>Adj. R&sup2;</th><th>F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Coefficients</div>
       <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>&beta;</th><th>t</th><th>p</th><th>95% CI</th><th>VIF</th></tr></thead><tbody class="ghost"><tr><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td><td></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td></td></tr><tr><td>Predictor 1&hellip;k</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks: linearity, normality, homoscedasticity, and multicollinearity (VIF).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Residual diagnostics</div><div class="ftype">type: <b>residual / diagnostic plots</b> (and optional coefficient plot)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Each predictor's <b>B</b> is its effect holding the others constant; <b>p</b> and <b>CI</b> assess it. <b>R&sup2;</b> is the joint variance explained; <b>VIF</b> flags predictors that overlap too much (multicollinearity).</p></div>
+      <div class="howread"><p>Each predictor's <b>B</b> is its effect holding the others constant; <b>p</b> and <b>CI</b> assess it. <b>R&sup2;</b> is the joint variance explained; <b>VIF</b> flags predictors that overlap too much (multicollinearity). <b>B</b> is in each predictor's own units, so to compare which predictors matter most use the standardized coefficient (<b>&beta;</b>), not B.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The model explained R&sup2;=__ of the variance, <i>F</i>(__,__)=__, <i>p</i>=__; predictor X was significant, <i>B</i>=__, <i>p</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lm()</code> &rarr; Tables 1&ndash;2 &middot; <code>parameters::standardise_parameters()</code> &rarr; &beta; &middot; <code>car::vif()</code> &rarr; VIF &middot; <code>ggplot2</code>/<code>performance::check_model()</code> &rarr; figures</div>
@@ -715,16 +715,16 @@
       <div class="apa-cap"><b>Table 1.</b> Model fit</div>
       <table class="apa"><thead><tr><th>&minus;2LL</th><th>AIC</th><th>Nagelkerke R&sup2;</th><th>Omnibus &chi;&sup2;</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>Wald</th><th>p</th><th>OR</th><th>95% CI (OR)</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>z</th><th>p</th><th>OR</th><th>95% CI (OR)</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Classification</div>
       <table class="apa"><thead><tr><th>Predicted \ Observed</th><th>0</th><th>1</th><th>% correct</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Classifier performance</div><div class="ftype">type: <b>ROC curve</b> (with AUC)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Each predictor's <b>odds ratio</b> tells how the odds of the outcome change per unit (>1 increases, &lt;1 decreases); <b>p</b> tests significance. Model fit and the ROC/AUC show how well it classifies overall.</p></div>
+      <div class="howread"><p>Each predictor's <b>odds ratio</b> tells how the odds of the outcome change per unit (>1 increases, &lt;1 decreases); <b>p</b> tests significance (read it from the <b>z</b> column, z = B/SE). Model fit and the ROC/AUC show how well it classifies overall.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Predictor X was associated with the outcome, OR=__, 95% CI [__, __], <i>p</i>=__ (AUC=__).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>glm(family=binomial)</code> &rarr; B/SE/Wald/p &middot; <code>exp(cbind(OR=coef(m), confint(m)))</code> &rarr; OR + 95% CI &middot; <code>performance::r2()</code> &rarr; Nagelkerke R&sup2; &middot; <code>anova(m, test="Chisq")</code> &rarr; omnibus &chi;&sup2; / &minus;2LL &middot; <code>pROC</code> &rarr; ROC/AUC</div>
+        <div class="m"><b>R map:</b> <code>glm(family=binomial)</code> &rarr; B/SE/z/p &middot; <code>exp(cbind(OR=coef(m), confint(m)))</code> &rarr; OR + 95% CI &middot; <code>performance::r2_nagelkerke(m)</code> &rarr; Nagelkerke R&sup2; &middot; <code>AIC(m)</code> &rarr; AIC &middot; <code>anova(m, test="Chisq")</code> &rarr; omnibus &chi;&sup2; / &minus;2LL &middot; <code>caret::confusionMatrix()</code> &rarr; Table 3 (classification) &middot; <code>pROC</code> &rarr; ROC/AUC</div>
         <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; table_classification.png &middot; figure_roc.png</div>
       </div>
     </div>
@@ -742,10 +742,10 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Fit / residuals</div><div class="ftype">type: <b>fitted vs. residual</b> plot</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Models event counts. Each predictor's <b>incidence-rate ratio (IRR)</b> gives the multiplicative change in the expected count per unit (>1 more, &lt;1 fewer); <b>p</b> tests significance. Check dispersion to pick Poisson vs. negative binomial.</p></div>
+      <div class="howread"><p>Models event counts. Each predictor's <b>incidence-rate ratio (IRR)</b> gives the multiplicative change in the expected count per unit (>1 more, &lt;1 fewer); <b>p</b> tests significance. Check dispersion to pick Poisson vs. negative binomial. If cases have unequal exposure (different observation time/area/population), add an <b>offset</b> of <code>log(exposure)</code> so the model predicts rates, not raw counts &mdash; omitting it biases the IRRs.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Predictor X was associated with the count, IRR=__, 95% CI [__, __], <i>p</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>glm(family=poisson)</code> / <code>MASS::glm.nb()</code> &rarr; B/SE/z/p &middot; <code>exp(cbind(IRR=coef(m), confint(m)))</code> &rarr; IRR + 95% CI &middot; <code>performance::check_overdispersion()</code> &rarr; dispersion</div>
+        <div class="m"><b>R map:</b> <code>glm(family=poisson, offset=log(exposure))</code> / <code>MASS::glm.nb()</code> &rarr; B/SE/z/p &middot; <code>exp(cbind(IRR=coef(m), confint(m)))</code> &rarr; IRR + 95% CI &middot; <code>performance::check_overdispersion()</code> &rarr; dispersion</div>
         <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; figure_residuals.png</div>
       </div>
     </div>
@@ -770,7 +770,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Forecast</div><div class="ftype">type: <b>forecast plot</b> (history + forecast with prediction intervals)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>The chosen <b>(p,d,q)(P,D,Q)</b> orders describe the model. Use the <b>Ljung&ndash;Box p</b> (large = residuals look like white noise, good) and <b>AIC/BIC</b> to judge fit; the forecast table and plot give predictions with uncertainty bands.</p></div>
+      <div class="howread"><p>The chosen <b>(p,d,q)(P,D,Q)</b> orders describe the model. Use the <b>Ljung&ndash;Box p</b> (large = residuals look like white noise, good) and <b>AIC/BIC</b> to judge fit; the forecast table and plot give predictions with uncertainty bands. AIC/BIC compare models only when fit to the same series with identical differencing (d, D) and transformation; lower is better, but they are relative, not absolute, measures of fit.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;An ARIMA(__)(__) model was fit (AIC=__); residuals were white noise (Ljung&ndash;Box <i>p</i>=__).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>forecast::auto.arima()</code> / <code>arima()</code> &rarr; Tables &middot; <code>forecast()</code> + <code>autoplot()</code> &rarr; figure</div>
@@ -789,7 +789,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Series &amp; structure</div><div class="ftype">type: <b>series plot</b> + ACF / PACF (and differenced series)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>For <b>ADF</b>, a small p means stationary; for <b>KPSS</b>, a small p means <i>non</i>-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict.</p></div>
+      <div class="howread"><p>For <b>ADF</b>, a small p means stationary; for <b>KPSS</b>, a small p means <i>non</i>-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The series was non-stationary (ADF <i>p</i>=__; KPSS <i>p</i>=__) and was differenced once.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>tseries::adf.test()</code> / <code>tseries::kpss.test()</code> &rarr; table &middot; <code>forecast::ggAcf()</code> &rarr; figures</div>
@@ -808,7 +808,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Series together</div><div class="ftype">type: <b>cross-series time plot</b></div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>A significant <b>X&rarr;Y</b> p means past values of X help predict Y beyond Y's own past &mdash; this is <i>predictive precedence</i>, not proof that X causes Y. Check both directions.</p></div>
+      <div class="howread"><p>A significant <b>X&rarr;Y</b> p means past values of X help predict Y beyond Y's own past &mdash; this is <i>predictive precedence</i>, not proof that X causes Y. Check both directions. The result depends entirely on the <b>lag order</b> (default 1 in <code>grangertest()</code>): choose it on theory or by AIC/BIC and report it, since different lags can flip the conclusion. Make both series stationary first.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;X Granger-caused Y, <i>F</i>(__,__)=__, <i>p</i>=__, but not the reverse.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lmtest::grangertest()</code> run once per direction (or <code>vars::causality()</code>) &rarr; the two table rows &middot; <code>ggplot2</code> &rarr; figure</div>
@@ -828,7 +828,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Dynamic response</div><div class="ftype">type: <b>impulse-response function</b> plots</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>A VAR models several series as functions of their joint past. The <b>impulse-response</b> plots show how a shock to one series propagates to the others over time; lag selection picks how many past periods to include.</p></div>
+      <div class="howread"><p>A VAR models several series as functions of their joint past. The <b>impulse-response</b> plots show how a shock to one series propagates to the others over time; read each IRF together with its bootstrap confidence band, and note that orthogonalised (Cholesky) IRFs depend on the ordering of the series. Lag selection picks how many past periods to include. A level VAR assumes stationary series &mdash; difference them (or use a VECM) if they are not.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A VAR(__) model was selected by AIC; impulse-response analysis showed&hellip;&rdquo;</div>
         <div class="m"><b>R map:</b> <code>vars::VARselect()</code> &rarr; Table 1 &middot; <code>vars::VAR()</code> &rarr; Table 2 &middot; <code>vars::irf()</code> &rarr; figure</div>
@@ -845,7 +845,7 @@
       <table class="apa"><thead><tr><th>Term</th><th>B</th><th>Clustered SE</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Model fit</div>
       <table class="apa"><thead><tr><th>Within R&sup2;</th><th>F</th><th>N obs</th><th>N entities</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">time-invariant predictors are absorbed by the entity effects and drop out.</p>
+      <p class="tbl-note">time-invariant predictors are absorbed by the entity effects and drop out; a predictor must also <b>change within entities over time</b> to be estimable &mdash; predictors with little within-entity variation give large standard errors and unreliable estimates.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b> (estimate &plusmn; CI)</div></div>
       <div class="zlabel">How to read this test</div>
@@ -863,7 +863,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>z</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Model fit</div>
       <table class="apa"><thead><tr><th>R&sup2;</th><th>Adj. R&sup2;</th><th>N obs</th><th>N entities</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">unlike fixed effects, time-invariant predictors can be retained. <code>summary(plm)</code> returns a single R&sup2; / adj. R&sup2; (not a within/between/overall split).</p>
@@ -908,7 +908,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Discontinuity</div><div class="ftype">type: <b>RD plot</b> (binned scatter + fitted lines either side of the cutoff)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Estimates the jump in the outcome right at the cutoff &mdash; the <b>estimate</b> is the treatment effect for cases near the threshold. <b>p</b>/<b>CI</b> assess it; the RD plot shows the discontinuity visually.</p></div>
+      <div class="howread"><p>Estimates the jump in the outcome right at the cutoff &mdash; the <b>estimate</b> is the treatment effect for cases near the threshold. <b>p</b>/<b>CI</b> assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold &mdash; check a density (McCrary) test for sorting and covariate-balance / placebo checks.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;At the cutoff, the treatment effect was __, 95% CI [__, __], <i>p</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>rdrobust::rdrobust()</code> &rarr; table &middot; <code>rdrobust::rdplot()</code> &rarr; figure</div>
@@ -929,10 +929,10 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b> (OLS vs. 2SLS)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Check the <b>first-stage F</b> first (rule of thumb &gt; 10 = strong instruments). Then read the 2SLS <b>B</b> for the endogenous predictor as the causal effect, with <b>p</b>/<b>CI</b>.</p></div>
+      <div class="howread"><p>Check the <b>first-stage F</b> first (rule of thumb &gt; 10 = strong instruments). Then read the 2SLS <b>B</b> for the endogenous predictor as the causal effect, with <b>p</b>/<b>CI</b>. This causal reading rests on the instrument being <b>valid</b> &mdash; relevant <i>and</i> affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Using 2SLS, X had an effect of <i>B</i>=__, <i>p</i>=__ (first-stage F=__).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>summary(AER::ivreg(...), diagnostics=TRUE)</code> (or <code>fixest::feols()</code> + <code>fitstat()</code>) &rarr; 2SLS coefficients + weak-IV F, Wu&ndash;Hausman, Sargan</div>
+        <div class="m"><b>R map:</b> <code>lm(endog ~ instruments + covariates)</code> &rarr; Table 1 (first-stage coef./SE/partial F) &middot; <code>summary(AER::ivreg(...), diagnostics=TRUE)</code> &rarr; Table 2 (2SLS) + weak-IV F, Wu&ndash;Hausman, Sargan</div>
         <div class="m bundle">table_first-stage.png &middot; table_2sls.png &middot; figure_coefficients.png</div>
       </div>
     </div>
@@ -950,7 +950,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Balance</div><div class="ftype">type: <b>love plot</b> (standardized differences before vs. after matching)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>First confirm <b>balance</b> &mdash; matched groups should look alike on the covariates (small standardized differences). Then read the <b>ATT</b> as the treatment effect for the treated, with <b>p</b>/<b>CI</b>.</p></div>
+      <div class="howread"><p>First confirm <b>balance</b> &mdash; matched groups should look alike on the covariates (small standardized differences). Then read the <b>ATT</b> as the treatment effect for the treated, with <b>p</b>/<b>CI</b>. PSM only balances the covariates you measured and included, so the causal reading also assumes no important confounder was left unmeasured (ignorability) &mdash; an assumption that cannot be verified from the data.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;After matching (all SMDs &lt; .1), the ATT was __, 95% CI [__, __], <i>p</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>MatchIt::matchit()</code> &rarr; balance + matched data &middot; <code>lm()</code>/<code>marginaleffects</code> on matched data &rarr; ATT &middot; <code>cobalt::love.plot()</code></div>
@@ -969,7 +969,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Parallel trends</div><div class="ftype">type: <b>parallel-trends plot</b> (group means over time, treatment marked)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>The <b>Treated&times;Post</b> coefficient is the estimated treatment effect. It's only trustworthy if the groups were trending together <i>before</i> treatment &mdash; check the pre-treatment portion of the trends plot.</p></div>
+      <div class="howread"><p>The <b>Treated&times;Post</b> coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups <i>would have</i> moved together absent treatment. Similar <b>pre</b>-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it &mdash; a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The DiD estimate was <i>B</i>=__, 95% CI [__, __], <i>p</i>=__ (clustered SE).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>fixest::feols()</code> / <code>lm()</code> with clustered SE &rarr; table &middot; <code>ggplot2</code> &rarr; trends plot</div>
@@ -994,10 +994,10 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Item contribution</div><div class="ftype">type: <b>item-total correlation</b> bar chart</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p><b>&alpha;</b> ranges 0&ndash;1; ~.70+ is commonly considered acceptable. The "&alpha; if item dropped" column flags items that, if removed, would raise reliability &mdash; candidates for review.</p></div>
+      <div class="howread"><p><b>&alpha;</b> ranges 0&ndash;1; ~.70+ is commonly considered acceptable. The "&alpha; if item dropped" column flags items that, if removed, would raise reliability &mdash; candidates for review. Note &alpha; assumes tau-equivalence (items contribute equally) and is a <i>lower bound</i> that underestimates reliability when loadings differ; a high &alpha; does not prove the scale is unidimensional, and &alpha; rises simply with more items. Consider McDonald's &omega; (<code>psych::omega</code>) from a one-factor model as a complement.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The scale showed good internal consistency, &alpha;=__ (95% CI [__, __]).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>psych::alpha()</code> &rarr; Tables 1&ndash;2 &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m"><b>R map:</b> <code>psych::alpha()</code> &rarr; Tables 1&ndash;2 &middot; <code>psych::omega()</code> &rarr; &omega; (optional) &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_reliability.png &middot; table_item-total.png &middot; figure_item-total.png</div>
       </div>
     </div>
@@ -1011,14 +1011,14 @@
       <table class="apa"><thead><tr><th>Construct</th><th>AVE</th><th>CR</th><th>&alpha;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Discriminant validity (Fornell&ndash;Larcker)</div>
       <table class="apa"><thead><tr><th>Construct</th><th>C1</th><th>C2</th><th>C3</th></tr></thead><tbody class="ghost"><tr><td>&mdash; (&radic;AVE on diagonal)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">AVE &ge; .50 indicates adequate convergent validity; computed from the CFA loadings (use the same WLSMV fit as CR for ordinal items).</p>
+      <p class="tbl-note">AVE &ge; .50 indicates adequate convergent validity; computed from the CFA loadings (use the same WLSMV fit as CR for ordinal items). AVE &lt; .50 may still be acceptable when CR &gt; .60 (Fornell &amp; Larcker, 1981), so read AVE together with CR and treat .50 / .70 as heuristics, not hard tests.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Validity overview</div><div class="ftype">type: <b>AVE / CR bar chart</b> per construct</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p><b>AVE</b> is the average share of item variance a construct captures; &ge; .50 means items converge on their construct. Compare &radic;AVE (diagonal) to inter-construct correlations for discriminant validity.</p></div>
+      <div class="howread"><p><b>AVE</b> is the average share of item variance a construct captures; &ge; .50 means items converge on their construct. Compare &radic;AVE (diagonal) to inter-construct correlations for discriminant validity. Applies to <b>reflective</b> constructs only &mdash; for formative constructs report indicator weights and VIF instead of AVE/CR.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;All constructs showed adequate convergent validity (AVE &ge; .50).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>lavaan::cfa()</code> &rarr; loadings &middot; <code>semTools::AVE()</code> &rarr; Table 1 &middot; <code>lavInspect(fit,"cor.lv")</code> + <code>sqrt(AVE)</code> on diagonal (or <code>semTools::discriminantValidity()</code>) &rarr; Table 2 (Fornell&ndash;Larcker)</div>
+        <div class="m"><b>R map:</b> <code>lavaan::cfa()</code> &rarr; loadings &middot; <code>semTools::AVE()</code> &rarr; AVE &middot; <code>semTools::compRelSEM()</code> &rarr; CR &middot; <code>psych::alpha()</code> &rarr; &alpha; (Table 1) &middot; <code>lavInspect(fit,"cor.lv")</code> + <code>sqrt(AVE)</code> on diagonal (or <code>semTools::discriminantValidity()</code>) &rarr; Table 2 (Fornell&ndash;Larcker)</div>
         <div class="m bundle">table_convergent-validity.png &middot; table_discriminant.png &middot; figure_validity.png</div>
       </div>
     </div>
@@ -1037,7 +1037,7 @@
       <div class="howread"><p><b>CR</b> measures how reliably a set of items captures its construct (0&ndash;1); ~.70+ is acceptable. Unlike Cronbach's &alpha;, it weights items by their loadings rather than assuming they contribute equally.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Composite reliability was adequate for all constructs (CR &ge; .70).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>lavaan::cfa()</code> &rarr; loadings &middot; <code>semTools::compRelSEM()</code> &rarr; CR/AVE &middot; <code>psych::alpha()</code> &rarr; &alpha;</div>
+        <div class="m"><b>R map:</b> <code>lavaan::cfa()</code> &rarr; loadings &middot; <code>semTools::compRelSEM()</code> &rarr; CR &middot; <code>semTools::AVE()</code> &rarr; AVE &middot; <code>psych::alpha()</code> &rarr; &alpha;</div>
         <div class="m bundle">table_composite-reliability.png &middot; figure_reliability.png</div>
       </div>
     </div>
@@ -1056,7 +1056,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Factor retention</div><div class="ftype">type: <b>scree plot</b> (with parallel analysis)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Check <b>KMO</b> (&gt; .60) and a significant <b>Bartlett's</b> test for suitability. The scree/eigenvalues suggest how many factors to keep; the <b>rotated loadings</b> show which items group onto which factor (load strongly on one, weakly on others).</p></div>
+      <div class="howread"><p>Check <b>KMO</b> (&gt; .60) and a significant <b>Bartlett's</b> test for suitability. The scree/eigenvalues suggest how many factors to keep; the <b>rotated loadings</b> show which items group onto which factor (load strongly on one, weakly on others). EFA is <b>exploratory</b> &mdash; it discovers structure, it does not confirm a hypothesized model; to confirm a proposed factor structure run a CFA, ideally on a separate sample.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;EFA (KMO=__, Bartlett's <i>p</i>&lt;.001) yielded __ factors explaining __% of variance.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>psych::KMO()</code>/<code>cortest.bartlett()</code> &rarr; Table 1 &middot; <code>psych::fa()</code> &rarr; Tables 2&ndash;3 &middot; <code>psych::scree()</code> &rarr; figure</div>
@@ -1076,7 +1076,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Components</div><div class="ftype">type: <b>scree plot</b> / biplot</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>PCA compresses correlated variables into a few components. The <b>variance explained</b> tells you how much information each component retains; the <b>loadings</b> show which variables each component summarizes.</p></div>
+      <div class="howread"><p>PCA compresses correlated variables into a few components. The <b>variance explained</b> tells you how much information each component retains; the <b>loadings</b> show which variables each component summarizes. PCA is <b>data reduction</b> &mdash; components are weighted composites of the observed variables, <i>not</i> reflective latent factors, so don't treat them as constructs; for latent constructs use EFA (<code>psych::fa</code>) or CFA (<code>lavaan</code>). Decide how many components to keep using standard rules: eigenvalue &gt; 1 (Kaiser), the scree-plot elbow, or parallel analysis (<code>psych::fa.parallel</code>).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;PCA retained __ components explaining __% of the total variance.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>prcomp()</code> / <code>psych::principal()</code> &rarr; Tables &middot; <code>factoextra</code> &rarr; scree/biplot</div>
@@ -1101,10 +1101,10 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Model</div><div class="ftype">type: <b>path diagram</b> (constructs, loadings, structural paths)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>First confirm the <b>measurement model</b> (loadings high, CR/AVE adequate) and overall <b>fit indices</b>. Then read the <b>structural paths</b>: each std. <b>&beta;</b> with <b>p</b>/<b>CI</b> is a hypothesized relationship between constructs; R&sup2; shows variance explained in each outcome construct.</p></div>
+      <div class="howread"><p>First confirm the <b>measurement model</b> (loadings high, CR/AVE adequate) and overall <b>fit indices</b>. Then read the <b>structural paths</b>: each std. <b>&beta;</b> with <b>p</b>/<b>CI</b> is a hypothesized relationship between constructs; R&sup2; shows variance explained in each outcome construct. CB-SEM is <b>confirmatory</b>: the measurement model must be specified from theory a priori &mdash; any post-hoc respecification (e.g. from modification indices) is exploratory, must be reported as such, and ideally cross-validated on a fresh sample.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The model fit well (CFI=__, RMSEA=__, SRMR=__); the path from X to Y was significant, &beta;=__, <i>p</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>lavaan::sem()</code> (estimator ML/MLR or WLSMV) &rarr; loadings, fit, paths &middot; <code>semTools::reliability()</code> / <code>compRelSEM()</code> / <code>AVE()</code> &rarr; CR/AVE/&alpha; table &middot; <code>semPlot::semPaths()</code> &rarr; diagram</div>
+        <div class="m"><b>R map:</b> <code>lavaan::sem()</code> (estimator ML/MLR or WLSMV) &rarr; loadings &amp; structural paths &middot; <code>lavaan::fitMeasures()</code> (or <code>summary(fit, fit.measures=TRUE)</code>) &rarr; Table 3 fit indices (&chi;&sup2;/df = chisq/df) &middot; <code>semTools::compRelSEM()</code> / <code>AVE()</code> / <code>psych::alpha()</code> &rarr; CR/AVE/&alpha; table &middot; <code>semPlot::semPaths()</code> &rarr; diagram</div>
         <div class="m bundle">table_loadings.png &middot; table_reliability.png &middot; table_fit-indices.png &middot; table_structural-paths.png &middot; figure_path-diagram.png</div>
       </div>
     </div>
@@ -1127,7 +1127,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Model</div><div class="ftype">type: <b>path diagram</b> (with loadings, path coefficients, R&sup2;)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). Confirm reliability &amp; validity (CR, AVE, HTMT), then read the bootstrapped <b>path coefficients</b> (&beta;, p) and <b>R&sup2;</b> of the endogenous constructs. <b>f&sup2;</b> is the effect size of each path (~0.02 small, 0.15 medium, 0.35 large).</p></div>
+      <div class="howread"><p>Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does <b>not</b> use CB-SEM global fit indices (CFI/TLI/RMSEA) &mdash; judge it instead by reliability &amp; validity (CR, AVE, HTMT), then R&sup2;, Q&sup2; (predictive relevance) and f&sup2;, with SRMR the only commonly reported approximate fit index. Read the bootstrapped <b>path coefficients</b> (&beta;, p); <b>f&sup2;</b> is each path's effect size (~0.02 small, 0.15 medium, 0.35 large).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;In the PLS-SEM, the path from X to Y was significant, &beta;=__, <i>p</i>=__ (bootstrap); R&sup2;<sub>Y</sub>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>seminr</code> / <code>plspm</code> &rarr; Tables &amp; bootstrap &middot; <code>seminr::plot()</code> &rarr; diagram</div>
