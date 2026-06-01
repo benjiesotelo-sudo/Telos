@@ -125,6 +125,18 @@
   .amossvg line.lat-path{stroke:var(--purple-line);stroke-width:2;}
   .amossvg path.lat-cov{stroke:var(--purple-line);stroke-width:1.4;fill:none;stroke-dasharray:5 3;opacity:0.7;}
 
+  /* CB-SEM pipeline-stage strip */
+  .pipe-h{font-size:10.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .pipe-h span{font-weight:500;text-transform:none;letter-spacing:0;color:var(--faint);}
+  .pipeline{display:flex;align-items:stretch;flex-wrap:wrap;gap:4px;}
+  .pipeline .stage{display:flex;flex-direction:column;align-items:center;gap:3px;border:1px solid var(--line);border-radius:10px;padding:8px 13px;min-width:92px;background:var(--bg);}
+  .pipeline .stage .nm{font-size:13px;font-weight:700;}
+  .pipeline .stage .ind{font-size:10px;font-weight:600;letter-spacing:0.02em;opacity:0.85;}
+  .pipeline .stage.on{background:var(--amber-bg);color:var(--amber-tx);border-color:var(--amber-sub);}
+  .pipeline .stage.locked{background:var(--neutral-bg);color:var(--neutral-tx);}
+  .pipeline .pseparrow{align-self:center;color:var(--faint);font-size:15px;font-weight:700;}
+  .pipe-cap{font-size:11px;color:var(--muted);font-style:italic;margin-top:9px;line-height:1.5;}
+
   .legend{font-size:12px;color:var(--muted);background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px 16px;margin-top:24px;}
   .legend b{color:var(--text);}
   .swatch{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin-right:5px;}
@@ -2460,8 +2472,19 @@
     </div>
     <div class="mini-arrow"></div>
     <div class="inner lbl-wrap">
-      <span class="zone-tag">2 · set this test's options</span>
-      <div class="optstrip">
+      <span class="zone-tag">2 · choose the pipeline &amp; options</span>
+      <div class="pipe-h">pipeline &mdash; stages to run <span>&middot; CFA &amp; fit always on; EFA &amp; structural optional</span></div>
+      <div class="pipeline">
+        <span class="stage on"><span class="nm">EFA</span><span class="ind">&#10003; included</span></span>
+        <span class="pseparrow">&rarr;</span>
+        <span class="stage locked"><span class="nm">CFA</span><span class="ind">&#10003; always</span></span>
+        <span class="pseparrow">&rarr;</span>
+        <span class="stage locked"><span class="nm">fit</span><span class="ind">&#10003; always</span></span>
+        <span class="pseparrow">&rarr;</span>
+        <span class="stage on"><span class="nm">structural</span><span class="ind">&#10003; included</span></span>
+      </div>
+      <div class="pipe-cap">deselect <b>EFA</b> for a confirmatory-only run (a-priori model) &middot; deselect <b>structural</b> to stop at the measurement model (CFA only) &middot; the results page shows only the tables for the stages you run</div>
+      <div class="optstrip" style="margin-top:13px;">
         <span class="optpill"><span class="k">estimator</span><span class="v">WLSMV (ordinal) / ML / MLR</span><span class="caret">&#9662;</span></span>
         <span class="optpill"><span class="k">missing</span><span class="v">FIML</span><span class="caret">&#9662;</span></span>
         <span class="optpill"><span class="k">bootstrap</span><span class="v">5000</span><span class="caret">&#9662;</span></span>
@@ -2469,13 +2492,14 @@
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
-      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (<b>at least 3 items</b> per construct &mdash; 2 only works inside a larger model). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs, including any mediation or moderation. When your items are <b>ordinal Likert</b>, use the <b>WLSMV</b> estimator (treats them as ordered) instead of ML/MLR. Telos runs EFA &rarr; CFA &rarr; fit &rarr; structural automatically; FIML handles missing data.</p>
+      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (<b>at least 3 items</b> per construct &mdash; 2 only works inside a larger model). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs, including any mediation or moderation. When your items are <b>ordinal Likert</b>, use the <b>WLSMV</b> estimator (treats them as ordered) instead of ML/MLR. By default Telos runs the full pipeline (EFA &rarr; CFA &rarr; fit &rarr; structural); deselect <b>EFA</b> for a confirmatory-only run, or the <b>structural</b> stage to validate the measurement model on its own. FIML handles missing data.</p>
     </div>
     <div class="meta-row">
-      <span class="tag"><b>Produces &mdash; tables:</b> EFA, CFA loadings, fit indices, structural paths</span>
+      <span class="tag"><b>Produces &mdash; tables:</b> EFA, CFA loadings, reliability &amp; validity, fit indices, structural paths</span>
       <span class="tag"><b>figure:</b> path diagram</span>
+      <span class="tag"><b>note:</b> tables shown follow the stages you run</span>
     </div>
-    <div class="note">auto-runs EFA &rarr; CFA &rarr; fit &rarr; structural &middot; FIML missing-data path <span style="opacity:0.8;">(open items: FIML override vs warn vs step 4a &middot; EFA on the same sample is exploratory &mdash; treat it as a diagnostic, not confirmatory evidence)</span></div>
+    <div class="note">runs the selected pipeline stages &middot; FIML missing-data path <span style="opacity:0.8;">(open items: FIML override vs warn vs step 4a &middot; EFA on the same sample is exploratory &mdash; treat it as a diagnostic, not confirmatory evidence)</span></div>
   </div>
 
   <div class="config">
