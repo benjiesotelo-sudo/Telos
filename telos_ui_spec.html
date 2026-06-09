@@ -71,6 +71,8 @@
   .sub{font-size:13px;font-weight:600;color:var(--muted);margin:9px 0 4px;}
   .leaf{display:flex;align-items:center;gap:10px;margin:4px 0;font-size:14.5px;}
   .box{width:17px;height:17px;border-radius:4px;border:1.5px solid var(--muted);flex-shrink:0;}
+  .box.on{background:var(--amber-bg);border-color:var(--amber-sub);position:relative;}
+  .box.on::after{content:"\2713";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--amber-tx);font-size:12px;font-weight:700;}
   .nt{color:var(--faint);font-size:12.5px;}
   .tbd{opacity:0.6;font-weight:600;font-size:15px;margin-top:16px;}
   .tbd .nt{font-weight:400;}
@@ -158,7 +160,7 @@
     <div class="node neutral"><div class="t">Opens browser link</div></div>
     <div class="arrow"></div>
 
-    <div class="node blue"><div class="t">1 · Welcome / about</div><div class="s">What Telos is, services, analysis types, credits</div></div>
+    <div class="node blue"><div class="t">1 · Welcome / about</div><div class="s">What Telos is, services, analysis types, credits (<a href="https://www.linkedin.com/in/benjaminsotelo1/" style="color:inherit;">Benjamin Sotelo</a>)</div></div>
     <div class="arrow"><span class="lbl">Click "Get started"</span></div>
 
     <div class="node blue"><div class="t">2 · Upload data</div><div class="s">Choose CSV or Excel file, auto-detect on parse</div></div>
@@ -277,7 +279,7 @@
       <div class="inner amber"><div class="t">Per test · test-specific options</div><div class="s">alpha · one- / two-tailed · CI % · post-hoc method · reference group · etc.</div></div>
       <div class="mini-arrow"></div>
       <div class="inner blue"><div class="t">How each test is configured → companion spec</div><div class="s">role slots · level/arity constraints · options · outputs · and a "how to configure" guide, per test — see <a href="telos_test_inputs.html" style="color:inherit;text-decoration:underline;">telos_test_inputs.html</a> · CB-SEM gets its own model-building canvas</div></div>
-      <div class="note">Repeats for every selected test · "Run analysis" stays disabled until each one is fully configured</div>
+      <div class="note">Repeats for every selected test · "Run analysis" stays disabled until each one is fully configured · a picked test whose roles can't be filled by the Used columns is blocked here with the reason (e.g. ANCOVA with no covariate), mirroring step 5's grey-out</div>
     </div>
     <div class="repeat">step 4 prepares the dataset once (types · levels · missing data) — step 6 maps those columns into each test's required roles</div>
     <div class="arrow"><span class="lbl">Click "Run analysis"</span></div>
@@ -285,15 +287,15 @@
     <div class="rcard">
       <div class="ttl">7 · Results — one page: export on top, preview below</div>
 
-      <div class="inner amber"><div class="t">Export &amp; download · tick one or more, at the top of the page</div></div>
+      <div class="inner amber"><div class="t">Export &amp; download · tick one or more, at the top of the page · default: PDF, figures &amp; R script</div></div>
       <div class="opts">
-        <div class="opt"><span class="box"></span><div><div class="ol">PDF report</div><div class="od">APA-7 tables, figures, how-to-read text — in selection order</div></div></div>
+        <div class="opt"><span class="box on"></span><div><div class="ol">PDF report</div><div class="od">APA-7 tables, figures, how-to-read text — in selection order</div></div></div>
         <div class="opt"><span class="box"></span><div><div class="ol">LaTeX file (.tex)</div><div class="od">the same report as a LaTeX source</div></div></div>
-        <div class="opt"><span class="box"></span><div><div class="ol">R script (.R)</div><div class="od">reproduces every computation &amp; figure, same sequence · ships with the cleaned dataset</div></div></div>
+        <div class="opt"><span class="box on"></span><div><div class="ol">R script (.R)</div><div class="od">reproduces every computation &amp; figure, same sequence · ships with the cleaned dataset</div></div></div>
         <div class="opt"><span class="box"></span><div><div class="ol">Table images (.png)</div><div class="od">each test's tables as standalone images</div></div></div>
-        <div class="opt"><span class="box"></span><div><div class="ol">Figure images (.png)</div><div class="od">each test's graphs / diagrams as standalone images</div></div></div>
+        <div class="opt"><span class="box on"></span><div><div class="ol">Figure images (.png)</div><div class="od">each test's graphs / diagrams as standalone images</div></div></div>
       </div>
-      <div class="note">"Download (.zip)" — bundles only the formats you tick</div>
+      <div class="note">"Download" — bundles the ticked formats into one .zip; a single one-file export (e.g. only the PDF) downloads directly, no .zip</div>
 
       <div class="mini-arrow"></div>
 
@@ -348,7 +350,7 @@
    &#9500;&#9472; table_structural-paths.png
    &#9492;&#9472; figure_path-diagram.png</div>
     <ul class="rules">
-      <li><b>One .zip</b> no matter how many formats or tests are selected — never N separate downloads. (Tree above shows everything ticked.)</li>
+      <li><b>One .zip</b> whenever the export is more than one file (multiple formats, multiple tests, or image folders) — never N separate downloads. A single one-file export (e.g. only the PDF) downloads directly, no .zip. (Tree above shows everything ticked.)</li>
       <li><b>Each selected test gets its own folder</b>, prefixed <code>NN_</code> in configured order; files inside are labelled by content (<code>table_*</code>, <code>figure_*</code>).</li>
       <li><b>report.pdf / report.tex / analysis.R</b> sit at the root.</li>
       <li><b>data/cleaned.csv rides along whenever the R script is selected</b>, so <code>analysis.R</code> runs via a relative path on the student's own machine — not just on the server.</li>
@@ -382,10 +384,7 @@
   <h2 class="sec">Open items</h2>
   <div class="panel">
     <ul class="rules">
-      <li><b>Export defaults.</b> Which formats are pre-ticked on the Results screen (e.g. PDF on by default)? — TBD.</li>
-      <li><b>Single-format download.</b> When only one format is selected, still wrap it in a .zip, or hand back the lone file directly? — TBD.</li>
-      <li><b>Per-test config layout.</b> One screen per test (a sub-wizard) or one long scrollable page listing every test? — TBD.</li>
-      <li><b>Unsatisfiable test.</b> If the Used columns can't fill a picked test's roles, block it at step 6 with the reason — consistent with the greyed-out rule at step 5.</li>
+      <li><i>None currently outstanding.</i></li>
     </ul>
   </div>
 
