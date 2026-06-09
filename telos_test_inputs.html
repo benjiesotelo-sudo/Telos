@@ -138,6 +138,18 @@
   .pipeline .pseparrow{align-self:center;color:var(--faint);font-size:15px;font-weight:700;}
   .pipe-cap{font-size:11px;color:var(--muted);font-style:italic;margin-top:9px;line-height:1.5;}
 
+  /* missing-data dropdown (estimator-aware, shown open) */
+  .ddcap{font-size:11px;color:var(--amber-sub);font-style:italic;margin:11px 0 4px;}
+  .ddmenu{border:0.5px solid var(--line);border-radius:9px;overflow:hidden;max-width:460px;}
+  .ddmenu .ddrow{display:flex;gap:9px;align-items:baseline;padding:6px 12px;font-size:11.5px;border-top:0.5px solid var(--line);}
+  .ddmenu .ddrow:first-child{border-top:none;}
+  .ddmenu .ddrow .o{font-weight:700;min-width:64px;}
+  .ddmenu .ddrow .g{color:var(--muted);}
+  .ddmenu .ddrow.sel{background:rgba(224,180,106,0.12);}
+  .ddmenu .ddrow.sel .o{color:var(--amber-sub);}
+  .ddmenu .ddrow.off{opacity:0.42;}
+  .ddmenu .ddrow.off .g{font-style:italic;}
+
   .legend{font-size:12px;color:var(--muted);background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px 16px;margin-top:24px;}
   .legend b{color:var(--text);}
   .swatch{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin-right:5px;}
@@ -2488,20 +2500,27 @@
       <div class="pipe-cap">deselect <b>EFA</b> for a confirmatory-only run (a-priori model) &middot; deselect <b>structural</b> to stop at the measurement model (CFA only) &middot; the results page shows only the tables for the stages you run</div>
       <div class="optstrip" style="margin-top:13px;">
         <span class="optpill"><span class="k">estimator</span><span class="v">WLSMV (ordinal) / ML / MLR</span><span class="caret">&#9662;</span></span>
-        <span class="optpill"><span class="k">missing</span><span class="v">FIML</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">missing</span><span class="v">MI</span><span class="caret">&#9662;</span></span>
         <span class="optpill"><span class="k">bootstrap</span><span class="v">5000</span><span class="caret">&#9662;</span></span>
+      </div>
+      <div class="ddcap">missing-data method &middot; follows your estimator (here ordinal &rarr; WLSMV &rarr; MI; FIML needs ML/MLR)</div>
+      <div class="ddmenu">
+        <div class="ddrow off"><span class="o">FIML</span><span class="g">all available data, no deletions &mdash; continuous indicators (ML/MLR); not available with WLSMV</span></div>
+        <div class="ddrow sel"><span class="o">MI &#10003;</span><span class="g">multiple imputation, pooled &mdash; robust; works with ordinal / WLSMV</span></div>
+        <div class="ddrow"><span class="o">pairwise</span><span class="g">each pair's available cases &mdash; simple, assumes data missing completely at random</span></div>
+        <div class="ddrow"><span class="o">listwise</span><span class="g">drops any row with a missing value &mdash; simplest, but loses data</span></div>
       </div>
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
-      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (<b>at least 3 items</b> per construct &mdash; 2 only works inside a larger model). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs, including any mediation or moderation. When your items are <b>ordinal Likert</b>, use the <b>WLSMV</b> estimator (treats them as ordered) instead of ML/MLR. By default Telos runs the full pipeline (EFA &rarr; CFA &rarr; fit &rarr; structural); deselect <b>EFA</b> for a confirmatory-only run, or the <b>structural</b> stage to validate the measurement model on its own. FIML handles missing data.</p>
+      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (<b>at least 3 items</b> per construct &mdash; 2 only works inside a larger model). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs, including any mediation or moderation. When your items are <b>ordinal Likert</b>, use the <b>WLSMV</b> estimator (treats them as ordered) instead of ML/MLR. By default Telos runs the full pipeline (EFA &rarr; CFA &rarr; fit &rarr; structural); deselect <b>EFA</b> for a confirmatory-only run, or the <b>structural</b> stage to validate the measurement model on its own. Missing data is handled to match your estimator &mdash; FIML for continuous (ML/MLR), multiple imputation for ordinal (WLSMV) &mdash; and Telos warns if this differs from your global step-4a setting.</p>
     </div>
     <div class="meta-row">
       <span class="tag"><b>Produces &mdash; tables:</b> EFA, CFA loadings, reliability &amp; validity, fit indices, structural paths</span>
       <span class="tag"><b>figure:</b> path diagram</span>
       <span class="tag"><b>note:</b> tables shown follow the stages you run</span>
     </div>
-    <div class="note">runs the selected pipeline stages &middot; FIML missing-data path <span style="opacity:0.8;">(open items: FIML override vs warn vs step 4a &middot; EFA on the same sample is exploratory &mdash; treat it as a diagnostic, not confirmatory evidence)</span></div>
+    <div class="note">runs the selected pipeline stages &middot; missing-data handling follows the estimator (FIML / MI) <span style="opacity:0.8;">(warns if it differs from your global step-4a setting &middot; EFA on the same sample is exploratory &mdash; treat it as a diagnostic, not confirmatory evidence)</span></div>
   </div>
 
   <div class="config">
@@ -2843,7 +2862,7 @@
   <!-- FAMILY 7 · ASSUMPTION DIAGNOSTICS -->
   <!-- =================================================================== -->
   <h2 class="fam" style="opacity:0.6;">7 · Assumption diagnostics</h2>
-  <p class="fam-sub">Behavior still TBD (open item). Likely surfaced as the "checks after run" attached to each test above (normality, homoscedasticity, multicollinearity, etc.) rather than as standalone tests — to be decided with Benjie.</p>
+  <p class="fam-sub">Assumption checks are surfaced <b>inline</b> &mdash; as the &ldquo;checks after run&rdquo; attached to each test above (normality, homoscedasticity, multicollinearity, etc.) &mdash; not as standalone tests.</p>
 
   <!-- how to read -->
   <div class="legend">
