@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# R
+.Rhistory
+*.Rhistory
+.RData
+
+# Node / build output (incoming with the build)
+node_modules/
+dist/
+.env
+.env.local
