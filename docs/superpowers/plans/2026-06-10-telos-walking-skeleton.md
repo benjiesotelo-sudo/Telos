@@ -43,7 +43,7 @@
 
 ```bash
 npm create vite@latest telos-app -- --template react-ts
-rsync -a telos-app/ ./ && rm -rf telos-app          # merge into repo root; keep our .gitignore
+rsync -a --exclude='.gitignore' telos-app/ ./ && rm -rf telos-app   # merge in; keep our committed .gitignore
 npm install
 npm install webr papaparse fflate zustand html-to-image
 npm install -D vitest @playwright/test @types/papaparse
@@ -312,7 +312,6 @@ export class Engine {
     await this.webr.evalRVoid(TELOS_JSON_HELPER)
     this.ready = true
   }
-  async installPackages(pkgs: string[]): Promise<void> { await this.webr.installPackages(pkgs) }
 
   /** Evaluate an R block (statements allowed); its last value is serialized to JSON and parsed. */
   async runJson<T>(rBlock: string, env?: Record<string, unknown>): Promise<T> {
