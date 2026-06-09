@@ -119,6 +119,7 @@
   .amossvg ellipse.lat{fill:rgba(60,52,137,0.20);stroke:var(--purple-line);stroke-width:2;}
   @media (prefers-color-scheme:light){.amossvg ellipse.lat{fill:rgba(83,74,183,0.10);}}
   .amossvg text.lat-cn{fill:var(--text);font-size:12px;font-weight:700;text-anchor:middle;}
+  .amossvg text.lat-md{fill:var(--text);font-size:8px;font-style:italic;text-anchor:middle;opacity:0.62;}
   .amossvg rect.lat-ind{fill:var(--neutral-bg);stroke:var(--line);stroke-width:0.5;}
   .amossvg text.lat-it{fill:var(--neutral-tx);font-size:9.5px;text-anchor:middle;}
   .amossvg line.lat-meas{stroke:var(--line);stroke-width:1;}
@@ -334,13 +335,13 @@
       <div class="inner lbl-wrap">
         <span class="zone-tag">2 · set this test's options</span>
         <div class="optstrip">
-          <span class="optpill"><span class="k">normality test</span><span class="v">Shapiro-Wilk</span><span class="caret">&#9662;</span></span>
+          <span class="optpill"><span class="k">normality tests</span><span class="v">Shapiro-Wilk + K&ndash;S</span><span class="caret">&#9662;</span></span>
           <span class="optpill"><span class="k">bins</span><span class="v">auto</span><span class="caret">&#9662;</span></span>
         </div>
       </div>
       <div class="cfgguide">
         <div class="gh">How to configure this test</div>
-        <p>Use this to check whether a single numeric column is normally distributed before running tests that assume normality. Drag one numeric column &mdash; such as post_score &mdash; into the <b>Variable</b> slot, and you'll get a histogram, a Q-Q plot, and a normality test. Keep <b>normality test</b> on Shapiro-Wilk for most datasets, but note it only runs for 3&ndash;5000 cases. With larger samples, lean on the Q-Q plot instead, since the test becomes over-sensitive and flags trivial departures as non-normal.</p>
+        <p>Use this to check whether a single numeric column is normally distributed before running tests that assume normality. Drag one numeric column &mdash; such as post_score &mdash; into the <b>Variable</b> slot, and you'll get a histogram, a Q-Q plot, and normality tests (Shapiro&ndash;Wilk and K&ndash;S). Lean on the <b>Shapiro&ndash;Wilk</b> result for most datasets, but note it only runs for 3&ndash;5000 cases. With larger samples, lean on the Q-Q plot instead, since these tests become over-sensitive and flag trivial departures as non-normal.</p>
       </div>
       <div class="meta-row">
         <span class="tag"><b>Produces &mdash; table:</b> normality test</span>
@@ -462,7 +463,7 @@
       <p>Use this when comparing one numeric outcome across <b>three or more independent groups</b> — e.g. scores across three teaching methods. Drag the numeric outcome into <b>Outcome (DV)</b> and the grouping variable into <b>Factor</b>. The ANOVA tells you whether the groups differ <i>overall</i>; the <b>post-hoc</b> test (Tukey by default) then shows <i>which specific pairs</i> differ. Leave a post-hoc method selected if you want those pairwise comparisons.</p>
     </div>
     <div class="meta-row">
-      <span class="tag"><b>Produces &mdash; tables:</b> ANOVA, post-hoc comparisons</span>
+      <span class="tag"><b>Produces &mdash; tables:</b> descriptives, ANOVA, post-hoc comparisons</span>
       <span class="tag"><b>figure:</b> means plot</span>
       <span class="tag"><b>checks after run:</b> normality / equal variance</span>
     </div>
@@ -624,7 +625,7 @@
         <p>Use this when you want to compare one numeric outcome across <b>two or more grouping factors at the same time</b> — e.g. post-test scores by teaching method &times; gender. Drag your numeric outcome into <b>Outcome (DV)</b> and each grouping column into <b>Factors</b>. Keep <b>interactions on</b> to test whether the effect of one factor depends on the level of another; turn on <b>post-hoc</b> to see which specific group pairs differ. Make sure each combination of factor levels has enough cases, or the interaction estimates become unstable.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> ANOVA (main + interaction), post-hoc</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> cell descriptives, ANOVA (main + interaction), post-hoc</span>
         <span class="tag"><b>figure:</b> interaction plot</span>
         <span class="tag"><b>checks after run:</b> normality / equal variance</span>
       </div>
@@ -683,7 +684,7 @@
         <p>Use this when the <b>same people</b> are measured under 3 or more conditions or timepoints — e.g. each participant's score at time 1, time 2 and time 3. Drag the subject identifier into <b>Subject ID</b> and each repeated-measure column into <b>Repeated measures</b> (one column per timepoint, in time order). Your data must be in wide format, with one row per person. If the sphericity assumption is violated, keep the <b>GG correction</b> on so the p-values stay trustworthy.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> RM-ANOVA, sphericity, post-hoc</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> descriptives, RM-ANOVA, sphericity, post-hoc</span>
         <span class="tag"><b>figure:</b> profile plot</span>
         <span class="tag"><b>checks after run:</b> sphericity</span>
       </div>
@@ -796,7 +797,7 @@
         <p>Use this when you're comparing the average of one numeric outcome across <b>three or more groups whose spread differs</b> — e.g. post-test scores across three teaching methods. Drag your numeric outcome into <b>Outcome (DV)</b> and the grouping label into <b>Factor</b>. Configure it exactly like a one-way ANOVA; Telos applies the Welch correction so you don't need equal variances, and runs the Games-Howell post-hoc to see which groups differ.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> Welch ANOVA, post-hoc</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> descriptives, Welch ANOVA, post-hoc</span>
         <span class="tag"><b>figure:</b> means plot</span>
       </div>
     </div>
@@ -1083,7 +1084,7 @@
         <p>Reach for this as the nonparametric alternative to the paired t-test, when the same people are measured twice and the differences aren't normally distributed. Drag your two paired measurement columns in — the earlier value into <b>Condition A</b> (here <b>pre_score</b>) and the later value into <b>Condition B</b> (here <b>post_score</b>). Both columns must come from the same cases in matching order, so each row is one pair. Keep <b>tails</b> at two-tailed unless you predicted the direction of the shift in advance.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; table:</b> signed-rank test</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> rank stats, signed-rank test</span>
         <span class="tag"><b>figure:</b> difference plot</span>
       </div>
     </div>
@@ -1137,7 +1138,7 @@
         <p>Use this as the nonparametric alternative to one-way ANOVA when you're comparing one outcome across <b>three or more independent groups</b> &mdash; e.g. satisfaction ratings under three teaching methods. Drag your outcome (ordinal or numeric) into <b>Outcome</b> and the variable that splits cases into the groups into <b>Grouping var</b>. If your grouping variable has only two categories, use Mann-Whitney instead. Turn on <b>Dunn's test</b> to see which specific pairs of groups differ once the overall test is significant.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> Kruskal-Wallis, Dunn post-hoc</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> rank stats, Kruskal-Wallis, Dunn post-hoc</span>
         <span class="tag"><b>figure:</b> boxplot</span>
       </div>
     </div>
@@ -1194,7 +1195,7 @@
         <p>Use this as the nonparametric alternative to a repeated-measures ANOVA — when the same people are rated three or more times and the measure is ordinal or non-normal. Drag the subject identifier into <b>Subject ID</b> and each repeated-measure column (here <b>rating_t1</b>, <b>rating_t2</b>, <b>rating_t3</b>) into <b>Repeated measures</b>. Your data must be in wide format, with one row per person and one column per time point. Turn on the <b>Nemenyi</b> post-hoc to see which time points differ once the overall test is significant.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> Friedman test, post-hoc</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> rank stats, Friedman test, post-hoc</span>
         <span class="tag"><b>figure:</b> profile plot</span>
       </div>
     </div>
@@ -1523,7 +1524,7 @@
         <p>Use this as the exact alternative to chi-square when your sample is small and you're cross-tabulating <b>two category columns</b> — often a 2&times;2 table. Drag one category into <b>Row variable</b> and the other into <b>Column variable</b> — e.g. <b>group</b> as the rows and <b>gender</b> as the columns. Keep <b>tails</b> at two unless you have a directional hypothesis. You'll get an odds ratio only when both variables have exactly two categories.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> contingency table, exact p, odds ratio (2&times;2 only)</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> contingency, Fisher's exact (exact p; OR + 95% CI for 2&times;2 only)</span>
         <span class="tag"><b>figure:</b> mosaic</span>
       </div>
     </div>
@@ -1689,7 +1690,7 @@
         <p>Use this when your outcome is a yes/no result and you want to predict it from one or more variables — e.g. whether a student passed from their age, prior score, and gender. Drag the binary outcome into <b>Outcome (DV)</b> and each explanatory column into <b>Predictors</b>; predictors can be numeric or categorical. Keep <b>report odds ratios</b> on so each coefficient reads as the multiplier on the odds of the outcome. The outcome must have exactly two categories — a variable with three or more levels won't fit here.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> coefficients (odds ratios), classification</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> coefficients (odds ratios), model fit, classification</span>
         <span class="tag"><b>figure:</b> ROC curve</span>
       </div>
     </div>
@@ -1808,7 +1809,7 @@
       <p>Use this to model a single variable measured repeatedly over time and forecast it forward — e.g. monthly sales. Drag your date/time column into <b>Time variable</b> and the numeric series into <b>Series</b>. Let Telos <b>auto-select</b> the orders, or set them yourself; set the <b>seasonal period</b> to your data's real cycle length (12 = monthly, 4 = quarterly) to use SARIMA &mdash; and only if you have at least two full cycles of data.</p>
     </div>
     <div class="meta-row">
-      <span class="tag"><b>Produces &mdash; tables:</b> model summary, residual diagnostics</span>
+      <span class="tag"><b>Produces &mdash; tables:</b> model summary, residual diagnostics, forecast</span>
       <span class="tag"><b>figure:</b> forecast plot</span>
     </div>
   </div>
@@ -1943,7 +1944,7 @@
       <p>Use this to estimate the effect of a policy or treatment by comparing the before&rarr;after change in a treated group against the change in an untreated control group. Drag the numeric outcome into <b>Outcome</b>, the treated/control indicator into <b>Treatment group</b>, and the before/after indicator into <b>Period</b>; add the <b>Entity</b> (for clustered standard errors) and the finer <b>Time</b> column (for the trends plot). The treatment&times;period interaction is the DiD estimate. <b>It is only valid if the treated and control groups were trending together <i>before</i> treatment (the parallel-trends assumption)</b> &mdash; inspect the pre-treatment part of the trends plot; if the lines already diverge, don't trust the estimate.</p>
     </div>
     <div class="meta-row">
-      <span class="tag"><b>Produces &mdash; tables:</b> DiD estimate, model</span>
+      <span class="tag"><b>Produces &mdash; table:</b> DiD model (Treated&times;Post row = DiD estimate)</span>
       <span class="tag"><b>figure:</b> parallel-trends plot</span>
     </div>
   </div>
@@ -1995,7 +1996,7 @@
       </div>
       <div class="meta-row">
         <span class="tag"><b>Produces &mdash; table:</b> stationarity test</span>
-        <span class="tag"><b>figure:</b> series + differenced plot</span>
+        <span class="tag"><b>figure:</b> series + differenced plot, ACF / PACF</span>
       </div>
     </div>
 
@@ -2228,7 +2229,8 @@
         <p>Use this when you have panel data and can't decide between fixed and random effects — it tells you which one your data supports. Set up the panel model exactly once: drag the entity identifier into <b>Entity</b>, the time column into <b>Time</b>, your outcome into <b>Outcome</b>, and the explanatory variables into <b>Regressors</b>. Telos then fits both a fixed-effects and a random-effects model and compares them for you. A significant result (p below &alpha;) means random effects is biased, so you should prefer fixed effects.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; table(s):</b> Hausman test statistic &amp; decision (fixed vs random)</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> Hausman test statistic &amp; decision (fixed vs random), FE vs. RE coefficients</span>
+        <span class="tag"><b>figure:</b> side-by-side coefficient plot</span>
       </div>
     </div>
 
@@ -2602,8 +2604,9 @@
         <p>Use this to check <b>convergent validity</b> &mdash; whether the items of each construct really measure one underlying thing. Define each construct by dragging its items together on the canvas; there are no arrows to draw between constructs here. AVE is computed from the CFA loadings, so use the same estimator as composite reliability (<b>WLSMV</b> for ordinal Likert items) and report AVE and CR together. A construct is usually accepted when AVE &ge; 0.50.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; table:</b> AVE per construct</span>
-        <span class="tag"><b>with:</b> discriminant-validity matrix</span>
+        <span class="tag"><b>Produces &mdash; table:</b> convergent validity (AVE, CR, &alpha;)</span>
+        <span class="tag"><b>with:</b> discriminant-validity (Fornell&ndash;Larcker) matrix</span>
+        <span class="tag"><b>figure:</b> AVE / CR bar chart</span>
       </div>
     </div>
 
@@ -2657,7 +2660,8 @@
         <p>Use this for <b>construct reliability</b> &mdash; how consistently a construct's items hang together (a less restrictive alternative to Cronbach's alpha). Define each construct by dragging its items together on the canvas; no arrows are drawn between constructs. CR is computed from the CFA loadings, so use the same estimator as AVE (<b>WLSMV</b> for ordinal Likert items) and report them together. CR &ge; 0.70 is the usual threshold.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; table:</b> CR per construct</span>
+        <span class="tag"><b>Produces &mdash; table:</b> composite reliability (CR, AVE, &alpha;)</span>
+        <span class="tag"><b>figure:</b> CR bar chart</span>
       </div>
     </div>
 
@@ -2705,7 +2709,7 @@
         <p>Use this when you want to discover the underlying factors behind a set of questionnaire items — e.g. whether your ease-of-use, usefulness, and intention items group into separate themes. Drag <b>all</b> of your candidate items (eu1&ndash;eu3, pu1&ndash;pu3, int1&ndash;int3) into <b>Items</b>; you need at least three. Leave <b>n factors</b> on auto to let Telos suggest the number from scree or parallel analysis, or set it yourself if your theory expects a specific count.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> loadings, variance explained, communalities</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> suitability (KMO / Bartlett's), variance explained, rotated loadings (communalities)</span>
         <span class="tag"><b>figure:</b> scree plot</span>
       </div>
     </div>
@@ -2801,17 +2805,20 @@
               <rect class="lat-ind" x="372" y="327" width="36" height="18" rx="3"/>
               <text class="lat-it" x="390" y="339">int3</text>
               <ellipse class="lat" cx="185" cy="115" rx="58" ry="30"/>
-              <text class="lat-cn" x="185" y="119">Ease of Use</text>
+              <text class="lat-cn" x="185" y="112">Ease of Use</text>
+              <text class="lat-md" x="185" y="124">formative</text>
               <ellipse class="lat" cx="505" cy="115" rx="58" ry="30"/>
-              <text class="lat-cn" x="505" y="119">Usefulness</text>
+              <text class="lat-cn" x="505" y="112">Usefulness</text>
+              <text class="lat-md" x="505" y="124">reflective</text>
               <ellipse class="lat" cx="345" cy="275" rx="58" ry="30"/>
-              <text class="lat-cn" x="345" y="279">Intention</text>
+              <text class="lat-cn" x="345" y="272">Intention</text>
+              <text class="lat-md" x="345" y="284">reflective</text>
               <line class="lat-path" x1="249" y1="115" x2="441" y2="115" marker-end="url(#arw_pls)"/>
               <line class="lat-path" x1="216" y1="146" x2="314" y2="244" marker-end="url(#arw_pls)"/>
               <line class="lat-path" x1="474" y1="146" x2="376" y2="244" marker-end="url(#arw_pls)"/>
             </svg>
           </div>
-          <div class="sem-cap">same canvas as CB-SEM &middot; drag items onto a construct, then click two constructs to draw a path &middot; mark a construct reflective or formative</div>
+          <div class="sem-cap">same canvas as CB-SEM &middot; drag items onto a construct, then click two constructs to draw a path &middot; each construct is set <b>reflective</b> or <b>formative</b> individually (same items can be specified either way &mdash; shown here with Ease of Use formative)</div>
         </div>
       </div>
       <div class="mini-arrow"></div>
@@ -2820,7 +2827,6 @@
         <div class="optstrip">
           <span class="optpill"><span class="k">weighting</span><span class="v">path</span><span class="caret">&#9662;</span></span>
           <span class="optpill"><span class="k">bootstrap</span><span class="v">5000</span><span class="caret">&#9662;</span></span>
-          <span class="optpill"><span class="k">mode</span><span class="v">reflective</span><span class="caret">&#9662;</span></span>
         </div>
       </div>
       <div class="cfgguide">
@@ -2828,7 +2834,7 @@
         <p>Use this for variance-based SEM &mdash; well suited to prediction, smaller samples, or formative constructs. Build the model on the same canvas as CB-SEM: drag each construct's items together, then draw arrows for the relationships you hypothesize (including any mediation or moderation). Switch a construct to <b>formative</b> when its items <i>cause</i> the construct rather than reflect it. Bootstrapping gives the significance of the path coefficients.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> outer loadings/weights, path coefficients, R&sup2;, reliability</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> outer loadings/weights, reliability &amp; validity (CR/AVE/&rho;<sub>A</sub>), HTMT discriminant validity, structural paths (&beta;, R&sup2;, f&sup2;)</span>
         <span class="tag"><b>figure:</b> path diagram</span>
       </div>
     </div>

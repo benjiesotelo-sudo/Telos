@@ -313,6 +313,8 @@
       <table class="apa"><thead><tr><th>Factor A &times; B</th><th>N</th><th>M</th><th>SD</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> ANOVA (main effects + interaction)</div>
       <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>Factor A</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Factor B</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>A &times; B</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 3.</b> Simple effects / post-hoc</div>
+      <table class="apa"><thead><tr><th>Contrast</th><th>M<sub>diff</sub></th><th>SE</th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks: Levene's &amp; normality of residuals; post-hoc / simple-effects table when an effect is significant.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Interaction</div><div class="ftype">type: <b>interaction plot</b> (one line per level of a factor)</div></div>
@@ -320,8 +322,8 @@
       <div class="howread"><p>Each factor's <b>F</b>/<b>p</b> is its main effect; the <b>A&times;B</b> row tests whether the effect of one factor depends on the other. A significant interaction usually takes priority &mdash; read it from the interaction plot before the main effects. A significant effect for any factor with 3+ levels tells you the levels differ <i>somewhere</i>, not which ones &mdash; use the post-hoc / simple-effects (emmeans) table to find the specific pairs.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A two-way ANOVA found a significant A&times;B interaction, <i>F</i>(__,__)=__, <i>p</i>=__, partial &eta;&sup2;=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>aov()</code> / <code>afex::aov_car()</code> &rarr; Table 2 &middot; <code>emmeans</code> &rarr; simple effects &middot; <code>ggplot2</code> &rarr; interaction plot</div>
-        <div class="m bundle">table_cell-descriptives.png &middot; table_anova.png &middot; figure_interaction.png</div>
+        <div class="m"><b>R map:</b> <code>aov()</code> / <code>afex::aov_car()</code> &rarr; Table 2 &middot; <code>emmeans</code> &rarr; Table 3 &middot; <code>ggplot2</code> &rarr; interaction plot</div>
+        <div class="m bundle">table_cell-descriptives.png &middot; table_anova.png &middot; table_simple-effects.png &middot; figure_interaction.png</div>
       </div>
     </div>
   </div>
@@ -863,7 +865,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>Clustered SE</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Model fit</div>
       <table class="apa"><thead><tr><th>R&sup2;</th><th>Adj. R&sup2;</th><th>N obs</th><th>N entities</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">unlike fixed effects, time-invariant predictors can be retained. <code>summary(plm)</code> returns a single R&sup2; / adj. R&sup2; (not a within/between/overall split).</p>
@@ -1089,23 +1091,28 @@
     <div class="rt-h"><span class="rt-name">CB-SEM</span><span class="rt-q">confirmatory structural model</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
-      <div class="apa-cap"><b>Table 1.</b> Measurement model (loadings)</div>
+      <p class="tbl-note">tables shown follow the pipeline stages you ran (EFA &rarr; CFA &rarr; fit &rarr; structural); if EFA was deselected, Tables 1&ndash;2 are omitted; if the structural stage was deselected, Table 6 is omitted.</p>
+      <div class="apa-cap"><b>Table 1.</b> EFA suitability</div>
+      <table class="apa"><thead><tr><th>KMO</th><th>Bartlett's &chi;&sup2;</th><th>df</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 2.</b> EFA rotated factor loadings</div>
+      <table class="apa"><thead><tr><th>Item</th><th>Factor 1</th><th>Factor 2</th><th>Communality</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 3.</b> Measurement model (CFA loadings)</div>
       <table class="apa"><thead><tr><th>Construct &rarr; Item</th><th>Std. loading</th><th>SE</th><th>z</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 2.</b> Reliability &amp; validity</div>
+      <div class="apa-cap"><b>Table 4.</b> Reliability &amp; validity</div>
       <table class="apa"><thead><tr><th>Construct</th><th>CR</th><th>AVE</th><th>&alpha;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 3.</b> Fit indices</div>
+      <div class="apa-cap"><b>Table 5.</b> Fit indices</div>
       <table class="apa"><thead><tr><th>&chi;&sup2; (df, p)</th><th>&chi;&sup2;/df</th><th>CFI</th><th>TLI</th><th>RMSEA [90% CI]</th><th>SRMR</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 4.</b> Structural paths</div>
+      <div class="apa-cap"><b>Table 6.</b> Structural paths</div>
       <table class="apa"><thead><tr><th>Path</th><th>Std. &beta;</th><th>SE</th><th>z</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">good fit guideline: CFI/TLI &ge; .95, RMSEA &le; .06, SRMR &le; .08; use WLSMV for ordinal indicators.</p>
+      <p class="tbl-note">good fit guideline: CFI/TLI &ge; .95, RMSEA &le; .06, SRMR &le; .08; use WLSMV for ordinal indicators. EFA on the same sample is exploratory &mdash; treat it as a diagnostic, not confirmatory evidence.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Model</div><div class="ftype">type: <b>path diagram</b> (constructs, loadings, structural paths)</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>First confirm the <b>measurement model</b> (loadings high, CR/AVE adequate) and overall <b>fit indices</b>. Then read the <b>structural paths</b>: each std. <b>&beta;</b> with <b>p</b>/<b>CI</b> is a hypothesized relationship between constructs; R&sup2; shows variance explained in each outcome construct. CB-SEM is <b>confirmatory</b>: the measurement model must be specified from theory a priori &mdash; any post-hoc respecification (e.g. from modification indices) is exploratory, must be reported as such, and ideally cross-validated on a fresh sample.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The model fit well (CFI=__, RMSEA=__, SRMR=__); the path from X to Y was significant, &beta;=__, <i>p</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>lavaan::sem()</code> (estimator ML/MLR or WLSMV) &rarr; loadings &amp; structural paths &middot; <code>lavaan::fitMeasures()</code> (or <code>summary(fit, fit.measures=TRUE)</code>) &rarr; Table 3 fit indices (&chi;&sup2;/df = chisq/df) &middot; <code>semTools::compRelSEM()</code> / <code>AVE()</code> / <code>psych::alpha()</code> &rarr; CR/AVE/&alpha; table &middot; <code>semPlot::semPaths()</code> &rarr; diagram</div>
-        <div class="m bundle">table_loadings.png &middot; table_reliability.png &middot; table_fit-indices.png &middot; table_structural-paths.png &middot; figure_path-diagram.png</div>
+        <div class="m"><b>R map:</b> <i>(if EFA stage run)</i> <code>psych::KMO()</code>/<code>cortest.bartlett()</code> &rarr; Table 1 &middot; <code>psych::fa()</code> &rarr; Table 2 &middot; <code>lavaan::sem()</code> (estimator ML/MLR or WLSMV) &rarr; loadings &amp; structural paths &middot; <code>lavaan::fitMeasures()</code> (or <code>summary(fit, fit.measures=TRUE)</code>) &rarr; Table 5 fit indices (&chi;&sup2;/df = chisq/df) &middot; <code>semTools::compRelSEM()</code> / <code>AVE()</code> / <code>psych::alpha()</code> &rarr; CR/AVE/&alpha; table &middot; <code>semPlot::semPaths()</code> &rarr; diagram</div>
+        <div class="m bundle">table_efa-suitability.png &middot; table_efa-loadings.png &middot; table_loadings.png &middot; table_reliability.png &middot; table_fit-indices.png &middot; table_structural-paths.png &middot; figure_path-diagram.png</div>
       </div>
     </div>
   </div>
@@ -1121,8 +1128,10 @@
       <div class="apa-cap"><b>Table 3.</b> Discriminant validity &mdash; HTMT (construct &times; construct)</div>
       <table class="apa"><thead><tr><th>Construct</th><th>C1</th><th>C2</th><th>C3</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">HTMT is a construct-by-construct matrix (not a per-construct value); HTMT &lt; .85/.90 supports discriminant validity.</p>
-      <div class="apa-cap"><b>Table 4.</b> Structural paths &amp; R&sup2;</div>
+      <div class="apa-cap"><b>Table 4.</b> Structural paths</div>
       <table class="apa"><thead><tr><th>Path</th><th>&beta;</th><th>t</th><th>p</th><th>95% CI</th><th>f&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 5.</b> Structural model quality (per endogenous construct)</div>
+      <table class="apa"><thead><tr><th>Construct</th><th>R&sup2;</th><th>R&sup2;<sub>adj</sub></th><th>Q&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">significance from bootstrapping; HTMT &lt; .85/.90 supports discriminant validity; R&sup2; and Q&sup2; assess the structural model.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Model</div><div class="ftype">type: <b>path diagram</b> (with loadings, path coefficients, R&sup2;)</div></div>
@@ -1130,8 +1139,8 @@
       <div class="howread"><p>Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does <b>not</b> use CB-SEM global fit indices (CFI/TLI/RMSEA) &mdash; judge it instead by reliability &amp; validity (CR, AVE, HTMT), then R&sup2;, Q&sup2; (predictive relevance) and f&sup2;, with SRMR the only commonly reported approximate fit index. Read the bootstrapped <b>path coefficients</b> (&beta;, p); <b>f&sup2;</b> is each path's effect size (~0.02 small, 0.15 medium, 0.35 large).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;In the PLS-SEM, the path from X to Y was significant, &beta;=__, <i>p</i>=__ (bootstrap); R&sup2;<sub>Y</sub>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>seminr</code> / <code>plspm</code> &rarr; Tables &amp; bootstrap &middot; <code>seminr::plot()</code> &rarr; diagram</div>
-        <div class="m bundle">table_outer-model.png &middot; table_reliability.png &middot; table_structural.png &middot; figure_path-diagram.png</div>
+        <div class="m"><b>R map:</b> <code>seminr</code> / <code>plspm</code> &rarr; Tables &amp; bootstrap &middot; <code>summary()</code> &rarr; R&sup2;/R&sup2;adj &middot; <code>seminr::predict_pls()</code> &rarr; Q&sup2; &middot; <code>seminr::plot()</code> &rarr; diagram</div>
+        <div class="m bundle">table_outer-model.png &middot; table_reliability.png &middot; table_htmt.png &middot; table_structural.png &middot; table_structural-quality.png &middot; figure_path-diagram.png</div>
       </div>
     </div>
   </div>
