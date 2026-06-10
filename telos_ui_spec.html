@@ -154,37 +154,49 @@
       <span class="nstep">Results</span>
     </div>
     <div class="navcap">Sticky · back steps clickable · each test step opens only once the steps before it are complete</div>
+    <div class="navcap"><b>Going back:</b> edits to an earlier step re-evaluate every later gate — still-valid work is kept · a test config whose columns became invalid is marked blocked with the reason · already-rendered results are marked stale and "Run analysis" re-enables</div>
   </div>
 
   <div class="col">
     <div class="node neutral"><div class="t">Opens browser link</div></div>
     <div class="arrow"></div>
 
-    <div class="node blue"><div class="t">1 · Welcome / about</div><div class="s">What Telos is, services, analysis types, credits (<a href="https://www.linkedin.com/in/benjaminsotelo1/" style="color:inherit;">Benjamin Sotelo</a>)</div></div>
+    <div class="node blue"><div class="t">1 · Welcome / about</div><div class="s">What Telos is, services, analysis types, credits (<a href="https://www.linkedin.com/in/benjaminsotelo1/" style="color:inherit;">Benjamin Sotelo</a>)</div>
+      <div class="explain" style="text-align:left;background:var(--card);">
+        <div class="eh">DRAFT copy — for review</div>
+        <p>&ldquo;Telos runs your statistics in the browser — built for thesis students. Upload your data, get guided to the right tests, and read APA-7 results with plain-language explainers. Export everything as one bundle: PDF, R script, figures. Your data never leaves your browser. Built by Benjamin Sotelo — <a href="https://www.linkedin.com/in/benjaminsotelo1/" style="color:inherit;">linkedin.com/in/benjaminsotelo1</a>.&rdquo;</p>
+      </div>
+    </div>
     <div class="arrow"><span class="lbl">Click "Get started"</span></div>
 
-    <div class="node blue"><div class="t">2 · Upload data</div><div class="s">Choose CSV or Excel file, auto-detect on parse</div></div>
+    <div class="node blue"><div class="t">2 · Upload data</div><div class="s">Choose CSV or Excel file (.csv · .xlsx · .xls), auto-detect on parse · header row assumed to be row 1<br/>Excel workbook with several sheets → student picks a sheet (default: first)<br/>parse failure / empty or corrupt file → inline error naming the problem; student stays on step 2<br/>DRAFT — confirm: CSV delimiter auto-detected (comma / semicolon / tab) · decimal point assumed "." · UTF-8 and Latin-1 encodings accepted<br/>DRAFT — confirm: size guidance — warn above 20 MB or 100,000 rows</div></div>
     <div class="arrow"><span class="lbl">File parsed</span></div>
 
-    <div class="node amber"><div class="t">3 · Terms guide</div><div class="s">Type vs level · the 4 levels · missing-data handling</div></div>
+    <div class="node amber"><div class="t">3 · Terms guide</div><div class="s">Type vs level · the 4 levels · missing-data handling</div>
+      <div class="explain" style="text-align:left;background:var(--card);">
+        <div class="eh">DRAFT copy — for review</div>
+        <p>&ldquo;<b>Type vs level:</b> the type is how a column is stored (numbers, text, dates); the level is what its values mean for analysis — you set the level. <b>Nominal</b> — named categories with no order (gender, region). <b>Ordinal</b> — ordered categories with uneven steps (a 1–5 satisfaction rating). <b>Interval</b> — equal steps but no true zero (temperature in °C). <b>Ratio</b> — equal steps and a true zero (income, test score). <b>Missing data:</b> empty cells — by default each test simply skips the rows that are incomplete for its own columns (step 4a lets you change this).&rdquo;</p>
+      </div>
+    </div>
     <div class="arrow"><span class="lbl">Click "Continue"</span></div>
 
     <div class="config">
       <div class="ttl">4 · Configure data</div>
-      <div class="inner neutral"><div class="t">a · Missing-data handling — global, at top</div><div class="s">Drop rows · Impute (default) · Leave as-is</div></div>
+      <div class="inner neutral"><div class="t">a · Missing-data handling — global, at top</div><div class="s">Drop rows · Impute · Leave as-is (default) — per-test listwise: each test analyzes complete cases on its own role columns and reports its own N<br/>Impute = mean (interval/ratio) / mode (nominal/ordinal) · caution: imputation understates variance<br/>exception: SEM is estimator-aware (see the step-6 SEM config &amp; the branch note below)</div></div>
       <div class="mini-arrow"></div>
       <div class="inner neutral"><div class="t">b · File summary banner</div><div class="s">rows · cols · encoding (read-only)</div></div>
       <div class="mini-arrow"></div>
-      <div class="inner blue"><div class="t">c · Auto-detected type per column (read-only)</div><div class="s">int64 · float64 · object · bool · datetime64</div></div>
+      <div class="inner blue"><div class="t">c · Auto-detected type per column (read-only)</div><div class="s">int64 · float64 · object · bool · datetime64<br/>a numeric column mis-parsed as text gets a "fix type" override</div></div>
       <div class="mini-arrow"></div>
-      <div class="inner amber"><div class="t">d · Student sets measurement level + name + Use</div><div class="s">nominal · ordinal · interval · ratio · exclude toggle</div></div>
+      <div class="inner amber"><div class="t">d · Student sets measurement level + name + Use</div><div class="s">nominal · ordinal · interval · ratio · exclude toggle<br/>detected type pre-fills a suggested level (numeric → ratio, text → nominal, etc.) — student can change it within compatibility</div></div>
+      <div class="note">Derived properties — tags like count · datetime · id · nested are auto-detected column properties used by test eligibility, not levels the student sets</div>
       <div class="note">"Confirm &amp; pick test" — disabled until every used column has a level</div>
     </div>
     <div class="arrow"></div>
 
     <div class="picktree">
       <div class="pt-title">5 · Pick a test</div>
-      <p class="hint">Folders expand only · tick individual tests · multi-select on · greyed + reason if data unsupported</p>
+      <p class="hint">Folders expand only · tick individual tests · multi-select on · greyed + reason if data unsupported — eligibility = level/arity fit plus per-test minimum data requirements (registry-defined · DRAFT — confirm: e.g. at least 3 complete rows per group) · if every test is greyed, a panel explains why and points back to steps 2/4</p>
 
       <div class="fam">1 · Descriptive statistics</div>
       <div class="branch">
@@ -199,7 +211,7 @@
         <div class="leaf"><span class="box"></span>One-sample t-test</div>
         <div class="leaf"><span class="box"></span>Independent t-test</div>
         <div class="leaf"><span class="box"></span>Paired t-test</div>
-        <div class="leaf"><span class="box"></span>One-way ANOVA</div>
+        <div class="leaf"><span class="box"></span>One-way ANOVA + post-hoc</div>
         <div class="leaf"><span class="box"></span>Factorial ANOVA</div>
         <div class="leaf"><span class="box"></span>Repeated-measures ANOVA</div>
         <div class="leaf"><span class="box"></span>Nested ANOVA</div>
@@ -262,8 +274,8 @@
         <div class="leaf"><span class="box"></span>Exploratory factor analysis (EFA)</div>
         <div class="leaf"><span class="box"></span>Principal component analysis (PCA)</div>
         <div class="sub">Structural equation modeling</div>
-        <div class="leaf"><span class="box"></span>CB-SEM <span class="nt">— auto-runs EFA &rarr; CFA &rarr; structural; includes path analysis &amp; mediation/moderation</span></div>
-        <div class="leaf"><span class="box"></span>PLS-SEM <span class="nt">— includes path analysis &amp; mediation/moderation</span></div>
+        <div class="leaf"><span class="box"></span>CB-SEM <span class="nt">— pipeline stages selectable: CFA &amp; model fit always run, EFA and the structural stage optional (default: all on); includes path analysis &amp; mediation via drawn path chains (indirect-effects table, bootstrapped CIs); moderation planned for a later version</span></div>
+        <div class="leaf"><span class="box"></span>PLS-SEM <span class="nt">— includes path analysis &amp; mediation via drawn path chains (indirect-effects table, bootstrapped CIs); moderation planned for a later version</span></div>
       </div>
 
       <div class="tbd">7 · Assumption diagnostics <span class="nt">— inline checks under each test (no standalone cards)</span></div>
@@ -278,11 +290,12 @@
       <div class="mini-arrow"></div>
       <div class="inner amber"><div class="t">Per test · test-specific options</div><div class="s">alpha · one- / two-tailed · CI % · post-hoc method · reference group · etc.</div></div>
       <div class="mini-arrow"></div>
-      <div class="inner blue"><div class="t">How each test is configured → companion spec</div><div class="s">role slots · level/arity constraints · options · outputs · and a "how to configure" guide, per test — see <a href="telos_test_inputs.html" style="color:inherit;text-decoration:underline;">telos_test_inputs.html</a> · CB-SEM gets its own model-building canvas</div></div>
+      <div class="inner blue"><div class="t">How each test is configured → companion spec</div><div class="s">role slots · level/arity constraints · options · outputs · and a "how to configure" guide, per test — see <a href="telos_test_inputs.html" style="color:inherit;text-decoration:underline;">telos_test_inputs.html</a> · the SEM-family tests (CB-SEM, PLS-SEM, AVE, CR) use a model-building canvas</div></div>
       <div class="note">Repeats for every selected test · "Run analysis" stays disabled until each one is fully configured · a picked test whose roles can't be filled by the Used columns is blocked here with the reason (e.g. ANCOVA with no covariate), mirroring step 5's grey-out</div>
     </div>
     <div class="repeat">step 4 prepares the dataset once (types · levels · missing data) — step 6 maps those columns into each test's required roles</div>
     <div class="arrow"><span class="lbl">Click "Run analysis"</span></div>
+    <div class="repeat">run state — each test shows its own progress indicator (the first run includes WebR boot progress; bootstrap operations show a progress bar) · if a test fails, it renders a readable error card on the results page and the other tests' results stay intact</div>
 
     <div class="rcard">
       <div class="ttl">7 · Results — one page: export on top, preview below</div>
@@ -310,7 +323,9 @@
           <p>Generic explainer for this test type — the same text that lands in the PDF &amp; LaTeX. Teaches how the test is read in general; never interprets your specific result and never points to specific cells.</p>
         </div>
       </div>
-      <div class="repeat">&uarr; repeats per selected test · a single SEM selection expands into EFA &rarr; CFA &rarr; fit &rarr; structural &rarr; mediation/moderation</div>
+      <div class="repeat">&uarr; repeats per selected test · a single SEM selection expands into its selected stages — EFA (optional) &rarr; CFA &rarr; fit &rarr; structural (optional) — plus an Indirect effects table when the drawn paths form a chain; moderation planned for a later version</div>
+      <div class="mini-arrow"></div>
+      <div class="inner blue"><div class="t">What each test outputs → companion spec</div><div class="s">exact APA tables (real columns) · figure(s) · how-to-read text · APA write-up template · R map · bundle files, per test — see <a href="telos_test_outputs.html" style="color:inherit;text-decoration:underline;">telos_test_outputs.html</a></div></div>
       <div class="mini-arrow"></div>
       <div class="inner blue">
         <div class="t">After export · optional feedback</div>
@@ -321,7 +336,7 @@
     </div>
     <div class="arrow"></div>
 
-    <div class="later"><div class="t">Branch · if SEM is selected</div><div class="s">SEM runs its own missing-data path (FIML)<br/>warns if it differs from your global (step 4a) setting</div></div>
+    <div class="later"><div class="t">Branch · if SEM is selected</div><div class="s">CB-SEM missing-data handling follows the estimator (FIML for ML/MLR, MI for WLSMV) — set in the step-6 SEM config; PLS-SEM follows the global step-4a setting<br/>warns if it differs from your global (step 4a) setting</div></div>
   </div>
 
   <h2 class="sec">Results — the "how to read" layer</h2>
@@ -358,12 +373,13 @@
    &#9500;&#9472; table_reliability.png
    &#9500;&#9472; table_fit-indices.png
    &#9500;&#9472; table_structural-paths.png
+   &#9500;&#9472; table_indirect-effects.png
    &#9492;&#9472; figure_path-diagram.png</div>
     <ul class="rules">
       <li><b>One .zip</b> whenever the export is more than one file (multiple formats, multiple tests, or image folders) — never N separate downloads. A single one-file export (e.g. only the PDF) downloads directly, no .zip. (Tree above shows everything ticked.)</li>
       <li><b>Each selected test gets its own folder</b>, prefixed <code>NN_</code> in configured order; files inside are labelled by content (<code>table_*</code>, <code>figure_*</code>).</li>
       <li><b>report.pdf / report.tex / analysis.R</b> sit at the root.</li>
-      <li><b>data/cleaned.csv rides along whenever the R script is selected</b>, so <code>analysis.R</code> runs via a relative path on the student's own machine — not just on the server.</li>
+      <li><b>data/cleaned.csv rides along whenever the R script is selected</b>, so <code>analysis.R</code> runs via a relative path in the student's own R/RStudio — the same analysis, reproduced on their machine.</li>
       <li><b>A folder or file appears only if its format was ticked</b> — per-test image folders require table and/or figure images; each report file requires its own tick.</li>
     </ul>
   </div>
@@ -371,13 +387,13 @@
   <h2 class="sec">Results — engine &amp; formats (our side)</h2>
   <div class="panel">
     <ol class="pipe">
+      <li>All statistics run <b>in the browser</b> — <b>WebR</b> (R compiled to WebAssembly) in a worker; there is <b>no backend</b>, and the uploaded data never leaves the browser.</li>
+      <li>R packages <b>preload from the WebR repo</b> and cache in the browser, so repeat visits skip the download.</li>
       <li>Each test produces one <b>canonical result object</b> — <code>{ metadata · table data · figure spec · how-to-read text }</code>.</li>
-      <li>Objects are assembled <b>in configured order</b> into a single <b>Quarto</b> <code>.qmd</code>.</li>
-      <li><code>quarto render</code> &rarr; <b>report.pdf</b> (APA 7).</li>
-      <li>The <b>.tex</b> is produced as a byproduct of that same render &rarr; <b>report.tex</b>.</li>
-      <li><code>knitr::purl()</code> extracts the executable code &rarr; <b>analysis.R</b> — literally the code that made the PDF, so it reproduces it exactly.</li>
-      <li>Figures saved as PNG via <b>ggplot2</b>; APA tables saved as PNG via <b>gt / flextable</b>.</li>
-      <li>Everything (plus <code>cleaned.csv</code> if R was selected) is zipped per the structure above.</li>
+      <li>Objects are assembled <b>in configured order</b> into the results preview, the report, and <b>analysis.R</b>.</li>
+      <li>Figures are <b>ggplot2</b>, rendered inside WebR and returned as PNG; APA tables saved as PNG.</li>
+      <li><b>analysis.R</b> is a reproducibility script — the student can run it themselves in R/RStudio (with <code>data/cleaned.csv</code>) to reproduce every number and figure.</li>
+      <li><b>report.pdf / report.tex</b> are generated in-browser (the exact PDF route is a deferred build-time choice); everything is zipped per the structure above.</li>
     </ol>
     <div class="chips">
       <span class="chip">report.pdf</span>
@@ -386,15 +402,16 @@
       <span class="chip">table_*.png</span>
       <span class="chip">figure_*.png</span>
     </div>
-    <div class="note-row"><b>Tables</b> render in APA 7th (gt / flextable); <b>figures</b> render in ggplot2.</div>
-    <div class="note-row"><b>Reproducibility guarantee</b> — because all five outputs derive from one render, the R script, LaTeX, and PDF can't drift apart.</div>
-    <div class="note-row"><b>Cost</b> — figures are styled by the R/ggplot theme rather than the web theme, and the backend container ships Quarto + TinyTeX + the R packages.</div>
+    <div class="note-row"><b>Tables</b> render in APA 7th; <b>figures</b> render in ggplot2, inside WebR, to PNG.</div>
+    <div class="note-row"><b>Number formatting (APA)</b> — test statistics (t, F, &chi;&sup2;, z) to 2 dp · p to 3 dp, no leading zero, floored at "&lt;.001" · df as an integer when mathematically integer (pooled t, chi-square), 2 dp otherwise (Welch) · M / SD to 2 dp in tables, 1 dp in the fill-in APA sentence (per the exemplar) · effect sizes (d) to 2 dp with a leading zero · CIs in square brackets [lower, upper] — DRAFT — confirm: the exemplar prints CI bounds to 1 dp while means use 2 dp; matched here.</div>
+    <div class="note-row"><b>Reproducibility guarantee</b> — analysis.R is generated from the same registry R code the WebR engine ran, so the script, the report, and the on-screen results can't drift apart.</div>
+    <div class="note-row"><b>Cost</b> — figures are styled by the R/ggplot theme rather than the web theme, and the first visit downloads the WebR (WASM) runtime + packages, cached for repeat visits — there is no backend to ship or run.</div>
   </div>
 
   <h2 class="sec">Open items</h2>
   <div class="panel">
     <ul class="rules">
-      <li><i>None currently outstanding.</i></li>
+      <li><b>Google Form feedback URL</b> — the step-7 "Share feedback" button keeps its placeholder href until the real form URL is supplied.</li>
     </ul>
   </div>
 

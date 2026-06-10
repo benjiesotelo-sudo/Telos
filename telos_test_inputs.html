@@ -160,7 +160,7 @@
 <div class="wrap">
   <h1 class="page">Telos — test configuration <span style="color:var(--muted);font-weight:500;">(step 6 detail)</span></h1>
   <p class="sub-note">How each selected test is configured by the student: <b>drag the right columns into the test's role slots</b>, then <b>set its options</b>. Every test is drawn as a full configuration card with the same anatomy. The SEM models (CB-SEM, PLS-SEM) use a model-building canvas where the student draws the paths.</p>
-  <p class="companion">Companion to <a href="telos_ui_spec.html">telos_ui_spec.html</a> &middot; step 6 ("Configure each test") points here.</p>
+  <p class="companion">Companion to <a href="telos_ui_spec.html">telos_ui_spec.html</a> &middot; step 6 ("Configure each test") points here &middot; see <a href="telos_test_outputs.html">telos_test_outputs.html</a> &mdash; what each test produces.</p>
 
   <!-- navigator context -->
   <h2 class="sec">Where we are</h2>
@@ -201,7 +201,7 @@
     <span class="colchip"><span class="grip">&#9783;&#9783;</span>pu1&ndash;pu3 <span class="lv">ordinal</span></span>
     <span class="colchip"><span class="grip">&#9783;&#9783;</span>int1&ndash;int3 <span class="lv">ordinal</span></span>
   </div>
-  <p class="ds-note">Econometrics screens assume a time-indexed / panel dataset instead — those screens show their own columns (e.g. month, sales, firm_id, year, treated, post).</p>
+  <p class="ds-note">Many cards illustrate with scenario-specific columns of their own (repeated measures like score_t1&ndash;t3, counts like complaints, nested factors like school / classroom), and the econometrics screens assume a time-indexed / panel dataset (e.g. month, sales, firm_id, year, treated, post). That is fine — the cards are illustrative; the app always draws the palette from your own Used columns.</p>
 
   <!-- =================================================================== -->
   <!-- FAMILY 1 · DESCRIPTIVE STATISTICS -->
@@ -221,10 +221,7 @@
             <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>post_score <span class="lv">ratio</span></span>
             <span class="colchip"><span class="grip">&#9783;&#9783;</span>pre_score <span class="lv">ratio</span></span>
             <span class="colchip"><span class="grip">&#9783;&#9783;</span>age <span class="lv">ratio</span></span>
-          </div>
-          <div class="pl-h" style="margin-top:11px;">Greyed (why)</div>
-          <div class="palette">
-            <span class="colchip greyed">group <span class="reason">categorical &rarr; use Frequencies</span></span>
+            <span class="colchip"><span class="grip">&#9783;&#9783;</span>group <span class="lv">nom&middot;2</span></span>
           </div>
         </div>
         <div class="dragcue">&rArr;</div>
@@ -353,7 +350,7 @@
       </div>
       <div class="cfgguide">
         <div class="gh">How to configure this test</div>
-        <p>Use this to check whether a single numeric column is normally distributed before running tests that assume normality. Drag one numeric column &mdash; such as post_score &mdash; into the <b>Variable</b> slot, and you'll get a histogram, a Q-Q plot, and normality tests (Shapiro&ndash;Wilk and K&ndash;S). Lean on the <b>Shapiro&ndash;Wilk</b> result for most datasets, but note it only runs for 3&ndash;5000 cases. With larger samples, lean on the Q-Q plot instead, since these tests become over-sensitive and flag trivial departures as non-normal.</p>
+        <p>Use this to check whether a single numeric column is normally distributed before running tests that assume normality. Drag one numeric column &mdash; such as post_score &mdash; into the <b>Variable</b> slot, and you'll get a histogram, a Q-Q plot, and normality tests (Shapiro-Wilk and K&ndash;S). Lean on the <b>Shapiro-Wilk</b> result for most datasets, but note it only runs for 3&ndash;5000 cases. With larger samples, lean on the Q-Q plot instead, since these tests become over-sensitive and flag trivial departures as non-normal.</p>
       </div>
       <div class="meta-row">
         <span class="tag"><b>Produces &mdash; table:</b> normality test</span>
@@ -657,7 +654,7 @@
               <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>score_t2 <span class="lv">ratio</span></span>
               <span class="colchip"><span class="grip">&#9783;&#9783;</span>score_t3 <span class="lv">ratio</span></span>
             </div>
-            <div class="pl-h" style="margin-top:11px;">Greyed (why)</div>
+            <div class="pl-h" style="margin-top:11px;">Greyed (why) <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);">(illustrative reasons &mdash; see &ldquo;How to read this page&rdquo;)</span></div>
             <div class="palette">
               <span class="colchip greyed">group <span class="reason">between-subjects label, not a repeated measure</span></span>
               <span class="colchip greyed">satisfaction <span class="reason">ordinal, repeated measure needs interval/ratio</span></span>
@@ -869,7 +866,7 @@
         <p>Use this when you're comparing the average of one numeric outcome across groups while controlling for a numeric variable — e.g. comparing post-scores across teaching methods after adjusting for each student's pre-score. Drag your numeric outcome into <b>Outcome (DV)</b>, the grouping label into <b>Factor</b>, and the numeric control(s) into <b>Covariate(s)</b>. ANCOVA assumes the covariate&rarr;outcome relationship is the same in every group (parallel slopes) — Telos checks this for you after running.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> ANCOVA table, adjusted means</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> ANCOVA table, adjusted means, post-hoc</span>
         <span class="tag"><b>figure:</b> adjusted means plot</span>
         <span class="tag"><b>checks after run:</b> parallel slopes</span>
       </div>
@@ -1169,7 +1166,7 @@
               <span class="colchip"><span class="grip">&#9783;&#9783;</span>rating_t2 <span class="lv">ordinal</span></span>
               <span class="colchip"><span class="grip">&#9783;&#9783;</span>rating_t3 <span class="lv">ordinal</span></span>
             </div>
-            <div class="pl-h" style="margin-top:11px;">Greyed (why)</div>
+            <div class="pl-h" style="margin-top:11px;">Greyed (why) <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);">(illustrative reasons &mdash; see &ldquo;How to read this page&rdquo;)</span></div>
             <div class="palette">
               <span class="colchip greyed">group <span class="reason">single grouping column, not repeated measures</span></span>
               <span class="colchip greyed">satisfaction <span class="reason">measured once, not across time</span></span>
@@ -1432,7 +1429,7 @@
         <p>Use this rank correlation when you want to know whether two ordinal or numeric variables tend to rise and fall together &mdash; it handles ties and small samples well. Drag one variable into <b>Variable A</b> and the other into <b>Variable B</b>; here that's <b>satisfaction</b> paired with <b>post_score</b>. The order of A and B does not change the result. Keep <b>tails</b> at two-tailed unless you have a directional hypothesis about the direction of the association.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; table(s):</b> rank correlation (&tau;)</span>
+        <span class="tag"><b>Produces &mdash; table:</b> rank correlation (&tau;)</span>
         <span class="tag"><b>figure:</b> scatter plot</span>
       </div>
     </div>
@@ -1481,7 +1478,7 @@
         <p>Use this when you want to check whether the counts in <b>one category column</b> match an expected split — e.g. whether students are evenly spread across the three teaching methods. Drag your category column (such as <b>method</b> or <b>satisfaction</b>) into <b>Variable</b>. Leave <b>expected proportions</b> on equal unless theory predicts a specific split, in which case set the proportions yourself. Each category should have a reasonable expected count, so very small samples can make the result unreliable.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; table:</b> observed vs expected, &chi;&sup2;</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> observed vs expected, goodness-of-fit (&chi;&sup2;)</span>
         <span class="tag"><b>figure:</b> bar chart</span>
       </div>
     </div>
@@ -1537,7 +1534,7 @@
       </div>
       <div class="meta-row">
         <span class="tag"><b>Produces &mdash; tables:</b> contingency, Fisher's exact (exact p; OR + 95% CI for 2&times;2 only)</span>
-        <span class="tag"><b>figure:</b> mosaic</span>
+        <span class="tag"><b>figure:</b> mosaic / grouped bar</span>
       </div>
     </div>
 
@@ -1592,7 +1589,7 @@
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
-      <p>Use this to explain or predict one numeric outcome from several variables at once — e.g. predicting post-score from pre-score, age, and group. Drag the numeric outcome into <b>Outcome (DV)</b> and each predictor into <b>Predictors</b> (add as many as you need; categorical predictors are dummy-coded for you). Turn <b>standardize</b> on if you want comparable (beta) coefficients.</p>
+      <p>Use this to explain or predict one numeric outcome from several variables at once — e.g. predicting post-score from pre-score, age, and group. Drag the numeric outcome into <b>Outcome (DV)</b> and each predictor into <b>Predictors</b> (add as many as you need; categorical predictors are dummy-coded for you &mdash; reference level: first alphabetical, changeable). Turn <b>standardize</b> on if you want comparable (beta) coefficients.</p>
     </div>
     <div class="meta-row">
       <span class="tag"><b>Produces &mdash; tables:</b> coefficients, model fit</span>
@@ -1695,11 +1692,12 @@
           <span class="optpill"><span class="k">&alpha;</span><span class="v">0.05</span><span class="caret">&#9662;</span></span>
           <span class="optpill"><span class="k">CI</span><span class="v">95%</span><span class="caret">&#9662;</span></span>
           <span class="optpill"><span class="k">report odds ratios</span><span class="v">on</span><span class="caret">&#9662;</span></span>
+          <span class="optpill"><span class="k">event category</span><span class="v">passed &middot; second level</span><span class="caret">&#9662;</span></span>
         </div>
       </div>
       <div class="cfgguide">
         <div class="gh">How to configure this test</div>
-        <p>Use this when your outcome is a yes/no result and you want to predict it from one or more variables — e.g. whether a student passed from their age, prior score, and gender. Drag the binary outcome into <b>Outcome (DV)</b> and each explanatory column into <b>Predictors</b>; predictors can be numeric or categorical. Keep <b>report odds ratios</b> on so each coefficient reads as the multiplier on the odds of the outcome. The outcome must have exactly two categories — a variable with three or more levels won't fit here.</p>
+        <p>Use this when your outcome is a yes/no result and you want to predict it from one or more variables — e.g. whether a student passed from their age, prior score, and gender. Drag the binary outcome into <b>Outcome (DV)</b> and each explanatory column into <b>Predictors</b>; predictors can be numeric or categorical. Keep <b>report odds ratios</b> on so each coefficient reads as the multiplier on the odds of the outcome. <b>Event category</b> is the outcome level the model predicts (here <b>passed</b>, the second level) — switch it if the odds should describe the other category. The outcome must have exactly two categories — a variable with three or more levels won't fit here.</p>
       </div>
       <div class="meta-row">
         <span class="tag"><b>Produces &mdash; tables:</b> coefficients (odds ratios), model fit, classification</span>
@@ -1763,7 +1761,7 @@
         <p>Use this when your outcome is a <b>count of events</b> — e.g. the number of complaints per person. Drag the count column into <b>Outcome (DV)</b> and your explanatory variables, such as age and group, into <b>Predictors</b>. If cases were observed for unequal time, area, or population, drag that column into <b>Exposure</b> so the model predicts rates rather than raw counts. Start with <b>Poisson</b>, but switch to <b>negative binomial</b> if the dispersion check shows the counts are over-dispersed.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> coefficients (rate ratios), fit, dispersion check</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> coefficients (rate ratios), fit (incl. dispersion column)</span>
         <span class="tag"><b>figure:</b> residual plot</span>
         <span class="tag"><b>checks after run:</b> over-dispersion</span>
       </div>
@@ -2295,7 +2293,7 @@
         <p>Use this when a threshold on some score decides who gets a treatment, and you want the effect right at that threshold — e.g. a passing cutoff on an exam. Drag the outcome you measured into <b>Outcome (DV)</b> and the score that determines the cutoff into <b>Running variable</b>, then set the <b>cutoff value</b> to the exact threshold (e.g. 50). The estimate compares cases just above and just below the cutoff, so it is only trustworthy when subjects can't precisely manipulate their own running score.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; table(s):</b> RD estimate table</span>
+        <span class="tag"><b>Produces &mdash; table:</b> RD estimate table</span>
         <span class="tag"><b>figure:</b> RD plot</span>
       </div>
     </div>
@@ -2360,9 +2358,9 @@
         <p>Use this to estimate a causal effect when a predictor is endogenous — correlated with things you can't measure — by leaning on instruments instead. Drag your numeric outcome (<b>wage</b>) into <b>Outcome</b>, the suspect predictor (<b>schooling</b>) into <b>Endogenous regressor</b>, and one or more instruments (<b>distance_to_school</b>) into <b>Instrument(s)</b>; add anything you want held constant (<b>age</b>, <b>region</b>) to <b>Controls</b>. You need at least as many instruments as endogenous predictors, and a valid instrument must move the predictor but not affect the outcome any other way — check the weak-instrument diagnostic before trusting the result.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> first-stage + 2SLS coefficients, diagnostics</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> first-stage + 2SLS coefficients</span>
         <span class="tag"><b>figure:</b> coefficient plot</span>
-        <span class="tag"><b>checks after run:</b> weak-instrument test</span>
+        <span class="tag"><b>checks after run:</b> diagnostics note &mdash; weak-instrument F, Wu-Hausman, Sargan</span>
       </div>
     </div>
 
@@ -2438,6 +2436,13 @@
     <div class="sttl">not slot-filling &mdash; the student <b>builds a model</b>: constructs from items, then paths between constructs</div>
     <div class="inner lbl-wrap">
       <span class="zone-tag">1 · build the model &mdash; drag constructs, draw the paths</span>
+      <div class="pl-h">Compatible columns</div>
+      <div class="palette">
+        <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu1&ndash;eu3 <span class="lv">ordinal</span></span>
+        <span class="colchip"><span class="grip">&#9783;&#9783;</span>pu1&ndash;pu3 <span class="lv">ordinal</span></span>
+        <span class="colchip"><span class="grip">&#9783;&#9783;</span>int1&ndash;int3 <span class="lv">ordinal</span></span>
+      </div>
+      <div class="ds-note" style="margin:6px 0 11px;">drag items from the palette onto a construct</div>
       <div class="canvas">
         <div class="amosbar"><span class="amospill on">Move</span><span class="amospill">&rarr; Draw path</span><span class="amospill">&times; Delete</span><span class="amospill ghost">&#43; Construct</span></div>
         <div class="amoscanvas">
@@ -2481,7 +2486,7 @@
             <line class="lat-path" x1="474" y1="146" x2="376" y2="244" marker-end="url(#arw_cb)"/>
           </svg>
         </div>
-        <div class="sem-cap">drag an item onto a construct to build the measurement model &middot; click two constructs to draw a structural path &middot; + optional mediation / moderation</div>
+        <div class="sem-cap">drag an item onto a construct to build the measurement model &middot; click two constructs to draw a structural path &middot; paths that form a chain (e.g. EU &rarr; PU &rarr; INT) automatically produce an <b>Indirect effects</b> table (bootstrapped 95% CIs) &middot; moderation planned for a later version</div>
       </div>
     </div>
     <div class="mini-arrow"></div>
@@ -2513,10 +2518,10 @@
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
-      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (<b>at least 3 items</b> per construct &mdash; 2 only works inside a larger model). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs, including any mediation or moderation. When your items are <b>ordinal Likert</b>, use the <b>WLSMV</b> estimator (treats them as ordered) instead of ML/MLR. By default Telos runs the full pipeline (EFA &rarr; CFA &rarr; fit &rarr; structural); deselect <b>EFA</b> for a confirmatory-only run, or the <b>structural</b> stage to validate the measurement model on its own. Missing data is handled to match your estimator &mdash; FIML for continuous (ML/MLR), multiple imputation for ordinal (WLSMV) &mdash; and Telos warns if this differs from your global step-4a setting.</p>
+      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (<b>at least 3 items</b> per construct &mdash; 2 only works inside a larger model). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs &mdash; when your paths form a chain (e.g. EU &rarr; PU &rarr; INT), Telos automatically adds an <b>Indirect effects</b> table with bootstrapped 95% CIs (moderation is planned for a later version). When your items are <b>ordinal Likert</b>, use the <b>WLSMV</b> estimator (treats them as ordered) instead of ML/MLR. By default Telos runs the full pipeline (EFA &rarr; CFA &rarr; fit &rarr; structural); deselect <b>EFA</b> for a confirmatory-only run, or the <b>structural</b> stage to validate the measurement model on its own. Missing data is handled to match your estimator &mdash; FIML for continuous (ML/MLR), multiple imputation for ordinal (WLSMV) &mdash; and Telos warns if this differs from your global step-4a setting.</p>
     </div>
     <div class="meta-row">
-      <span class="tag"><b>Produces &mdash; tables:</b> EFA, CFA loadings, reliability &amp; validity, fit indices, structural paths</span>
+      <span class="tag"><b>Produces &mdash; tables:</b> EFA suitability + EFA loadings, CFA loadings, reliability &amp; validity, fit indices, structural paths, indirect effects (when paths chain)</span>
       <span class="tag"><b>figure:</b> path diagram</span>
       <span class="tag"><b>note:</b> tables shown follow the stages you run</span>
     </div>
@@ -2536,7 +2541,7 @@
               <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu1 <span class="lv">ord</span></span>
               <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu2 <span class="lv">ord</span></span>
             </div>
-            <div class="pl-h" style="margin-top:11px;">Greyed (why)</div>
+            <div class="pl-h" style="margin-top:11px;">Greyed (why) <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);">(illustrative reasons &mdash; see &ldquo;How to read this page&rdquo;)</span></div>
             <div class="palette">
               <span class="colchip greyed">pu1 <span class="reason">belongs to a different construct</span></span>
               <span class="colchip greyed">age <span class="reason">standalone variable, not a scale item</span></span>
@@ -2578,8 +2583,15 @@
       <div class="sttl">convergent validity of each construct, from its measurement model</div>
       <div class="inner lbl-wrap">
         <span class="zone-tag">1 · define the constructs (measurement model only)</span>
+        <div class="pl-h">Compatible columns</div>
+        <div class="palette">
+          <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu1&ndash;eu3 <span class="lv">ordinal</span></span>
+          <span class="colchip"><span class="grip">&#9783;&#9783;</span>pu1&ndash;pu3 <span class="lv">ordinal</span></span>
+          <span class="colchip"><span class="grip">&#9783;&#9783;</span>int1&ndash;int3 <span class="lv">ordinal</span></span>
+        </div>
+        <div class="ds-note" style="margin:6px 0 11px;">drag items from the palette onto a construct</div>
         <div class="canvas">
-          <div class="amosbar"><span class="amospill on">Move</span><span class="amospill ghost">&#43; Construct</span><span class="amospill" style="opacity:0.45;">&rarr; Draw path</span></div>
+          <div class="amosbar"><span class="amospill on">Move</span><span class="amospill">&times; Delete</span><span class="amospill ghost">&#43; Construct</span><span class="amospill" style="opacity:0.45;">&rarr; Draw path</span></div>
           <div class="amoscanvas">
             <svg class="amossvg" viewBox="0 0 660 195" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
               <defs><marker id="cov_ave" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0.5,0.5 L9.5,5 L0.5,9.5 z" fill="var(--purple-line)"/></marker></defs>
@@ -2634,8 +2646,15 @@
       <div class="sttl">construct reliability of each construct, from its measurement model</div>
       <div class="inner lbl-wrap">
         <span class="zone-tag">1 · define the constructs (measurement model only)</span>
+        <div class="pl-h">Compatible columns</div>
+        <div class="palette">
+          <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu1&ndash;eu3 <span class="lv">ordinal</span></span>
+          <span class="colchip"><span class="grip">&#9783;&#9783;</span>pu1&ndash;pu3 <span class="lv">ordinal</span></span>
+          <span class="colchip"><span class="grip">&#9783;&#9783;</span>int1&ndash;int3 <span class="lv">ordinal</span></span>
+        </div>
+        <div class="ds-note" style="margin:6px 0 11px;">drag items from the palette onto a construct</div>
         <div class="canvas">
-          <div class="amosbar"><span class="amospill on">Move</span><span class="amospill ghost">&#43; Construct</span><span class="amospill" style="opacity:0.45;">&rarr; Draw path</span></div>
+          <div class="amosbar"><span class="amospill on">Move</span><span class="amospill">&times; Delete</span><span class="amospill ghost">&#43; Construct</span><span class="amospill" style="opacity:0.45;">&rarr; Draw path</span></div>
           <div class="amoscanvas">
             <svg class="amossvg" viewBox="0 0 660 195" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
               <defs><marker id="cov_cr" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0.5,0.5 L9.5,5 L0.5,9.5 z" fill="var(--purple-line)"/></marker></defs>
@@ -2791,6 +2810,13 @@
       <div class="sttl">variance-based SEM &mdash; build constructs, then draw the paths</div>
       <div class="inner lbl-wrap">
         <span class="zone-tag">1 · build the model &mdash; drag constructs, draw the paths</span>
+        <div class="pl-h">Compatible columns</div>
+        <div class="palette">
+          <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu1&ndash;eu3 <span class="lv">ordinal</span></span>
+          <span class="colchip"><span class="grip">&#9783;&#9783;</span>pu1&ndash;pu3 <span class="lv">ordinal</span></span>
+          <span class="colchip"><span class="grip">&#9783;&#9783;</span>int1&ndash;int3 <span class="lv">ordinal</span></span>
+        </div>
+        <div class="ds-note" style="margin:6px 0 11px;">drag items from the palette onto a construct</div>
         <div class="canvas">
           <div class="amosbar"><span class="amospill on">Move</span><span class="amospill">&rarr; Draw path</span><span class="amospill">&times; Delete</span><span class="amospill ghost">&#43; Construct</span></div>
           <div class="amoscanvas">
@@ -2837,7 +2863,7 @@
               <line class="lat-path" x1="474" y1="146" x2="376" y2="244" marker-end="url(#arw_pls)"/>
             </svg>
           </div>
-          <div class="sem-cap">same canvas as CB-SEM &middot; drag items onto a construct, then click two constructs to draw a path &middot; each construct is set <b>reflective</b> or <b>formative</b> individually (same items can be specified either way &mdash; shown here with Ease of Use formative)</div>
+          <div class="sem-cap">same canvas as CB-SEM &middot; drag items onto a construct, then click two constructs to draw a path &middot; paths that form a chain (e.g. EU &rarr; PU &rarr; INT) automatically produce an <b>Indirect effects</b> table (bootstrapped 95% CIs) &middot; each construct is set <b>reflective</b> or <b>formative</b> individually (same items can be specified either way &mdash; shown here with Ease of Use formative)</div>
         </div>
       </div>
       <div class="mini-arrow"></div>
@@ -2846,14 +2872,16 @@
         <div class="optstrip">
           <span class="optpill"><span class="k">weighting</span><span class="v">path</span><span class="caret">&#9662;</span></span>
           <span class="optpill"><span class="k">bootstrap</span><span class="v">5000</span><span class="caret">&#9662;</span></span>
+          <span class="optpill"><span class="k">missing</span><span class="v">global step-4a setting</span></span>
         </div>
+        <div class="ddcap">missing data &middot; PLS-SEM follows your global step-4a setting (per-test listwise deletion by default) &mdash; unlike CB-SEM there is no estimator-aware FIML / MI dropdown (different paradigm; no estimator coupling)</div>
       </div>
       <div class="cfgguide">
         <div class="gh">How to configure this test</div>
-        <p>Use this for variance-based SEM &mdash; well suited to prediction, smaller samples, or formative constructs. Build the model on the same canvas as CB-SEM: drag each construct's items together, then draw arrows for the relationships you hypothesize (including any mediation or moderation). Switch a construct to <b>formative</b> when its items <i>cause</i> the construct rather than reflect it. Bootstrapping gives the significance of the path coefficients.</p>
+        <p>Use this for variance-based SEM &mdash; well suited to prediction, smaller samples, or formative constructs. Build the model on the same canvas as CB-SEM: drag each construct's items together, then draw arrows for the relationships you hypothesize (including any mediation &mdash; chained paths get an <b>Indirect effects</b> table automatically; moderation is planned for a later version). Switch a construct to <b>formative</b> when its items <i>cause</i> the construct rather than reflect it. Bootstrapping gives the significance of the path coefficients.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> outer loadings/weights, reliability &amp; validity (CR/AVE/&rho;<sub>A</sub>), HTMT discriminant validity, structural paths (&beta;, R&sup2;, f&sup2;)</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> outer loadings/weights, reliability &amp; validity (CR/AVE/&rho;<sub>A</sub>), HTMT discriminant validity, structural paths (&beta;, f&sup2;), structural model quality (R&sup2; / Q&sup2;), indirect effects (when paths chain)</span>
         <span class="tag"><b>figure:</b> path diagram</span>
       </div>
     </div>
@@ -2869,7 +2897,9 @@
     <b>How to read this page:</b><br>
     Every selected test is drawn as a full configuration card with the same parts &mdash; &#9312; drag columns into roles, &#9313; set options, &#9314; a <b>"How to configure this test"</b> guide, &#9315; what it produces.<br>
     The dashed amber <b>"How to configure this test"</b> box is a <b>configure-time guide</b> &mdash; separate from the results-screen <b>"How to read this test"</b> layer in the main spec. One teaches <i>setup</i>; the other teaches <i>interpretation</i>.<br>
-    Latent-variable models (CB-SEM, PLS-SEM, AVE, CR) replace the role slots with a <b>model-building canvas</b> where the student drags items into constructs and draws the paths.
+    Latent-variable models (CB-SEM, PLS-SEM, AVE, CR) replace the role slots with a <b>model-building canvas</b> where the student drags items into constructs and draws the paths.<br>
+    Drawn grey reasons that lean on the example's <i>meaning</i> (e.g. &ldquo;belongs to a different construct&rdquo;, &ldquo;measured once, not across time&rdquo;) are <b>illustrative</b> &mdash; the app's actual greying is computed from <b>level / arity constraints only</b>, and semantic grouping (which columns are repeated measures of one variable, or items of one construct) is declared by the student's own drag placement, never inferred.<br>
+    Slot tags like <b>count</b>, <b>datetime / ordered</b>, <b>id</b> and <b>nom&middot;nested</b> are <b>auto-detected column properties</b> used for slot eligibility &mdash; not step-4 measurement levels the student assigns (those stay nominal &middot; ordinal &middot; interval &middot; ratio).
   </div>
 
 </div>
