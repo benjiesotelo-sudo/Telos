@@ -12,7 +12,7 @@
 
 **Pre-verified (empirically, not guessed):** the 2026-06-11 sandbox recheck (`docs/superpowers/reviews/2026-06-11-plan-recheck.md`, 39 confirmed findings — all folded into this revision) ran this plan's code against real installs: webr 0.6.0 env-key handling, `png()` capture, the t-test values, the Vite 8/TS 6/Vitest 4 toolchain fixes, fresh-clone postinstall, COOP/COEP preview — suite 12/12 green with these fixes. This amendment's additions (Welch values for both toggle positions, the hardened JSON serializer, ggplot2 `installPackages` + `print()` capture in WebR, the card-scoped consistency assertions against the current spec HTML) were re-verified the same day in a fresh `/tmp` sandbox.
 
-**Process:** execute on a build branch (agree the branch name with Benjie before starting Task 1) — Benjie decides every merge/push point.
+**Process:** execute directly on `main` (Benjie's call, 2026-06-11) — Benjie decides every push point.
 
 ---
 
