@@ -20,7 +20,7 @@ describe('catalog stays faithful to the ui-spec picker tree', () => {
   it('has exactly the 46 leaves, in tree order, under the right family/subfamily', () => {
     expect(rows).toEqual(CATALOG.map((c) => ({ family: c.family, ...(c.subfamily ? { subfamily: c.subfamily } : {}), leaf: c.name })))
   })
-  it('exactly one test is available in this slice: the independent t-test', () => {
-    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['independent-t-test'])
+  it('available ids = the tests lit up so far, in tree order', () => {
+    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['one-sample-t-test', 'independent-t-test'])
   })
 })
