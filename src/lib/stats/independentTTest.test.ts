@@ -1,0 +1,48 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { Engine } from '../webr/engine'
+import { runIndependentTTest } from './independentTTest'
+import type { Dataset } from './types'
+
+const data: Dataset = { columns: ['group', 'score'], rows: [
+  { group: 'A', score: 10 }, { group: 'A', score: 12 }, { group: 'A', score: 11 }, { group: 'A', score: 13 },
+  { group: 'B', score: 15 }, { group: 'B', score: 17 }, { group: 'B', score: 16 }, { group: 'B', score: 18 },
+  { group: 'A', score: null }, { group: null, score: 14 }, // listwise: both rows must be EXCLUDED, never coerced to 0
+] }
+
+// Same numbers as Task 7's SAMPLE (unequal SDs: 3.14 vs 3.78) — inlined because sample.ts lands in Task 7.
+const unequal: Dataset = { columns: ['group', 'score'], rows: [
+  { group: 'control', score: 72 }, { group: 'control', score: 68 }, { group: 'control', score: 75 }, { group: 'control', score: 70 }, { group: 'control', score: 66 }, { group: 'control', score: 71 },
+  { group: 'treatment', score: 81 }, { group: 'treatment', score: 79 }, { group: 'treatment', score: 85 }, { group: 'treatment', score: 83 }, { group: 'treatment', score: 78 }, { group: 'treatment', score: 88 },
+] }
+
+describe('runIndependentTTest', () => {
+  const engine = new Engine()
+  beforeAll(async () => { await engine.init() })
+  afterAll(async () => { await engine.close() })
+
+  it('equal variance ON → pooled row; spec tables, listwise exclusion, Levene, Cohen d, boxplot', async () => {
+    const r = await runIndependentTTest(engine, data, 'score', 'group', true)
+    expect(r.nExcluded).toBe(2)
+    expect(r.groupStats.map((g) => g.group)).toEqual(['A', 'B'])
+    expect(r.groupStats[0].n).toBe(4)
+    expect(r.groupStats[0].se).toBeCloseTo(0.6455, 3)
+    expect(r.test).toBe('pooled')
+    expect(r.df).toBe(6)
+    expect(r.t).toBeCloseTo(-5.477, 2)
+    expect(r.p).toBeLessThan(0.01)
+    expect(r.cohensD).toBeCloseTo(-3.873, 2)
+    expect(r.contrast).toBe('A − B')
+    expect(r.levene.F).toBe(0) // equal SDs
+    expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+  })
+
+  it('equal variance OFF (the drawn default) → Welch row: fractional df, Welch CI', async () => {
+    const r = await runIndependentTTest(engine, unequal, 'score', 'group', false)
+    expect(r.test).toBe('welch')
+    expect(r.t).toBeCloseTo(-5.983, 2)
+    expect(r.df).toBeCloseTo(9.678, 2)   // Welch–Satterthwaite (pooled would be exactly 10)
+    expect(r.ci[0]).toBeCloseTo(-16.489, 2)
+    expect(r.ci[1]).toBeCloseTo(-7.511, 2)
+    expect(r.nExcluded).toBe(0)
+  })
+})
