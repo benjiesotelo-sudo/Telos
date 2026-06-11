@@ -48,12 +48,12 @@
 ```ts
 // src/lib/registry/types.ts (additions)
 export type Level = 'nominal' | 'ordinal' | 'interval' | 'ratio'
-export interface RoleConstraint { roleId: string; levels: Level[]; categories?: { exact: number } } // arity is always exactly-1 in this slice
+export interface RoleConstraint { roleId: string; levels: Level[]; arity: { exact: number }; categories?: { exact: number } }
 export interface TestConstraints { roles: RoleConstraint[]; minRowsPerGroup: number }
 
 // src/lib/data/columnMeta.ts
 export type DetectedType = 'int64' | 'float64' | 'object' | 'bool' | 'datetime64'
-export type Tag = 'count' | 'datetime' | 'id' // 'nested' is in the spec's tag list but has no defined detector — recorded decision: not auto-detected in this slice
+export type Tag = 'count' | 'datetime' | 'id' | 'nested' // full spec tag vocabulary; 'nested' has no auto-detector in this slice (recorded decision — never emitted by detectTags)
 export interface ColumnMeta { name: string; detected: DetectedType; tags: Tag[]; level: Level | null; used: boolean }
 
 // src/state/session.ts
@@ -96,7 +96,7 @@ Expected: `xlsx`, `@dnd-kit/core`, `@dnd-kit/utilities` in `package.json` depend
 .pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:13px;color:var(--muted);}
 .pill.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600;}
 .error-box{background:var(--error-bg);border:1px solid var(--error-line);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--error-tx);margin-top:10px;}
-.stepper{display:flex;align-items:center;justify-content:space-between;max-width:560px;margin:0 auto 8px;}
+.stepper{position:sticky;top:0;z-index:20;background:var(--bg);display:flex;align-items:center;justify-content:space-between;max-width:560px;margin:0 auto 8px;padding:10px 0 6px;}
 .step{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted);background:none;border:0;padding:0;font-family:var(--font-ui);cursor:default;}
 .step .dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--card);border:1.5px solid var(--line);color:var(--muted);}
 .step.done .dot{background:var(--accent);border-color:var(--accent);color:var(--accent-contrast);}
@@ -115,7 +115,19 @@ Expected: `xlsx`, `@dnd-kit/core`, `@dnd-kit/utilities` in `package.json` depend
 .cols-table td{padding:7px 10px;border-top:1px solid var(--line);}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:var(--muted);}
 ```
-Note: the old `.card{background:var(--card);border-radius:12px;}` rule is REPLACED by the `.card` rule above (delete the old line). The `table.apa` rules stay exactly as shipped.
+Note — three changes to the EXISTING rules (validation findings): (1) the old `.card{background:var(--card);border-radius:12px;}` rule is REPLACED by the `.card` rule above (delete the old line); (2) the old `h1,h2,h3,.display{font-family:var(--font-display);}` line is DELETED — `.title` alone carries Crimson Pro (decision: page titles only; the retired ResultCard that used `.display` is deleted in Task 10); (3) the base palette is FLIPPED to light-canonical per the locked design decision — replace:
+```css
+:root{ --bg:#1b1b1b; --card:#262624; --text:#e8e6df; --muted:#a3a199; --line:rgba(255,255,255,0.18);
+  --blue-sub:#9cc2ec; --font-display:'Crimson Pro',Georgia,serif; --font-ui:'Atkinson Hyperlegible',system-ui,sans-serif; }
+@media (prefers-color-scheme:light){ :root{ --bg:#f0efe9; --card:#fff; --text:#2c2c2a; --muted:#5f5e5a; --line:rgba(0,0,0,0.22); } }
+```
+with:
+```css
+:root{ --bg:#f0efe9; --card:#fff; --text:#2c2c2a; --muted:#5f5e5a; --line:rgba(0,0,0,0.22);
+  --blue-sub:#9cc2ec; --font-display:'Crimson Pro',Georgia,serif; --font-ui:'Atkinson Hyperlegible',system-ui,sans-serif; }
+@media (prefers-color-scheme:dark){ :root{ --bg:#1b1b1b; --card:#262624; --text:#e8e6df; --muted:#a3a199; --line:rgba(255,255,255,0.18); } }
+```
+(keeps the approved warm paper `#f0efe9` and makes light canonical; dark stays the automatic variant). The `table.apa` rules stay exactly as shipped.
 
 - [ ] **Step 3: Verify** — `npx tsc -b` exit 0; `npm test` 19/19; `npm run dev` loads (placeholder app unchanged).
 
@@ -148,7 +160,7 @@ export const decode = (s: string) => s
 export const strip = (s: string) => decode(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim()
 ```
 
-- [ ] **Step 2: Refactor `src/lib/registry/registry.consistency.test.ts`** to import `decode`/`strip` from `./specHtml` and delete its local copies (lines 10-14 of the current file). Assertions, slices, and everything else stay byte-identical. (Rationale: Task 3/9 reuse these helpers; the extended entity list was a recorded reviewer recommendation from the walking-skeleton build.)
+- [ ] **Step 2: Refactor `src/lib/registry/registry.consistency.test.ts`** to import `strip` from `./specHtml` (ONLY `strip` — `decode` is used solely inside `strip`; importing it too fails `npx tsc -b` with TS6133 under `noUnusedLocals` — sandbox-verified) and delete the local `decode`/`strip` copies (lines 11-14 of the current file). Exact new import line: `import { strip } from './specHtml'`. Assertions, slices, and everything else stay byte-identical. (Rationale: Task 3/9 reuse these helpers; the extended entity list was a recorded reviewer recommendation from the walking-skeleton build.)
 
 - [ ] **Step 3: Run** — `npx vitest run src/lib/registry/registry.consistency.test.ts` → 6/6 PASS (no behavior change). `npm test` 19/19.
 
@@ -167,7 +179,7 @@ git add src/lib/registry && git commit -m "refactor: shared spec-HTML test helpe
 
 ```ts
 export type CatalogStatus = 'available' | 'later-slice'
-export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string }
+export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
 
 // Encoded from telos_ui_spec.html "5 · Pick a test" tree. Names verbatim (entities decoded).
 const e = (id: string, name: string, family: string, subfamily?: string, status: CatalogStatus = 'later-slice', short?: string): CatalogEntry =>
@@ -218,8 +230,10 @@ export const CATALOG: CatalogEntry[] = [
   e('composite-reliability', 'Composite reliability (CR)', 'Latent variable models', 'Reliability'),
   e('efa', 'Exploratory factor analysis (EFA)', 'Latent variable models', 'Factor analysis'),
   e('pca', 'Principal component analysis (PCA)', 'Latent variable models', 'Factor analysis'),
-  e('cb-sem', 'CB-SEM', 'Latent variable models', 'Structural equation modeling'),
-  e('pls-sem', 'PLS-SEM', 'Latent variable models', 'Structural equation modeling'),
+  { id: 'cb-sem', name: 'CB-SEM', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'later-slice',
+    note: '— pipeline stages selectable: CFA & model fit always run, EFA and the structural stage optional (default: all on); includes path analysis & mediation via drawn path chains (indirect-effects table, bootstrapped CIs); moderation planned for a later version' },
+  { id: 'pls-sem', name: 'PLS-SEM', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'later-slice',
+    note: '— includes path analysis & mediation via drawn path chains (indirect-effects table, bootstrapped CIs); moderation planned for a later version' },
 ]
 
 export const FAMILIES = [...new Set(CATALOG.map((c) => c.family))] // tree order
@@ -259,6 +273,8 @@ describe('catalog stays faithful to the ui-spec picker tree', () => {
 
 - [ ] **Step 3: Run** — `npx vitest run src/lib/registry/catalog.consistency.test.ts` → PASS (if the leaf parse mismatches, fix the CATALOG to match the tree — the spec HTML is the source of truth; report any such fix).
 
+- [ ] **Step 3b: Mutation check (same discipline as the t-test card):** temporarily change `'Pearson'` to `'Pearson r'` in catalog.ts → run → must FAIL; swap the catalog order of `'one-sample-t-test'` and `'independent-t-test'` → must FAIL; flip `independent-t-test`'s status to `'later-slice'` → the available-tests assertion must FAIL. Revert all; re-run → PASS.
+
 - [ ] **Step 4: Commit**
 ```bash
 git add src/lib/registry && git commit -m "feat: 46-test catalog encoded from the ui-spec tree + consistency test"
@@ -274,7 +290,7 @@ git add src/lib/registry && git commit -m "feat: 46-test catalog encoded from th
 
 ```ts
 export type Level = 'nominal' | 'ordinal' | 'interval' | 'ratio'
-export interface RoleConstraint { roleId: string; levels: Level[]; categories?: { exact: number } } // arity: exactly 1 column per role in this slice
+export interface RoleConstraint { roleId: string; levels: Level[]; arity: { exact: number }; categories?: { exact: number } }
 export interface TestConstraints { roles: RoleConstraint[]; minRowsPerGroup: number }
 ```
 And extend the `TestSpec` interface with one field: `constraints: TestConstraints`.
@@ -286,8 +302,8 @@ And extend the `TestSpec` interface with one field: `constraints: TestConstraint
   // minRowsPerGroup: the ui-spec step-5 DRAFT 'at least 3 complete rows per group', implemented as written.
   constraints: {
     roles: [
-      { roleId: 'outcome', levels: ['interval', 'ratio'] },
-      { roleId: 'group', levels: ['nominal', 'ordinal'], categories: { exact: 2 } },
+      { roleId: 'outcome', levels: ['interval', 'ratio'], arity: { exact: 1 } },
+      { roleId: 'group', levels: ['nominal', 'ordinal'], arity: { exact: 1 }, categories: { exact: 2 } },
     ],
     minRowsPerGroup: 3,
   },
@@ -327,7 +343,7 @@ export interface Dataset { columns: string[]; rows: Record<string, string | numb
 
 ```ts
 import { describe, it, expect } from 'vitest'
-import { deriveColumns, detectType, suggestLevel, fixType } from './columnMeta'
+import { deriveColumns, detectType, suggestLevel, fixType, compatibleLevels } from './columnMeta'
 import type { Dataset } from '../stats/types'
 
 const ds: Dataset = { columns: ['id', 'wage', 'female', 'hired', 'note', 'start'], rows: [
@@ -360,7 +376,7 @@ describe('deriveColumns', () => {
       ['start', 'datetime64', 'interval', true],
     ])
   })
-  it('tags: all-unique ints → id; nonneg ints → count; datetime64 → datetime', () => {
+  it('tags: consecutive unique ints → id; nonneg ints → count; datetime64 → datetime', () => {
     expect(cols.find((c) => c.name === 'id')!.tags).toContain('id')
     expect(cols.find((c) => c.name === 'female')!.tags).toContain('count')
     expect(cols.find((c) => c.name === 'start')!.tags).toEqual(['datetime'])
@@ -382,6 +398,15 @@ describe('suggestLevel', () => {
     expect(suggestLevel('datetime64')).toBe('interval')
   })
 })
+
+describe('compatibleLevels', () => {
+  it('limits level choices to what the stored type supports (spec 4d: "within compatibility")', () => {
+    expect(compatibleLevels('float64')).toEqual(['nominal', 'ordinal', 'interval', 'ratio'])
+    expect(compatibleLevels('object')).toEqual(['nominal', 'ordinal'])
+    expect(compatibleLevels('bool')).toEqual(['nominal', 'ordinal'])
+    expect(compatibleLevels('datetime64')).toEqual(['nominal', 'ordinal', 'interval'])
+  })
+})
 ```
 
 - [ ] **Step 3: Run → fails** — `npx vitest run src/lib/data/columnMeta.test.ts` → FAIL (no module).
@@ -393,7 +418,7 @@ import type { Dataset } from '../stats/types'
 import type { Level } from '../registry/types'
 
 export type DetectedType = 'int64' | 'float64' | 'object' | 'bool' | 'datetime64'
-export type Tag = 'count' | 'datetime' | 'id' // 'nested' (spec tag) has no detector in this slice — recorded decision
+export type Tag = 'count' | 'datetime' | 'id' | 'nested' // full spec tag vocabulary; 'nested' has no auto-detector in this slice (recorded decision — never emitted by detectTags)
 export interface ColumnMeta { name: string; detected: DetectedType; tags: Tag[]; level: Level | null; used: boolean }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}([T ].*)?$/ // ⚠ conservative ISO-date heuristic; validation workflow probes edge cases
@@ -412,8 +437,14 @@ export function detectTags(values: (string | number | boolean | null)[], detecte
   const v = values.filter((x) => x !== null)
   if (detected === 'datetime64') tags.push('datetime')
   if (detected === 'int64') {
-    if (v.every((x) => (x as number) >= 0)) tags.push('count')
-    if (new Set(v).size === v.length && v.length > 1) tags.push('id')
+    const nums = v as number[]
+    if (nums.every((x) => x >= 0)) tags.push('count')
+    // id = a serial column: unique ints forming ONE consecutive run (1..n style). Plain uniqueness is not
+    // enough — real outcome columns (test scores, wages) are routinely all-unique and must stay Used.
+    // (min/max via loop: spread Math.max(...nums) throws RangeError at ~125k elements; spec allows 100k rows)
+    let min = Infinity, max = -Infinity
+    for (const x of nums) { min = Math.min(min, x); max = Math.max(max, x) }
+    if (nums.length > 1 && new Set(nums).size === nums.length && max - min === nums.length - 1) tags.push('id')
   }
   return tags
 }
@@ -432,6 +463,13 @@ export function deriveColumns(ds: Dataset): ColumnMeta[] {
     const isId = tags.includes('id')
     return { name, detected, tags, level: isId ? null : suggestLevel(detected), used: !isId }
   })
+}
+
+/** Spec 4d: the level is changeable only within what the stored type supports; "fix type" is the route to numeric levels. */
+export function compatibleLevels(detected: DetectedType): Level[] {
+  if (detected === 'int64' || detected === 'float64') return ['nominal', 'ordinal', 'interval', 'ratio']
+  if (detected === 'datetime64') return ['nominal', 'ordinal', 'interval']
+  return ['nominal', 'ordinal'] // object, bool — DRAFT mapping, Benjie confirms at rendered review
 }
 
 /** The spec's "fix type" override: numeric-as-text → numbers; unparseable → null (missing). */
@@ -467,7 +505,7 @@ import { listSheets, parseExcelSheet } from './parseExcel'
 
 function workbookBytes(): ArrayBuffer {
   const wb = utils.book_new()
-  utils.book_append_sheet(wb, utils.aoa_to_sheet([['group', 'score'], ['A', 10], ['B', null], ['A', 12.5]]), 'Survey')
+  utils.book_append_sheet(wb, utils.aoa_to_sheet([['group', 'score', 'start'], ['A', 10, new Date(2024, 0, 5)], ['B', null, null], ['A', 12.5, new Date(2024, 2, 20)]], { cellDates: true }), 'Survey')
   utils.book_append_sheet(wb, utils.aoa_to_sheet([['x'], [1]]), 'Extra')
   return write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
 }
@@ -477,10 +515,14 @@ describe('parseExcel', () => {
   it('lists sheet names in workbook order', () => {
     expect(listSheets(bytes)).toEqual(['Survey', 'Extra'])
   })
-  it('parses the chosen sheet: header row 1, typed cells, empty cells stay null', () => {
+  it('parses the chosen sheet: header row 1, typed cells, empty cells stay null, dates → ISO day', () => {
     const ds = parseExcelSheet(bytes, 'Survey')
-    expect(ds.columns).toEqual(['group', 'score'])
-    expect(ds.rows).toEqual([{ group: 'A', score: 10 }, { group: 'B', score: null }, { group: 'A', score: 12.5 }])
+    expect(ds.columns).toEqual(['group', 'score', 'start'])
+    expect(ds.rows).toEqual([
+      { group: 'A', score: 10, start: '2024-01-05' },
+      { group: 'B', score: null, start: null },
+      { group: 'A', score: 12.5, start: '2024-03-20' },
+    ])
   })
 })
 ```
@@ -497,12 +539,12 @@ export function listSheets(bytes: ArrayBuffer): string[] {
   return read(bytes, { type: 'array' }).SheetNames
 }
 
-/** Header = row 1 (per the ui spec). Empty cells → null. Dates → ISO strings (cellDates + a formatter). */
+/** Header = row 1 (per the ui spec). Empty cells → null. Dates → ISO 'YYYY-MM-DD' via cellDates:true + sheet_to_json UTC:true (without cellDates, date cells silently arrive as Excel serial numbers, e.g. 45296). */
 export function parseExcelSheet(bytes: ArrayBuffer, sheet: string): Dataset {
   const wb = read(bytes, { type: 'array', cellDates: true })
   const ws = wb.Sheets[sheet]
   if (!ws) throw new Error(`Sheet "${sheet}" not found`)
-  const aoa = utils.sheet_to_json<(string | number | boolean | Date | null)[]>(ws, { header: 1, defval: null })
+  const aoa = utils.sheet_to_json<(string | number | boolean | Date | null)[]>(ws, { header: 1, defval: null, UTC: true }) // UTC:true — without it Dates shift by the local offset and the ISO day is wrong east of UTC (sandbox-verified)
   const [header, ...body] = aoa
   const columns = (header ?? []).map((h) => String(h))
   const rows = body.map((cells) => Object.fromEntries(columns.map((c, i) => {
@@ -808,6 +850,8 @@ describe('app copy stays faithful to the ui-spec DRAFT blocks', () => {
 
 - [ ] **Step 3: Run** — `npx vitest run src/content/copy.consistency.test.ts` → PASS (if a string mismatches, fix `copy.ts` to match the spec text — the HTML is the source of truth; report the fix).
 
+- [ ] **Step 3b: Mutation check:** change one word of `WELCOME_COPY` ('thesis' → 'PhD') → run → must FAIL; remove the `{ b: 'Ordinal' }` segment from `TERMS_COPY` → must FAIL; set `SIZE_WARN.mb` to 25 → must FAIL. Revert; re-run → PASS.
+
 - [ ] **Step 4: Commit**
 ```bash
 git add src/content && git commit -m "feat: spec copy module (welcome/terms/upload) + consistency test"
@@ -905,6 +949,20 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     expect(useSession.getState().setups['independent-t-test'].roles.outcome).toBe('wage')
     expect(workingDataset(useSession.getState()).columns).toContain('wage')
   })
+  it('re-upload keeps still-valid work and stales results; vanished columns block with the reason', () => {
+    assign(); fakeRun()
+    load() // same-schema re-upload
+    expect(useSession.getState().selection).toEqual(['independent-t-test'])
+    expect(useSession.getState().setups['independent-t-test'].roles.outcome).toBe('score')
+    expect(useSession.getState().runs['independent-t-test'].stale).toBe(true)
+    useSession.getState().loadDataset({ columns: ['a'], rows: [{ a: 1 }] }, { name: 'other.csv', rows: 1, cols: 1, encoding: 'UTF-8' })
+    expect(useSession.getState().setups['independent-t-test'].blocked).toBe('Outcome (DV): column not found')
+  })
+  it('results stay locked until every selected test has all role slots filled', () => {
+    expect(canEnter(useSession.getState(), 'results')).toBe(false)
+    assign()
+    expect(canEnter(useSession.getState(), 'results')).toBe(true)
+  })
 })
 ```
 
@@ -939,6 +997,7 @@ export interface SessionState {
   selection: string[]
   setups: Record<string, TestSetup>
   runs: Record<string, TestRun>
+  errors: Record<string, string>          // per-test failure → readable error card; other tests' results stay intact (spec run-state rule)
   runStatus: 'idle' | 'running' | 'error'
   runPhase: string | null
   runError: string | null
@@ -1007,7 +1066,7 @@ const revalidated = (s: SessionState): Pick<SessionState, 'setups' | 'runs'> => 
 const initial = {
   step: 'welcome' as StepId, raw: null, fileInfo: null, guideVisited: false,
   columns: [] as ColumnMeta[], missingPolicy: 'leave' as MissingPolicy,
-  selection: [] as string[], setups: {} as Record<string, TestSetup>, runs: {} as Record<string, TestRun>,
+  selection: [] as string[], setups: {} as Record<string, TestSetup>, runs: {} as Record<string, TestRun>, errors: {} as Record<string, string>,
   runStatus: 'idle' as const, runPhase: null, runError: null,
 }
 
@@ -1016,7 +1075,11 @@ export const useSession = create<SessionState>((set, get) => {
     set((s) => { const next = { ...s, ...mut(s) }; return { ...mut(s), ...revalidated(next) } })
   return {
     ...initial,
-    loadDataset: (d, fileInfo) => set({ ...initial, step: get().step, raw: d, fileInfo, columns: deriveColumns(d), guideVisited: get().guideVisited }),
+    // Re-upload is an earlier-step edit like any other (navcap): keep still-valid work, revalidate the rest.
+    loadDataset: (d, fileInfo) => edit((s) => {
+      const columns = deriveColumns(d).map((fresh) => s.columns.find((c) => c.name === fresh.name && c.detected === fresh.detected) ?? fresh)
+      return { raw: d, fileInfo, columns }
+    }),
     visitGuide: () => set({ guideVisited: true }),
     setColumnLevel: (name, level) => edit((s) => ({ columns: s.columns.map((c) => (c.name === name ? { ...c, level } : c)) })),
     setColumnUsed: (name, used) => edit((s) => ({ columns: s.columns.map((c) => (c.name === name ? { ...c, used } : c)) })),
@@ -1039,9 +1102,9 @@ export const useSession = create<SessionState>((set, get) => {
     setMissingPolicy: (missingPolicy) => edit(() => ({ missingPolicy })),
     toggleSelection: (id) => edit((s) => {
       const selection = s.selection.includes(id) ? s.selection.filter((x) => x !== id) : [...s.selection, id]
-      const setups = { ...s.setups }; const runs = { ...s.runs }
-      if (!selection.includes(id)) { delete setups[id]; delete runs[id] } else setups[id] = freshSetup(id)
-      return { selection, setups, runs }
+      const setups = { ...s.setups }; const runs = { ...s.runs }; const errors = { ...s.errors }
+      if (!selection.includes(id)) { delete setups[id]; delete runs[id]; delete errors[id] } else setups[id] = freshSetup(id)
+      return { selection, setups, runs, errors }
     }),
     assignRole: (testId, roleId, column) => edit((s) => ({
       setups: { ...s.setups, [testId]: { ...s.setups[testId], roles: { ...s.setups[testId].roles, [roleId]: column } } },
@@ -1059,11 +1122,18 @@ export const useSession = create<SessionState>((set, get) => {
         for (const id of s.selection) {
           const spec = SPECS[id]; const setup = s.setups[id]
           if (!spec || !setup || setup.blocked) continue
-          const result = await runIndependentTTest(engine, ds, setup.roles['outcome']!, setup.roles['group']!, setup.equalVariance)
-          set({ runs: { ...get().runs, [id]: { result, stale: false } } })
+          set({ runPhase: `Running ${spec.name}…` })
+          try {
+            const result = await runIndependentTTest(engine, ds, setup.roles['outcome']!, setup.roles['group']!, setup.equalVariance)
+            const { [id]: _drop, ...rest } = get().errors
+            set({ runs: { ...get().runs, [id]: { result, stale: false } }, errors: rest })
+          } catch (e) {
+            // readable per-test error card on the results page; later tests still run (spec run-state rule)
+            set({ errors: { ...get().errors, [id]: e instanceof Error ? e.message : String(e) } })
+          }
         }
         set({ runStatus: 'idle' })
-      } catch (e) { set({ runStatus: 'error', runError: e instanceof Error ? e.message : String(e) }) }
+      } catch (e) { set({ runStatus: 'error', runError: e instanceof Error ? e.message : String(e) }) } // boot failure only
       finally { set({ runPhase: null }) }
     },
     reset: () => set({ ...initial }),
@@ -1116,7 +1186,7 @@ export function Stepper() {
         <span key={st} style={{ display: 'contents' }}>
           {i > 0 && <span className={`connector${i <= cur ? ' done' : ''}`} />}
           <button type="button" className={`step${i < cur ? ' done' : ''}${i === cur ? ' current' : ''}`}
-            onClick={() => i < cur && s.runStatus !== 'running' && s.goTo(st)} // back steps clickable, but ALL nav locks while an analysis runs (design rule)
+            onClick={() => s.runStatus !== 'running' && s.goTo(st)} // nav reads the gates (goTo refuses locked steps); ALL nav locks while an analysis runs (design rule)
             aria-current={i === cur ? 'step' : undefined}>
             <span className="dot">{i < cur ? '✓' : i + 1}</span>{label(st)}
           </button>
@@ -1172,9 +1242,9 @@ export function GuideScreen() {
 - [ ] **Step 3: Stubs** (each replaced by its own later task; one file each under `src/components/screens/`):
 ```tsx
 // UploadScreen.tsx
-export function UploadScreen() { return <section><h1 className="title">Upload your data</h1></section> }
+export function UploadScreen() { return <section><h1 className="title">Upload data</h1></section> }
 // ConfigureDataScreen.tsx
-export function ConfigureDataScreen() { return <section><h1 className="title">Configure your data</h1></section> }
+export function ConfigureDataScreen() { return <section><h1 className="title">Configure data</h1></section> }
 // PickTestsScreen.tsx
 export function PickTestsScreen() { return <section><h1 className="title">Pick a test</h1></section> }
 // ResultsScreen.tsx
@@ -1250,9 +1320,9 @@ export function UploadScreen() {
   const [warn, setWarn] = useState<string | null>(null)
   const [pending, setPending] = useState<{ name: string; size: number; bytes: ArrayBuffer; sheets: string[]; sheet: string } | null>(null)
 
-  const finish = (ds: Dataset, name: string, sizeBytes: number) => {
+  const finish = (ds: Dataset, name: string, sizeBytes: number, encoding: string) => {
     if (!ds.columns.length || !ds.rows.length) { setError(`${name} parsed but contains no data rows — fix the file and re-upload.`); return }
-    loadDataset(ds, { name, rows: ds.rows.length, cols: ds.columns.length, encoding: 'UTF-8' })
+    loadDataset(ds, { name, rows: ds.rows.length, cols: ds.columns.length, encoding })
     const big = sizeBytes > SIZE_WARN.mb * 1024 * 1024 || ds.rows.length > SIZE_WARN.rows
     if (big) setWarn(SIZE_WARN_TEXT) // stay so the warning is read; Continue proceeds
     else goTo('guide')
@@ -1264,9 +1334,14 @@ export function UploadScreen() {
         const bytes = await f.arrayBuffer()
         const sheets = listSheets(bytes)
         if (sheets.length > 1) { setPending({ name: f.name, size: f.size, bytes, sheets, sheet: sheets[0] }); return }
-        finish(parseExcelSheet(bytes, sheets[0]), f.name, f.size)
+        finish(parseExcelSheet(bytes, sheets[0]), f.name, f.size, 'UTF-8')
       } else {
-        finish(parseCsv(await f.text()), f.name, f.size)
+        // ui-spec DRAFT: UTF-8 and Latin-1 accepted — strict-UTF-8 first, fall back to windows-1252, report honestly in the banner
+        const buf = await f.arrayBuffer()
+        let text = '', encoding = 'UTF-8'
+        try { text = new TextDecoder('utf-8', { fatal: true }).decode(buf) }
+        catch { text = new TextDecoder('windows-1252').decode(buf); encoding = 'Latin-1' }
+        finish(parseCsv(text), f.name, f.size, encoding)
       }
     } catch (e) { setError(`Couldn't parse ${f.name}: ${e instanceof Error ? e.message : String(e)} — fix the file and re-upload.`) }
   }
@@ -1274,8 +1349,10 @@ export function UploadScreen() {
   return (
     <section>
       <div className="eyebrow">Step 2</div>
-      <h1 className="title">Upload your data</h1>
-      <label className="slot" style={{ display: 'block', textAlign: 'center', padding: '30px 16px', cursor: 'pointer' }}>
+      <h1 className="title">Upload data</h1>
+      <label className="slot" style={{ display: 'block', textAlign: 'center', padding: '30px 16px', cursor: 'pointer' }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) void onFile(f) }}>
         Drop a file here or <b style={{ color: 'var(--accent)' }}>browse</b>
         <div className="hint" style={{ marginTop: 6 }}>{UPLOAD_NOTE}</div>
         <input type="file" accept={UPLOAD_ACCEPT} style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }}
@@ -1290,7 +1367,7 @@ export function UploadScreen() {
             </select></label>{' '}
           <span className="hint">(default: first)</span>
           <button className="btn" style={{ marginLeft: 12 }}
-            onClick={() => { try { finish(parseExcelSheet(pending.bytes, pending.sheet), pending.name, pending.size) } catch (e) { setError(`Couldn't parse sheet "${pending.sheet}": ${e instanceof Error ? e.message : String(e)}`) } }}>
+            onClick={() => { try { finish(parseExcelSheet(pending.bytes, pending.sheet), pending.name, pending.size, 'UTF-8') } catch (e) { setError(`Couldn't parse sheet "${pending.sheet}": ${e instanceof Error ? e.message : String(e)}`) } }}>
             Use this sheet</button>
         </div>
       )}
@@ -1306,7 +1383,7 @@ export function UploadScreen() {
 }
 ```
 
-- [ ] **Step 2: Verify** — `npx tsc -b` → 0; `npm test` green; `npm run dev` → upload a small CSV → lands on Terms guide; upload a corrupt file (e.g. a renamed PNG as .xlsx) → inline error, still on Upload. Screenshot to `.superpowers/screens/upload.png`.
+- [ ] **Step 2: Verify** — `npx tsc -b` → 0; `npm test` green; `npm run dev` → upload a small CSV → lands on Terms guide; drag-drop the same CSV onto the zone → lands on Terms guide; upload a corrupt file (e.g. a renamed PNG as .xlsx) → inline error, still on Upload. Screenshot to `.superpowers/screens/upload.png`.
 
 - [ ] **Step 3: Commit**
 ```bash
@@ -1324,20 +1401,25 @@ git add src/components/screens/UploadScreen.tsx && git commit -m "feat: upload s
 ```tsx
 import { useSession, gateOk } from '../../state/session'
 import { applyMissingPolicy } from '../../lib/data/missing'
+import { compatibleLevels } from '../../lib/data/columnMeta'
 import type { Level } from '../../lib/registry/types'
 import type { MissingPolicy } from '../../lib/data/missing'
 
-const LEVELS: Level[] = ['nominal', 'ordinal', 'interval', 'ratio']
 const POLICIES: [MissingPolicy, string][] = [['drop', 'Drop rows'], ['impute', 'Impute'], ['leave', 'Leave as-is']]
 
 export function ConfigureDataScreen() {
   const s = useSession()
   const ready = gateOk(s, 'configure-data')
   const dropped = s.raw ? applyMissingPolicy(s.raw, s.columns, 'drop').droppedCount : 0
+  // ui-spec 4c: the fix-type override is for a NUMERIC column mis-parsed as text — not every text column
+  const numericAsText = (name: string) => {
+    const vals = (s.raw?.rows ?? []).map((r) => r[name]).filter((v): v is string => typeof v === 'string' && v.trim() !== '')
+    return vals.length > 0 && vals.filter((v) => Number.isFinite(Number(v.trim()))).length >= vals.length / 2 // DRAFT heuristic — Benjie reviews rendered
+  }
   return (
     <section>
       <div className="eyebrow">Step 4</div>
-      <h1 className="title">Configure your data</h1>
+      <h1 className="title">Configure data</h1>
 
       <div className="card">
         <div className="eyebrow">Missing data</div>
@@ -1365,11 +1447,11 @@ export function ConfigureDataScreen() {
                 <td><input defaultValue={c.name} aria-label={`rename ${c.name}`} style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit', width: '10em' }}
                   onBlur={(e) => { if (e.target.value !== c.name) s.renameColumn(c.name, e.target.value) }} /></td>
                 <td className="mono">{c.detected}{c.tags.length ? ` · ${c.tags.join(' · ')}` : ''}
-                  {c.detected === 'object' && <button type="button" className="pill" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => s.applyFixType(c.name)}>fix type</button>}</td>
+                  {c.detected === 'object' && numericAsText(c.name) && <button type="button" className="pill" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => s.applyFixType(c.name)}>fix type</button>}</td>
                 <td>
                   <select aria-label={`level of ${c.name}`} value={c.level ?? ''} disabled={!c.used}
                     onChange={(e) => s.setColumnLevel(c.name, (e.target.value || null) as Level | null)}>
-                    <option value="">—</option>{LEVELS.map((l) => <option key={l}>{l}</option>)}
+                    <option value="">—</option>{compatibleLevels(c.detected).map((l) => <option key={l}>{l}</option>)}
                   </select>
                 </td>
                 <td><input type="checkbox" aria-label={`use ${c.name}`} checked={c.used} onChange={(e) => s.setColumnUsed(c.name, e.target.checked)} /></td>
@@ -1419,7 +1501,7 @@ export function PickTestsScreen() {
     <section>
       <div className="eyebrow">Step 5</div>
       <h1 className="title">Pick a test</h1>
-      <p className="hint">folders expand · tick individual tests · multi-select on · greyed + reason if your data can't support a test</p>
+      <p className="hint">Folders expand only · tick individual tests · multi-select on · greyed + reason if data unsupported — eligibility = level/arity fit plus per-test minimum data requirements (registry-defined · DRAFT — confirm: e.g. at least 3 complete rows per group) · if every test is greyed, a panel explains why and points back to steps 2/4</p>
       {allGreyed && (
         <div className="error-box" role="alert">
           No test fits the current data: every option is greyed out. Check the uploaded file (step 2) or the column levels and Use toggles (step 4).
@@ -1441,6 +1523,7 @@ export function PickTestsScreen() {
                           onChange={() => s.toggleSelection(c.id)} style={{ marginRight: 8 }} />
                         {c.name}
                       </label>
+                      {c.note && <span className="hint"> {c.note}</span>}
                       {!v.ok && <span className="hint"> — {v.reason}</span>}
                     </div>
                   )
@@ -1667,7 +1750,7 @@ export function ResultPreviewCard({ index, spec, result, stale, onRerun }:
       {result.nExcluded > 0 && <p style={{ fontSize: 11, color: 'var(--muted)' }}>{result.nExcluded} rows excluded (missing values)</p>}
       <p><b>Figure.</b> {spec.figure.caption}</p>
       {figureUrl && <img src={figureUrl} alt="boxplot of the outcome by group" width={480} />}
-      <h3 className="display">How to read this test</h3>
+      <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>How to read this test</h3>
       <p>{spec.howToRead}</p>
       <p>APA: {apa}</p>
     </section>
@@ -1714,16 +1797,19 @@ export function ResultsScreen() {
       <div className="eyebrow">Results</div>
       <h1 className="title">Results</h1>
 
-      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-        {[['PDF report', 'APA-7 tables, figures, how-to-read text — in selection order'], ['LaTeX file (.tex)', 'the same report as a LaTeX source'], ['R script (.R)', 'reproduces every computation & figure · ships with the cleaned dataset']].map(([lbl, why]) => (
-          <label key={lbl} className="hint" title={`${why} — coming in a later slice`} style={{ opacity: 0.5 }}>
-            <input type="checkbox" disabled /> {lbl} <em>(later slice)</em>
-          </label>
-        ))}
-        <label><input type="checkbox" checked={formats.tables} onChange={(e) => setFormats({ ...formats, tables: e.target.checked })} /> Table images (.png)</label>
-        <label><input type="checkbox" checked={formats.figures} onChange={(e) => setFormats({ ...formats, figures: e.target.checked })} /> Figure images (.png)</label>
-        <button className="btn" style={{ marginLeft: 'auto' }} disabled={running || !fresh.length || (!formats.tables && !formats.figures)}
-          onClick={() => { void download() }}>Download</button>
+      <div className="card">
+        <div className="eyebrow">Export &amp; download · tick one or more</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginTop: 8 }}>
+          {[['PDF report', 'APA-7 tables, figures, how-to-read text — in selection order'], ['LaTeX file (.tex)', 'the same report as a LaTeX source'], ['R script (.R)', 'reproduces every computation & figure, same sequence · ships with the cleaned dataset']].map(([lbl, why]) => (
+            <label key={lbl} className="hint" title={why} style={{ opacity: 0.5 }}>
+              <input type="checkbox" disabled /> {lbl} <em>(coming in a later slice)</em>
+            </label>
+          ))}
+          <label title="each test's tables as standalone images"><input type="checkbox" checked={formats.tables} onChange={(e) => setFormats({ ...formats, tables: e.target.checked })} /> Table images (.png)</label>
+          <label title="each test's graphs / diagrams as standalone images"><input type="checkbox" checked={formats.figures} onChange={(e) => setFormats({ ...formats, figures: e.target.checked })} /> Figure images (.png)</label>
+          <button className="btn" style={{ marginLeft: 'auto' }} disabled={running || !fresh.length || (!formats.tables && !formats.figures)}
+            onClick={() => { void download() }}>Download</button>
+        </div>
       </div>
 
       {running && <p className="hint" role="status">{s.runPhase ?? 'Running…'}</p>}
@@ -1733,12 +1819,28 @@ export function ResultsScreen() {
       )}
 
       {s.selection.map((id, i) => {
-        const run = s.runs[id]; const spec = SPECS[id]
-        if (!run || !spec) return null
+        const spec = SPECS[id]
+        if (!spec) return null
+        const nn = String(i + 1).padStart(2, '0')
+        if (s.errors[id]) return ( // per-test readable error card; other tests' results stay intact (spec run-state rule)
+          <section key={id} className="card">
+            <div className="eyebrow">{nn} · {spec.name}</div>
+            <div className="error-box" role="alert">This test failed: {s.errors[id]}{' '}
+              <button type="button" onClick={() => { void s.runAll() }}>Try again</button></div>
+          </section>
+        )
+        const run = s.runs[id]
+        if (!run) return running ? ( // per-test progress while its run is pending
+          <section key={id} className="card"><div className="eyebrow">{nn} · {spec.name}</div>
+            <p className="hint" role="status">{s.runPhase ?? 'Running…'}</p></section>
+        ) : null
         return <ResultPreviewCard key={id} index={i + 1} spec={spec} result={run.result} stale={run.stale} onRerun={() => { void s.runAll() }} />
       })}
 
-      <p style={{ textAlign: 'center', marginTop: 18 }}>
+      <p className="hint" style={{ textAlign: 'center', marginTop: 18, marginBottom: 6 }}>
+        After export · optional feedback — an anonymous, optional satisfaction survey — opens a short Google Form in a new tab
+      </p>
+      <p style={{ textAlign: 'center', marginTop: 0 }}>
         <a className="pill" href={FEEDBACK_URL} target="_blank" rel="noopener">How did it go? — Share feedback →</a>
       </p>
     </section>
@@ -1784,10 +1886,11 @@ treatment,88
 
 ```ts
 import { test, expect, type Page } from '@playwright/test'
-import { writeFileSync, mkdtempSync } from 'node:fs'
+import { writeFileSync, readFileSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { utils, write } from 'xlsx'
+import { unzipSync } from 'fflate'
 
 async function dragChip(page: Page, chip: string, roleId: string) {
   const src = page.locator('.chip', { hasText: chip }).first()
@@ -1799,7 +1902,7 @@ async function dragChip(page: Page, chip: string, roleId: string) {
   await page.mouse.up()
 }
 
-test('full journey: welcome → upload → guide → configure → pick → drag → Welch run → back-edit → pooled re-run → export', async ({ page }) => {
+test('full journey: welcome → upload → guide → configure → pick → drag → Welch run → toggle → pooled re-run → level back-edit → stale → re-run → zip export', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Telos' })).toBeVisible()
   await page.getByRole('button', { name: 'Get started' }).click()
@@ -1808,7 +1911,7 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await expect(page.getByRole('heading', { name: 'Terms guide' })).toBeVisible() // clean parse auto-advances
   await page.getByRole('button', { name: 'Continue' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Configure your data' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Configure data' })).toBeVisible()
   await expect(page.getByText('12 rows · 2 columns · UTF-8')).toBeVisible()
   await expect(page.getByLabel('level of score')).toHaveValue('ratio')   // suggested level pre-filled
   await expect(page.getByLabel('level of group')).toHaveValue('nominal')
@@ -1846,7 +1949,32 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await expect(page.locator('#table-t-test')).toContainText('10')            // integer pooled df
   await expect(page.locator('#table-t-test')).toContainText('[−16.47, −7.53]')
 
+  // Back-edit a LEVEL (earlier-step edit) → result goes stale → re-run (spec Testing §3)
+  await page.getByRole('button', { name: 'Configure data' }).click()
+  await page.getByLabel('level of score').selectOption('interval') // still t-test-compatible: config stays valid, run goes stale
+  await page.getByRole('button', { name: 'Results' }).click()      // forward nav via the gates (stepper reads canEnter)
+  await expect(page.getByText(/Stale — the configuration changed/)).toBeVisible()
+  await page.getByRole('button', { name: 'Run analysis again' }).click()
+  await expect(page.getByText(/Stale — the configuration changed/)).toHaveCount(0, { timeout: 120_000 })
+
+  // Disabled export formats asserted (spec Testing §3)
+  for (const name of [/PDF report/, /LaTeX file/, /R script/])
+    await expect(page.getByRole('checkbox', { name })).toBeDisabled()
+
+  // Zip download with foldered paths (spec Testing §3)
+  await page.getByRole('checkbox', { name: /Table images/ }).check()
   await expect(page.getByRole('button', { name: 'Download' })).toBeEnabled()
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Download' }).click(),
+  ])
+  expect(download.suggestedFilename()).toBe('telos-results.zip')
+  const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!))))
+  expect(entries.sort()).toEqual([
+    '01_independent-t-test/figure_boxplot.png',
+    '01_independent-t-test/table_group-statistics.png',
+    '01_independent-t-test/table_t-test.png',
+  ])
 })
 
 test('excel path: multi-sheet workbook → sheet picker → guide', async ({ page }) => {
@@ -1902,7 +2030,7 @@ git add README.md && git commit -m "docs: README for the stepped flow slice"
 ## Done — definition of success
 
 - `npm test` green: all walking-skeleton suites (registry card, engine, stats known-answers, parse, bundle) PLUS catalog-vs-tree consistency, copy consistency, columnMeta, parseExcel, missing-policy, eligibility, and the table-driven flow-gate/invalidation suites.
-- `npm run e2e` green separately: the full journey in real Chromium — upload fixture → stepper gates → 46-test tree with honest grey-outs → drag-slots → Welch by default (df 9.68) → back-edit → pooled re-run (df 10) → export enabled; plus the Excel sheet-picker path.
+- `npm run e2e` green separately: the full journey in real Chromium — upload fixture → stepper gates → 46-test tree with honest grey-outs → drag-slots → Welch by default (df 9.68) → equal-variance toggle → pooled re-run (df 10) → back-edit a level → result marked stale → re-run clears it → three disabled export formats asserted → zip download verified to contain the `01_independent-t-test/` foldered paths; plus the Excel sheet-picker path.
 - Every screen's content verbatim from the specs (consistency-tested where the spec carries the text; DRAFT passages rendered for Benjie's in-situ review).
 - The other 45 tests visible exactly where the spec draws them, each greyed with an honest reason; eligibility reasons reflect real data checks for the t-test.
 - Benjie has clicked through the rendered preview (Task 18 checkpoint) before any push or deploy — both remain his calls.
