@@ -15,6 +15,15 @@ export const INDEPENDENT_T_TEST: TestSpec = {
     { id: 'equalVariance', label: 'equal variance', value: 'off · Welch' }, // drawn default: OFF → Welch runs (Benjie's ruling)
     { id: 'ci', label: 'CI', value: '95%' },
   ],
+  // Machine-readable mirror of the verbatim role strings above (display strings stay the spec's text).
+  // minRowsPerGroup: the ui-spec step-5 DRAFT 'at least 3 complete rows per group', implemented as written.
+  constraints: {
+    roles: [
+      { roleId: 'outcome', levels: ['interval', 'ratio'], arity: { exact: 1 } },
+      { roleId: 'group', levels: ['nominal', 'ordinal'], arity: { exact: 1 }, categories: { exact: 2 } },
+    ],
+    minRowsPerGroup: 3,
+  },
   tables: [
     { id: 'group-statistics', title: 'Group statistics',
       columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'mean', label: 'M' }, { key: 'sd', label: 'SD' }, { key: 'se', label: 'SE' }] },

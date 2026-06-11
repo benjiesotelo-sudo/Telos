@@ -1,3 +1,6 @@
+import type { TestSpec } from './types'
+import { INDEPENDENT_T_TEST } from './independentTTest'
+
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
 
@@ -58,3 +61,6 @@ export const CATALOG: CatalogEntry[] = [
 
 export const FAMILIES = [...new Set(CATALOG.map((c) => c.family))] // tree order
 export const LATER_SLICE_REASON = 'arrives in a later slice'
+
+/** Runnable test specs this slice ships; later slices add entries here. Keys = catalog ids. */
+export const SPECS: Record<string, TestSpec> = { [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST }
