@@ -1716,8 +1716,8 @@ const fdf = (n: number) => (Number.isInteger(n) ? String(n) : f(n))             
 const fp = (p: number) => (p < 0.001 ? '<.001' : p.toFixed(3).replace(/^0/, ''))
 const fx = (n: number | null, fmt: (v: number) => string) => (n == null || !Number.isFinite(n) ? '—' : fmt(n))
 
-export function ResultPreviewCard({ index, spec, result, stale, onRerun }:
-  { index: number; spec: TestSpec; result: TTestResult; stale: boolean; onRerun: () => void }) {
+export function ResultPreviewCard({ index, spec, result, stale, running, onRerun }:
+  { index: number; spec: TestSpec; result: TTestResult; stale: boolean; running: boolean; onRerun: () => void }) {
   const [figureUrl, setFigureUrl] = useState<string | null>(null)
   useEffect(() => {
     const url = URL.createObjectURL(new Blob([result.figurePng], { type: 'image/png' }))
@@ -1739,7 +1739,7 @@ export function ResultPreviewCard({ index, spec, result, stale, onRerun }:
       <div className="eyebrow">{String(index).padStart(2, '0')} · {spec.name}</div>
       {stale && (
         <div className="error-box">Stale — the configuration changed since this ran.{' '}
-          <button type="button" onClick={onRerun}>Run analysis again</button></div>
+          <button type="button" disabled={running} onClick={onRerun}>Run analysis again</button></div>
       )}
       <p style={{ color: 'var(--muted)' }}>{spec.question}</p>
       <p><b>Table 1.</b> {spec.tables[0].title}</p>
@@ -1834,7 +1834,7 @@ export function ResultsScreen() {
           <section key={id} className="card"><div className="eyebrow">{nn} · {spec.name}</div>
             <p className="hint" role="status">{s.runPhase ?? 'Running…'}</p></section>
         ) : null
-        return <ResultPreviewCard key={id} index={i + 1} spec={spec} result={run.result} stale={run.stale} onRerun={() => { void s.runAll() }} />
+        return <ResultPreviewCard key={id} index={i + 1} spec={spec} result={run.result} stale={run.stale} running={running} onRerun={() => { void s.runAll() }} />
       })}
 
       <p className="hint" style={{ textAlign: 'center', marginTop: 18, marginBottom: 6 }}>
