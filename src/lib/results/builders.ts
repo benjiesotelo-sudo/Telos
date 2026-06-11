@@ -9,6 +9,8 @@ import { buildOneSampleTTest } from './buildOneSampleTTest'
 import type { PairedTTestResult } from '../stats/pairedTTest'
 import { runPairedTTest } from '../stats/pairedTTest'
 import { buildPairedTTest } from './buildPairedTTest'
+import { runMannWhitneyU, type MannWhitneyUResult } from '../stats/mannWhitneyU'
+import { buildMannWhitneyU } from './buildMannWhitneyU'
 
 export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[] }
 export interface CardContent {
@@ -28,9 +30,12 @@ export const RUNNERS: Record<string, Runner> = {
     runOneSampleTTest(engine, ds, setup.roles['outcome'][0], setup.options['mu0'] as number),
   'paired-t-test': (engine, ds, setup) =>
     runPairedTTest(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0]),
+  'mann-whitney-u': (engine, ds, setup) =>
+    runMannWhitneyU(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['continuity'] as boolean),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
   'one-sample-t-test': (spec, result) => buildOneSampleTTest(spec, result as OneSampleTTestResult),
   'paired-t-test': (spec, result) => buildPairedTTest(spec, result as PairedTTestResult),
+  'mann-whitney-u': (spec, result) => buildMannWhitneyU(spec, result as MannWhitneyUResult),
 }
