@@ -12,3 +12,6 @@ dist/
 .env
 .env.local
 public/webr/
+
+# Brainstorm companion artifacts
+.superpowers/
