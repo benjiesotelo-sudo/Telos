@@ -1,6 +1,7 @@
 import type { TestSpec } from './types'
 import { INDEPENDENT_T_TEST } from './independentTTest'
 import { ONE_SAMPLE_T_TEST } from './oneSampleTTest'
+import { PAIRED_T_TEST } from './pairedTTest'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -15,7 +16,7 @@ export const CATALOG: CatalogEntry[] = [
   e('distribution-normality', 'Distribution & normality', 'Descriptive statistics'),
   e('one-sample-t-test', 'One-sample t-test', 'Group comparisons', 'Parametric', 'available'),
   e('independent-t-test', 'Independent t-test', 'Group comparisons', 'Parametric', 'available', 't-test'),
-  e('paired-t-test', 'Paired t-test', 'Group comparisons', 'Parametric'),
+  e('paired-t-test', 'Paired t-test', 'Group comparisons', 'Parametric', 'available'),
   e('one-way-anova', 'One-way ANOVA + post-hoc', 'Group comparisons', 'Parametric'),
   e('factorial-anova', 'Factorial ANOVA', 'Group comparisons', 'Parametric'),
   e('repeated-measures-anova', 'Repeated-measures ANOVA', 'Group comparisons', 'Parametric'),
@@ -64,4 +65,4 @@ export const FAMILIES = [...new Set(CATALOG.map((c) => c.family))] // tree order
 export const LATER_SLICE_REASON = 'arrives in a later slice'
 
 /** Runnable test specs this slice ships; later slices add entries here. Keys = catalog ids. */
-export const SPECS: Record<string, TestSpec> = { [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST }
+export const SPECS: Record<string, TestSpec> = { [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST }
