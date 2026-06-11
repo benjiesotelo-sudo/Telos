@@ -8,5 +8,5 @@ export default defineConfig({
   optimizeDeps: { exclude: ['webr'] },
   // include keeps vitest away from tests/e2e (Playwright specs crash vitest collection);
   // hookTimeout covers Engine.init's ggplot2 download in beforeAll (~30 s observed, slower on bad networks).
-  test: { environment: 'node', testTimeout: 120_000, hookTimeout: 300_000, include: ['src/**/*.test.ts'] },
+  test: { environment: 'node', testTimeout: 120_000, hookTimeout: 300_000, include: ['src/**/*.test.ts', 'src/**/*.test.tsx'] },
 })

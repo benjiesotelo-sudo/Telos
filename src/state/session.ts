@@ -1,18 +1,18 @@
 import { create } from 'zustand'
-import type { Dataset, TTestResult } from '../lib/stats/types'
+import type { Dataset } from '../lib/stats/types'
 import type { Level } from '../lib/registry/types'
 import type { ColumnMeta } from '../lib/data/columnMeta'
 import { deriveColumns, fixType } from '../lib/data/columnMeta'
 import { applyMissingPolicy, type MissingPolicy } from '../lib/data/missing'
 import { slotCompatibility } from '../lib/eligibility/eligibility'
 import { SPECS } from '../lib/registry/catalog'
-import { runIndependentTTest } from '../lib/stats/independentTTest'
+import { RUNNERS } from '../lib/results/builders'
 import { getEngine } from '../lib/webr/getEngine'
 
 export type StepId = 'welcome' | 'upload' | 'guide' | 'configure-data' | 'pick-tests' | `test:${string}` | 'results'
 export interface FileInfo { name: string; rows: number; cols: number; encoding: string }
 export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number>; blocked: string | null }
-export interface TestRun { result: TTestResult; stale: boolean }
+export interface TestRun { result: unknown; stale: boolean }
 
 export interface SessionState {
   step: StepId
@@ -164,9 +164,11 @@ export const useSession = create<SessionState>((set, get) => {
         for (const id of s.selection) {
           const spec = SPECS[id]; const setup = s.setups[id]
           if (!spec || !setup || setup.blocked) continue
+          const runner = RUNNERS[id]
+          if (!runner) continue
           set({ runPhase: `Running ${spec.name}…` })
           try {
-            const result = await runIndependentTTest(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['equalVariance'] as boolean)
+            const result = await runner(engine, ds, setup)
             const { [id]: _drop, ...rest } = get().errors
             set({ runs: { ...get().runs, [id]: { result, stale: false } }, errors: rest })
           } catch (e) {

@@ -5,6 +5,7 @@ import { buildBundle } from '../../lib/export/bundle'
 import { captureNode } from '../../lib/export/capture'
 import { FEEDBACK_URL } from '../../content/copy'
 import { ResultPreviewCard } from '../ResultPreviewCard'
+import { BUILDERS } from '../../lib/results/builders'
 
 const saveBlob = (blob: Blob, name: string) => {
   const url = URL.createObjectURL(blob)
@@ -21,8 +22,9 @@ export function ResultsScreen() {
     const files: Record<string, Uint8Array> = {}
     for (const id of fresh) {
       const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
-      if (formats.tables) for (const t of spec.tables) files[`${folder}table_${t.id}.png`] = await captureNode(`table-${t.id}`)
-      if (formats.figures) files[`${folder}figure_${spec.figure!.type}.png`] = s.runs[id].result.figurePng
+      const content = BUILDERS[id](spec, s.runs[id].result)
+      if (formats.tables) for (const t of content.tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.domId ?? t.spec.id}`)
+      if (formats.figures) for (const fig of content.figures) files[`${folder}figure_${fig.type}.png`] = fig.png
     }
     const names = Object.keys(files)
     if (names.length === 1) saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: 'image/png' }), names[0].split('/')[1])
@@ -67,11 +69,13 @@ export function ResultsScreen() {
           </section>
         )
         const run = s.runs[id]
-        if (!run) return running ? ( // per-test progress while its run is pending
+        if (!run) return running ? (
           <section key={id} className="card"><div className="eyebrow">{nn} · {spec.name}</div>
             <p className="hint" role="status">{s.runPhase ?? 'Running…'}</p></section>
         ) : null
-        return <ResultPreviewCard key={id} index={i + 1} spec={spec} result={run.result} stale={run.stale} running={running} onRerun={() => { void s.runAll() }} />
+        const content = BUILDERS[id](spec, run.result)
+        return <ResultPreviewCard key={id} index={i + 1} name={spec.name} question={spec.question} content={content}
+          stale={run.stale} running={running} onRerun={() => { void s.runAll() }} />
       })}
 
       <p className="hint" style={{ textAlign: 'center', marginTop: 18, marginBottom: 6 }}>
