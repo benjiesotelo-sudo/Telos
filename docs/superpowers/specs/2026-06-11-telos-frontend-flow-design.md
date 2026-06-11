@@ -71,7 +71,8 @@ This re-sequences the original plan tail: the visual/flow layer moves ahead of t
 - Real Google Form feedback URL (standing open item).
 - Dark mode polish (automatic variant only); moderation (per R1); app-source licence choice.
 
-## Open questions for Benjie at doc review
+## Resolved at doc review (Benjie, 2026-06-11)
 
-1. Confirm removal of the sample-data button (spec-faithful default), or keep a small "try sample data" link.
-2. Warm paper white `#f0efe9` (current tokens) vs. Google-Analytics cool gray-white — one-line token change either way.
+1. **Sample-data button removed** — confirmed; the Upload step is spec-faithful, e2e uses fixture files.
+2. **Warm paper white `#f0efe9` stays** — Benjie's call: "keep what we currently have, I like it."
+3. Spec document approved as the basis for the implementation plan.
