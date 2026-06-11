@@ -1,4 +1,5 @@
 import type { TestSpec } from './types'
+import { SUMMARY_STATISTICS } from './summaryStatistics'
 import { INDEPENDENT_T_TEST } from './independentTTest'
 import { ONE_SAMPLE_T_TEST } from './oneSampleTTest'
 import { PAIRED_T_TEST } from './pairedTTest'
@@ -14,7 +15,7 @@ const e = (id: string, name: string, family: string, subfamily?: string, status:
   ({ id, name, family, ...(subfamily ? { subfamily } : {}), status, ...(short ? { short } : {}) })
 
 export const CATALOG: CatalogEntry[] = [
-  e('summary-statistics', 'Summary statistics', 'Descriptive statistics'),
+  e('summary-statistics', 'Summary statistics', 'Descriptive statistics', undefined, 'available'),
   e('frequencies-crosstabs', 'Frequencies & cross-tabs', 'Descriptive statistics'),
   e('distribution-normality', 'Distribution & normality', 'Descriptive statistics', undefined, 'available'),
   e('one-sample-t-test', 'One-sample t-test', 'Group comparisons', 'Parametric', 'available'),
@@ -68,4 +69,4 @@ export const FAMILIES = [...new Set(CATALOG.map((c) => c.family))] // tree order
 export const LATER_SLICE_REASON = 'arrives in a later slice'
 
 /** Runnable test specs this slice ships; later slices add entries here. Keys = catalog ids. */
-export const SPECS: Record<string, TestSpec> = { [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST, [MANN_WHITNEY_U.id]: MANN_WHITNEY_U, [WILCOXON_SIGNED_RANK.id]: WILCOXON_SIGNED_RANK, [DISTRIBUTION_NORMALITY.id]: DISTRIBUTION_NORMALITY }
+export const SPECS: Record<string, TestSpec> = { [SUMMARY_STATISTICS.id]: SUMMARY_STATISTICS, [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST, [MANN_WHITNEY_U.id]: MANN_WHITNEY_U, [WILCOXON_SIGNED_RANK.id]: WILCOXON_SIGNED_RANK, [DISTRIBUTION_NORMALITY.id]: DISTRIBUTION_NORMALITY }

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useSession, stepsOf, canEnter, workingDataset } from './session'
+import { useSession, stepsOf, canEnter, workingDataset, gateOk } from './session'
 import type { Dataset, TTestResult } from '../lib/stats/types'
 
 const ds: Dataset = { columns: ['group', 'score'], rows: [
@@ -94,5 +94,14 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     useSession.getState().addRole('independent-t-test', 'outcome', 'score')
     useSession.getState().addRole('independent-t-test', 'outcome', 'group')
     expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual(['score'])
+  })
+})
+
+describe('arity gates (design §3: minimums gate; optional slots never block)', () => {
+  beforeEach(() => { useSession.getState().reset(); load(); useSession.getState().visitGuide(); useSession.getState().toggleSelection('summary-statistics') })
+  it('{1,∞} gates on its minimum; the empty {0,1} Group-by never blocks', () => {
+    expect(gateOk(useSession.getState(), 'test:summary-statistics')).toBe(false)
+    useSession.getState().addRole('summary-statistics', 'variables', 'score')
+    expect(gateOk(useSession.getState(), 'test:summary-statistics')).toBe(true)
   })
 })
