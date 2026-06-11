@@ -21,13 +21,13 @@ describe('registry stays faithful to the spec HTML (verbatim, card-scoped)', () 
   it('question, assumption note, figure caption, how-to-read and R map match verbatim', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/s)![1])).toBe(spec.question)
     expect(strip(card.match(/<p class="tbl-note assume">(.*?)<\/p>/s)![1])).toBe(spec.assumptionNote)
-    expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(spec.figure.caption)
+    expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(spec.figure!.caption)
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)
     expect(strip(card.match(/<b>R map:<\/b>(.*?)<\/div>/s)![1])).toBe(spec.rMap)
   })
   it('bundle line EQUALS bundleFiles, and the names derive from table ids + figure type', () => {
     expect(strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')).toEqual(spec.bundleFiles)
-    expect([...spec.tables.map((t) => `table_${t.id}.png`), `figure_${spec.figure.type}.png`]).toEqual(spec.bundleFiles)
+    expect([...spec.tables.map((t) => `table_${t.id}.png`), `figure_${spec.figure!.type}.png`]).toEqual(spec.bundleFiles)
   })
   it('roles equal the inputs card slot labels + constraints', () => {
     const labels = [...inCard.matchAll(/<div class="sl-label">(.*?)<\/div>/g)].map((m) => strip(m[1]))

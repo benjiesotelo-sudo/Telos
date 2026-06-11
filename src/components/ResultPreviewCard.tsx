@@ -36,7 +36,7 @@ export function ResultPreviewCard({ index, spec, result, stale, running, onRerun
       <ApaTable id={`table-${spec.tables[1].id}`} spec={spec.tables[1]} rows={t2Rows} />
       <p style={{ fontSize: 11, color: 'var(--muted)' }}>{spec.assumptionNote} (Levene F={fx(result.levene.F, f)}, p={fx(result.levene.p, fp)} · {result.test} test)</p>
       {result.nExcluded > 0 && <p style={{ fontSize: 11, color: 'var(--muted)' }}>{result.nExcluded} rows excluded (missing values)</p>}
-      <p><b>Figure.</b> {spec.figure.caption}</p>
+      <p><b>Figure.</b> {spec.figure!.caption}</p>
       {figureUrl && <img src={figureUrl} alt="boxplot of the outcome by group" width={480} />}
       <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>How to read this test</h3>
       <p>{spec.howToRead}</p>

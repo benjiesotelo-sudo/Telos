@@ -31,22 +31,46 @@ export function completeRowsPerGroup(ds: Dataset, outcome: string, group: string
   return counts
 }
 
-/** Step-5 verdict: greyed + reason, or eligible. Brute-forces candidate role assignments (cheap at 46 tests × small role counts). */
+/** Complete pairs: both condition columns numeric-finite in the same row (mirrors the paired listwise unit). */
+export function completePairs(ds: Dataset, a: string, b: string): number {
+  return ds.rows.filter((r) => typeof r[a] === 'number' && Number.isFinite(r[a] as number)
+    && typeof r[b] === 'number' && Number.isFinite(r[b] as number)).length
+}
+
+/** Numeric-finite values present in one column. */
+export function numericValues(ds: Dataset, col: string): number {
+  return ds.rows.filter((r) => typeof r[col] === 'number' && Number.isFinite(r[col] as number)).length
+}
+
+/** Step-5 verdict: greyed + reason, or eligible. Candidate sets per role, then the test's minRule. */
 export function testEligibility(entry: CatalogEntry, spec: TestSpec | null, columns: ColumnMeta[], working: Dataset): Verdict {
   if (entry.status === 'later-slice' || !spec) return { ok: false, reason: LATER_SLICE_REASON }
   const candidates = spec.constraints.roles.map((role) => columns.filter((c) => slotCompatibility(role, c, working).ok))
   for (let i = 0; i < candidates.length; i++) {
-    if (!candidates[i].length) {
-      const role = spec.constraints.roles[i]
+    const role = spec.constraints.roles[i]
+    if (candidates[i].length < role.arity.min) {
       const label = spec.roles.find((r) => r.id === role.roleId)?.label ?? role.roleId
       return { ok: false, reason: `needs ${role.levels[0] === 'interval' ? 'an' : 'a'} ${role.levels.join(' / ')} column for ${label}` }
     }
   }
-  // any disjoint assignment meeting the min-rows rule? (t-test: outcome × group pairs)
-  for (const o of candidates[0]) for (const g of candidates[1]) {
-    if (o.name === g.name) continue
-    const per = completeRowsPerGroup(working, o.name, g.name)
-    if (Object.keys(per).length && Object.values(per).every((n) => n >= spec.constraints.minRowsPerGroup)) return { ok: true, reason: null }
+  const rule = spec.constraints.minRule
+  if (rule.kind === 'rows-per-group') {
+    for (const o of candidates[0]) for (const g of candidates[1]) {
+      if (o.name === g.name) continue
+      const per = completeRowsPerGroup(working, o.name, g.name)
+      if (Object.keys(per).length && Object.values(per).every((n) => n >= rule.n)) return { ok: true, reason: null }
+    }
+    return { ok: false, reason: `needs at least ${rule.n} complete rows per group` }
   }
-  return { ok: false, reason: `needs at least ${spec.constraints.minRowsPerGroup} complete rows per group` }
+  if (rule.kind === 'complete-pairs') {
+    for (const a of candidates[0]) for (const b of candidates[1] ?? candidates[0])
+      if (a.name !== b.name && completePairs(working, a.name, b.name) >= rule.n) return { ok: true, reason: null }
+    return { ok: false, reason: `needs at least ${rule.n} complete pairs` }
+  }
+  if (rule.kind === 'values') {
+    if (candidates[0].some((c) => numericValues(working, c.name) >= rule.n)) return { ok: true, reason: null }
+    return { ok: false, reason: `needs at least ${rule.n} values` }
+  }
+  if (candidates[0].length >= rule.n) return { ok: true, reason: null } // 'used-columns'
+  return { ok: false, reason: `needs at least ${rule.n} usable column${rule.n > 1 ? 's' : ''}` }
 }

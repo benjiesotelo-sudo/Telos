@@ -22,7 +22,7 @@ export function ResultsScreen() {
     for (const id of fresh) {
       const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
       if (formats.tables) for (const t of spec.tables) files[`${folder}table_${t.id}.png`] = await captureNode(`table-${t.id}`)
-      if (formats.figures) files[`${folder}figure_${spec.figure.type}.png`] = s.runs[id].result.figurePng
+      if (formats.figures) files[`${folder}figure_${spec.figure!.type}.png`] = s.runs[id].result.figurePng
     }
     const names = Object.keys(files)
     if (names.length === 1) saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: 'image/png' }), names[0].split('/')[1])

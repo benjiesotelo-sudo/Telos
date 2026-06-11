@@ -10,19 +10,19 @@ export const INDEPENDENT_T_TEST: TestSpec = {
     { id: 'group', label: 'Grouping variable', levels: 'nominal / ordinal', arity: 'exactly 1 · 2 categories' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05' },
-    { id: 'tails', label: 'tails', value: 'two' },
-    { id: 'equalVariance', label: 'equal variance', value: 'off · Welch' }, // drawn default: OFF → Welch runs (Benjie's ruling)
-    { id: 'ci', label: 'CI', value: '95%' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
+    { id: 'equalVariance', label: 'equal variance', value: 'off · Welch', kind: 'toggle', default: false }, // drawn default: OFF → Welch runs (Benjie's ruling)
+    { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
   ],
   // Machine-readable mirror of the verbatim role strings above (display strings stay the spec's text).
-  // minRowsPerGroup: the ui-spec step-5 DRAFT 'at least 3 complete rows per group', implemented as written.
+  // minRule: the ui-spec step-5 DRAFT 'at least 3 complete rows per group', as written.
   constraints: {
     roles: [
-      { roleId: 'outcome', levels: ['interval', 'ratio'], arity: { exact: 1 } },
-      { roleId: 'group', levels: ['nominal', 'ordinal'], arity: { exact: 1 }, categories: { exact: 2 } },
+      { roleId: 'outcome', levels: ['interval', 'ratio'], arity: { min: 1, max: 1 } },
+      { roleId: 'group', levels: ['nominal', 'ordinal'], arity: { min: 1, max: 1 }, categories: { exact: 2 } },
     ],
-    minRowsPerGroup: 3,
+    minRule: { kind: 'rows-per-group', n: 3 }, // ui-spec step-5 DRAFT 'at least 3 complete rows per group', as written
   },
   tables: [
     { id: 'group-statistics', title: 'Group statistics',

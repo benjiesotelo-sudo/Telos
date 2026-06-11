@@ -39,27 +39,27 @@ describe('flow gates', () => {
 describe('back-edit invalidation (the spec navcap rules)', () => {
   beforeEach(() => { useSession.getState().reset(); load(); useSession.getState().visitGuide(); useSession.getState().toggleSelection('independent-t-test') })
   const assign = () => {
-    useSession.getState().assignRole('independent-t-test', 'outcome', 'score')
-    useSession.getState().assignRole('independent-t-test', 'group', 'group')
+    useSession.getState().addRole('independent-t-test', 'outcome', 'score')
+    useSession.getState().addRole('independent-t-test', 'group', 'group')
   }
   it('selection creates a setup with the drawn defaults (equal variance OFF)', () => {
-    expect(useSession.getState().setups['independent-t-test']).toEqual({ roles: { outcome: null, group: null }, equalVariance: false, blocked: null })
+    expect(useSession.getState().setups['independent-t-test']).toEqual({ roles: { outcome: [], group: [] }, options: { equalVariance: false }, blocked: null })
   })
   it('a level edit that breaks an assigned role blocks the config with the reason and marks results stale', () => {
     assign(); fakeRun()
     useSession.getState().setColumnLevel('score', 'nominal')
     const setup = useSession.getState().setups['independent-t-test']
     expect(setup.blocked).toBe('Outcome (DV): needs an interval / ratio column')
-    expect(setup.roles.outcome).toBe('score') // assignment kept, marked blocked — spec: "blocked with the reason"
+    expect(setup.roles.outcome).toEqual(['score']) // assignment kept, marked blocked — spec: "blocked with the reason"
     expect(useSession.getState().runs['independent-t-test'].stale).toBe(true)
     useSession.getState().setColumnLevel('score', 'ratio')
     expect(useSession.getState().setups['independent-t-test'].blocked).toBeNull() // still-valid work kept
   })
-  it('missing-policy and equal-variance edits mark results stale; deselection drops the run', () => {
+  it('missing-policy and setOption edits mark results stale; deselection drops the run', () => {
     assign(); fakeRun()
     useSession.getState().setMissingPolicy('drop')
     expect(useSession.getState().runs['independent-t-test'].stale).toBe(true)
-    fakeRun(); useSession.getState().setEqualVariance('independent-t-test', true)
+    fakeRun(); useSession.getState().setOption('independent-t-test', 'equalVariance', true)
     expect(useSession.getState().runs['independent-t-test'].stale).toBe(true)
     useSession.getState().toggleSelection('independent-t-test')
     expect(useSession.getState().runs['independent-t-test']).toBeUndefined()
@@ -67,14 +67,14 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
   it('rename propagates to role assignments and the working dataset', () => {
     assign()
     useSession.getState().renameColumn('score', 'wage')
-    expect(useSession.getState().setups['independent-t-test'].roles.outcome).toBe('wage')
+    expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual(['wage'])
     expect(workingDataset(useSession.getState()).columns).toContain('wage')
   })
   it('re-upload keeps still-valid work and stales results; vanished columns block with the reason', () => {
     assign(); fakeRun()
     load() // same-schema re-upload
     expect(useSession.getState().selection).toEqual(['independent-t-test'])
-    expect(useSession.getState().setups['independent-t-test'].roles.outcome).toBe('score')
+    expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual(['score'])
     expect(useSession.getState().runs['independent-t-test'].stale).toBe(true)
     useSession.getState().loadDataset({ columns: ['a'], rows: [{ a: 1 }] }, { name: 'other.csv', rows: 1, cols: 1, encoding: 'UTF-8' })
     expect(useSession.getState().setups['independent-t-test'].blocked).toBe('Outcome (DV): column not found')
@@ -83,5 +83,16 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     expect(canEnter(useSession.getState(), 'results')).toBe(false)
     assign()
     expect(canEnter(useSession.getState(), 'results')).toBe(true)
+  })
+  it('removeRole empties the slot and the results gate re-locks', () => {
+    assign(); fakeRun()
+    useSession.getState().removeRole('independent-t-test', 'outcome', 'score')
+    expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual([])
+    expect(canEnter(useSession.getState(), 'results')).toBe(false)
+  })
+  it('addRole enforces the arity maximum — a second column on an exactly-1 slot is refused', () => {
+    useSession.getState().addRole('independent-t-test', 'outcome', 'score')
+    useSession.getState().addRole('independent-t-test', 'outcome', 'group')
+    expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual(['score'])
   })
 })

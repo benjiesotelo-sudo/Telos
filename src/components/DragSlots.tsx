@@ -18,18 +18,19 @@ function Slot({ testId, spec, role }: { testId: string; spec: TestSpec; role: Ro
   const s = useSession()
   const { isOver, setNodeRef } = useDroppable({ id: role.roleId })
   const display = spec.roles.find((r) => r.id === role.roleId)!
-  const assigned = s.setups[testId]?.roles[role.roleId] ?? null
+  const assigned = s.setups[testId]?.roles[role.roleId] ?? []
   return (
     <div ref={setNodeRef} className={`slot${isOver ? ' over' : ''}`} data-role={role.roleId}>
       {display.label} <span className="hint">{display.levels} · {display.arity}</span>
-      {assigned && (
-        <div style={{ marginTop: 5 }}>
-          <span className="chip assigned">{assigned}{' '}
-            <button type="button" aria-label={`remove ${assigned}`} style={{ border: 0, background: 'none', cursor: 'pointer', color: 'inherit' }}
-              onClick={() => s.assignRole(testId, role.roleId, null)}>×</button>
+      {display.hint && <div className="hint" style={{ marginTop: 4 }}>{display.hint}</div>}
+      {assigned.map((col) => (
+        <div key={col} style={{ marginTop: 5 }}>
+          <span className="chip assigned">{col}{' '}
+            <button type="button" aria-label={`remove ${col}`} style={{ border: 0, background: 'none', cursor: 'pointer', color: 'inherit' }}
+              onClick={() => s.removeRole(testId, role.roleId, col)}>×</button>
           </span>
         </div>
-      )}
+      ))}
     </div>
   )
 }
@@ -42,9 +43,12 @@ export function DragSlots({ testId, spec }: { testId: string; spec: TestSpec }) 
     if (!e.over) return
     const role = spec.constraints.roles.find((r) => r.roleId === String(e.over!.id))
     const col = s.columns.find((c) => c.name === String(e.active.id))
-    if (role && col && slotCompatibility(role, col, working).ok) s.assignRole(testId, role.roleId, col.name)
+    if (!role || !col) return
+    const assigned = s.setups[testId]?.roles[role.roleId] ?? []
+    const isOpen = assigned.length < role.arity.max
+    if (isOpen && !assigned.includes(col.name) && slotCompatibility(role, col, working).ok) s.addRole(testId, role.roleId, col.name)
   }
-  const openRoles = spec.constraints.roles.filter((r) => !s.setups[testId]?.roles[r.roleId])
+  const openRoles = spec.constraints.roles.filter((r) => (s.setups[testId]?.roles[r.roleId] ?? []).length < r.arity.max)
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
