@@ -1,73 +1,62 @@
-# React + TypeScript + Vite
+# Telos
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Browser-based statistical analysis for thesis students. All computation runs client-side in WebR (R compiled to WebAssembly) — data never leaves the browser. This is the walking-skeleton slice: one test, the independent t-test, end to end.
 
-Currently, two official plugins are available:
+## Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install          # install deps + postinstall copies WebR runtime to public/webr/
+npm run dev          # dev server at http://localhost:5173
+npm test             # vitest unit tests (19 tests)
+npm run e2e          # playwright test -- installs Chromium itself on first run
+npm run build        # tsc + copy-webr + vite build → dist/
+npm run preview      # serve dist/ locally for manual check
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+> **First runs:** `npm run e2e` downloads Chromium (~150 MB) if not cached.
+> The first analysis run in dev/preview/e2e also fetches ggplot2 and its dependencies
+> from the WebR package repository; the browser caches these afterwards.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Architecture notes
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### COOP/COEP (cross-origin isolation)
+
+WebR's WebAssembly worker requires `SharedArrayBuffer`, which browsers gate behind cross-origin isolation. Two places set the required headers:
+
+- **Dev/preview**: `vite.config.ts` injects `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` on every response.
+- **Production (Cloudflare Pages)**: `public/_headers` applies the same headers to `/*`.
+
+### Self-hosted WebR
+
+WebR ships ~70 MB of runtime + R packages. `scripts/copy-webr.mjs` (run via `postinstall` and as part of `npm run build`) copies the webr dist from `node_modules/webr/dist` into `public/webr/` and decompresses the lazy VFS `.data.gz` images in place. This avoids a double-gunzip bug (Vite's `Content-Encoding: gzip` + the WebR worker's own gunzip). The `public/webr/` directory is gitignored.
+
+### Registry-driven content
+
+Test metadata (table columns, APA template, how-to-read text, export filenames) is encoded in `src/registry/` from the `telos_test_outputs.html` spec. A consistency test fails if the registry drifts from the spec.
+
+## Deploy
+
+One-time project setup (run once per account):
+
+```bash
+npx wrangler pages project create telos --production-branch main
 ```
+
+Deploy:
+
+```bash
+npm run build && npx wrangler pages deploy dist --project-name telos
+```
+
+## Export bundle
+
+The zip currently contains only `01_independent-t-test/` images (the plot and table PNGs). `report.pdf`, `report.tex`, `analysis.R`, and `data/cleaned.csv` are planned for a later build slice, which will also add a LICENSES note to the bundle.
+
+## Licences
+
+| Asset | Licence | Source |
+|---|---|---|
+| R language + WebR binaries | GPLv3 | `public/webr/LICENSE.md` · [r-project.org](https://www.r-project.org) · [webr.r-wasm.org](https://webr.r-wasm.org) |
+| Crimson Pro typeface | SIL OFL 1.1 | `public/fonts/OFL-CrimsonPro.txt` |
+| Atkinson Hyperlegible typeface | SIL OFL 1.1 | `public/fonts/OFL-AtkinsonHyperlegible.txt` |
+| Application source | MIT | `LICENSE` (to be added) |
