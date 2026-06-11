@@ -3,6 +3,7 @@ import { INDEPENDENT_T_TEST } from './independentTTest'
 import { ONE_SAMPLE_T_TEST } from './oneSampleTTest'
 import { PAIRED_T_TEST } from './pairedTTest'
 import { MANN_WHITNEY_U } from './mannWhitneyU'
+import { WILCOXON_SIGNED_RANK } from './wilcoxonSignedRank'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -27,7 +28,7 @@ export const CATALOG: CatalogEntry[] = [
   e('manova', 'MANOVA', 'Group comparisons', 'Parametric'),
   e('mancova', 'MANCOVA', 'Group comparisons', 'Parametric'),
   e('mann-whitney-u', 'Mann-Whitney U', 'Group comparisons', 'Nonparametric', 'available'),
-  e('wilcoxon-signed-rank', 'Wilcoxon signed-rank', 'Group comparisons', 'Nonparametric'),
+  e('wilcoxon-signed-rank', 'Wilcoxon signed-rank', 'Group comparisons', 'Nonparametric', 'available'),
   e('kruskal-wallis', 'Kruskal-Wallis', 'Group comparisons', 'Nonparametric'),
   e('friedman', 'Friedman', 'Group comparisons', 'Nonparametric'),
   e('pearson', 'Pearson', 'Association', 'Correlation'),
@@ -66,4 +67,4 @@ export const FAMILIES = [...new Set(CATALOG.map((c) => c.family))] // tree order
 export const LATER_SLICE_REASON = 'arrives in a later slice'
 
 /** Runnable test specs this slice ships; later slices add entries here. Keys = catalog ids. */
-export const SPECS: Record<string, TestSpec> = { [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST, [MANN_WHITNEY_U.id]: MANN_WHITNEY_U }
+export const SPECS: Record<string, TestSpec> = { [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST, [MANN_WHITNEY_U.id]: MANN_WHITNEY_U, [WILCOXON_SIGNED_RANK.id]: WILCOXON_SIGNED_RANK }
