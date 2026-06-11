@@ -1,17 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { INDEPENDENT_T_TEST as spec } from './independentTTest'
+import { strip } from './specHtml'
 
 // Scope each file to THIS test's card, so another card's content can never satisfy an assertion.
 const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('Independent t-test</span>'), outputsHtml.indexOf('Paired t-test</span>'))
 const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Independent t-test</div>'), inputsHtml.indexOf('One-way ANOVA'))
-
-const decode = (s: string) => s
-  .replace(/&mdash;/g, '—').replace(/&minus;/g, '−').replace(/&middot;/g, '·')
-  .replace(/&rarr;/g, '→').replace(/&alpha;/g, 'α').replace(/&amp;/g, '&')
-const strip = (s: string) => decode(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim()
 
 describe('registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
   it('table theads equal the card column sequences — including the M<sub>diff</sub> markup', () => {
