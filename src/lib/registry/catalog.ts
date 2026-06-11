@@ -6,6 +6,7 @@ import { PAIRED_T_TEST } from './pairedTTest'
 import { MANN_WHITNEY_U } from './mannWhitneyU'
 import { WILCOXON_SIGNED_RANK } from './wilcoxonSignedRank'
 import { DISTRIBUTION_NORMALITY } from './distributionNormality'
+import { FREQUENCIES_CROSSTABS } from './frequenciesCrosstabs'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -16,7 +17,7 @@ const e = (id: string, name: string, family: string, subfamily?: string, status:
 
 export const CATALOG: CatalogEntry[] = [
   e('summary-statistics', 'Summary statistics', 'Descriptive statistics', undefined, 'available'),
-  e('frequencies-crosstabs', 'Frequencies & cross-tabs', 'Descriptive statistics'),
+  e('frequencies-crosstabs', 'Frequencies & cross-tabs', 'Descriptive statistics', undefined, 'available'),
   e('distribution-normality', 'Distribution & normality', 'Descriptive statistics', undefined, 'available'),
   e('one-sample-t-test', 'One-sample t-test', 'Group comparisons', 'Parametric', 'available'),
   e('independent-t-test', 'Independent t-test', 'Group comparisons', 'Parametric', 'available', 't-test'),
@@ -69,4 +70,4 @@ export const FAMILIES = [...new Set(CATALOG.map((c) => c.family))] // tree order
 export const LATER_SLICE_REASON = 'arrives in a later slice'
 
 /** Runnable test specs this slice ships; later slices add entries here. Keys = catalog ids. */
-export const SPECS: Record<string, TestSpec> = { [SUMMARY_STATISTICS.id]: SUMMARY_STATISTICS, [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST, [MANN_WHITNEY_U.id]: MANN_WHITNEY_U, [WILCOXON_SIGNED_RANK.id]: WILCOXON_SIGNED_RANK, [DISTRIBUTION_NORMALITY.id]: DISTRIBUTION_NORMALITY }
+export const SPECS: Record<string, TestSpec> = { [SUMMARY_STATISTICS.id]: SUMMARY_STATISTICS, [FREQUENCIES_CROSSTABS.id]: FREQUENCIES_CROSSTABS, [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST, [MANN_WHITNEY_U.id]: MANN_WHITNEY_U, [WILCOXON_SIGNED_RANK.id]: WILCOXON_SIGNED_RANK, [DISTRIBUTION_NORMALITY.id]: DISTRIBUTION_NORMALITY }

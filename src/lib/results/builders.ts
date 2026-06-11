@@ -17,6 +17,8 @@ import { runDistributionNormality, type DistributionNormalityResult } from '../s
 import { buildDistributionNormality } from './buildDistributionNormality'
 import { runSummaryStatistics, type SummaryStatsResult } from '../stats/summaryStatistics'
 import { buildSummaryStatistics } from './buildSummaryStatistics'
+import { runFrequenciesCrosstabs, type FrequenciesResult } from '../stats/frequenciesCrosstabs'
+import { buildFrequenciesCrosstabs } from './buildFrequenciesCrosstabs'
 
 export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[] }
 export interface CardContent {
@@ -43,6 +45,7 @@ export const RUNNERS: Record<string, Runner> = {
   'distribution-normality': (engine, ds, setup) => runDistributionNormality(engine, ds, setup.roles['variable'][0]),
   'summary-statistics': (engine, ds, setup) =>
     runSummaryStatistics(engine, ds, setup.roles['variables'], setup.roles['groupBy'][0]),
+  'frequencies-crosstabs': (engine, ds, setup) => runFrequenciesCrosstabs(engine, ds, setup.roles['variables']),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -52,4 +55,5 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'wilcoxon-signed-rank': (spec, result) => buildWilcoxonSignedRank(spec, result as WilcoxonSignedRankResult),
   'distribution-normality': (spec, result) => buildDistributionNormality(spec, result as DistributionNormalityResult),
   'summary-statistics': (spec, result) => buildSummaryStatistics(spec, result as SummaryStatsResult),
+  'frequencies-crosstabs': (spec, result) => buildFrequenciesCrosstabs(spec, result as FrequenciesResult),
 }
