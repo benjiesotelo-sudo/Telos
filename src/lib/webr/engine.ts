@@ -26,15 +26,19 @@ export class Engine {
   private ready = false
   constructor() { this.webr = new WebR(BASE_URL ? { baseUrl: BASE_URL } : {}) }
 
-  /** Boot R, install ggplot2 (first run downloads from the WebR package repo — the browser caches it; Node re-downloads per instance). */
+  /** Boot R, install core-tests packages (first run downloads from the WebR package repo — the browser caches it; Node re-downloads per instance). */
   async init(onStatus?: (msg: string) => void): Promise<void> {
     if (this.ready) return
     onStatus?.('Loading R engine (first run downloads ~20 MB)…')
     await this.webr.init()
     await this.webr.evalRVoid(DETECTCORES_SHIM)
     await this.webr.evalRVoid(TELOS_JSON_HELPER)
-    onStatus?.('Loading ggplot2…')
-    await this.webr.installPackages(['ggplot2'], { quiet: true })
+    // Spike-verified under WebR 0.6.0 (R 4.6.0): ggplot2 + nortest + effectsize + psych + coin + janitor all
+    // install from the WebR repo. First visit pays the download (~80s Node-side total); the browser caches.
+    for (const pkg of ['ggplot2', 'nortest', 'effectsize', 'psych', 'coin', 'janitor']) {
+      onStatus?.(`Loading ${pkg}…`)
+      await this.webr.installPackages([pkg], { quiet: true })
+    }
     this.ready = true
   }
 
