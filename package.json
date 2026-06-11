@@ -8,7 +8,8 @@
     "build": "tsc -b && node scripts/copy-webr.mjs && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "e2e": "playwright install chromium && playwright test"
+    "e2e": "playwright install chromium && playwright test",
+    "postinstall": "node scripts/copy-webr.mjs"
   },
   "dependencies": {
     "fflate": "^0.8.3",
