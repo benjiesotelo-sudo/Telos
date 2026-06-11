@@ -35,7 +35,7 @@
 | `src/lib/registry/catalog.ts` | MODIFY: `SPECS` gains the 7 entries; their `status` flips to `'available'` |
 | `src/lib/eligibility/eligibility.ts` | MODIFY: arity ranges, per-kind `minRule` checks + reason strings, generalized candidate search |
 | `src/lib/stats/<seven>.ts` + `.test.ts` | NEW ×7: R module + typed result + cross-verified known-answer tests |
-| `src/lib/results/builders.ts` | NEW: `CardContent`/`BuiltTable`/`Builder`/`Runner` types + `RUNNERS`/`BUILDERS` maps |
+| `src/lib/results/builders.ts` | NEW: `CardContent`/`BuiltTable`/`Runner` types + `RUNNERS`/`BUILDERS` maps |
 | `src/lib/results/build<Eight>.ts` (+ tests) | NEW ×8: per-test builders (incl. the t-test's, extracted) |
 | `src/state/session.ts` | MODIFY: `TestSetup.roles` become `string[]` per role; `options` record; runAll walks `RUNNERS` |
 | `src/state/session.test.ts` | MODIFY: updated to the new setup shape + multi-slot gates |
@@ -51,9 +51,9 @@
 ```ts
 // src/lib/registry/types.ts — final state after Task 3
 export interface ColumnDef { key: string; label: string; sub?: string }
-export interface TableSpec { id: string; title: string; columns: ColumnDef[]; captionStyle?: 'bare' } // 'bare' renders "Table." (Summary, Distribution); default = numbered "Table N."
-export interface RoleSpec { id: string; label: string; levels: string; arity: string }                 // display strings, verbatim — UNCHANGED
-export interface OptionSpec { id: string; label: string; value: string; kind: 'display' | 'toggle' | 'number'; default?: boolean | number } // default only for interactive kinds
+export interface TableSpec { id: string; title: string; columns: ColumnDef[]; captionStyle?: 'bare'; domId?: string } // 'bare' renders "Table." (Summary, Distribution); default = numbered "Table N." · domId: DOM/capture id when the card-faithful id would collide on a combined results page (zip names keep id)
+export interface RoleSpec { id: string; label: string; levels: string; arity: string; hint?: string } // hint: drawn helper line under the slot (design §3 — Frequencies)
+export interface OptionSpec { id: string; label: string; value: string; kind: 'display' | 'toggle' | 'number'; default?: boolean | number; hint?: string } // default only for interactive kinds; hint: the card's set-it warning (design §3 — μ₀)
 export type Level = 'nominal' | 'ordinal' | 'interval' | 'ratio'
 export interface RoleConstraint { roleId: string; levels: Level[]; arity: { min: number; max: number }; categories?: { exact: number } } // max: Infinity allowed
 export type MinRule =
@@ -86,13 +86,12 @@ export interface BuiltTable { spec: TableSpec; rows: Record<string, string | num
 export interface CardContent {
   tables: BuiltTable[]
   note: { kind: 'assume' | 'plain'; text: string } | null
-  figures: { caption: string; png: Uint8Array }[]
+  figures: { caption: string; type: string; png: Uint8Array }[]
   howToRead: string
   apa: string
   nExcluded: number          // 0 = nothing to report
 }
 export type Runner = (engine: Engine, ds: Dataset, setup: TestSetup) => Promise<unknown>
-export type Builder = (spec: TestSpec, result: never) => CardContent  // each entry casts its own typed result
 export const RUNNERS: Record<string, Runner> = { /* filled per test task */ }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = { /* filled per test task */ }
 ```
@@ -204,6 +203,12 @@ and:
   },
 ```
 
+- [ ] **Step 2b: non-null-assert the three locked `spec.figure` accesses that predate the chassis** (the first two are interim — Task 4 deletes them; the consistency-test ones are permanent):
+  - `src/lib/registry/registry.consistency.test.ts` line 24 becomes: `expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(spec.figure!.caption)`
+  - `src/lib/registry/registry.consistency.test.ts` line 30 becomes: `expect([...spec.tables.map((t) => `table_${t.id}.png`), `figure_${spec.figure!.type}.png`]).toEqual(spec.bundleFiles)`
+  - `src/components/ResultPreviewCard.tsx`: `<p><b>Figure.</b> {spec.figure!.caption}</p>`
+  - `src/components/screens/ResultsScreen.tsx`: `if (formats.figures) files[`${folder}figure_${spec.figure!.type}.png`] = s.runs[id].result.figurePng`
+
 - [ ] **Step 3: `src/lib/eligibility/eligibility.ts`** — `slotCompatibility` and `completeRowsPerGroup` keep their exact bodies and reason strings. Add the helpers and generalize `testEligibility`:
 
 ```ts
@@ -269,7 +274,13 @@ and add one new test at the end of the back-edit describe:
     expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual([])
     expect(canEnter(useSession.getState(), 'results')).toBe(false)
   })
+  it('addRole enforces the arity maximum — a second column on an exactly-1 slot is refused', () => {
+    useSession.getState().addRole('independent-t-test', 'outcome', 'score')
+    useSession.getState().addRole('independent-t-test', 'outcome', 'group')
+    expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual(['score'])
+  })
 ```
+(session suite → 12/12; totals are indicative per ASSEMBLER NOTE 1.)
 
 - [ ] **Step 5: `src/state/session.ts`** — mechanical generalization (every other action, gate, and the revalidation flow unchanged):
 
@@ -344,6 +355,11 @@ In `Slot`, replace the single-assigned block with:
 ```
 In `DragSlots`: `const openRoles = spec.constraints.roles.filter((r) => (s.setups[testId]?.roles[r.roleId] ?? []).length < r.arity.max)`; `onDragEnd` adds via `s.addRole(testId, role.roleId, col.name)` when the target role is open and compatible (also skip if the chip is already in that slot). A chip is draggable when SOME open role accepts it (same `fits` computation, over `openRoles`).
 
+Also in `Slot`, directly under the existing `{display.label} <span className="hint">{display.levels} · {display.arity}</span>` line, render the optional helper line (design §3 — Frequencies' cross-tab hint):
+```tsx
+      {display.hint && <div className="hint" style={{ marginTop: 4 }}>{display.hint}</div>}
+```
+
 - [ ] **Step 7: `src/components/screens/TestConfigScreen.tsx`** — option strip renders by kind (replaces the hardcoded equal-variance block):
 
 ```tsx
@@ -366,7 +382,13 @@ In `DragSlots`: `const openRoles = spec.constraints.roles.filter((r) => (s.setup
         ))}
       </div>
 ```
-(`const eqOpt = …` and `fixedOptions` are deleted. The t-test renders pixel-equivalently: three display pills + the toggle with the same accessible name "equal variance (off · Welch)".)
+and immediately after that option-strip `</div>`, render the set-it warning for any option carrying a hint (design §3 — μ₀):
+```tsx
+      {spec.options.filter((o) => o.hint).map((o) => (
+        <p key={o.id} className="hint" style={{ marginTop: 6 }}>{o.hint}</p>
+      ))}
+```
+(`const eq = …` (line 11) and `const fixedOptions = …` (line 12) are deleted. The t-test renders pixel-equivalently: three display pills + the toggle with the same accessible name "equal variance (off · Welch)".)
 
 - [ ] **Step 8: Run everything** — `npx vitest run src/state/session.test.ts` → 11/11; full `npm test` → 54/54 (the new removeRole test is +1); `npx tsc -b` → 0; `npm run e2e` → 2/2 UNCHANGED (the t-test journey must not notice the refactor).
 
@@ -506,7 +528,7 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
       {content.tables.map((t, i) => (
         <div key={t.spec.id}>
           <p><b>{t.spec.captionStyle === 'bare' ? 'Table.' : `Table ${i + 1}.`}</b> {t.spec.title}</p>
-          <ApaTable id={`table-${t.spec.id}`} spec={t.spec} rows={t.rows} />
+          <ApaTable id={`table-${t.spec.domId ?? t.spec.id}`} spec={t.spec} rows={t.rows} />
         </div>
       ))}
       {content.note && <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>}
@@ -525,6 +547,42 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
 }
 ```
 (`alt` keeps the figure TYPE in the accessible name, so the e2e's `getByRole('img', { name: /boxplot/i })` still resolves.)
+
+- [ ] **Step 4b: Chassis render test (design §5)** — create `src/components/ResultPreviewCard.test.tsx`:
+
+```tsx
+import { describe, it, expect } from 'vitest'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { ResultPreviewCard } from './ResultPreviewCard'
+import type { CardContent } from '../lib/results/builders'
+
+const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
+const base: CardContent = {
+  tables: [{ spec: { id: 'one', title: 'Only table', columns: [{ key: 'a', label: 'A' }] }, rows: [{ a: '1' }] }],
+  note: null, figures: [], howToRead: 'How.', apa: 'APA.', nExcluded: 0,
+}
+const render = (content: CardContent) => renderToStaticMarkup(
+  <ResultPreviewCard index={1} name="Name" question="q?" content={content} stale={false} running={false} onRerun={() => {}} />)
+
+describe('chassis renders each card shape (design §5)', () => {
+  it('numbered caption by default, bare "Table." when captionStyle is bare', () => {
+    expect(render(base)).toContain('Table 1.')
+    const bare = { ...base, tables: [{ ...base.tables[0], spec: { ...base.tables[0].spec, captionStyle: 'bare' as const } }] }
+    expect(render(bare)).toContain('Table.')
+    expect(render(bare)).not.toContain('Table 1.')
+  })
+  it('note paragraph appears only when present; the exclusion line only when nExcluded > 0', () => {
+    expect(render(base)).not.toContain('rows excluded')
+    expect(render({ ...base, note: { kind: 'plain', text: 'note text' } })).toContain('note text')
+    expect(render({ ...base, nExcluded: 2 })).toContain('2 rows excluded (missing values)')
+  })
+  it('renders one Figure block per figure (two-figure shape)', () => {
+    const two = { ...base, figures: [{ caption: 'Shape', type: 'histogram', png }, { caption: 'Shape', type: 'qq', png }] }
+    expect(render(two).match(/<b>Figure\.<\/b>/g)).toHaveLength(2)
+  })
+})
+```
+(`renderToStaticMarkup` skips effects, so the blob-URL `useEffect` never runs — node env suffices; Task 4 Step 7's counts shift per ASSEMBLER NOTE 1.)
 
 - [ ] **Step 5: `src/components/screens/ResultsScreen.tsx`** — build content through the maps; export derives from BUILT content:
 
@@ -546,7 +604,7 @@ and `download()` becomes content-driven:
     for (const id of fresh) {
       const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
       const content = BUILDERS[id](spec, s.runs[id].result)
-      if (formats.tables) for (const t of content.tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.id}`)
+      if (formats.tables) for (const t of content.tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.domId ?? t.spec.id}`)
       if (formats.figures) for (const fig of content.figures) files[`${folder}figure_${fig.type}.png`] = fig.png
     }
     const names = Object.keys(files)
@@ -567,7 +625,7 @@ and `download()` becomes content-driven:
             const result = await runner(engine, ds, setup)
             ...unchanged success/error handling...
 ```
-(`runIndependentTTest` import is removed from session.ts. NOTE: builders.ts imports `TestSetup` from session.ts while session.ts imports `RUNNERS` from builders.ts — TYPE-only in one direction (builders imports only the type), so no runtime cycle: ES modules tolerate this and the spike validation must confirm `tsc`/vitest agree.)
+(`runIndependentTTest` import is removed from session.ts, and the stats type import shrinks to `import type { Dataset } from '../lib/stats/types'` — `TTestResult` is now unused (noUnusedLocals would fail). (session.test.ts keeps its own `TTestResult` import — still used by the `fakeRun` cast.) NOTE: builders.ts imports `TestSetup` from session.ts while session.ts imports `RUNNERS` from builders.ts — TYPE-only in one direction (builders imports only the type), so no runtime cycle: ES modules tolerate this and the spike validation must confirm `tsc`/vitest agree.)
 
 - [ ] **Step 7: Run everything** — `npx vitest run src/lib/results` → 4/4; full `npm test` → 58/58; `npx tsc -b` → 0; `npm run e2e` → 2/2 with IDENTICAL assertions (the chassis migration must be invisible).
 
@@ -669,7 +727,8 @@ export const ONE_SAMPLE_T_TEST: TestSpec = {
   ],
   options: [
     // μ₀ is interactive this slice (design ruling): typed scalar, drawn default 0 — feeds Table 2's 'Test value' cell and the figure's reference line.
-    { id: 'mu0', label: 'test value (μ₀)', value: '0', kind: 'number', default: 0 },
+    { id: 'mu0', label: 'test value (μ₀)', value: '0', kind: 'number', default: 0,
+      hint: 'The test value defaults to 0, so be sure to set it to the figure that actually matters for your question.' },
     { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
     { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
     { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
@@ -681,9 +740,9 @@ export const ONE_SAMPLE_T_TEST: TestSpec = {
     minRule: { kind: 'values', n: 3 }, // design §4: N ≥ 3 single column (Shapiro lower bound)
   },
   tables: [
-    { id: 'descriptives', title: 'Descriptives',
+    { id: 'descriptives', domId: 'one-sample-descriptives', title: 'Descriptives', // domId: '#table-descriptives' would collide with Summary statistics on a combined page
       columns: [{ key: 'variable', label: 'Variable' }, { key: 'n', label: 'N' }, { key: 'mean', label: 'M' }, { key: 'sd', label: 'SD' }, { key: 'se', label: 'SE' }] },
-    { id: 't-test', title: 'One-sample t-test',
+    { id: 't-test', domId: 'one-sample-t-test', title: 'One-sample t-test', // domId: '#table-t-test' would collide with the independent/paired Table 2 on a combined page; the zip keeps table_t-test.png
       columns: [{ key: 'mu0', label: 'Test value' }, { key: 't', label: 't' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: 'd' }] },
   ],
   tableNote: { kind: 'assume', text: 'assumption check: normality (Shapiro-Wilk) reported under the descriptives.' },
@@ -1029,7 +1088,7 @@ export const PAIRED_T_TEST: TestSpec = {
   tables: [
     { id: 'paired-descriptives', title: 'Paired descriptives',
       columns: [{ key: 'condition', label: 'Condition' }, { key: 'n', label: 'N' }, { key: 'mean', label: 'M' }, { key: 'sd', label: 'SD' }] },
-    { id: 't-test', title: 'Paired-samples t-test',
+    { id: 't-test', domId: 'paired-t-test', title: 'Paired-samples t-test', // domId: '#table-t-test' would collide with the independent/one-sample Table 2 on a combined page; the zip keeps table_t-test.png
       columns: [{ key: 'pair', label: 'Pair' }, { key: 't', label: 't' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' },
         { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: 'd', sub: 'z' }] },
   ],
@@ -1707,7 +1766,7 @@ export const WILCOXON_SIGNED_RANK: TestSpec = {
     minRule: { kind: 'complete-pairs', n: 3 }, // design ruling: ≥3 complete pairs (Paired, Wilcoxon)
   },
   tables: [
-    { id: 'rank-summary', title: 'Rank summary',
+    { id: 'rank-summary', domId: 'wilcoxon-rank-summary', title: 'Rank summary', // domId: '#table-rank-summary' would collide with Mann-Whitney on a combined page
       columns: [{ key: 'sign', label: 'Sign' }, { key: 'n', label: 'N' }, { key: 'meanRank', label: 'Mean rank' }, { key: 'sumRanks', label: 'Sum of ranks' }] },
     { id: 'signed-rank', title: 'Signed-rank test',
       columns: [{ key: 'v', label: 'V / W' }, { key: 'z', label: 'Z' }, { key: 'p', label: 'p' }, { key: 'r', label: 'r' }] },
@@ -2421,10 +2480,10 @@ Run `npx vitest run src/lib/registry/summaryStatistics.consistency.test.ts` → 
 ```bash
 # mutation 1: in summaryStatistics.ts change title 'Descriptive statistics' → 'Descriptive Statistics'
 npx vitest run src/lib/registry/summaryStatistics.consistency.test.ts   # MUST FAIL (caption equality)
-git checkout -- src/lib/registry/summaryStatistics.ts
+# revert mutation 1: change the title back to 'Descriptive statistics' (the file is uncommitted until Step 10 — git checkout cannot restore it)
 # mutation 2: in bundleFiles[1] delete the trailing ' (optional)'
 npx vitest run src/lib/registry/summaryStatistics.consistency.test.ts   # MUST FAIL (bundle line + derivation)
-git checkout -- src/lib/registry/summaryStatistics.ts
+# revert mutation 2: restore the trailing ' (optional)'
 npx vitest run src/lib/registry/summaryStatistics.consistency.test.ts   # PASS again, 7/7
 ```
 
@@ -2660,6 +2719,18 @@ and add `[SUMMARY_STATISTICS.id]: SUMMARY_STATISTICS,` inside `SPECS`.
 
 In `src/lib/registry/catalog.consistency.test.ts`: ADD `'summary-statistics'` to the expected available-ids array. The assertion maps over CATALOG (tree) order — `summary-statistics` is the catalog's FIRST entry, so insert it at the HEAD of the array, before whatever ids earlier tasks have already added (tasks execute in order; this array grows cumulatively, one id per per-test task). If this is the first per-test task to land, also reword the it() title from `'exactly one test is available in this slice: the independent t-test'` to `'the available tests of this slice, in tree order'`.
 
+- [ ] **Step 8b: Arity-gate unit tests (design §3: minimums gate; optional slots never block)** — extend `src/state/session.test.ts`'s import line with `gateOk` and append:
+```ts
+describe('arity gates (design §3: minimums gate; optional slots never block)', () => {
+  beforeEach(() => { useSession.getState().reset(); load(); useSession.getState().visitGuide(); useSession.getState().toggleSelection('summary-statistics') })
+  it('{1,∞} gates on its minimum; the empty {0,1} Group-by never blocks', () => {
+    expect(gateOk(useSession.getState(), 'test:summary-statistics')).toBe(false)
+    useSession.getState().addRole('summary-statistics', 'variables', 'score')
+    expect(gateOk(useSession.getState(), 'test:summary-statistics')).toBe(true)
+  })
+})
+```
+
 - [ ] **Step 9: Verify** — `npx vitest run src/lib/registry/summaryStatistics.consistency.test.ts src/lib/stats/summaryStatistics.test.ts src/lib/results/buildSummaryStatistics.test.ts` → 12/12; full `npm test` green (count = whatever the previously landed tasks left + 12); `npx tsc -b` → 0.
 
 - [ ] **Step 10: Commit**
@@ -2667,7 +2738,8 @@ In `src/lib/registry/catalog.consistency.test.ts`: ADD `'summary-statistics'` to
 git add src/lib/registry/summaryStatistics.ts src/lib/registry/summaryStatistics.consistency.test.ts \
   src/lib/registry/catalog.ts src/lib/registry/catalog.consistency.test.ts \
   src/lib/stats/summaryStatistics.ts src/lib/stats/summaryStatistics.test.ts \
-  src/lib/results/buildSummaryStatistics.ts src/lib/results/buildSummaryStatistics.test.ts src/lib/results/builders.ts
+  src/lib/results/buildSummaryStatistics.ts src/lib/results/buildSummaryStatistics.test.ts src/lib/results/builders.ts \
+  src/state/session.test.ts
 git commit -m "feat: summary-statistics — registry, stats, builder (card-faithful)"
 ```
 
@@ -2675,7 +2747,7 @@ git commit -m "feat: summary-statistics — registry, stats, builder (card-faith
 
 **Files:** Create `src/lib/registry/frequenciesCrosstabs.ts`, `src/lib/registry/frequenciesCrosstabs.consistency.test.ts`, `src/lib/stats/frequenciesCrosstabs.ts`, `src/lib/stats/frequenciesCrosstabs.test.ts`, `src/lib/results/buildFrequenciesCrosstabs.ts`, `src/lib/results/buildFrequenciesCrosstabs.test.ts`; modify `src/lib/results/builders.ts`, `src/lib/registry/catalog.ts`, `src/lib/registry/catalog.consistency.test.ts`
 
-One role `Variable(s)` (nominal/ordinal, arity 1–2). One variable → Table 1 (frequency distribution); two → Table 2 (cross-tab) — the table TITLES say "(one variable)"/"(two variables)", so exactly ONE table is built per run, and the export bundle includes only the produced table per the ui-spec's conditional-file rule. **Conventions (recorded decisions):** the stats module emits percentages already ×100; the builder renders them at 1 dp (`16.7`) — % sign lives in the column header for Table 1 and inside the cell for cross-tab cells; interior cross-tab cells are `n (row% / col%)` per the card note; Total row/col cells show the plain count (their own row%/col% are 100% by construction); the plain table note renders only on the cross-tab branch (its text describes the cross-tab); the figure slot is type `bar` on BOTH branches (the bundle lists only `figure_bar.png`; the 2-var run draws the grouped bar per the card's "(grouped bar for a cross-tab)"). **The ONE sanctioned spec-vs-built divergence in this plan:** the registry's crosstab columns are the card's drawn placeholders (`Row \ Column · Col 1 · Col 2 · … · Total`); the builder REPLACES them at build time with one column per category of the SECOND variable plus Total — justified by the card note "cross-tab columns expand to the number of categories in the column variable". **APA template (exemplar card line "Frequencies (and cross-tabulations) are reported in Table X."):** `'Frequencies (and cross-tabulations) are reported in Table {n}.'`; the builder fills `{n}` with `'1'` (exactly one table is built per run, and the chassis numbers built tables from 1).
+One role `Variable(s)` (nominal/ordinal, arity 1–2). One variable → Table 1 (frequency distribution); two → Table 2 (cross-tab) — the table TITLES say "(one variable)"/"(two variables)", so exactly ONE table is built per run, and the export bundle includes only the produced table per the ui-spec's conditional-file rule. **Conventions (recorded decisions):** the stats module emits percentages already ×100; the builder renders them at 1 dp (`16.7`) — % sign lives in the column header for Table 1 and inside the cell for cross-tab cells; interior cross-tab cells are `n (row% / col%)` per the card note; Total row/col cells show the plain count (their own row%/col% are 100% by construction); the plain table note renders only on the cross-tab branch (its text describes the cross-tab); the figure slot is type `bar` on BOTH branches (the bundle lists only `figure_bar.png`; the 2-var run draws the grouped bar per the card's "(grouped bar for a cross-tab)"). **The one sanctioned spec-vs-built TABLE divergence in this plan (Task 10's per-variable histogram captions/filenames are the recorded FIGURE counterpart):** the registry's crosstab columns are the card's drawn placeholders (`Row \ Column · Col 1 · Col 2 · … · Total`); the builder REPLACES them at build time with one column per category of the SECOND variable plus Total — justified by the card note "cross-tab columns expand to the number of categories in the column variable". **APA template (exemplar card line "Frequencies (and cross-tabulations) are reported in Table X."):** `'Frequencies (and cross-tabulations) are reported in Table {n}.'`; the builder fills `{n}` with `'1'` (exactly one table is built per run, and the chassis numbers built tables from 1).
 
 - [ ] **Step 1: Failing consistency test** — `src/lib/registry/frequenciesCrosstabs.consistency.test.ts` (card-scoped to THIS card in both files; end anchors searched AFTER the start so a stray earlier mention can never mis-scope; theads go through `strip` because this card's `…` column is the `&hellip;` entity — no sub/sup columns here):
 
@@ -2752,7 +2824,8 @@ export const FREQUENCIES_CROSSTABS: TestSpec = {
   name: 'Frequencies & cross-tabs',
   question: 'counts for categorical data',
   roles: [
-    { id: 'variables', label: 'Variable(s)', levels: 'nominal / ordinal', arity: '1 to 2' },
+    { id: 'variables', label: 'Variable(s)', levels: 'nominal / ordinal', arity: '1 to 2',
+      hint: 'Drag one category column into Variable(s) for a simple frequency table, or drag a second category column to build a cross-tab that counts the combinations of the two.' },
   ],
   options: [ // both pills informational — interactive options this slice are ONLY One-sample μ₀ + the MW/Wilcoxon continuity toggle (Benjie's ruling)
     { id: 'countsPercentages', label: 'counts / percentages', value: 'counts', kind: 'display' },
@@ -3082,8 +3155,22 @@ pre,post
 
 ```ts
 async function configureStep(page: Page, stepName: RegExp, drags: [string, string][]) {
-  await page.getByRole('button', { name: stepName }).click()
-  for (const [chip, role] of drags) await dragChip(page, chip, role)
+  // dnd-kit suppresses the first document click after a drag — click until the step screen actually swaps
+  await expect(async () => {
+    await page.getByRole('button', { name: stepName }).click()
+    await expect(page.locator('.eyebrow').first()).toHaveText(stepName, { timeout: 1000 })
+  }).toPass()
+  for (const [chip, role] of drags) {
+    await dragChip(page, chip, role)
+    await expect(page.locator(`[data-role="${role}"] .chip.assigned`)).toContainText(chip) // the drop commits async (dnd-kit) — anchor before the next click
+  }
+}
+
+async function runAnalysis(page: Page) {
+  await expect(async () => { // same post-drag click suppression guard for the run button
+    await page.getByRole('button', { name: 'Run analysis' }).click()
+    await expect(page.getByRole('heading', { name: 'Results' })).toBeVisible({ timeout: 1000 })
+  }).toPass()
 }
 
 test('multi-test journey A: five tests, one dataset → combined results + 13-file zip', async ({ page }) => {
@@ -3099,14 +3186,16 @@ test('multi-test journey A: five tests, one dataset → combined results + 13-fi
 
   // tick order = tree order → steps/result order 01..05
   await dragChip(page, 'score', 'variables')                                   // 01 Summary (Group by left empty — optional)
+  await expect(page.locator('[data-role="variables"] .chip.assigned')).toContainText('score')
   await configureStep(page, /Frequencies/, [['group', 'variables']])           // 02 Frequencies (1 variable → frequency table)
   await configureStep(page, /Distribution/, [['score', 'variable']])           // 03 Distribution & normality
   await configureStep(page, /Independent t-test|t-test/, [['score', 'outcome'], ['group', 'group']]) // 04
   await configureStep(page, /Mann-Whitney/, [['score', 'outcome'], ['group', 'group']])              // 05
-  await page.getByRole('button', { name: 'Run analysis' }).click()
+  await runAnalysis(page)
 
   // 01 · Summary statistics — psych type-3 values (bare "Table." caption)
   await expect(page.getByText('01 · Summary statistics')).toBeVisible({ timeout: 300_000 })
+  await expect(page.getByRole('button', { name: 'Download' })).toBeEnabled({ timeout: 300_000 }) // the 01 · eyebrow shows on the running placeholder too — Download enables only when ALL runs land
   const t01 = page.locator('#table-descriptives')
   await expect(t01).toContainText('76.33'); await expect(t01).toContainText('7.09')
   await expect(t01).toContainText('76.50'); await expect(t01).toContainText('0.11'); await expect(t01).toContainText('−1.49')
@@ -3166,20 +3255,22 @@ test('multi-test journey B: paired fixture → one-sample (typed μ₀), paired 
 
   // 01 One-sample: outcome ← post, μ₀ typed as 70 (the kind:'number' option control)
   await dragChip(page, 'post', 'outcome')
+  await expect(page.locator('[data-role="outcome"] .chip.assigned')).toContainText('post')
   await page.getByLabel('test value (μ₀)').fill('70')
   await configureStep(page, /Paired t-test/, [['pre', 'conditionA'], ['post', 'conditionB']])
   await configureStep(page, /Wilcoxon/, [['pre', 'conditionA'], ['post', 'conditionB']])
-  await page.getByRole('button', { name: 'Run analysis' }).click()
+  await runAnalysis(page)
 
   // 01 · One-sample — difference CI (mean CI − μ₀), spike-verified
   await expect(page.getByText('01 · One-sample t-test')).toBeVisible({ timeout: 300_000 })
-  const o = page.locator('#table-t-test').first()
+  await expect(page.getByRole('button', { name: 'Download' })).toBeEnabled({ timeout: 300_000 }) // the 01 · eyebrow shows on the running placeholder too — Download enables only when ALL runs land
+  const o = page.locator('#table-one-sample-t-test')
   await expect(o).toContainText('70')      // Test value cell = the typed μ₀
   await expect(o).toContainText('8.00'); await expect(o).toContainText('[8.37, 16.30]'); await expect(o).toContainText('3.27')
   await expect(page.getByText('A one-sample t-test showed M=82.3 differed from 70, t(5)=8.00, p<.001, d=3.27.')).toBeVisible()
   // 02 · Paired t — d_z and the A−B difference CI
   await expect(page.getByText('A paired-samples t-test showed a change of M=−12.0, t(5)=−10.39, p<.001, dz=−4.24.')).toBeVisible()
-  const pt = page.locator('#table-t-test').nth(1)
+  const pt = page.locator('#table-paired-t-test')
   await expect(pt).toContainText('−10.39'); await expect(pt).toContainText('[−14.97, −9.03]'); await expect(pt).toContainText('−4.24')
   // 03 · Wilcoxon — exact p with the asymptotic Z (card-specified mix)
   await expect(page.getByText('A Wilcoxon signed-rank test showed a change, Z=−2.20, p=.031, r=−1.00.')).toBeVisible()
@@ -3189,7 +3280,7 @@ test('multi-test journey B: paired fixture → one-sample (typed μ₀), paired 
 ```
 ⚠ Both new-test Table-2 specs reuse the id `t-test` in their cards (`table_t-test.png` in both bundles) — if Tasks 5/6 disambiguated the DOM ids (they must, since `#table-t-test` would collide across cards on one page), align journey B's locators to the registry ids and report. **This collision is a real cross-task seam: the validation replay MUST confirm the one-sample and paired Table-2 DOM ids are unique on a combined page, and that their zip filenames (scoped inside different `NN_` folders) keep the card-faithful `table_t-test.png` name.**
 
-- [ ] **Step 4: Run** — `npm run e2e` → 4/4 (the two pre-existing tests byte-untouched and green; the two journeys green). `npm test` still all green.
+- [ ] **Step 4: Run** — `npm run e2e` → 4/4 (the two pre-existing tests byte-untouched and green; the two journeys green). `npm test` still all green. NOTE: if port 4173 is busy — e.g. a leftover preview — kill it or use an alternate-port config; the committed playwright.config.ts stays untouched.
 
 - [ ] **Step 5: Commit**
 ```bash
@@ -3202,7 +3293,7 @@ git add tests/e2e && git commit -m "feat: multi-test e2e journeys (five-test com
 
 **Files:** Modify `README.md`
 
-- [ ] **Step 1: README** — update the flow paragraph: "8 of the 46 tests run live (descriptives, frequencies, normality, the t-test family, Mann-Whitney, Wilcoxon); the rest remain greyed with honest reasons." Update the unit-test count to the real total; note the engine now preloads six R packages on first visit (cached afterwards).
+- [ ] **Step 1: README** — update the flow paragraph: "8 of the 46 tests run live (descriptives, frequencies, normality, the t-test family, Mann-Whitney, Wilcoxon); the rest remain greyed with honest reasons." Update the unit-test count to the real total (35 vitest files / 161 tests); note the engine now preloads six R packages on first visit (cached afterwards).
 
 - [ ] **Step 2: Full gates** — `npx tsc -b` → 0 · `npm test` → ALL green · `npm run build` → green · `npm run e2e` → 4/4.
 
