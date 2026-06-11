@@ -176,8 +176,8 @@ test('multi-test journey A: five tests, one dataset → combined results + 13-fi
     '01_summary-statistics/table_descriptives.png',
     '02_frequencies-crosstabs/figure_bar.png',
     '02_frequencies-crosstabs/table_frequencies.png',
-    '03_distribution-normality/figure_histogram.png',
-    '03_distribution-normality/figure_qq.png',
+    '03_distribution-normality/figure_histogram_score.png',
+    '03_distribution-normality/figure_qq_score.png',
     '03_distribution-normality/table_normality.png',
     '04_independent-t-test/figure_boxplot.png',
     '04_independent-t-test/table_group-statistics.png',
@@ -185,6 +185,43 @@ test('multi-test journey A: five tests, one dataset → combined results + 13-fi
     '05_mann-whitney-u/figure_boxplot.png',
     '05_mann-whitney-u/table_mann-whitney.png',
     '05_mann-whitney-u/table_rank-summary.png',
+  ])
+})
+
+test('multi-variable normality: two variables → per-variable rows, figures, zip names', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Get started' }).click()
+  await page.setInputFiles('input[type=file]', 'tests/e2e/fixtures/students.csv')
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByRole('button', { name: 'Confirm & pick test' }).click()
+  await page.getByRole('checkbox', { name: 'Distribution & normality' }).check()
+  await page.getByRole('button', { name: 'Confirm selection' }).click()
+
+  await dragChip(page, 'score', 'variable')
+  await expect(page.locator('[data-role="variable"] .chip.assigned')).toContainText('score')
+  await dragChip(page, 'anxiety', 'variable')
+  await expect(page.locator('[data-role="variable"] .chip.assigned').nth(1)).toBeVisible()
+  await runAnalysis(page)
+  await expect(page.getByRole('button', { name: 'Download' })).toBeEnabled({ timeout: 300_000 })
+
+  // native-R verified (2026-06-12): score n=14 W=0.957345 p=.679237 · anxiety n=13 W=0.982822 p=.990406, D=0.087857
+  const t = page.locator('#table-normality')
+  await expect(t).toContainText('score'); await expect(t).toContainText('anxiety')
+  await expect(t).toContainText('W 0.96'); await expect(t).toContainText('.679')
+  await expect(t).toContainText('W 0.98'); await expect(t).toContainText('.990')
+  await expect(t).toContainText('D 0.09')
+  await expect(page.getByRole('img', { name: /qq_anxiety/ })).toBeVisible()
+  await expect(page.getByText(/anxiety: Normality was assessed/)).toBeVisible()
+
+  await page.getByRole('checkbox', { name: /Table images/ }).check()
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download' }).click()])
+  const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!))))
+  expect(entries.sort()).toEqual([
+    '01_distribution-normality/figure_histogram_anxiety.png',
+    '01_distribution-normality/figure_histogram_score.png',
+    '01_distribution-normality/figure_qq_anxiety.png',
+    '01_distribution-normality/figure_qq_score.png',
+    '01_distribution-normality/table_normality.png',
   ])
 })
 

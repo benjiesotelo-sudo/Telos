@@ -26,19 +26,25 @@ print(ggplot2::ggplot(data.frame(x = x), ggplot2::aes(sample = x)) +
   ggplot2::labs(x = NULL, y = NULL))`
 
 interface RawStats { n: number; shapiro: { W: number | null; p: number | null }; ks: { D: number | null; p: number | null } }
-export interface DistributionNormalityResult extends RawStats {
+export interface VariableNormality extends RawStats {
+  variable: string
   nExcluded: number
   histogramPng: Uint8Array<ArrayBuffer>
   qqPng: Uint8Array<ArrayBuffer>
 }
+export interface DistributionNormalityResult { variables: VariableNormality[] }
 
-export async function runDistributionNormality(engine: Engine, data: Dataset, variable: string): Promise<DistributionNormalityResult> {
-  // Single-column drop (the card's missing-data unit under the global R2 policy): keep numeric-finite values only.
-  const values = data.rows.map((r) => r[variable]).filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
-  const nExcluded = data.rows.length - values.length
-  const env = { x: values }
-  const s = await engine.runJson<RawStats>(R_STATS, env)
-  const histogramPng = await engine.capturePlot(R_HISTOGRAM, 600, 450, env)
-  const qqPng = await engine.capturePlot(R_QQ, 600, 450, env)
-  return { ...s, nExcluded, histogramPng, qqPng }
+export async function runDistributionNormality(engine: Engine, data: Dataset, variables: string[]): Promise<DistributionNormalityResult> {
+  const out: VariableNormality[] = []
+  for (const variable of variables) {
+    // Single-column drop per variable (the card's missing-data unit under the global R2 policy): keep numeric-finite values only.
+    const values = data.rows.map((r) => r[variable]).filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+    const nExcluded = data.rows.length - values.length
+    const env = { x: values }
+    const s = await engine.runJson<RawStats>(R_STATS, env)
+    const histogramPng = await engine.capturePlot(R_HISTOGRAM, 600, 450, env)
+    const qqPng = await engine.capturePlot(R_QQ, 600, 450, env)
+    out.push({ variable, ...s, nExcluded, histogramPng, qqPng })
+  }
+  return { variables: out }
 }

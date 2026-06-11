@@ -20,9 +20,10 @@ describe('distribution-normality registry stays faithful to the spec HTML (verba
     expect(caps).toEqual(spec.tables.map((t) => t.title))
     expect(spec.tables[0].captionStyle).toBe('bare')
   })
-  it('ghost row labels pin the builder strings — the K–S row label carries the en-dash', () => {
+  it('ghost rows pin the builder strings — variable example first, then the test label with its en-dash', () => {
     const ghost = card.match(/<tbody class="ghost">(.*?)<\/tbody>/s)![1]
-    expect([...ghost.matchAll(/<tr><td>(.*?)<\/td>/g)].map((m) => decode(m[1]))).toEqual(['Shapiro-Wilk', 'K–S (Lilliefors)'])
+    expect([...ghost.matchAll(/<tr><td>(.*?)<\/td><td>(.*?)<\/td>/g)].map((m) => [decode(m[1]), decode(m[2])]))
+      .toEqual([['post_score', 'Shapiro-Wilk'], ['post_score', 'K–S (Lilliefors)']])
   })
   it('question, plain table note, how-to-read and R map match verbatim; no assume note', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/s)![1])).toBe(spec.question)
@@ -32,9 +33,9 @@ describe('distribution-normality registry stays faithful to the spec HTML (verba
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)
     expect(strip(card.match(/<b>R map:<\/b>(.*?)<\/div>/s)![1])).toBe(spec.rMap)
   })
-  it('one drawn figbox ("histogram + Q–Q plot") ↔ two FigureSpecs sharing the caption, neither optional', () => {
+  it('one drawn figbox ("histogram + Q–Q plot per variable") ↔ two FigureSpecs sharing the caption, neither optional', () => {
     expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe('Distribution shape')
-    expect(strip(card.match(/<div class="ftype">(.*?)<\/div>/s)![1])).toBe('type: histogram + Q–Q plot')
+    expect(strip(card.match(/<div class="ftype">(.*?)<\/div>/s)![1])).toBe('type: histogram + Q–Q plot per variable')
     expect(figuresOf(spec)).toEqual([{ caption: 'Distribution shape', type: 'histogram' }, { caption: 'Distribution shape', type: 'qq' }])
   })
   it('the APA template re-yields the card exemplar when placeholders become __', () => {
@@ -48,7 +49,7 @@ describe('distribution-normality registry stays faithful to the spec HTML (verba
   it('role equals the inputs card slot label + constraint line; machine constraints mirror it', () => {
     expect([...inCard.matchAll(/<div class="sl-label">(.*?)<\/div>/g)].map((m) => strip(m[1]))).toEqual(spec.roles.map((r) => r.label))
     expect([...inCard.matchAll(/<div class="sl-cons">(.*?)<\/div>/g)].map((m) => strip(m[1]))).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
-    expect(spec.constraints).toEqual({ roles: [{ roleId: 'variable', levels: ['interval', 'ratio'], arity: { min: 1, max: 1 } }], minRule: { kind: 'values', n: 3 } })
+    expect(spec.constraints).toEqual({ roles: [{ roleId: 'variable', levels: ['interval', 'ratio'], arity: { min: 1, max: Infinity } }], minRule: { kind: 'values', n: 3 } })
   })
   it('options equal the inputs card option strip — both display-only pills', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]

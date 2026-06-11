@@ -10,38 +10,66 @@ const data: Dataset = { columns: ['score'], rows: [
   { score: null }, { score: 'n/a' }, // single-column drop: both rows EXCLUDED, never coerced to 0
 ] }
 
+// anxiety known answers recomputed in native R 4.6.0 (2026-06-12): shapiro W=0.985295280 p=0.988459795 ·
+// lillie D=0.079371235 p=1.000000000 (Lilliefors p is capped at 1)
+const anxiety = [35, 42, 29, 38, 45, 33, 27, 22, 25, 31, 36]
+const twoVar: Dataset = { columns: ['score', 'anxiety'], rows: scores.map((score, i) => ({
+  score, anxiety: i < anxiety.length ? anxiety[i] : null, // last row's anxiety missing → per-variable N
+})) }
+
 describe('runDistributionNormality', () => {
   const engine = new Engine()
   beforeAll(async () => { await engine.init() })
   afterAll(async () => { await engine.close() })
 
   it('long12 known answers: Shapiro W/p + Lilliefors D/p, single-column drop, both PNGs', async () => {
-    const r = await runDistributionNormality(engine, data, 'score')
-    expect(r.nExcluded).toBe(2)
-    expect(r.n).toBe(12)
-    expect(r.shapiro.W).toBeCloseTo(0.9633, 3)   // 0.963261809
-    expect(r.shapiro.p).toBeCloseTo(0.8292, 3)   // 0.829180865
-    expect(r.ks.D).toBeCloseTo(0.1462, 3)        // 0.146181269
-    expect(r.ks.p).toBeCloseTo(0.6814, 3)        // 0.681426721
-    expect(Array.from(r.histogramPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
-    expect(Array.from(r.qqPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+    const r = await runDistributionNormality(engine, data, ['score'])
+    expect(r.variables).toHaveLength(1)
+    const v = r.variables[0]
+    expect(v.variable).toBe('score')
+    expect(v.nExcluded).toBe(2)
+    expect(v.n).toBe(12)
+    expect(v.shapiro.W).toBeCloseTo(0.9633, 3)   // 0.963261809
+    expect(v.shapiro.p).toBeCloseTo(0.8292, 3)   // 0.829180865
+    expect(v.ks.D).toBeCloseTo(0.1462, 3)        // 0.146181269
+    expect(v.ks.p).toBeCloseTo(0.6814, 3)        // 0.681426721
+    expect(Array.from(v.histogramPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+    expect(Array.from(v.qqPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+  })
+
+  it('two variables: per-variable known answers, per-variable N and exclusions, four PNGs', async () => {
+    const r = await runDistributionNormality(engine, twoVar, ['score', 'anxiety'])
+    expect(r.variables.map((v) => v.variable)).toEqual(['score', 'anxiety'])
+    const [s, a] = r.variables
+    expect(s.n).toBe(12); expect(s.nExcluded).toBe(0)
+    expect(s.shapiro.W).toBeCloseTo(0.9633, 3)
+    expect(a.n).toBe(11); expect(a.nExcluded).toBe(1)   // the null row drops for anxiety only
+    expect(a.shapiro.W).toBeCloseTo(0.9853, 3)           // 0.985295280
+    expect(a.shapiro.p).toBeCloseTo(0.9885, 3)           // 0.988459795
+    expect(a.ks.D).toBeCloseTo(0.0794, 3)                // 0.079371235
+    expect(a.ks.p).toBeCloseTo(1.0, 3)                   // capped at 1
+    for (const v of r.variables) {
+      expect(Array.from(v.histogramPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+      expect(Array.from(v.qqPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+    }
   })
 
   it('N above 5000 → Shapiro nulls (outside 3–5000), K–S still reports (structural — no unverified numbers)', async () => {
     const big: Dataset = { columns: ['x'], rows: Array.from({ length: 5001 }, (_, i) => ({ x: ((i * 37) % 1000) + i / 5001 })) }
-    const r = await runDistributionNormality(engine, big, 'x')
-    expect(r.n).toBe(5001)
-    expect(r.shapiro).toEqual({ W: null, p: null })
-    expect(r.ks.D).toBeGreaterThan(0)
-    expect(r.ks.p).toBeGreaterThanOrEqual(0)
-    expect(r.ks.p).toBeLessThanOrEqual(1)
-    expect(Array.from(r.histogramPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
-    expect(Array.from(r.qqPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+    const r = await runDistributionNormality(engine, big, ['x'])
+    const v = r.variables[0]
+    expect(v.n).toBe(5001)
+    expect(v.shapiro).toEqual({ W: null, p: null })
+    expect(v.ks.D).toBeGreaterThan(0)
+    expect(v.ks.p).toBeGreaterThanOrEqual(0)
+    expect(v.ks.p).toBeLessThanOrEqual(1)
+    expect(Array.from(v.histogramPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+    expect(Array.from(v.qqPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
 
   it('N = 4 (minRule admits 3): Shapiro runs, Lilliefors guarded null below its n = 5 floor (structural)', async () => {
-    const r = await runDistributionNormality(engine, { columns: ['x'], rows: [66, 72, 79, 88].map((x) => ({ x })) }, 'x')
-    expect(r.shapiro.W).not.toBeNull()
-    expect(r.ks).toEqual({ D: null, p: null })
+    const r = await runDistributionNormality(engine, { columns: ['x'], rows: [66, 72, 79, 88].map((x) => ({ x })) }, ['x'])
+    expect(r.variables[0].shapiro.W).not.toBeNull()
+    expect(r.variables[0].ks).toEqual({ D: null, p: null })
   })
 })

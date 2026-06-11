@@ -1,24 +1,33 @@
 import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
-import type { DistributionNormalityResult } from '../stats/distributionNormality'
+import type { DistributionNormalityResult, VariableNormality } from '../stats/distributionNormality'
 import type { CardContent } from './builders'
 import { f, fp, fx } from '../format/apa'
 
 export function buildDistributionNormality(spec: TestSpec, r: DistributionNormalityResult): CardContent {
-  const row = (test: string, letter: 'W' | 'D', stat: number | null, p: number | null) =>
-    ({ test, statistic: `${letter} ${fx(stat, f)}`, n: stat == null ? '—' : r.n, p: fx(p, fp) })
-  const note = r.shapiro.W == null
-    ? `${spec.tableNote!.text} Shapiro-Wilk not computed: N = ${r.n} is outside that range.`
+  const row = (v: VariableNormality, test: string, letter: 'W' | 'D', stat: number | null, p: number | null) =>
+    ({ variable: v.variable, test, statistic: `${letter} ${fx(stat, f)}`, n: stat == null ? '—' : v.n, p: fx(p, fp) })
+  const skipped = r.variables.filter((v) => v.shapiro.W == null)
+  const note = skipped.length
+    ? `${spec.tableNote!.text} ${skipped.map((v) => `Shapiro-Wilk not computed for ${v.variable}: N = ${v.n} is outside that range.`).join(' ')}`
     : spec.tableNote!.text
-  const apa = spec.apaTemplate
-    .replace('{w}', fx(r.shapiro.W, f))
-    .replace('p = {p}', r.shapiro.p != null && r.shapiro.p < 0.001 ? 'p < .001' : `p = ${fx(r.shapiro.p, fp)}`)
+  const sentence = (v: VariableNormality) => spec.apaTemplate
+    .replace('{w}', fx(v.shapiro.W, f))
+    .replace('p = {p}', v.shapiro.p != null && v.shapiro.p < 0.001 ? 'p < .001' : `p = ${fx(v.shapiro.p, fp)}`)
+  const [histSpec, qqSpec] = figuresOf(spec)
   return {
-    tables: [{ spec: spec.tables[0], rows: [row('Shapiro-Wilk', 'W', r.shapiro.W, r.shapiro.p), row('K–S (Lilliefors)', 'D', r.ks.D, r.ks.p)] }],
+    tables: [{ spec: spec.tables[0], rows: r.variables.flatMap((v) => [
+      row(v, 'Shapiro-Wilk', 'W', v.shapiro.W, v.shapiro.p),
+      row(v, 'K–S (Lilliefors)', 'D', v.ks.D, v.ks.p),
+    ]) }],
     note: { kind: spec.tableNote!.kind, text: note },
-    figures: figuresOf(spec).map((g, i) => ({ caption: g.caption, type: g.type, png: i === 0 ? r.histogramPng : r.qqPng })),
+    // per-variable caption/type so export names never collide across variables (the summary-statistics pattern)
+    figures: r.variables.flatMap((v) => [
+      { caption: `${histSpec.caption} — ${v.variable}`, type: `${histSpec.type}_${v.variable}`, png: v.histogramPng },
+      { caption: `${qqSpec.caption} — ${v.variable}`, type: `${qqSpec.type}_${v.variable}`, png: v.qqPng },
+    ]),
     howToRead: spec.howToRead,
-    apa,
-    nExcluded: r.nExcluded,
+    apa: r.variables.length === 1 ? sentence(r.variables[0]) : r.variables.map((v) => `${v.variable}: ${sentence(v)}`).join(' '),
+    nExcluded: 0, // the per-variable N column carries missingness (the summary-statistics recorded decision)
   }
 }

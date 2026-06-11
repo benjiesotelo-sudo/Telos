@@ -6,19 +6,19 @@ export const DISTRIBUTION_NORMALITY: TestSpec = {
   name: 'Distribution & normality',
   question: 'is a variable normally distributed?',
   roles: [
-    { id: 'variable', label: 'Variable', levels: 'interval / ratio', arity: 'exactly 1' },
+    { id: 'variable', label: 'Variable(s)', levels: 'interval / ratio', arity: 'one or more' },
   ],
   options: [ // descriptive card: no α/tails/CI; both pills display-only this slice (design ruling — only μ₀ and continuity correction are interactive)
     { id: 'normalityTests', label: 'normality tests', value: 'Shapiro-Wilk + K–S', kind: 'display' },
     { id: 'bins', label: 'bins', value: 'auto', kind: 'display' },
   ],
   constraints: {
-    roles: [{ roleId: 'variable', levels: ['interval', 'ratio'], arity: { min: 1, max: 1 } }],
-    minRule: { kind: 'values', n: 3 }, // Shapiro-Wilk lower bound (design §constraints: N≥3 single column)
+    roles: [{ roleId: 'variable', levels: ['interval', 'ratio'], arity: { min: 1, max: Infinity } }],
+    minRule: { kind: 'values', n: 3 }, // Shapiro-Wilk lower bound (design §constraints: N≥3 per column)
   },
   tables: [
     { id: 'normality', title: 'Normality tests', captionStyle: 'bare', // the card prints bare "Table."
-      columns: [{ key: 'test', label: 'Test' }, { key: 'statistic', label: 'Statistic' }, { key: 'n', label: 'N' }, { key: 'p', label: 'p' }] },
+      columns: [{ key: 'variable', label: 'Variable' }, { key: 'test', label: 'Test' }, { key: 'statistic', label: 'Statistic' }, { key: 'n', label: 'N' }, { key: 'p', label: 'p' }] },
   ],
   tableNote: { kind: 'plain', text: 'skewness & kurtosis are reported alongside; Shapiro-Wilk applies for 3–5000 cases.' },
   figures: [ // one drawn figbox, two exported files (bundle line) → two specs sharing the caption

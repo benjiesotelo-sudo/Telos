@@ -42,7 +42,7 @@ export const RUNNERS: Record<string, Runner> = {
     runMannWhitneyU(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['continuity'] as boolean),
   'wilcoxon-signed-rank': (engine, ds, setup) =>
     runWilcoxonSignedRank(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0], setup.options['continuity'] as boolean),
-  'distribution-normality': (engine, ds, setup) => runDistributionNormality(engine, ds, setup.roles['variable'][0]),
+  'distribution-normality': (engine, ds, setup) => runDistributionNormality(engine, ds, setup.roles['variable']),
   'summary-statistics': (engine, ds, setup) =>
     runSummaryStatistics(engine, ds, setup.roles['variables'], setup.roles['groupBy'][0]),
   'frequencies-crosstabs': (engine, ds, setup) => runFrequenciesCrosstabs(engine, ds, setup.roles['variables']),

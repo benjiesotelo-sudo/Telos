@@ -312,7 +312,7 @@
 
   <div class="config">
       <div class="ttl">Distribution &amp; normality</div>
-      <div class="sttl">is one numeric column normally distributed?</div>
+      <div class="sttl">are your numeric columns normally distributed?</div>
       <div class="inner lbl-wrap">
         <span class="zone-tag">1 · drag columns into roles</span>
         <div class="map">
@@ -332,9 +332,9 @@
           <div class="dragcue">&rArr;</div>
           <div class="slots">
             <div class="slot target">
-              <div class="sl-label">Variable</div>
-              <div class="sl-hint">e.g. the numeric column to examine &mdash; a test score</div>
-              <div class="sl-cons">interval / ratio &middot; exactly 1</div>
+              <div class="sl-label">Variable(s)</div>
+              <div class="sl-hint">e.g. the numeric columns to examine &mdash; test scores</div>
+              <div class="sl-cons">interval / ratio &middot; one or more</div>
               <div class="placeholder">&hellip; dropping <b>post_score</b> here</div>
             </div>
           </div>
@@ -350,7 +350,7 @@
       </div>
       <div class="cfgguide">
         <div class="gh">How to configure this test</div>
-        <p>Use this to check whether a single numeric column is normally distributed before running tests that assume normality. Drag one numeric column &mdash; such as post_score &mdash; into the <b>Variable</b> slot, and you'll get a histogram, a Q-Q plot, and normality tests (Shapiro-Wilk and K&ndash;S). Lean on the <b>Shapiro-Wilk</b> result for most datasets, but note it only runs for 3&ndash;5000 cases. With larger samples, lean on the Q-Q plot instead, since these tests become over-sensitive and flag trivial departures as non-normal.</p>
+        <p>Use this to check whether your numeric columns are normally distributed before running tests that assume normality. Drag one or more numeric columns &mdash; such as post_score &mdash; into the <b>Variable(s)</b> slot, and you'll get a histogram, a Q-Q plot, and normality tests (Shapiro-Wilk and K&ndash;S) for each. Lean on the <b>Shapiro-Wilk</b> result for most datasets, but note it only runs for 3&ndash;5000 cases. With larger samples, lean on the Q-Q plot instead, since these tests become over-sensitive and flag trivial departures as non-normal.</p>
       </div>
       <div class="meta-row">
         <span class="tag"><b>Produces &mdash; table:</b> normality test</span>
