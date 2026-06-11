@@ -10,7 +10,7 @@
 
 **Tech Stack additions:** `xlsx` (SheetJS, via the official SheetJS CDN tarball) · `@dnd-kit/core` + `@dnd-kit/utilities` (drag-slots). Everything else as shipped in the walking skeleton.
 
-**Process:** directly on `main` per Benjie's standing call (confirm at kickoff); Benjie decides every push point. **NEVER push.**
+**Process:** directly on `main` — confirmed by Benjie at kickoff (2026-06-11), with subagent-driven execution and no pre-build full replay; Benjie decides every push point. **NEVER push.**
 
 **Pre-validation:** the mechanics marked ⚠ in tasks below (SheetJS tarball/API, dnd-kit+Playwright drag recipe, datetime detection, new consistency regexes against the real spec HTML) must be confirmed by the empirical validation workflow before execution; amendments land in this file with rationale.
 
