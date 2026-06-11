@@ -1,4 +1,4 @@
-export interface Dataset { columns: string[]; rows: Record<string, string | number | null>[] } // null: PapaParse's empty-cell value
+export interface Dataset { columns: string[]; rows: Record<string, string | number | boolean | null>[] } // null: empty cell; boolean: PapaParse/SheetJS native
 export interface GroupStat { group: string; n: number; mean: number; sd: number; se: number }
 export interface TTestResult {
   groupStats: [GroupStat, GroupStat]
