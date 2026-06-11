@@ -1,4 +1,4 @@
-import { useSession, stepsOf, type StepId } from '../state/session'
+import { useSession, stepsOf, canEnter, type StepId } from '../state/session'
 import { CATALOG } from '../lib/registry/catalog'
 
 const label = (st: StepId): string =>
@@ -17,7 +17,8 @@ export function Stepper() {
         <span key={st} style={{ display: 'contents' }}>
           {i > 0 && <span className={`connector${i <= cur ? ' done' : ''}`} />}
           <button type="button" className={`step${i < cur ? ' done' : ''}${i === cur ? ' current' : ''}`}
-            onClick={() => s.runStatus !== 'running' && s.goTo(st)} // nav reads the gates (goTo refuses locked steps); ALL nav locks while an analysis runs (design rule)
+            disabled={!canEnter(s, st) || s.runStatus === 'running'} // locked steps are real disabled buttons (no silent dead clicks, skipped by Tab); ALL nav locks while an analysis runs (design rule)
+            onClick={() => s.goTo(st)}
             aria-current={i === cur ? 'step' : undefined}>
             <span className="dot">{i < cur ? '✓' : i + 1}</span>{label(st)}
           </button>

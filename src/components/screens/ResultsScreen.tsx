@@ -5,6 +5,7 @@ import { buildBundle } from '../../lib/export/bundle'
 import { captureNode } from '../../lib/export/capture'
 import { FEEDBACK_URL } from '../../content/copy'
 import { ResultPreviewCard } from '../ResultPreviewCard'
+import { ResultBoundary } from '../ResultBoundary'
 import { BUILDERS } from '../../lib/results/builders'
 
 const saveBlob = (blob: Blob, name: string) => {
@@ -15,20 +16,27 @@ const saveBlob = (blob: Blob, name: string) => {
 export function ResultsScreen() {
   const s = useSession()
   const [formats, setFormats] = useState({ tables: false, figures: true })
+  const [downloading, setDownloading] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
   const fresh = s.selection.filter((id) => s.runs[id] && !s.runs[id].stale)
   const running = s.runStatus === 'running'
 
   const download = async () => {
-    const files: Record<string, Uint8Array> = {}
-    for (const id of fresh) {
-      const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
-      const content = BUILDERS[id](spec, s.runs[id].result)
-      if (formats.tables) for (const t of content.tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.domId ?? t.spec.id}`)
-      if (formats.figures) for (const fig of content.figures) files[`${folder}figure_${fig.type}.png`] = fig.png
-    }
-    const names = Object.keys(files)
-    if (names.length === 1) saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: 'image/png' }), names[0].split('/')[1])
-    else saveBlob(new Blob([buildBundle(files)], { type: 'application/zip' }), 'telos-results.zip')
+    setDownloading(true); setExportError(null)
+    try {
+      const files: Record<string, Uint8Array> = {}
+      for (const id of fresh) {
+        const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
+        const content = BUILDERS[id](spec, s.runs[id].result)
+        if (formats.tables) for (const t of content.tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.domId ?? t.spec.id}`)
+        if (formats.figures) for (const fig of content.figures) files[`${folder}figure_${fig.type}.png`] = fig.png
+      }
+      const names = Object.keys(files)
+      if (names.length === 1) saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: 'image/png' }), names[0].split('/')[1])
+      else saveBlob(new Blob([buildBundle(files)], { type: 'application/zip' }), 'telos-results.zip')
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : String(e)) // a silent no-op Download is indistinguishable from a dead button
+    } finally { setDownloading(false) }
   }
 
   return (
@@ -46,15 +54,16 @@ export function ResultsScreen() {
           ))}
           <label title="each test's tables as standalone images"><input type="checkbox" checked={formats.tables} onChange={(e) => setFormats({ ...formats, tables: e.target.checked })} /> Table images (.png)</label>
           <label title="each test's graphs / diagrams as standalone images"><input type="checkbox" checked={formats.figures} onChange={(e) => setFormats({ ...formats, figures: e.target.checked })} /> Figure images (.png)</label>
-          <button className="btn" style={{ marginLeft: 'auto' }} disabled={running || !fresh.length || (!formats.tables && !formats.figures)}
-            onClick={() => { void download() }}>Download</button>
+          <button className="btn" style={{ marginLeft: 'auto' }} disabled={running || downloading || !fresh.length || (!formats.tables && !formats.figures)}
+            onClick={() => { void download() }}>{downloading ? 'Preparing…' : 'Download'}</button>
         </div>
+        {exportError && <div className="error-box" role="alert">Export failed: {exportError}</div>}
       </div>
 
       {running && <p className="hint" role="status">{s.runPhase ?? 'Running…'}</p>}
       {s.runStatus === 'error' && (
         <div className="error-box" role="alert">Error: {s.runError}{' '}
-          <button type="button" onClick={() => { void s.runAll() }}>Try again</button></div>
+          <button type="button" disabled={running} onClick={() => { void s.runAll() }}>Try again</button></div>
       )}
 
       {s.selection.map((id, i) => {
@@ -65,7 +74,7 @@ export function ResultsScreen() {
           <section key={id} className="card">
             <div className="eyebrow">{nn} · {spec.name}</div>
             <div className="error-box" role="alert">This test failed: {s.errors[id]}{' '}
-              <button type="button" onClick={() => { void s.runAll() }}>Try again</button></div>
+              <button type="button" disabled={running} onClick={() => { void s.runAll() }}>Try again</button></div>
           </section>
         )
         const run = s.runs[id]
@@ -73,9 +82,8 @@ export function ResultsScreen() {
           <section key={id} className="card"><div className="eyebrow">{nn} · {spec.name}</div>
             <p className="hint" role="status">{s.runPhase ?? 'Running…'}</p></section>
         ) : null
-        const content = BUILDERS[id](spec, run.result)
-        return <ResultPreviewCard key={id} index={i + 1} name={spec.name} question={spec.question} content={content}
-          stale={run.stale} running={running} onRerun={() => { void s.runAll() }} />
+        // builder runs inside the boundary (via BuiltCard) so one card's display error can't erase the others
+        return <ResultBoundary key={id} label={`${nn} · ${spec.name}`}><BuiltCard id={id} index={i + 1} /></ResultBoundary>
       })}
 
       <p className="hint" style={{ textAlign: 'center', marginTop: 18, marginBottom: 6 }}>
@@ -86,4 +94,13 @@ export function ResultsScreen() {
       </p>
     </section>
   )
+}
+
+function BuiltCard({ id, index }: { id: string; index: number }) {
+  const s = useSession()
+  const spec = SPECS[id]!
+  const run = s.runs[id]!
+  const content = BUILDERS[id](spec, run.result)
+  return <ResultPreviewCard index={index} name={spec.name} question={spec.question} content={content}
+    stale={run.stale} running={s.runStatus === 'running'} onRerun={() => { void s.runAll() }} />
 }

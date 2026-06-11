@@ -106,9 +106,10 @@ test('excel path: multi-sheet workbook → sheet picker → guide', async ({ pag
 })
 
 async function configureStep(page: Page, stepName: RegExp, drags: [string, string][]) {
-  // dnd-kit suppresses the first document click after a drag — click until the step screen actually swaps
+  // dnd-kit suppresses the first document click after a drag — click until the step screen actually swaps.
+  // Scoped to the stepper nav: the config screens' own "Next: <test> →" buttons would otherwise also match.
   await expect(async () => {
-    await page.getByRole('button', { name: stepName }).click()
+    await page.getByRole('navigation', { name: 'Progress' }).getByRole('button', { name: stepName }).click()
     await expect(page.locator('.eyebrow').first()).toHaveText(stepName, { timeout: 1000 })
   }).toPass()
   for (const [chip, role] of drags) {
@@ -200,9 +201,12 @@ test('next-button navigation: config screens link to the following test', async 
 
   const nextBtn = page.getByRole('button', { name: 'Next: Frequencies & cross-tabs →' })
   await expect(nextBtn).toBeDisabled()                     // gate unmet: no variable assigned yet
+  await expect(page.getByText('fill every required slot here to enable Run', { exact: false })).toBeVisible()
   await dragChip(page, 'score', 'variables')
   await expect(page.locator('[data-role="variables"] .chip.assigned')).toContainText('score')
   await expect(nextBtn).toBeEnabled()
+  // the hint now names the actual blocker — the later unconfigured test, not this (complete) screen
+  await expect(page.getByText('finish configuring Frequencies & cross-tabs to enable Run')).toBeVisible()
   await expect(async () => {                               // post-drag click suppression guard
     await nextBtn.click()
     await expect(page.locator('.eyebrow').first()).toHaveText(/Frequencies/, { timeout: 1000 })

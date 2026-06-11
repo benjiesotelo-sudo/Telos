@@ -42,7 +42,13 @@ export function TestConfigScreen({ testId }: { testId: string }) {
         <p key={o.id} className="hint" style={{ marginTop: 6 }}>{o.hint}</p>
       ))}
       <div className="btn-row">
-        <span className="hint">{running ? '' : 'enabled when every selected test is fully configured · first run loads the R engine'}</span>
+        <span className="hint">{(() => { // name the first failing gate — a generic hint can't say whether the blocker is here or on a later test
+          if (running) return ''
+          const firstOpen = steps.find((st) => st.startsWith('test:') && !gateOk(s, st))
+          if (!firstOpen) return 'first run loads the R engine'
+          if (firstOpen === `test:${testId}`) return 'fill every required slot here to enable Run · first run loads the R engine'
+          return `finish configuring ${SPECS[firstOpen.slice(5)]?.name} to enable Run`
+        })()}</span>
         {nextSpec && (
           <button className="btn ghost" disabled={!gateOk(s, `test:${testId}`) || running} onClick={() => s.goTo(next)}>
             Next: {nextSpec.name} →

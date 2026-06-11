@@ -156,6 +156,7 @@ export const useSession = create<SessionState>((set, get) => {
     })),
     goTo: (step) => { if (canEnter(get(), step)) set({ step }) },
     runAll: async () => {
+      if (get().runStatus === 'running') return // reentrancy guard: a second concurrent run would interleave writes
       set({ runStatus: 'running', runError: null, step: 'results' })
       try {
         const engine = await getEngine((m) => set({ runPhase: m }))
