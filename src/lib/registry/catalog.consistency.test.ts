@@ -21,6 +21,6 @@ describe('catalog stays faithful to the ui-spec picker tree', () => {
     expect(rows).toEqual(CATALOG.map((c) => ({ family: c.family, ...(c.subfamily ? { subfamily: c.subfamily } : {}), leaf: c.name })))
   })
   it('the available tests match the shipped specs, in tree order', () => {
-    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['one-sample-t-test', 'independent-t-test', 'paired-t-test', 'mann-whitney-u', 'wilcoxon-signed-rank'])
+    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['distribution-normality', 'one-sample-t-test', 'independent-t-test', 'paired-t-test', 'mann-whitney-u', 'wilcoxon-signed-rank'])
   })
 })
