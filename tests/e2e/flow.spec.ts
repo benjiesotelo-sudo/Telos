@@ -188,6 +188,29 @@ test('multi-test journey A: five tests, one dataset → combined results + 13-fi
   ])
 })
 
+test('next-button navigation: config screens link to the following test', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Get started' }).click()
+  await page.setInputFiles('input[type=file]', 'tests/e2e/fixtures/students.csv')
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByRole('button', { name: 'Confirm & pick test' }).click()
+  for (const name of ['Summary statistics', 'Frequencies & cross-tabs'])
+    await page.getByRole('checkbox', { name }).check()
+  await page.getByRole('button', { name: 'Confirm selection' }).click()
+
+  const nextBtn = page.getByRole('button', { name: 'Next: Frequencies & cross-tabs →' })
+  await expect(nextBtn).toBeDisabled()                     // gate unmet: no variable assigned yet
+  await dragChip(page, 'score', 'variables')
+  await expect(page.locator('[data-role="variables"] .chip.assigned')).toContainText('score')
+  await expect(nextBtn).toBeEnabled()
+  await expect(async () => {                               // post-drag click suppression guard
+    await nextBtn.click()
+    await expect(page.locator('.eyebrow').first()).toHaveText(/Frequencies/, { timeout: 1000 })
+  }).toPass()
+  // the last test's config offers no Next — Run analysis is the affordance there
+  await expect(page.getByRole('button', { name: /^Next:/ })).toHaveCount(0)
+})
+
 test('multi-variable normality: two variables → per-variable rows, figures, zip names', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Get started' }).click()

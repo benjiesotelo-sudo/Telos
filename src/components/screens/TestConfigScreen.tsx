@@ -8,8 +8,12 @@ export function TestConfigScreen({ testId }: { testId: string }) {
   const setup = s.setups[testId]
   if (!spec || !setup) return null
   const idx = s.selection.indexOf(testId) + 1
-  const allReady = stepsOf(s).filter((st) => st.startsWith('test:')).every((st) => gateOk(s, st))
+  const steps = stepsOf(s)
+  const allReady = steps.filter((st) => st.startsWith('test:')).every((st) => gateOk(s, st))
   const running = s.runStatus === 'running'
+  // The stepper is the only other path between test configs — a visible Next keeps first-time users moving.
+  const next = steps[steps.indexOf(`test:${testId}`) + 1]
+  const nextSpec = next?.startsWith('test:') ? SPECS[next.slice(5)] : null
   return (
     <section>
       <div className="eyebrow">{idx} · {spec.name}</div>
@@ -39,6 +43,11 @@ export function TestConfigScreen({ testId }: { testId: string }) {
       ))}
       <div className="btn-row">
         <span className="hint">{running ? '' : 'enabled when every selected test is fully configured · first run loads the R engine'}</span>
+        {nextSpec && (
+          <button className="btn ghost" disabled={!gateOk(s, `test:${testId}`) || running} onClick={() => s.goTo(next)}>
+            Next: {nextSpec.name} →
+          </button>
+        )}
         <button className="btn" disabled={!allReady || running} onClick={() => { void s.runAll() }}>
           {running ? (s.runPhase ?? 'Running…') : 'Run analysis'}
         </button>
