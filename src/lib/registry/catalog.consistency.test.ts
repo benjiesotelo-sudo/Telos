@@ -21,7 +21,7 @@ describe('catalog stays faithful to the ui-spec picker tree', () => {
     expect(rows).toEqual(CATALOG.map((c) => ({ family: c.family, ...(c.subfamily ? { subfamily: c.subfamily } : {}), leaf: c.name })))
   })
   it('the available tests match the shipped specs, in tree order', () => {
-    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['summary-statistics', 'frequencies-crosstabs', 'distribution-normality', 'one-sample-t-test', 'independent-t-test', 'paired-t-test', 'one-way-anova', 'factorial-anova', 'repeated-measures-anova', 'mixed-anova', 'nested-anova', 'welch-anova', 'ancova', 'manova', 'mancova', 'mann-whitney-u', 'wilcoxon-signed-rank', 'kruskal-wallis', 'friedman'])
+    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['summary-statistics', 'frequencies-crosstabs', 'distribution-normality', 'one-sample-t-test', 'independent-t-test', 'paired-t-test', 'one-way-anova', 'factorial-anova', 'repeated-measures-anova', 'mixed-anova', 'nested-anova', 'welch-anova', 'ancova', 'manova', 'mancova', 'mann-whitney-u', 'wilcoxon-signed-rank', 'kruskal-wallis', 'friedman', 'pearson', 'spearman', 'kendalls-tau', 'chi-square-independence', 'chi-square-goodness-of-fit', 'fishers-exact'])
   })
   it('every table DOM id is unique across all shipped specs (combined-results-page seam)', () => {
     const ids = Object.values(SPECS).flatMap((s) => s.tables.map((t) => t.domId ?? t.id))
@@ -29,6 +29,12 @@ describe('catalog stays faithful to the ui-spec picker tree', () => {
   })
   it('ANOVA-family zip figure names derive from FigureSpec.file ?? type and equal the card bundle entries', () => {
     for (const id of ['one-way-anova', 'factorial-anova', 'repeated-measures-anova', 'mixed-anova', 'nested-anova', 'welch-anova', 'ancova', 'manova', 'mancova', 'kruskal-wallis', 'friedman']) {
+      const s = SPECS[id]!
+      expect(s.figures!.map((f) => `figure_${f.file ?? f.type}.png`)).toEqual(s.bundleFiles.filter((b) => b.startsWith('figure_')))
+    }
+  })
+  it('Association-family zip figure names derive from FigureSpec.file ?? type and equal the card bundle entries', () => {
+    for (const id of ['pearson', 'spearman', 'kendalls-tau', 'chi-square-independence', 'chi-square-goodness-of-fit', 'fishers-exact']) {
       const s = SPECS[id]!
       expect(s.figures!.map((f) => `figure_${f.file ?? f.type}.png`)).toEqual(s.bundleFiles.filter((b) => b.startsWith('figure_')))
     }

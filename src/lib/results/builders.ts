@@ -41,6 +41,19 @@ import { runKruskalWallis, type KruskalWallisResult } from '../stats/kruskalWall
 import { buildKruskalWallis } from './buildKruskalWallis'
 import { runFriedman, type FriedmanResult } from '../stats/friedman'
 import { buildFriedman } from './buildFriedman'
+import { runPearson, type PearsonResult } from '../stats/pearson'
+import { buildPearson } from './buildPearson'
+import { runSpearman, type SpearmanResult } from '../stats/spearman'
+import { buildSpearman } from './buildSpearman'
+import { runKendallsTau, type KendallsTauResult } from '../stats/kendallsTau'
+import { buildKendallsTau } from './buildKendallsTau'
+import { runChiSquareGof, type ChiSquareGofResult } from '../stats/chiSquareGof'
+import { buildChiSquareGof } from './buildChiSquareGof'
+import { runChiSquareIndependence, type ChiSquareIndependenceResult } from '../stats/chiSquareIndependence'
+import { buildChiSquareIndependence } from './buildChiSquareIndependence'
+import { runFishersExact, type FishersExactResult } from '../stats/fishersExact'
+import { buildFishersExact } from './buildFishersExact'
+import { categoriesOf, propsArray } from '../data/props'
 
 export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[] }
 export interface CardContent {
@@ -86,6 +99,17 @@ export const RUNNERS: Record<string, Runner> = {
     runMancova(engine, ds, setup.roles['outcomes'], setup.roles['factors'], setup.roles['covariates'], setup.options['statistic'] as string),
   'kruskal-wallis': (engine, ds, setup) => runKruskalWallis(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0]),
   'friedman': (engine, ds, setup) => runFriedman(engine, ds, setup.roles['subject'][0], setup.roles['measures']),
+  'pearson': (engine, ds, setup) => runPearson(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0]),
+  'spearman': (engine, ds, setup) => runSpearman(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0]),
+  'kendalls-tau': (engine, ds, setup) => runKendallsTau(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0]),
+  'chi-square-goodness-of-fit': (engine, ds, setup) => {
+    const v = setup.roles['variable'][0]
+    const custom = setup.options['expectedProps'] === 'custom'
+    return runChiSquareGof(engine, ds, v, custom ? propsArray(categoriesOf(ds, v), setup.props) : null)
+  },
+  'chi-square-independence': (engine, ds, setup) =>
+    runChiSquareIndependence(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0], setup.options['continuity'] as boolean),
+  'fishers-exact': (engine, ds, setup) => runFishersExact(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0]),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -107,4 +131,10 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'mancova': (spec, result) => buildMancova(spec, result as MancovaResult),
   'kruskal-wallis': (spec, result) => buildKruskalWallis(spec, result as KruskalWallisResult),
   'friedman': (spec, result) => buildFriedman(spec, result as FriedmanResult),
+  'pearson': (spec, result) => buildPearson(spec, result as PearsonResult),
+  'spearman': (spec, result) => buildSpearman(spec, result as SpearmanResult),
+  'kendalls-tau': (spec, result) => buildKendallsTau(spec, result as KendallsTauResult),
+  'chi-square-goodness-of-fit': (spec, result) => buildChiSquareGof(spec, result as ChiSquareGofResult),
+  'chi-square-independence': (spec, result) => buildChiSquareIndependence(spec, result as ChiSquareIndependenceResult),
+  'fishers-exact': (spec, result) => buildFishersExact(spec, result as FishersExactResult),
 }

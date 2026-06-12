@@ -18,6 +18,12 @@ import { MANOVA } from './manova'
 import { MANCOVA } from './mancova'
 import { KRUSKAL_WALLIS } from './kruskalWallis'
 import { FRIEDMAN } from './friedman'
+import { PEARSON } from './pearson'
+import { SPEARMAN } from './spearman'
+import { KENDALLS_TAU } from './kendallsTau'
+import { CHI_SQUARE_INDEPENDENCE } from './chiSquareIndependence'
+import { CHI_SQUARE_GOF } from './chiSquareGof'
+import { FISHERS_EXACT } from './fishersExact'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -46,12 +52,12 @@ export const CATALOG: CatalogEntry[] = [
   e('wilcoxon-signed-rank', 'Wilcoxon signed-rank', 'Group comparisons', 'Nonparametric', 'available'),
   e('kruskal-wallis', 'Kruskal-Wallis', 'Group comparisons', 'Nonparametric', 'available'),
   e('friedman', 'Friedman', 'Group comparisons', 'Nonparametric', 'available'),
-  e('pearson', 'Pearson', 'Association', 'Correlation'),
-  e('spearman', 'Spearman', 'Association', 'Correlation'),
-  e('kendalls-tau', "Kendall's tau", 'Association', 'Correlation'),
-  e('chi-square-independence', 'Chi-square independence', 'Association', 'Categorical'),
-  e('chi-square-goodness-of-fit', 'Chi-square goodness-of-fit', 'Association', 'Categorical'),
-  e('fishers-exact', "Fisher's exact", 'Association', 'Categorical'),
+  e('pearson', 'Pearson', 'Association', 'Correlation', 'available'),
+  e('spearman', 'Spearman', 'Association', 'Correlation', 'available'),
+  e('kendalls-tau', "Kendall's tau", 'Association', 'Correlation', 'available'),
+  e('chi-square-independence', 'Chi-square independence', 'Association', 'Categorical', 'available'),
+  e('chi-square-goodness-of-fit', 'Chi-square goodness-of-fit', 'Association', 'Categorical', 'available'),
+  e('fishers-exact', "Fisher's exact", 'Association', 'Categorical', 'available'),
   e('simple-linear-regression', 'Simple linear regression', 'Regression & prediction'),
   e('multiple-linear-regression', 'Multiple linear regression', 'Regression & prediction'),
   e('logistic-regression', 'Logistic regression', 'Regression & prediction'),
@@ -85,4 +91,5 @@ export const LATER_SLICE_REASON = 'arrives in a later slice'
 export const SPECS: Record<string, TestSpec> = {
   [SUMMARY_STATISTICS.id]: SUMMARY_STATISTICS, [FREQUENCIES_CROSSTABS.id]: FREQUENCIES_CROSSTABS, [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST, [MANN_WHITNEY_U.id]: MANN_WHITNEY_U, [WILCOXON_SIGNED_RANK.id]: WILCOXON_SIGNED_RANK, [DISTRIBUTION_NORMALITY.id]: DISTRIBUTION_NORMALITY,
   [ONE_WAY_ANOVA.id]: ONE_WAY_ANOVA, [FACTORIAL_ANOVA.id]: FACTORIAL_ANOVA, [REPEATED_MEASURES_ANOVA.id]: REPEATED_MEASURES_ANOVA, [MIXED_ANOVA.id]: MIXED_ANOVA, [NESTED_ANOVA.id]: NESTED_ANOVA, [WELCH_ANOVA.id]: WELCH_ANOVA, [ANCOVA.id]: ANCOVA, [MANOVA.id]: MANOVA, [MANCOVA.id]: MANCOVA, [KRUSKAL_WALLIS.id]: KRUSKAL_WALLIS, [FRIEDMAN.id]: FRIEDMAN,
+  [PEARSON.id]: PEARSON, [SPEARMAN.id]: SPEARMAN, [KENDALLS_TAU.id]: KENDALLS_TAU, [CHI_SQUARE_INDEPENDENCE.id]: CHI_SQUARE_INDEPENDENCE, [CHI_SQUARE_GOF.id]: CHI_SQUARE_GOF, [FISHERS_EXACT.id]: FISHERS_EXACT,
 }
