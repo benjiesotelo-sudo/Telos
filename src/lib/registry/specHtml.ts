@@ -11,6 +11,8 @@ export const decode = (s: string) => s
   // ANOVA-family cards (decode list grows per slice; &amp; stays last)
   .replace(/&eta;/g, 'η').replace(/&omega;/g, 'ω').replace(/&epsilon;/g, 'ε').replace(/&chi;/g, 'χ')
   .replace(/&sup2;/g, '²').replace(/&eacute;/g, 'é').replace(/&plusmn;/g, '±')
+  // Association-family cards
+  .replace(/&rho;/g, 'ρ').replace(/&tau;/g, 'τ').replace(/&ge;/g, '≥').replace(/&lt;/g, '<')
   .replace(/&amp;/g, '&')
 
 export const strip = (s: string) => decode(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim()

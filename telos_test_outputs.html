@@ -646,8 +646,8 @@
       <div class="howread"><p>Tests whether two categorical variables are associated. A <b>p</b> below alpha means they are related; <b>Cram&eacute;r's V</b> gives the strength of association (0&ndash;1). Valid only when expected counts are mostly &ge; 5 (the app flags this and suggests Fisher's exact) and each case appears once (raw counts, not percentages).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A chi-square test of independence was significant, &chi;&sup2;(__, <i>N</i>=__)=__, <i>p</i>=__, <i>V</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>chisq.test()</code> &rarr; Table 2 &middot; <code>rcompanion::cramerV()</code> &rarr; V &middot; <code>ggplot2</code>/<code>vcd::mosaic()</code> &rarr; figure</div>
-        <div class="m bundle">table_contingency.png &middot; table_chi-square.png &middot; figure_mosaic.png (per figure choice: mosaic or grouped bar)</div>
+        <div class="m"><b>R map:</b> <code>chisq.test()</code> &rarr; Table 2 &middot; <code>sqrt(&chi;&sup2;/(N&middot;min(r&minus;1,c&minus;1)))</code> (matches <code>rcompanion::cramerV</code>) &rarr; V &middot; <code>ggplot2::geom_bar()</code> &rarr; figure</div>
+        <div class="m bundle">table_contingency.png &middot; table_chi-square.png &middot; figure_bar.png</div>
       </div>
     </div>
   </div>
@@ -688,8 +688,8 @@
       <div class="howread"><p>An exact alternative to chi-square for small samples. A <b>p</b> below alpha means the two categories are associated; for 2&times;2 tables the <b>odds ratio</b> quantifies the association &mdash; OR&gt;1 means the outcome is more likely in the first row/group, OR&lt;1 less likely, OR=1 no association. Check the row/column order before reading direction, since the OR reflects the table's orientation.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Fisher's exact test of [Var1] by [Var2] gave <i>p</i>=__.&rdquo; &middot; for 2&times;2 tables add &ldquo;(OR=__, 95% CI [__, __])&rdquo;; larger tables report the exact <i>p</i> only.</div>
-        <div class="m"><b>R map:</b> <code>fisher.test()</code> &rarr; Table 2 &middot; <code>ggplot2</code>/<code>vcd::mosaic()</code> &rarr; figure</div>
-        <div class="m bundle">table_contingency.png &middot; table_fisher.png &middot; figure_mosaic.png (per figure choice: mosaic or grouped bar)</div>
+        <div class="m"><b>R map:</b> <code>fisher.test()</code> &rarr; Table 2 &middot; <code>ggplot2::geom_bar()</code> &rarr; figure</div>
+        <div class="m bundle">table_contingency.png &middot; table_fisher.png &middot; figure_bar.png</div>
       </div>
     </div>
   </div>
