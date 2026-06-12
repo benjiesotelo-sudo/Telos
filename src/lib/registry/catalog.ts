@@ -25,6 +25,7 @@ export const CATALOG: CatalogEntry[] = [
   e('one-way-anova', 'One-way ANOVA + post-hoc', 'Group comparisons', 'Parametric'),
   e('factorial-anova', 'Factorial ANOVA', 'Group comparisons', 'Parametric'),
   e('repeated-measures-anova', 'Repeated-measures ANOVA', 'Group comparisons', 'Parametric'),
+  e('mixed-anova', 'Mixed ANOVA', 'Group comparisons', 'Parametric'),
   e('nested-anova', 'Nested ANOVA', 'Group comparisons', 'Parametric'),
   e('welch-anova', "Welch's ANOVA", 'Group comparisons', 'Parametric'),
   e('ancova', 'ANCOVA', 'Group comparisons', 'Parametric'),

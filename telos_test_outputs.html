@@ -356,6 +356,31 @@
   </div>
 
   <div class="rtest">
+    <div class="rt-h"><span class="rt-name">Mixed ANOVA</span><span class="rt-q">between-groups &times; repeated conditions</span></div>
+    <div class="rt-body">
+      <div class="zlabel">Tables</div>
+      <div class="apa-cap"><b>Table 1.</b> Descriptives by group &times; condition</div>
+      <table class="apa"><thead><tr><th>Group</th><th>Condition</th><th>N</th><th>M</th><th>SD</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 2.</b> Mixed ANOVA</div>
+      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>Group (between)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Condition (within)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Group &times; Condition</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 3.</b> Sphericity (Mauchly's test)</div>
+      <table class="apa"><thead><tr><th>Effect</th><th>W</th><th>p</th><th>GG &epsilon;</th><th>HF &epsilon;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note assume">between and within effects are tested against different error terms; when sphericity is violated the within and interaction F-tests use the Greenhouse&ndash;Geisser / Huynh&ndash;Feldt correction. Mauchly's test &amp; the GG/HF corrections apply only when the repeated factor has 3+ levels (with 2 levels sphericity is automatically met and this table is omitted).</p>
+      <div class="apa-cap"><b>Table 4.</b> Post-hoc comparisons (condition pairs)</div>
+      <table class="apa"><thead><tr><th>Pair</th><th>M<sub>diff</sub></th><th>SE</th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="zlabel">Figure</div>
+      <div class="figbox"><div class="fcap"><b>Figure.</b> Means across conditions by group</div><div class="ftype">type: <b>profile plot</b> (one line per group, means &plusmn; CI across conditions)</div></div>
+      <div class="zlabel">How to read this test</div>
+      <div class="howread"><p>Read the <b>Group &times; Condition</b> interaction first &mdash; a significant interaction means the groups changed differently across conditions; only then read the main effects. Check <b>sphericity</b> for the within and interaction terms &mdash; if violated, read the corrected <b>F</b>/<b>p</b>. When the group &times; condition interaction is significant, the overall condition comparisons in the post-hoc table can mislead &mdash; read each group's line on the profile plot instead.</p></div>
+      <div class="meta">
+        <div class="m"><b>APA template:</b> &ldquo;A mixed ANOVA found a significant group &times; time interaction, <i>F</i>(__,__)=__, <i>p</i>=__, partial &eta;&sup2;=__.&rdquo;</div>
+        <div class="m"><b>R map:</b> <code>dplyr::group_by()+summarise()</code> &rarr; Table 1 (group &times; condition N/M/SD) &middot; <code>afex::aov_ez()</code> &rarr; Tables 2&ndash;3 &middot; <code>emmeans</code> &rarr; Table 4 (post-hoc) &middot; <code>ggplot2</code> &rarr; profile plot</div>
+        <div class="m bundle">table_descriptives.png &middot; table_mixed-anova.png &middot; table_sphericity.png &middot; table_posthoc.png &middot; figure_profile.png</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rtest">
     <div class="rt-h"><span class="rt-name">Nested ANOVA</span><span class="rt-q">one factor nested within another</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>

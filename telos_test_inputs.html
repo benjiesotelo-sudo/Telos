@@ -700,6 +700,71 @@
     </div>
 
   <div class="config">
+      <div class="ttl">Mixed ANOVA</div>
+      <div class="sttl">does change over time differ between groups?</div>
+      <div class="inner lbl-wrap">
+        <span class="zone-tag">1 · drag columns into roles</span>
+        <div class="map">
+          <div>
+            <div class="pl-h">Compatible columns <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);">(wide format)</span></div>
+            <div class="palette">
+              <span class="colchip"><span class="grip">&#9783;&#9783;</span>participant_id <span class="lv">id</span></span>
+              <span class="colchip"><span class="grip">&#9783;&#9783;</span>group <span class="lv">nominal</span></span>
+              <span class="colchip"><span class="grip">&#9783;&#9783;</span>score_t1 <span class="lv">ratio</span></span>
+              <span class="colchip dragging"><span class="grip">&#9783;&#9783;</span>score_t2 <span class="lv">ratio</span></span>
+              <span class="colchip"><span class="grip">&#9783;&#9783;</span>score_t3 <span class="lv">ratio</span></span>
+            </div>
+            <div class="pl-h" style="margin-top:11px;">Greyed (why) <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);">(illustrative reasons &mdash; see &ldquo;How to read this page&rdquo;)</span></div>
+            <div class="palette">
+              <span class="colchip greyed">satisfaction <span class="reason">ordinal, repeated measure needs interval/ratio</span></span>
+            </div>
+          </div>
+          <div class="dragcue">&rArr;</div>
+          <div class="slots">
+            <div class="slot filled">
+              <div class="sl-label">Subject ID</div>
+              <div class="sl-hint">e.g. the column identifying each person &mdash; participant_id</div>
+              <div class="sl-cons">any level &middot; exactly 1</div>
+              <span class="filledchip">participant_id <span class="x">&times;</span></span>
+            </div>
+            <div class="slot filled">
+              <div class="sl-label">Between-groups factor</div>
+              <div class="sl-hint">e.g. the column splitting people into groups &mdash; treatment vs control</div>
+              <div class="sl-cons">nominal / ordinal &middot; exactly 1</div>
+              <span class="filledchip">group <span class="x">&times;</span></span>
+            </div>
+            <div class="slot target">
+              <div class="sl-label">Repeated measures</div>
+              <div class="sl-hint">e.g. same measure each time &mdash; score_t1, score_t2, score_t3</div>
+              <div class="sl-cons">interval / ratio &middot; 2 or more</div>
+              <span class="filledchip">score_t1 <span class="x">&times;</span></span>
+              <span class="filledchip">score_t3 <span class="x">&times;</span></span>
+              <div class="placeholder">&hellip; dropping <b>score_t2</b> here too</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mini-arrow"></div>
+      <div class="inner lbl-wrap">
+        <span class="zone-tag">2 · set this test's options</span>
+        <div class="optstrip">
+          <span class="optpill"><span class="k">&alpha;</span><span class="v">0.05</span><span class="caret">&#9662;</span></span>
+          <span class="optpill"><span class="k">sphericity</span><span class="v">GG correction</span><span class="caret">&#9662;</span></span>
+          <span class="optpill"><span class="k">post-hoc</span><span class="v">on</span><span class="caret">&#9662;</span></span>
+        </div>
+      </div>
+      <div class="cfgguide">
+        <div class="gh">How to configure this test</div>
+        <p>Use this when the <b>same people</b> are measured under 2 or more conditions or timepoints <b>and</b> they belong to different groups &mdash; e.g. a treatment and a control group each scored at time 1, 2 and 3. Drag the subject identifier into <b>Subject ID</b>, the column that splits people into groups into <b>Between-groups factor</b>, and each repeated-measure column into <b>Repeated measures</b> (one column per timepoint, in time order). Your data must be in wide format, with one row per person. The headline question is the <b>interaction</b> &mdash; did the groups change differently over time? If the sphericity assumption is violated, keep the <b>GG correction</b> on so the p-values stay trustworthy.</p>
+      </div>
+      <div class="meta-row">
+        <span class="tag"><b>Produces &mdash; tables:</b> descriptives, mixed ANOVA, sphericity, post-hoc</span>
+        <span class="tag"><b>figure:</b> profile plot by group</span>
+        <span class="tag"><b>checks after run:</b> sphericity, Levene's</span>
+      </div>
+    </div>
+
+  <div class="config">
       <div class="ttl">Nested ANOVA</div>
       <div class="sttl">does the outcome differ when one factor sits inside another?</div>
       <div class="inner lbl-wrap">

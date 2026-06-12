@@ -17,7 +17,7 @@ for (const m of tree.matchAll(/<div class="(fam|sub|leaf)">(.*?)<\/div>/gs)) {
 }
 
 describe('catalog stays faithful to the ui-spec picker tree', () => {
-  it('has exactly the 46 leaves, in tree order, under the right family/subfamily', () => {
+  it('has exactly the 47 leaves, in tree order, under the right family/subfamily', () => {
     expect(rows).toEqual(CATALOG.map((c) => ({ family: c.family, ...(c.subfamily ? { subfamily: c.subfamily } : {}), leaf: c.name })))
   })
   it('the available tests match the shipped specs, in tree order', () => {
