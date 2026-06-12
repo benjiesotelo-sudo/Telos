@@ -4,7 +4,8 @@ import { INDEPENDENT_T_TEST } from '../registry/independentTTest'
 import { CATALOG } from '../registry/catalog'
 import type { ColumnMeta } from '../data/columnMeta'
 import type { Dataset } from '../stats/types'
-import type { Level, TestSpec } from '../registry/types'
+import type { Level, TestSpec, RoleConstraint } from '../registry/types'
+import type { CatalogEntry } from '../registry/catalog'
 
 const col = (name: string, level: ColumnMeta['level'], used = true): ColumnMeta =>
   ({ name, detected: 'float64', tags: [], level, used })
@@ -103,5 +104,28 @@ describe('nestedLevelReuse', () => {
       { parent: 'a', child: 'x' }, { parent: 'a', child: 'y' }, { parent: 'b', child: 'z' },
     ] }
     expect(nestedLevelReuse(cleanDs, 'parent', 'child')).toEqual([])
+  })
+})
+
+describe('count-tag role constraint (B1)', () => {
+  const countRole: RoleConstraint = { roleId: 'outcome', levels: ['interval', 'ratio'], arity: { min: 1, max: 1 }, tag: 'count' }
+  const countCol: ColumnMeta = { name: 'complaints', detected: 'int64', tags: ['count'], level: 'ratio', used: true }
+  const floatCol: ColumnMeta = { name: 'months', detected: 'float64', tags: [], level: 'ratio', used: true }
+  it('accepts a count-tagged column', () =>
+    expect(slotCompatibility(countRole, countCol, ds).ok).toBe(true))
+  it('rejects a non-count ratio column with the readable reason', () =>
+    expect(slotCompatibility(countRole, floatCol, ds)).toEqual({ ok: false, reason: 'needs a count column (non-negative whole numbers)' }))
+  it('the level check still precedes the tag check', () =>
+    expect(slotCompatibility(countRole, { ...floatCol, level: 'nominal' }, ds).reason).toBe('needs an interval / ratio column'))
+  it('an untagged role still accepts a count column (palette house rule: counts fit Predictors)', () => {
+    const anyRole: RoleConstraint = { roleId: 'predictor', levels: ['nominal', 'ordinal', 'interval', 'ratio'], arity: { min: 1, max: 1 } }
+    expect(slotCompatibility(anyRole, countCol, ds).ok).toBe(true)
+  })
+  it('testEligibility names the count requirement when no count column exists', () => {
+    const spec = { id: 'x', name: 'X', question: '', options: [], tables: [], howToRead: '', apaTemplate: '', rMap: '', bundleFiles: [],
+      roles: [{ id: 'outcome', label: 'Outcome (DV)', levels: 'count', arity: 'non-negative integers · exactly 1' }],
+      constraints: { roles: [countRole], minRule: { kind: 'complete-pairs', n: 3 } } } as unknown as TestSpec
+    const entry = { id: 'x', name: 'X', family: 'F', status: 'available' } as CatalogEntry
+    expect(testEligibility(entry, spec, [floatCol], ds).reason).toBe('needs a count column (non-negative whole numbers) for Outcome (DV)')
   })
 })

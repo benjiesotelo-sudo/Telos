@@ -13,3 +13,7 @@ export const propsArray = (cats: string[], props: Record<string, number>): numbe
 export const propsSumOk = (vals: number[]): boolean =>
   vals.length >= 2 && vals.every((v) => Number.isFinite(v) && v > 0)
   && Math.abs(vals.reduce((a, b) => a + b, 0) - 1) <= 0.001
+
+/** Poisson exposure run gate (design convention 11): every PRESENT value must be a number > 0 — log(exposure) must exist. Missing values are the stats module's listwise territory. */
+export const strictlyPositive = (ds: Dataset, col: string): boolean =>
+  ds.rows.every((r) => { const v = r[col]; return v === null || v === undefined || String(v).trim() === '' || (typeof v === 'number' && Number.isFinite(v) && v > 0) })

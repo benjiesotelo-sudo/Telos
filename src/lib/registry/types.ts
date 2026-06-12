@@ -3,7 +3,7 @@ export interface TableSpec { id: string; title: string; columns: ColumnDef[]; ca
 export interface RoleSpec { id: string; label: string; levels: string; arity: string; hint?: string } // hint: drawn helper line under the slot (design §3 — Frequencies)
 export interface OptionSpec { id: string; label: string; value: string; kind: 'display' | 'toggle' | 'number' | 'select' | 'proportions'; default?: boolean | number; choices?: string[]; hint?: string } // default only for interactive kinds; choices: select kind: choices verbatim from the card; value = the drawn default · hint: the card's set-it warning (design §3 — μ₀) · proportions: select equal/custom + per-category number inputs (GoF, design R1)
 export type Level = 'nominal' | 'ordinal' | 'interval' | 'ratio'
-export interface RoleConstraint { roleId: string; levels: Level[]; arity: { min: number; max: number }; categories?: { exact?: number; min?: number } } // max: Infinity allowed
+export interface RoleConstraint { roleId: string; levels: Level[]; arity: { min: number; max: number }; categories?: { exact?: number; min?: number }; tag?: 'count' } // max: Infinity allowed · tag: column must carry this columnMeta tag (B1 — Poisson count outcome)
 export type MinRule =
   | { kind: 'rows-per-group'; n: number }   // t-test, Mann-Whitney
   | { kind: 'complete-pairs'; n: number }   // Paired t, Wilcoxon

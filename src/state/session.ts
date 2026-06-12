@@ -8,7 +8,7 @@ import { slotCompatibility } from '../lib/eligibility/eligibility'
 import { SPECS } from '../lib/registry/catalog'
 import { RUNNERS } from '../lib/results/builders'
 import { getEngine } from '../lib/webr/getEngine'
-import { categoriesOf, propsArray, propsSumOk } from '../lib/data/props'
+import { categoriesOf, propsArray, propsSumOk, strictlyPositive } from '../lib/data/props'
 
 export type StepId = 'welcome' | 'upload' | 'guide' | 'configure-data' | 'pick-tests' | `test:${string}` | 'results'
 export interface FileInfo { name: string; rows: number; cols: number; encoding: string }
@@ -66,6 +66,11 @@ export const gateOk = (s: SessionState, step: StepId): boolean => {
     if (propOpt && t.options[propOpt.id] === 'custom') {
       const col = t.roles[spec.constraints.roles[0].roleId][0]
       if (!col || !propsSumOk(propsArray(categoriesOf(workingDataset(s), col), t.props))) return false
+    }
+    // Poisson exposure (design convention 11): an assigned exposure column must be strictly positive — log(exposure).
+    if (id === 'poisson-negative-binomial') {
+      const ex = t.roles['exposure']?.[0]
+      if (ex && !strictlyPositive(workingDataset(s), ex)) return false
     }
     return true
   }

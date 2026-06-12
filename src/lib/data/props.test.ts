@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { categoriesOf, propsArray, propsSumOk } from './props'
+import { categoriesOf, propsArray, propsSumOk, strictlyPositive } from './props'
 import type { Dataset } from '../stats/types'
 
 const ds: Dataset = { columns: ['m'], rows: [
@@ -20,5 +20,17 @@ describe('props helpers', () => {
     expect(propsSumOk([0.5, 0.25, 0.2])).toBe(false)   // sums to .95
     expect(propsSumOk([0.5, 0.5, 0])).toBe(false)      // zero proportion
     expect(propsSumOk([1])).toBe(false)                // one category
+  })
+})
+
+describe('strictlyPositive (poisson exposure run gate, design convention 11)', () => {
+  const mk = (vals: (number | string | null)[]): Dataset => ({ columns: ['e'], rows: vals.map((v) => ({ e: v })) })
+  it('passes when every present value is a positive number (missing rows are listwise territory)', () => {
+    expect(strictlyPositive(mk([1, 0.5, null, 12]), 'e')).toBe(true)
+  })
+  it('fails on zero, negatives, and non-numeric presence', () => {
+    expect(strictlyPositive(mk([1, 0]), 'e')).toBe(false)
+    expect(strictlyPositive(mk([1, -2]), 'e')).toBe(false)
+    expect(strictlyPositive(mk([1, 'soon']), 'e')).toBe(false)
   })
 })

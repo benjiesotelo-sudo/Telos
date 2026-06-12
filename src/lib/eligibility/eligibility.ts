@@ -15,6 +15,8 @@ export function slotCompatibility(role: RoleConstraint, col: ColumnMeta | undefi
   if (!col.used) return { ok: false, reason: 'column is not marked Use' }
   if (col.level === null) return { ok: false, reason: 'needs a measurement level' }
   if (!role.levels.includes(col.level)) return { ok: false, reason: `needs ${role.levels[0] === 'interval' ? 'an' : 'a'} ${role.levels.join(' / ')} column` }
+  if (role.tag && !col.tags.includes(role.tag))
+    return { ok: false, reason: 'needs a count column (non-negative whole numbers)' }
   if (role.categories) {
     const d = distinct(working, col.name)
     if (role.categories.exact !== undefined && d !== role.categories.exact)
@@ -55,7 +57,9 @@ export function testEligibility(entry: CatalogEntry, spec: TestSpec | null, colu
     const role = spec.constraints.roles[i]
     if (candidates[i].length < role.arity.min) {
       const label = spec.roles.find((r) => r.id === role.roleId)?.label ?? role.roleId
-      return { ok: false, reason: `needs ${role.levels[0] === 'interval' ? 'an' : 'a'} ${role.levels.join(' / ')} column for ${label}` }
+      return { ok: false, reason: role.tag
+        ? `needs a count column (non-negative whole numbers) for ${label}`
+        : `needs ${role.levels[0] === 'interval' ? 'an' : 'a'} ${role.levels.join(' / ')} column for ${label}` }
     }
   }
   const rule = spec.constraints.minRule

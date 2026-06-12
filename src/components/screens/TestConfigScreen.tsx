@@ -78,8 +78,9 @@ export function TestConfigScreen({ testId }: { testId: string }) {
           if (!firstOpen) return 'first run loads the R engine'
           if (firstOpen === `test:${testId}`) {
             const rolesOk = spec.constraints.roles.every((r) => setup.roles[r.roleId].length >= r.arity.min)
-            return rolesOk ? 'custom proportions must sum to 1 to enable Run'
-              : 'fill every required slot here to enable Run · first run loads the R engine'
+            if (!rolesOk) return 'fill every required slot here to enable Run · first run loads the R engine'
+            if (spec.options.some((o) => o.kind === 'proportions')) return 'custom proportions must sum to 1 to enable Run'
+            return 'exposure values must be strictly positive (its log is the offset)'
           }
           return `finish configuring ${SPECS[firstOpen.slice(5)]?.name} to enable Run`
         })()}</span>
