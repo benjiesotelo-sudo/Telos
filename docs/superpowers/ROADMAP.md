@@ -13,17 +13,17 @@ Each slice gets its own design spec + implementation plan here when it starts. S
 | Core tests 1 — 8 tests live (descriptives, t-family, Mann-Whitney, Wilcoxon), multi-test sessions | 2026-06-12 | `specs+plans/2026-06-11-telos-core-tests-1*` |
 | Overnight QA — multi-variable normality (owner-authorized card change), Next button, theme toggle, 7 audit fixes | 2026-06-12 | this file's history; findings in the session record |
 | ANOVA family — 11 tests live (one-way, factorial, RM, **Mixed (new card, owner-ruled 1B×1W)**, nested, Welch's, ANCOVA, MANOVA, MANCOVA, Kruskal-Wallis, Friedman); shared post-hoc/sphericity/adjusted-means backbone; select option kind | 2026-06-12 | `specs+plans/2026-06-12-telos-anova-family*`, spike `reviews/2026-06-12-anova-spike-report.md` |
+| Association — 6 tests live (Pearson, Spearman, Kendall's tau, χ² independence, χ² goodness-of-fit incl. **custom expected proportions (owner-ruled R1)**, Fisher's exact); proportions option kind; grouped-bar figure + hand-V spec amendments (R2/D1) | 2026-06-12 | `specs+plans/2026-06-12-telos-association-family*`, spike `reviews/2026-06-12-association-spike-report.md` |
 
 ## Remaining (in order)
 
 | # | Slice | Tests / scope | Est. sessions | Risk notes |
 |---|---|---|---|---|
-| 1 | Association | ~6: Pearson, Spearman, Kendall, χ² ×2, Fisher | ~0.5 | most pattern-following slice |
-| 2 | Regression & prediction | ~4: simple, multiple, logistic, Poisson/neg-bin | ~1 | bigger output tables |
-| 3 | Econometrics | ~11: ARIMA, ADF/KPSS, Granger, VAR, FE/RE, Hausman, DiD, RDD, IV, PSM | ~1.5–2 | **main risk: package availability under WebR** — spike first |
-| 4 | Latent variables & SEM | ~7: alpha, AVE/CR, EFA, PCA, CB-SEM, PLS-SEM, mediation (R1) | ~2–3 | AMOS-style canvas = new UI surface; full review gauntlet per owner ruling |
-| 5 | Report & export | PDF report, LaTeX, R script, LICENSES in bundle | ~1–2 | client-side APA-7 PDF generation |
-| 6 | Polish & launch | design pass, DRAFT copy confirmations, B-list, feedback URL, analytics, licence, a11y, deploy | ~1 | mostly owner decisions |
+| 1 | Regression & prediction | ~4: simple, multiple, logistic, Poisson/neg-bin | ~1 | bigger output tables |
+| 2 | Econometrics | ~11: ARIMA, ADF/KPSS, Granger, VAR, FE/RE, Hausman, DiD, RDD, IV, PSM | ~1.5–2 | **main risk: package availability under WebR** — spike first |
+| 3 | Latent variables & SEM | ~7: alpha, AVE/CR, EFA, PCA, CB-SEM, PLS-SEM, mediation (R1) | ~2–3 | AMOS-style canvas = new UI surface; full review gauntlet per owner ruling |
+| 4 | Report & export | PDF report, LaTeX, R script, LICENSES in bundle | ~1–2 | client-side APA-7 PDF generation |
+| 5 | Polish & launch | design pass, DRAFT copy confirmations, B-list, feedback URL, analytics, licence, a11y, deploy | ~1 | mostly owner decisions |
 
 ## Process per slice (owner-ruled 2026-06-12, replaces the full gauntlet)
 
