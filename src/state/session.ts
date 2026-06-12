@@ -8,10 +8,11 @@ import { slotCompatibility } from '../lib/eligibility/eligibility'
 import { SPECS } from '../lib/registry/catalog'
 import { RUNNERS } from '../lib/results/builders'
 import { getEngine } from '../lib/webr/getEngine'
+import { categoriesOf, propsArray, propsSumOk } from '../lib/data/props'
 
 export type StepId = 'welcome' | 'upload' | 'guide' | 'configure-data' | 'pick-tests' | `test:${string}` | 'results'
 export interface FileInfo { name: string; rows: number; cols: number; encoding: string }
-export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; blocked: string | null }
+export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>; blocked: string | null }
 export interface TestRun { result: unknown; stale: boolean }
 
 export interface SessionState {
@@ -39,6 +40,7 @@ export interface SessionState {
   addRole: (testId: string, roleId: string, column: string) => void
   removeRole: (testId: string, roleId: string, column: string) => void
   setOption: (testId: string, optionId: string, value: boolean | number | string) => void
+  setProp: (testId: string, category: string, value: number) => void
   goTo: (step: StepId) => void
   runAll: () => Promise<void>
   reset: () => void
@@ -59,7 +61,13 @@ export const gateOk = (s: SessionState, step: StepId): boolean => {
   if (step === 'pick-tests') return s.selection.length > 0
   if (step.startsWith('test:')) {
     const id = step.slice(5); const t = s.setups[id]; const spec = SPECS[id]
-    return !!t && !!spec && !t.blocked && spec.constraints.roles.every((r) => t.roles[r.roleId].length >= r.arity.min)
+    if (!t || !spec || t.blocked || !spec.constraints.roles.every((r) => t.roles[r.roleId].length >= r.arity.min)) return false
+    const propOpt = spec.options.find((o) => o.kind === 'proportions')
+    if (propOpt && t.options[propOpt.id] === 'custom') {
+      const col = t.roles[spec.constraints.roles[0].roleId][0]
+      if (!col || !propsSumOk(propsArray(categoriesOf(workingDataset(s), col), t.props))) return false
+    }
+    return true
   }
   return true // results
 }
@@ -72,8 +80,9 @@ export const canEnter = (s: SessionState, target: StepId): boolean => {
 const freshSetup = (id: string): TestSetup => ({
   roles: Object.fromEntries((SPECS[id]?.constraints.roles ?? []).map((r) => [r.roleId, []])),
   options: Object.fromEntries((SPECS[id]?.options ?? []).filter((o) => o.kind !== 'display').map((o) => [o.id,
-    o.kind === 'select' ? (o.default != null ? String(o.default) : o.value) : o.default!,
+    o.kind === 'select' || o.kind === 'proportions' ? (o.default != null ? String(o.default) : o.value) : o.default!,
   ])),
+  props: {},
   blocked: null,
 })
 
@@ -155,6 +164,9 @@ export const useSession = create<SessionState>((set, get) => {
     }),
     setOption: (testId, optionId, value: boolean | number | string) => edit((s) => ({
       setups: { ...s.setups, [testId]: { ...s.setups[testId], options: { ...s.setups[testId].options, [optionId]: value } } },
+    })),
+    setProp: (testId, category, value: number) => edit((s) => ({
+      setups: { ...s.setups, [testId]: { ...s.setups[testId], props: { ...s.setups[testId].props, [category]: value } } },
     })),
     goTo: (step) => { if (canEnter(get(), step)) set({ step }) },
     runAll: async () => {

@@ -43,7 +43,7 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     useSession.getState().addRole('independent-t-test', 'group', 'group')
   }
   it('selection creates a setup with the drawn defaults (equal variance OFF)', () => {
-    expect(useSession.getState().setups['independent-t-test']).toEqual({ roles: { outcome: [], group: [] }, options: { equalVariance: false }, blocked: null })
+    expect(useSession.getState().setups['independent-t-test']).toEqual({ roles: { outcome: [], group: [] }, options: { equalVariance: false }, props: {}, blocked: null })
   })
   it('a level edit that breaks an assigned role blocks the config with the reason and marks results stale', () => {
     assign(); fakeRun()
@@ -110,11 +110,11 @@ describe('select option kind', () => {
   beforeEach(() => useSession.getState().reset())
   it('select option initialises with its drawn default (o.value)', () => {
     // inject a setup whose option is a string (select kind stores value as string)
-    useSession.setState((s) => ({ setups: { ...s.setups, 'fake-test': { roles: {}, options: { posthoc: 'Tukey HSD' }, blocked: null } } }))
+    useSession.setState((s) => ({ setups: { ...s.setups, 'fake-test': { roles: {}, options: { posthoc: 'Tukey HSD' }, props: {}, blocked: null } } }))
     expect(useSession.getState().setups['fake-test'].options.posthoc).toBe('Tukey HSD')
   })
   it('setOption accepts a string value and updates the store', () => {
-    useSession.setState((s) => ({ selection: [...s.selection, 'fake-test'], setups: { ...s.setups, 'fake-test': { roles: {}, options: { posthoc: 'Tukey HSD' }, blocked: null } } }))
+    useSession.setState((s) => ({ selection: [...s.selection, 'fake-test'], setups: { ...s.setups, 'fake-test': { roles: {}, options: { posthoc: 'Tukey HSD' }, props: {}, blocked: null } } }))
     useSession.getState().setOption('fake-test', 'posthoc', 'Bonferroni')
     expect(useSession.getState().setups['fake-test'].options.posthoc).toBe('Bonferroni')
   })
@@ -123,4 +123,13 @@ describe('select option kind', () => {
     useSession.setState({ runStatus: 'running' })
     expect(useSession.getState().runStatus).toBe('running')
   })
+})
+
+it('setProp stales every run (any config edit stales ALL runs)', () => {
+  useSession.setState({ selection: ['independent-t-test'],
+    setups: { 'independent-t-test': { roles: { outcome: [], group: [] }, options: {}, props: {}, blocked: null } },
+    runs: { 'independent-t-test': { result: {} as never, stale: false } } })
+  useSession.getState().setProp('independent-t-test', 'a', 0.4)
+  expect(useSession.getState().runs['independent-t-test'].stale).toBe(true)
+  expect(useSession.getState().setups['independent-t-test'].props).toEqual({ a: 0.4 })
 })
