@@ -17,3 +17,6 @@ export const propsSumOk = (vals: number[]): boolean =>
 /** Poisson exposure run gate (design convention 11): every PRESENT value must be a number > 0 — log(exposure) must exist. Missing values are the stats module's listwise territory. */
 export const strictlyPositive = (ds: Dataset, col: string): boolean =>
   ds.rows.every((r) => { const v = r[col]; return v === null || v === undefined || String(v).trim() === '' || (typeof v === 'number' && Number.isFinite(v) && v > 0) })
+
+/** level-select default (B2): the SECOND level alphabetically — matches the drawn 'passed · second level' and R glm's modeled (second) factor level. */
+export const defaultEventLevel = (cats: string[]): string => cats[1] ?? cats[0] ?? ''

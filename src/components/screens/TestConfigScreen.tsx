@@ -30,6 +30,21 @@ export function TestConfigScreen({ testId }: { testId: string }) {
               onChange={(e) => s.setOption(testId, o.id, e.target.checked)} style={{ marginRight: 6 }} />
             {o.label} ({o.value})
           </label>
+        ) : o.kind === 'level-select' ? (
+          (() => {
+            const col = setup.roles[o.fromRole!]?.[0]
+            const cats = col ? categoriesOf(workingDataset(s), col) : []
+            return (
+              <label key={o.id} className="pill">
+                {o.label}{' '}
+                <select aria-label={o.label} value={String(setup.options[o.id] ?? '')} disabled={running || !col}
+                  onChange={(e) => s.setOption(testId, o.id, e.target.value)}
+                  style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
+                  {cats.length ? cats.map((c) => <option key={c} value={c}>{c}</option>) : <option value="">—</option>}
+                </select>
+              </label>
+            )
+          })()
         ) : o.kind === 'select' || o.kind === 'proportions' ? (
           <label key={o.id} className="pill">
             {o.label}{' '}
@@ -79,6 +94,7 @@ export function TestConfigScreen({ testId }: { testId: string }) {
           if (firstOpen === `test:${testId}`) {
             const rolesOk = spec.constraints.roles.every((r) => setup.roles[r.roleId].length >= r.arity.min)
             if (!rolesOk) return 'fill every required slot here to enable Run · first run loads the R engine'
+            if (spec.options.some((o) => o.kind === 'level-select')) return 'pick an event category to enable Run'
             if (spec.options.some((o) => o.kind === 'proportions')) return 'custom proportions must sum to 1 to enable Run'
             return 'exposure values must be strictly positive (its log is the offset)'
           }

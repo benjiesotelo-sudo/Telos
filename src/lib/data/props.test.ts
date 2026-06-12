@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { categoriesOf, propsArray, propsSumOk, strictlyPositive } from './props'
+import { categoriesOf, propsArray, propsSumOk, strictlyPositive, defaultEventLevel } from './props'
 import type { Dataset } from '../stats/types'
 
 const ds: Dataset = { columns: ['m'], rows: [
@@ -20,6 +20,16 @@ describe('props helpers', () => {
     expect(propsSumOk([0.5, 0.25, 0.2])).toBe(false)   // sums to .95
     expect(propsSumOk([0.5, 0.5, 0])).toBe(false)      // zero proportion
     expect(propsSumOk([1])).toBe(false)                // one category
+  })
+})
+
+describe('defaultEventLevel (level-select default, B2)', () => {
+  it('picks the SECOND level alphabetically (drawn "passed · second level"; glm models the second factor level)', () => {
+    expect(defaultEventLevel(['no', 'yes'])).toBe('yes')
+  })
+  it('degrades to the only level, then to empty', () => {
+    expect(defaultEventLevel(['only'])).toBe('only')
+    expect(defaultEventLevel([])).toBe('')
   })
 })
 

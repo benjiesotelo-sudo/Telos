@@ -8,7 +8,7 @@ import { slotCompatibility } from '../lib/eligibility/eligibility'
 import { SPECS } from '../lib/registry/catalog'
 import { RUNNERS } from '../lib/results/builders'
 import { getEngine } from '../lib/webr/getEngine'
-import { categoriesOf, propsArray, propsSumOk, strictlyPositive } from '../lib/data/props'
+import { categoriesOf, propsArray, propsSumOk, strictlyPositive, defaultEventLevel } from '../lib/data/props'
 
 export type StepId = 'welcome' | 'upload' | 'guide' | 'configure-data' | 'pick-tests' | `test:${string}` | 'results'
 export interface FileInfo { name: string; rows: number; cols: number; encoding: string }
@@ -67,6 +67,11 @@ export const gateOk = (s: SessionState, step: StepId): boolean => {
       const col = t.roles[spec.constraints.roles[0].roleId][0]
       if (!col || !propsSumOk(propsArray(categoriesOf(workingDataset(s), col), t.props))) return false
     }
+    const lvlOpt = spec.options.find((o) => o.kind === 'level-select')
+    if (lvlOpt) {
+      const col = t.roles[lvlOpt.fromRole!]?.[0]
+      if (!col || !categoriesOf(workingDataset(s), col).includes(String(t.options[lvlOpt.id]))) return false
+    }
     // Poisson exposure (design convention 11): an assigned exposure column must be strictly positive — log(exposure).
     if (id === 'poisson-negative-binomial') {
       const ex = t.roles['exposure']?.[0]
@@ -85,11 +90,21 @@ export const canEnter = (s: SessionState, target: StepId): boolean => {
 const freshSetup = (id: string): TestSetup => ({
   roles: Object.fromEntries((SPECS[id]?.constraints.roles ?? []).map((r) => [r.roleId, []])),
   options: Object.fromEntries((SPECS[id]?.options ?? []).filter((o) => o.kind !== 'display').map((o) => [o.id,
+    o.kind === 'level-select' ? '' :
     o.kind === 'select' || o.kind === 'proportions' ? (o.default != null ? String(o.default) : o.value) : o.default!,
   ])),
   props: {},
   blocked: null,
 })
+
+/** B2: a level-select option follows its fromRole column — reset to the default (second level) on assign/reassign, '' on unassign. Edits to OTHER roles never touch the stored choice. */
+const syncLevelSelect = (s: SessionState, testId: string, roleId: string, setup: TestSetup): TestSetup => {
+  const opt = SPECS[testId]?.options.find((o) => o.kind === 'level-select' && o.fromRole === roleId)
+  if (!opt) return setup
+  const col = setup.roles[roleId][0]
+  const value = col ? defaultEventLevel(categoriesOf(workingDataset(s), col)) : ''
+  return { ...setup, options: { ...setup.options, [opt.id]: value } }
+}
 
 /** Re-evaluate every later gate after an upstream edit: keep still-valid work, block invalid configs
  *  with the reason, mark rendered results stale (the spec's navcap rules, in one place). */
@@ -161,11 +176,13 @@ export const useSession = create<SessionState>((set, get) => {
       if (!setup || !role) return {}
       const cur = setup.roles[roleId]
       if (cur.includes(column) || cur.length >= role.arity.max) return {}
-      return { setups: { ...s.setups, [testId]: { ...setup, roles: { ...setup.roles, [roleId]: [...cur, column] } } } }
+      const next = syncLevelSelect(s, testId, roleId, { ...setup, roles: { ...setup.roles, [roleId]: [...cur, column] } })
+      return { setups: { ...s.setups, [testId]: next } }
     }),
     removeRole: (testId, roleId, column) => edit((s) => {
       const setup = s.setups[testId]; if (!setup) return {}
-      return { setups: { ...s.setups, [testId]: { ...setup, roles: { ...setup.roles, [roleId]: setup.roles[roleId].filter((c) => c !== column) } } } }
+      const next = syncLevelSelect(s, testId, roleId, { ...setup, roles: { ...setup.roles, [roleId]: setup.roles[roleId].filter((c) => c !== column) } })
+      return { setups: { ...s.setups, [testId]: next } }
     }),
     setOption: (testId, optionId, value: boolean | number | string) => edit((s) => ({
       setups: { ...s.setups, [testId]: { ...s.setups[testId], options: { ...s.setups[testId].options, [optionId]: value } } },
