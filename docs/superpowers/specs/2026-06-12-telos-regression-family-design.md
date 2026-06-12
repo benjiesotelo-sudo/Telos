@@ -88,8 +88,8 @@ slice-end ratify list):**
    (e.g. `group: b`) — prettier than R's glued `groupb`, unambiguous for multi-level factors.
 2. **β (standardized coefficients)** via `parameters::standardise_parameters` (refit method, the
    card's R map); hand fallback if the package fails the spike: β = B·SD(x)/SD(y) for numeric
-   terms (dummy terms standardized the same way, matching the refit values — spike pins
-   equivalence before the fallback is trusted).
+   terms and **β = B/SD(y) for dummy terms** (the refit convention — spike-pinned 2026-06-12;
+   `parameters` ships, so the fallback is documentation-grade).
 3. **Model-fit SE** (simple linear Table 1) = residual standard error, `summary(m)$sigma`.
 4. **VIF** (multiple linear) via `car::vif`; with exactly 1 predictor VIF is undefined
    (`car::vif` errors) → VIF cells render em-dash. Multi-level categorical predictors:
