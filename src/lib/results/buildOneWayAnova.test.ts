@@ -59,7 +59,7 @@ describe('buildOneWayAnova (pure, no engine)', () => {
   })
 
   it('APA string has spike numbers with entity-encoded eta2 placeholder filled', () => {
-    expect(c.apa).toBe('A one-way ANOVA found an effect of group, F(2,57)=2.81, p=.069, &eta;&sup2;=0.09. Tukey post-hoc tests showed…')
+    expect(c.apa).toBe('A one-way ANOVA found an effect of group, F(2,57)=2.81, p=.069, η²=0.09. Tukey post-hoc tests showed…')
   })
 
   it('APA p-clause flips to p<.001 when p is tiny', () => {
