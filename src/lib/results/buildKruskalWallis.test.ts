@@ -57,7 +57,7 @@ describe('buildKruskalWallis', () => {
   })
 
   it('APA string matches the spike numbers', () => {
-    expect(c.apa).toBe('A Kruskal-Wallis test found a difference, H(2)=6.56, p=.038, &epsilon;&sup2;=0.11.')
+    expect(c.apa).toBe('A Kruskal-Wallis test found a difference, H(2)=6.56, p=.038, ε²=0.11.')
   })
 
   it('p<.001 branch flips correctly', () => {

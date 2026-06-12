@@ -26,7 +26,7 @@ export const KRUSKAL_WALLIS: TestSpec = {
     { id: 'rank-summary', domId: 'kruskal-wallis-rank-summary', title: 'Rank summary',
       columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'meanRank', label: 'Mean rank' }] },
     { id: 'kruskal-wallis', title: 'Kruskal-Wallis test',
-      columns: [{ key: 'h', label: 'H' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'eps2', label: '&epsilon;&sup2;' }] },
+      columns: [{ key: 'h', label: 'H' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'eps2', label: 'ε²' }] },
     { id: 'posthoc', domId: 'kruskal-wallis-posthoc', title: 'Dunn post-hoc',
       columns: [{ key: 'pair', label: 'Pair' }, { key: 'z', label: 'Z' }, { key: 'padj', label: 'p', sub: 'adj' }] },
   ],
@@ -34,8 +34,8 @@ export const KRUSKAL_WALLIS: TestSpec = {
   howToRead:
     'The nonparametric counterpart to one-way ANOVA. The H/p tests whether any group tends to have systematically higher or lower values (stochastic dominance) — ' +
     'read it as a "median difference" only when the groups have similar distribution shapes. ' +
-    "If significant, Dunn's post-hoc shows which pairs differ, with adjusted p-values. &epsilon;&sup2; is the effect size.",
-  apaTemplate: 'A Kruskal-Wallis test found a difference, H({df})={h}, p={p}, &epsilon;&sup2;={eps2}.',
-  rMap: 'kruskal.test() → H, df, p · rstatix::kruskal_effsize() / effectsize::rank_epsilon_squared() → &epsilon;&sup2; · dunn.test/FSA::dunnTest() → Table 3',
+    "If significant, Dunn's post-hoc shows which pairs differ, with adjusted p-values. ε² is the effect size.",
+  apaTemplate: 'A Kruskal-Wallis test found a difference, H({df})={h}, p={p}, ε²={eps2}.',
+  rMap: 'kruskal.test() → H, df, p · rstatix::kruskal_effsize() / effectsize::rank_epsilon_squared() → ε² · dunn.test/FSA::dunnTest() → Table 3',
   bundleFiles: ['table_rank-summary.png', 'table_kruskal-wallis.png', 'table_posthoc.png', 'figure_boxplot.png'],
 }
