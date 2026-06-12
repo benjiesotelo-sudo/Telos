@@ -714,7 +714,7 @@
       <div class="howread"><p><b>R&sup2;</b> is the share of outcome variance explained. The predictor's <b>B</b> is the slope (change in outcome per unit), with <b>p</b> testing whether it differs from zero and the <b>CI</b> showing precision. <b>&beta;</b> is the standardized slope (change in outcome in SDs per 1 SD change in the predictor), useful for comparing effect sizes on a common scale.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The predictor significantly predicted the outcome, <i>B</i>=__, <i>t</i>(__)=__, <i>p</i>=__, R&sup2;=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>lm()</code> &rarr; Tables 1&ndash;2 &middot; <code>parameters::standardise_parameters()</code> &rarr; &beta; &middot; <code>broom::glance()/tidy()</code> &middot; <code>ggplot2</code> &rarr; figures</div>
+        <div class="m"><b>R map:</b> <code>lm()</code> &rarr; Tables 1&ndash;2 &middot; <code>parameters::standardise_parameters()</code> &rarr; &beta; &middot; <code>ggplot2</code> &rarr; figures</div>
         <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; figure_fit.png &middot; figure_residuals.png</div>
       </div>
     </div>
@@ -757,7 +757,7 @@
       <div class="howread"><p>Each predictor's <b>odds ratio</b> tells how the odds of the outcome change per unit (>1 increases, &lt;1 decreases); <b>p</b> tests significance (read it from the <b>z</b> column, z = B/SE). Model fit and the ROC/AUC show how well it classifies overall.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Predictor X was associated with the outcome, OR=__, 95% CI [__, __], <i>p</i>=__ (AUC=__).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>glm(family=binomial)</code> &rarr; B/SE/z/p &middot; <code>exp(cbind(OR=coef(m), confint(m)))</code> &rarr; OR + 95% CI &middot; <code>performance::r2_nagelkerke(m)</code> &rarr; Nagelkerke R&sup2; &middot; <code>AIC(m)</code> &rarr; AIC &middot; <code>anova(m, test="Chisq")</code> &rarr; omnibus &chi;&sup2; / &minus;2LL &middot; <code>caret::confusionMatrix()</code> &rarr; Table 3 (classification) &middot; <code>pROC</code> &rarr; ROC/AUC</div>
+        <div class="m"><b>R map:</b> <code>glm(family=binomial)</code> &rarr; B/SE/z/p &middot; <code>exp(cbind(OR=coef(m), confint(m)))</code> &rarr; OR + 95% CI &middot; <code>performance::r2_nagelkerke(m)</code> &rarr; Nagelkerke R&sup2; &middot; <code>AIC(m)</code> &rarr; AIC &middot; <code>anova(m, test="Chisq")</code> &rarr; omnibus &chi;&sup2; / &minus;2LL &middot; <code>table(predicted, observed)</code> &rarr; Table 3 (classification) &middot; <code>pROC</code> &rarr; ROC/AUC</div>
         <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; table_classification.png &middot; figure_roc.png</div>
       </div>
     </div>

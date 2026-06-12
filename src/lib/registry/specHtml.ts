@@ -13,6 +13,8 @@ export const decode = (s: string) => s
   .replace(/&sup2;/g, '²').replace(/&eacute;/g, 'é').replace(/&plusmn;/g, '±')
   // Association-family cards
   .replace(/&rho;/g, 'ρ').replace(/&tau;/g, 'τ').replace(/&ge;/g, '≥').replace(/&lt;/g, '<')
+  // Regression-family cards
+  .replace(/&beta;/g, 'β')
   .replace(/&amp;/g, '&')
 
 export const strip = (s: string) => decode(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim()
