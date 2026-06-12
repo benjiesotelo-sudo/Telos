@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { slotCompatibility, testEligibility, completeRowsPerGroup } from './eligibility'
+import { slotCompatibility, testEligibility, completeRowsPerGroup, nestedLevelReuse } from './eligibility'
 import { INDEPENDENT_T_TEST } from '../registry/independentTTest'
 import { CATALOG } from '../registry/catalog'
 import type { ColumnMeta } from '../data/columnMeta'
 import type { Dataset } from '../stats/types'
+import type { Level, TestSpec } from '../registry/types'
 
 const col = (name: string, level: ColumnMeta['level'], used = true): ColumnMeta =>
   ({ name, detected: 'float64', tags: [], level, used })
@@ -52,5 +53,55 @@ describe('testEligibility', () => {
       { score: 1, group: 'a' }, { score: 2, group: 'a' }, { score: 3, group: 'b' },
     ] }
     expect(testEligibility(tt, INDEPENDENT_T_TEST, cols, tiny).reason).toBe('needs at least 3 complete rows per group')
+  })
+})
+
+describe('slotCompatibility categories.min', () => {
+  const threeDs: Dataset = { columns: ['g'], rows: [{ g: 'a' }, { g: 'b' }, { g: 'c' }] }
+  const twoDs: Dataset = { columns: ['g'], rows: [{ g: 'a' }, { g: 'b' }] }
+  const minRole = { roleId: 'factor', levels: ['nominal', 'ordinal'] as Level[], arity: { min: 1, max: 1 }, categories: { min: 3 } }
+  it('rejects a 2-category column when min is 3', () =>
+    expect(slotCompatibility(minRole, col('g', 'nominal'), twoDs)).toEqual({ ok: false, reason: 'needs 3+ categories' }))
+  it('accepts a 3-category column when min is 3', () =>
+    expect(slotCompatibility(minRole, col('g', 'nominal'), threeDs)).toEqual({ ok: true, reason: null }))
+})
+
+describe('testEligibility complete-wide-rows', () => {
+  const wideSpec: TestSpec = {
+    id: 'rm-test', name: 'RM', question: 'q?', roles: [
+      { id: 'measures', label: 'Measures', levels: 'interval / ratio', arity: '2+' },
+    ],
+    options: [], tables: [], howToRead: '', apaTemplate: '', rMap: '', bundleFiles: [],
+    constraints: {
+      roles: [{ roleId: 'measures', levels: ['interval', 'ratio'] as Level[], arity: { min: 2, max: Infinity } }],
+      minRule: { kind: 'complete-wide-rows', n: 3 },
+    },
+  }
+  const wideEntry = { id: 'rm-test', name: 'RM', family: 'Group comparisons', status: 'available' as const }
+  const t1 = col('t1', 'ratio'); const t2 = col('t2', 'ratio')
+  const bigWide: Dataset = { columns: ['t1', 't2'], rows: [
+    { t1: 1, t2: 2 }, { t1: 3, t2: 4 }, { t1: 5, t2: 6 },
+  ] }
+  const smallWide: Dataset = { columns: ['t1', 't2'], rows: [
+    { t1: 1, t2: 2 }, { t1: 3, t2: null },
+  ] }
+  it('passes when ≥n complete pairs exist across two measure columns', () =>
+    expect(testEligibility(wideEntry, wideSpec, [t1, t2], bigWide)).toEqual({ ok: true, reason: null }))
+  it('fails when no pair reaches n complete rows', () =>
+    expect(testEligibility(wideEntry, wideSpec, [t1, t2], smallWide)).toEqual({ ok: false, reason: 'needs at least 3 complete rows across two repeated-measure columns' }))
+})
+
+describe('nestedLevelReuse', () => {
+  it('returns child labels that appear under more than one parent', () => {
+    const crossDs: Dataset = { columns: ['parent', 'child'], rows: [
+      { parent: 'a', child: 'x' }, { parent: 'a', child: 'y' }, { parent: 'b', child: 'x' },
+    ] }
+    expect(nestedLevelReuse(crossDs, 'parent', 'child')).toEqual(['x'])
+  })
+  it('returns [] when nesting is clean (each child under exactly one parent)', () => {
+    const cleanDs: Dataset = { columns: ['parent', 'child'], rows: [
+      { parent: 'a', child: 'x' }, { parent: 'a', child: 'y' }, { parent: 'b', child: 'z' },
+    ] }
+    expect(nestedLevelReuse(cleanDs, 'parent', 'child')).toEqual([])
   })
 })

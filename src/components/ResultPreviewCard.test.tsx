@@ -27,4 +27,15 @@ describe('chassis renders each card shape (design §5)', () => {
     const two = { ...base, figures: [{ caption: 'Shape', type: 'histogram', png }, { caption: 'Shape', type: 'qq', png }] }
     expect(render(two).match(/<b>Figure\.<\/b>/g)).toHaveLength(2)
   })
+  it('ColumnDef.suffix renders after the sub in the table header', () => {
+    const withSuffix: CardContent = { ...base, tables: [{
+      spec: { id: 'one', title: 'Only table', columns: [{ key: 'a', label: 'M', sub: 'diff', suffix: ' (adj.)' }] },
+      rows: [{ a: '1.23' }],
+    }] }
+    const html = render(withSuffix)
+    expect(html).toContain('<sub>diff</sub>')
+    expect(html).toContain(' (adj.)')
+    // sub comes before suffix
+    expect(html.indexOf('<sub>diff</sub>')).toBeLessThan(html.indexOf(' (adj.)'))
+  })
 })

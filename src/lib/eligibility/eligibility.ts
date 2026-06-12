@@ -15,8 +15,13 @@ export function slotCompatibility(role: RoleConstraint, col: ColumnMeta | undefi
   if (!col.used) return { ok: false, reason: 'column is not marked Use' }
   if (col.level === null) return { ok: false, reason: 'needs a measurement level' }
   if (!role.levels.includes(col.level)) return { ok: false, reason: `needs ${role.levels[0] === 'interval' ? 'an' : 'a'} ${role.levels.join(' / ')} column` }
-  if (role.categories && distinct(working, col.name) !== role.categories.exact)
-    return { ok: false, reason: `needs exactly ${role.categories.exact} categories` }
+  if (role.categories) {
+    const d = distinct(working, col.name)
+    if (role.categories.exact !== undefined && d !== role.categories.exact)
+      return { ok: false, reason: `needs exactly ${role.categories.exact} categories` }
+    if (role.categories.min !== undefined && d < role.categories.min)
+      return { ok: false, reason: `needs ${role.categories.min}+ categories` }
+  }
   return { ok: true, reason: null }
 }
 
@@ -71,6 +76,24 @@ export function testEligibility(entry: CatalogEntry, spec: TestSpec | null, colu
     if (candidates[0].some((c) => numericValues(working, c.name) >= rule.n)) return { ok: true, reason: null }
     return { ok: false, reason: `needs at least ${rule.n} values` }
   }
+  if (rule.kind === 'complete-wide-rows') {
+    const measures = candidates[candidates.length - 1] // the repeated-measures role is last by convention in this family
+    for (const a of measures) for (const b of measures)
+      if (a.name !== b.name && completePairs(working, a.name, b.name) >= rule.n) return { ok: true, reason: null }
+    return { ok: false, reason: `needs at least ${rule.n} complete rows across two repeated-measure columns` }
+  }
   if (candidates[0].length >= rule.n) return { ok: true, reason: null } // 'used-columns'
   return { ok: false, reason: `needs at least ${rule.n} usable column${rule.n > 1 ? 's' : ''}` }
+}
+
+/** Design §5.4: child levels appearing under >1 parent level (nested ANOVA sanity check). */
+export function nestedLevelReuse(ds: Dataset, parent: string, child: string): string[] {
+  const seen = new Map<string, Set<string>>()
+  for (const r of ds.rows) {
+    const p = r[parent], c = r[child]
+    if (p == null || c == null || String(p).trim() === '' || String(c).trim() === '') continue
+    if (!seen.has(String(c))) seen.set(String(c), new Set())
+    seen.get(String(c))!.add(String(p))
+  }
+  return [...seen.entries()].filter(([, ps]) => ps.size > 1).map(([c]) => c).sort()
 }

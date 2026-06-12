@@ -11,7 +11,7 @@ import { getEngine } from '../lib/webr/getEngine'
 
 export type StepId = 'welcome' | 'upload' | 'guide' | 'configure-data' | 'pick-tests' | `test:${string}` | 'results'
 export interface FileInfo { name: string; rows: number; cols: number; encoding: string }
-export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number>; blocked: string | null }
+export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; blocked: string | null }
 export interface TestRun { result: unknown; stale: boolean }
 
 export interface SessionState {
@@ -38,7 +38,7 @@ export interface SessionState {
   toggleSelection: (id: string) => void
   addRole: (testId: string, roleId: string, column: string) => void
   removeRole: (testId: string, roleId: string, column: string) => void
-  setOption: (testId: string, optionId: string, value: boolean | number) => void
+  setOption: (testId: string, optionId: string, value: boolean | number | string) => void
   goTo: (step: StepId) => void
   runAll: () => Promise<void>
   reset: () => void
@@ -71,7 +71,9 @@ export const canEnter = (s: SessionState, target: StepId): boolean => {
 
 const freshSetup = (id: string): TestSetup => ({
   roles: Object.fromEntries((SPECS[id]?.constraints.roles ?? []).map((r) => [r.roleId, []])),
-  options: Object.fromEntries((SPECS[id]?.options ?? []).filter((o) => o.kind !== 'display').map((o) => [o.id, o.default!])),
+  options: Object.fromEntries((SPECS[id]?.options ?? []).filter((o) => o.kind !== 'display').map((o) => [o.id,
+    o.kind === 'select' ? (o.default != null ? String(o.default) : o.value) : o.default!,
+  ])),
   blocked: null,
 })
 
@@ -151,7 +153,7 @@ export const useSession = create<SessionState>((set, get) => {
       const setup = s.setups[testId]; if (!setup) return {}
       return { setups: { ...s.setups, [testId]: { ...setup, roles: { ...setup.roles, [roleId]: setup.roles[roleId].filter((c) => c !== column) } } } }
     }),
-    setOption: (testId, optionId, value) => edit((s) => ({
+    setOption: (testId, optionId, value: boolean | number | string) => edit((s) => ({
       setups: { ...s.setups, [testId]: { ...s.setups[testId], options: { ...s.setups[testId].options, [optionId]: value } } },
     })),
     goTo: (step) => { if (canEnter(get(), step)) set({ step }) },

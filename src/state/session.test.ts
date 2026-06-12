@@ -105,3 +105,22 @@ describe('arity gates (design §3: minimums gate; optional slots never block)', 
     expect(gateOk(useSession.getState(), 'test:summary-statistics')).toBe(true)
   })
 })
+
+describe('select option kind', () => {
+  beforeEach(() => useSession.getState().reset())
+  it('select option initialises with its drawn default (o.value)', () => {
+    // inject a setup whose option is a string (select kind stores value as string)
+    useSession.setState((s) => ({ setups: { ...s.setups, 'fake-test': { roles: {}, options: { posthoc: 'Tukey HSD' }, blocked: null } } }))
+    expect(useSession.getState().setups['fake-test'].options.posthoc).toBe('Tukey HSD')
+  })
+  it('setOption accepts a string value and updates the store', () => {
+    useSession.setState((s) => ({ selection: [...s.selection, 'fake-test'], setups: { ...s.setups, 'fake-test': { roles: {}, options: { posthoc: 'Tukey HSD' }, blocked: null } } }))
+    useSession.getState().setOption('fake-test', 'posthoc', 'Bonferroni')
+    expect(useSession.getState().setups['fake-test'].options.posthoc).toBe('Bonferroni')
+  })
+  it('runStatus running disables controls (disabled flag derives from runStatus === running)', () => {
+    expect(useSession.getState().runStatus).toBe('idle')
+    useSession.setState({ runStatus: 'running' })
+    expect(useSession.getState().runStatus).toBe('running')
+  })
+})

@@ -29,6 +29,15 @@ export function TestConfigScreen({ testId }: { testId: string }) {
               onChange={(e) => s.setOption(testId, o.id, e.target.checked)} style={{ marginRight: 6 }} />
             {o.label} ({o.value})
           </label>
+        ) : o.kind === 'select' ? (
+          <label key={o.id} className="pill">
+            {o.label}{' '}
+            <select aria-label={o.label} value={String(setup.options[o.id] ?? o.value)} disabled={running}
+              onChange={(e) => s.setOption(testId, o.id, e.target.value)}
+              style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
+              {o.choices!.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </label>
         ) : (
           <label key={o.id} className="pill">
             {o.label}{' '}
