@@ -2,7 +2,7 @@
 
 Browser-based statistical analysis for thesis students. All computation runs client-side in WebR (R compiled to WebAssembly) — data never leaves the browser.
 
-The app is a seven-step guided flow: **Welcome → Upload** (CSV or Excel with a sheet picker) **→ Terms guide** (measurement levels, missingness, assumptions) **→ Configure data** (column types and levels, missing-data policy) **→ Pick a test** (46 tests drawn from the spec tree; 8 of the 46 tests run live (descriptives, frequencies, normality, the t-test family, Mann-Whitney, Wilcoxon); the rest remain greyed with honest reasons) **→ Configure test** (drag columns into role slots) **→ Results / export** (APA table, figures, how-to-read, zip download).
+The app is a seven-step guided flow: **Welcome → Upload** (CSV or Excel with a sheet picker) **→ Terms guide** (measurement levels, missingness, assumptions) **→ Configure data** (column types and levels, missing-data policy) **→ Pick a test** (47 tests drawn from the spec tree; 19 of the 47 run live: descriptives, frequencies, normality, the t-test family, the full ANOVA family (one-way, factorial, repeated-measures, mixed, nested, Welch's, ANCOVA, MANOVA, MANCOVA), Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman; the rest remain greyed with honest reasons) **→ Configure test** (drag columns into role slots) **→ Results / export** (APA table, figures, how-to-read, zip download).
 
 Design language: dominantly white tool surfaces on a warm paper background, Workday-style numbered stepper (✓ done · blue-ring current · gray locked), blue `#185fa5` as the single accent, Crimson Pro in page titles only.
 
@@ -11,7 +11,8 @@ Design language: dominantly white tool surfaces on a warm paper background, Work
 ```bash
 npm install          # install deps + postinstall copies WebR runtime to public/webr/
 npm run dev          # dev server at http://localhost:5173
-npm test             # vitest unit tests (36 files / 166 tests; engine suites run serialized, ~8 minutes)
+npm test             # vitest unit tests (72 files / 402 tests; engine suites run serialized, ~12 minutes)
+npm run test:fast    # everything except the WebR engine suites — the seconds-fast inner loop
 npm run e2e          # playwright test -- installs Chromium itself on first run
 npm run build        # tsc + copy-webr + vite build → dist/
 npm run preview      # serve dist/ locally for manual check
