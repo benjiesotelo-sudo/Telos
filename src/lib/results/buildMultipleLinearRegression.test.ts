@@ -1,0 +1,41 @@
+import { describe, it, expect } from 'vitest'
+import { buildMultipleLinearRegression } from './buildMultipleLinearRegression'
+import { MULTIPLE_LINEAR_REGRESSION } from '../registry/multipleLinearRegression'
+import type { MultipleLinearResult } from '../stats/multipleLinearRegression'
+
+const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
+// The spike's pinned numbers (multiple-linear.csv).
+const res: MultipleLinearResult = { outcome: 'post_score', standardize: false,
+  r2: 0.750223512, adjR2: 0.713491675, f: 20.424339860, df1: 5, df2: 34, p: 2.245462388e-9,
+  terms: [
+    { term: '(Intercept)', b: 20.361340940, se: 6.030400820, beta: null, t: 3.376449021, p: 0.001851288, ciLow: 8.106091987, ciHigh: 32.616589900, vif: null },
+    { term: 'pre_score', b: 0.612871402, se: 0.075712457, beta: 0.775421855, t: 8.094723475, p: 1.941055777e-9, ciLow: 0.459005177, ciHigh: 0.766737627, vif: 1.249106308 },
+    { term: 'age', b: 0.018242579, se: 0.067402312, beta: 0.027593357, t: 0.270652118, p: 0.788294904, ciLow: -0.118735401, ciHigh: 0.155220558, vif: 1.414860417 },
+    { term: 'group: b', b: 5.353172626, se: 1.642693905, beta: 0.564629882, t: 3.258776701, p: 0.002542392, ciLow: 2.014816956, ciHigh: 8.691528296, vif: 1.037328861 },
+    { term: 'method: online', b: -2.049172535, se: 2.021575603, beta: -0.216138004, t: -1.013651199, p: 0.317908726, ciLow: -6.157508455, ciHigh: 2.059163385, vif: 1.247536921 },
+    { term: 'method: workshop', b: -3.247840455, se: 2.272989373, beta: -0.342568398, t: -1.428885016, p: 0.162160847, ciLow: -7.867110628, ciHigh: 1.371429717, vif: 1.247536921 },
+  ],
+  n: 40, nExcluded: 0, figResidualsPng: png }
+
+describe('buildMultipleLinearRegression', () => {
+  it('standardize OFF (the drawn default) → β cells em-dash; intercept β/VIF blank; VIF filled (GVIF convention)', () => {
+    const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res)
+    expect(c.tables[0].rows).toEqual([{ r2: '0.75', adjR2: '0.71', f: '20.42', df1: '5', df2: '34', p: '<.001' }])
+    expect(c.tables[1].rows[0]).toEqual({ term: '(Intercept)', b: '20.36', se: '6.03', beta: '', t: '3.38', p: '.002', ci: '[8.11, 32.62]', vif: '' })
+    expect(c.tables[1].rows[1]).toEqual({ term: 'pre_score', b: '0.61', se: '0.08', beta: '—', t: '8.09', p: '<.001', ci: '[0.46, 0.77]', vif: '1.25' })
+    expect(c.tables[1].rows[4]).toEqual({ term: 'method: online', b: '−2.05', se: '2.02', beta: '—', t: '−1.01', p: '.318', ci: '[−6.16, 2.06]', vif: '1.25' })
+  })
+  it('standardize ON → β fills (R1)', () => {
+    const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, { ...res, standardize: true })
+    expect(c.tables[1].rows.map((row) => row.beta)).toEqual(['', '0.78', '0.03', '0.56', '−0.22', '−0.34'])
+  })
+  it('k = 1 (vif null) → predictor VIF cells em-dash', () => {
+    const one = { ...res, terms: res.terms.slice(0, 2).map((t) => ({ ...t, vif: null })) }
+    const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, one)
+    expect(c.tables[1].rows.map((row) => row.vif)).toEqual(['', '—'])
+  })
+  it('APA: card-literal wording, predictor X = first coefficient row (recorded decision 3)', () => {
+    expect(buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res).apa)
+      .toBe('The model explained R²=0.75 of the variance, F(5,34)=20.42, p<.001; predictor pre_score was significant, B=0.61, p<.001.')
+  })
+})
