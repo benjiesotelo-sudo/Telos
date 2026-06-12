@@ -52,6 +52,6 @@ export const MANCOVA: TestSpec = {
     'Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. ' +
     'Interpret the univariate follow-ups only if the multivariate p is significant, and adjust them for the number of DVs (e.g. Bonferroni) to control familywise error.',
   apaTemplate: "A MANCOVA found a covariate-adjusted group effect, Pillai's V={v}, F({df1},{df2})={f}, p={p}.",
-  rMap: 'car::Manova() → Table 1 · car::Anova() → Table 2 (F/df/p) · effectsize::eta_squared(partial=TRUE) → partial η² · emmeans → adjusted means',
+  rMap: 'manova() + summary(.., test=) (covariates first — matches car::Manova) → Table 1 · summary.aov() → Table 2 (F/df/p) · effectsize::eta_squared(partial=TRUE) → partial η² · emmeans → adjusted means',
   bundleFiles: ['table_multivariate.png', 'table_univariate-followups.png', 'figure_adjusted-means.png'],
 }

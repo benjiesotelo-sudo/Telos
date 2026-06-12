@@ -480,7 +480,7 @@
       <div class="howread"><p>Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. Interpret the univariate follow-ups only if the multivariate <b>p</b> is significant, and adjust them for the number of DVs (e.g. Bonferroni) to control familywise error.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A MANCOVA found a covariate-adjusted group effect, Pillai's <i>V</i>=__, <i>F</i>(__,__)=__, <i>p</i>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>car::Manova()</code> &rarr; Table 1 &middot; <code>car::Anova()</code> &rarr; Table 2 (F/df/p) &middot; <code>effectsize::eta_squared(partial=TRUE)</code> &rarr; partial &eta;&sup2; &middot; <code>emmeans</code> &rarr; adjusted means</div>
+        <div class="m"><b>R map:</b> <code>manova()</code> + <code>summary(.., test=)</code> (covariates first &mdash; matches <code>car::Manova</code>) &rarr; Table 1 &middot; <code>summary.aov()</code> &rarr; Table 2 (F/df/p) &middot; <code>effectsize::eta_squared(partial=TRUE)</code> &rarr; partial &eta;&sup2; &middot; <code>emmeans</code> &rarr; adjusted means</div>
         <div class="m bundle">table_multivariate.png &middot; table_univariate-followups.png &middot; figure_adjusted-means.png</div>
       </div>
     </div>
