@@ -21,4 +21,10 @@ describe('Engine', () => {
       as.list(pkgs[vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)])`)
     expect(ok).toEqual(['afex', 'emmeans', 'car', 'rstatix'])
   }, 600_000)
+  it('loads the Regression-slice packages (library(), not just requireNamespace) incl. preinstalled MASS', async () => {
+    const ok = await engine.runJson<string[]>(`
+      pkgs <- c('pROC','parameters','performance','MASS')
+      as.list(pkgs[vapply(pkgs, function(p) tryCatch({ library(p, character.only = TRUE); TRUE }, error = function(e) FALSE), logical(1))])`)
+    expect(ok).toEqual(['pROC', 'parameters', 'performance', 'MASS'])
+  }, 600_000)
 })

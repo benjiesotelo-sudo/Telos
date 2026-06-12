@@ -36,8 +36,13 @@ export class Engine {
     // Spike-verified under WebR 0.6.0 (R 4.6.0): ggplot2 + nortest + effectsize + psych + coin + janitor all
     // install from the WebR repo. First visit pays the download (~80s Node-side total); the browser caches.
     // ANOVA slice additions spike-verified under WebR 0.6.0 (wf_0a8e8e23-be0): afex (lme4/Matrix/car deps), emmeans, rstatix. PMCMRplus cannot load (Rmpfr lacks a wasm binary) — Nemenyi is hand-rolled in the Friedman stats module.
+    // Regression slice additions spike-verified under WebR 0.6.0 (343/343 ≡ native R 4.6.0): pROC (closure 2.54 MiB),
+    // parameters (4.35 MiB — β via refit), performance (2.36 MiB — Nagelkerke R², dispersion ratio). caret and broom
+    // deliberately NOT shipped (spike D4/B4: 51-pkg ≥26.8 MiB and 21-pkg 23.05 MiB closures; nothing computed needs them
+    // — classification is a hand 2×2 tabulation). MASS ships with base R (glm.nb) — load-checked only.
     for (const pkg of ['ggplot2', 'nortest', 'effectsize', 'psych', 'coin', 'janitor',
-      'afex', 'emmeans', 'car', 'rstatix']) {
+      'afex', 'emmeans', 'car', 'rstatix',
+      'pROC', 'parameters', 'performance']) {
       onStatus?.(`Loading ${pkg}…`)
       await this.webr.installPackages([pkg], { quiet: true })
     }
