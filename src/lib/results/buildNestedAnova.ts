@@ -1,0 +1,51 @@
+import type { TestSpec } from '../registry/types'
+import { figuresOf } from '../registry/types'
+import type { NestedAnovaResult } from '../stats/nestedAnova'
+import type { CardContent } from './builders'
+import { f, fdf, fp, fx } from '../format/apa'
+
+export function buildNestedAnova(
+  spec: TestSpec, r: NestedAnovaResult,
+  factor: string, nested: string,
+): CardContent {
+  const rowA = r.rows[0]
+  const rowB = r.rows[1]
+
+  // Display source labels: A → factor column name, B → "nested (nested in factor)"
+  const sourceA = factor
+  const sourceB = `${nested} (nested in ${factor})`
+
+  const tableRows = [
+    {
+      source: sourceA, ss: f(rowA.ss), df: fdf(rowA.df), ms: f(rowA.ms),
+      f: f(rowA.f), p: fp(rowA.p), omega2: fx(rowA.omega2, f),
+    },
+    {
+      source: sourceB, ss: f(rowB.ss), df: fdf(rowB.df), ms: f(rowB.ms),
+      f: f(rowB.f), p: fp(rowB.p), omega2: fx(rowB.omega2, f),
+    },
+  ]
+
+  // APA from row A with its errDf
+  const apa = spec.apaTemplate
+    .replace('{df1}', fdf(rowA.df))
+    .replace('{df2}', fdf(rowA.errDf))
+    .replace('{f}', f(rowA.f))
+    .replace('p={p}', rowA.p < 0.001 ? 'p<.001' : `p=${fp(rowA.p)}`)
+
+  // Plain note: card text + crossed-data warning when applicable (design §5.4)
+  const crossedWarning = r.crossed.length > 0
+    ? ` — ${nested} labels repeat across ${factor} levels; results assume distinct groups within each ${factor} — check your coding`
+    : ''
+  const noteText = spec.tableNote!.text + crossedWarning
+
+  const fig = figuresOf(spec)[0]
+  return {
+    tables: [{ spec: spec.tables[0], rows: tableRows }],
+    note: { kind: 'plain', text: noteText },
+    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    howToRead: spec.howToRead,
+    apa,
+    nExcluded: r.nExcluded,
+  }
+}
