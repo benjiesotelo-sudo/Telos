@@ -80,7 +80,7 @@ describe('buildOneWayAnova (pure, no engine)', () => {
   })
 
   it('figures carries the means-plot figure', () => {
-    expect(c.figures).toEqual([{ caption: 'Group means', type: 'means plot with 95% CI error bars', png }])
+    expect(c.figures).toEqual([{ caption: 'Group means', type: 'means plot with 95% CI error bars', file: 'means-plot', png }])
   })
 
   it('nExcluded is 0', () => {

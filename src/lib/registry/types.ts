@@ -11,7 +11,7 @@ export type MinRule =
   | { kind: 'used-columns'; n: number }     // Summary, Frequencies (≥1 compatible Used column)
   | { kind: 'complete-wide-rows'; n: number } // RM/Mixed/Friedman: ≥n rows complete across ≥2 candidate measure columns
 export interface TestConstraints { roles: RoleConstraint[]; minRule: MinRule }
-export interface FigureSpec { caption: string; type: string; optional?: true }
+export interface FigureSpec { caption: string; type: string; file?: string; optional?: true } // file: zip slug when the card's bundle name doesn't equal the type (ANOVA cards: 'means-plot' vs type 'means plot with 95% CI error bars')
 export interface TestSpec {
   id: string; name: string; question: string
   roles: RoleSpec[]; options: OptionSpec[]; tables: TableSpec[]

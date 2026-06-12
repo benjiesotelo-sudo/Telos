@@ -59,7 +59,7 @@ describe('buildMancova', () => {
   })
 
   it('figure caption and type match spec', () => {
-    expect(c.figures[0]).toEqual({ caption: 'Adjusted means per outcome', type: 'adjusted means plot faceted by DV', png })
+    expect(c.figures[0]).toEqual({ caption: 'Adjusted means per outcome', type: 'adjusted means plot faceted by DV', file: 'adjusted-means', png })
   })
 
   it('nExcluded passes through', () => {

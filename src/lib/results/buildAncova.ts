@@ -57,7 +57,7 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
       },
     ],
     note: { kind: 'assume', text: noteText },
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,

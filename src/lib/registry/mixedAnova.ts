@@ -43,7 +43,7 @@ export const MIXED_ANOVA: TestSpec = {
         { key: 'se', label: 'SE' }, { key: 'padj', label: 'p', sub: 'adj' }, { key: 'ci', label: '95% CI' }] },
   ],
   tableNote: { kind: 'assume', text: 'between and within effects are tested against different error terms; when sphericity is violated the within and interaction F-tests use the Greenhouse–Geisser / Huynh–Feldt correction. Mauchly\'s test & the GG/HF corrections apply only when the repeated factor has 3+ levels (with 2 levels sphericity is automatically met and this table is omitted).' },
-  figures: [{ caption: 'Means across conditions by group', type: 'profile plot (one line per group, means ± CI across conditions)' }],
+  figures: [{ caption: 'Means across conditions by group', type: 'profile plot (one line per group, means ± CI across conditions)' , file: 'profile' }],
   howToRead:
     'Read the Group × Condition interaction first — a significant interaction means the groups changed differently across conditions; only then read the main effects. ' +
     'Check sphericity for the within and interaction terms — if violated, read the corrected F/p. ' +

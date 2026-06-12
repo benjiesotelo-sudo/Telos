@@ -29,7 +29,7 @@ export function ResultsScreen() {
         const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
         const content = BUILDERS[id](spec, s.runs[id].result)
         if (formats.tables) for (const t of content.tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.domId ?? t.spec.id}`)
-        if (formats.figures) for (const fig of content.figures) files[`${folder}figure_${fig.type}.png`] = fig.png
+        if (formats.figures) for (const fig of content.figures) files[`${folder}figure_${fig.file ?? fig.type}.png`] = fig.png
       }
       const names = Object.keys(files)
       if (names.length === 1) saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: 'image/png' }), names[0].split('/')[1])

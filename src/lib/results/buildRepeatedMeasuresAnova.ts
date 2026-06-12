@@ -39,7 +39,7 @@ export function buildRepeatedMeasuresAnova(spec: TestSpec, r: RepeatedMeasuresAn
   return {
     tables,
     note: spec.tableNote ?? null,
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,

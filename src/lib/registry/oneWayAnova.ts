@@ -36,7 +36,7 @@ export const ONE_WAY_ANOVA: TestSpec = {
         { key: 'padj', label: 'p', sub: 'adj' }, { key: 'ci', label: '95% CI' }] },
   ],
   tableNote: { kind: 'assume', text: "assumption checks: Levene's (equal variances) & normality of residuals." },
-  figures: [{ caption: 'Group means', type: 'means plot with 95% CI error bars' }],
+  figures: [{ caption: 'Group means', type: 'means plot with 95% CI error bars' , file: 'means-plot' }],
   howToRead:
     'The F and its p tell you whether the groups differ overall; η² (or ω²) is the effect size. ' +
     'If significant, the post-hoc table shows which specific pairs differ, with multiplicity-adjusted p-values.',

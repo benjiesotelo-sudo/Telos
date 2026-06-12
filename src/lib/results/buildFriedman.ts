@@ -18,7 +18,7 @@ export function buildFriedman(spec: TestSpec, r: FriedmanResult): CardContent {
       { spec: spec.tables[2], rows: r.posthoc.map((ph) => ({ pair: ph.pair, padj: fp(ph.pAdj) })) },
     ],
     note: null,
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,

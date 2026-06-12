@@ -41,7 +41,7 @@ export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardCont
   return {
     tables: [{ spec: spec.tables[0], rows: tableRows }],
     note: { kind: 'plain', text: noteText },
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,

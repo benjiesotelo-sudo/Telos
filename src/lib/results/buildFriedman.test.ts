@@ -55,7 +55,7 @@ describe('buildFriedman', () => {
   })
 
   it('figure carries the profile caption and type', () => {
-    expect(c.figures).toEqual([{ caption: 'Across conditions', type: 'profile / box plot', png }])
+    expect(c.figures).toEqual([{ caption: 'Across conditions', type: 'profile / box plot', file: 'profile', png }])
   })
 
   it('APA string: χ²(2)=67.19, p<.001, W=0.56', () => {

@@ -31,7 +31,7 @@ export const WELCH_ANOVA: TestSpec = {
       columns: [{ key: 'pair', label: 'Pair' }, { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'padj', label: 'p', sub: 'adj' }, { key: 'ci', label: '95% CI' }] },
   ],
   tableNote: { kind: 'plain', text: "Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional)." },
-  figures: [{ caption: 'Group means', type: 'means plot with 95% CI error bars' }],
+  figures: [{ caption: 'Group means', type: 'means plot with 95% CI error bars' , file: 'means-plot' }],
   howToRead:
     'A one-way ANOVA that relaxes the equal-variance assumption but still assumes roughly normal data within each group. ' +
     'A significant F means at least one group mean differs from the others; the Games-Howell post-hoc (also variance-robust) then shows which specific pairs differ.',

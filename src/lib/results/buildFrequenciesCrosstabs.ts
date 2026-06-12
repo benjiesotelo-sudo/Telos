@@ -9,7 +9,7 @@ const pc = (x: number) => x.toFixed(1)
 export function buildFrequenciesCrosstabs(spec: TestSpec, r: FrequenciesResult): CardContent {
   const fig = spec.figures![0]
   const base = {
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa: spec.apaTemplate.replace('{n}', '1'), // exactly one table is built per run → always Table 1 at runtime
     nExcluded: r.nExcluded,

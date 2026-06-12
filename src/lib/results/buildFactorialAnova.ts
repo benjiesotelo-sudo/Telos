@@ -41,7 +41,7 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
 
   const base = {
     note: { kind: 'assume' as const, text: noteText },
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,

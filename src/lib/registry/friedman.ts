@@ -31,7 +31,7 @@ export const FRIEDMAN: TestSpec = {
     { id: 'posthoc', domId: 'friedman-posthoc', title: 'Post-hoc (Nemenyi)',
       columns: [{ key: 'pair', label: 'Pair' }, { key: 'padj', label: 'p', sub: 'adj' }] },
   ],
-  figures: [{ caption: 'Across conditions', type: 'profile / box plot' }],
+  figures: [{ caption: 'Across conditions', type: 'profile / box plot' , file: 'profile' }],
   howToRead:
     'The nonparametric counterpart to repeated-measures ANOVA. The χ²/p tests whether ranks differ across conditions; Kendall\'s W is the effect size (0–1 agreement). Post-hoc shows which conditions differ.',
   apaTemplate: 'A Friedman test found a difference across conditions, χ²({df})={chi2}, p={p}, W={w}.',

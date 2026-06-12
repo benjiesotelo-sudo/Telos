@@ -66,7 +66,7 @@ describe('buildWelchAnova', () => {
   })
 
   it('figure carries caption, type, and png bytes', () => {
-    expect(c.figures).toEqual([{ caption: 'Group means', type: 'means plot with 95% CI error bars', png }])
+    expect(c.figures).toEqual([{ caption: 'Group means', type: 'means plot with 95% CI error bars', file: 'means-plot', png }])
   })
 
   it('nExcluded passthrough', () => {

@@ -71,7 +71,7 @@ describe('buildFactorialAnova — fixture (nothing significant): Table 3 absent'
   })
 
   it('figure carries the interaction plot type', () => {
-    expect(c.figures).toEqual([{ caption: 'Interaction', type: 'interaction plot (one line per level of a factor)', png }])
+    expect(c.figures).toEqual([{ caption: 'Interaction', type: 'interaction plot (one line per level of a factor)', file: 'interaction', png }])
   })
 })
 

@@ -46,7 +46,7 @@ export interface BuiltTable { spec: TableSpec; rows: Record<string, string | num
 export interface CardContent {
   tables: BuiltTable[]
   note: { kind: 'assume' | 'plain'; text: string } | null
-  figures: { caption: string; type: string; png: Uint8Array }[]
+  figures: { caption: string; type: string; file?: string; png: Uint8Array }[] // file: zip slug when the card bundle name differs from the type
   howToRead: string
   apa: string
   nExcluded: number

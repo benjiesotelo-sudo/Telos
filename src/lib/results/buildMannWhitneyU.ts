@@ -16,7 +16,7 @@ export function buildMannWhitneyU(spec: TestSpec, r: MannWhitneyUResult): CardCo
       { spec: spec.tables[1], rows: [{ u: fdf(r.u), z: f(r.z), p: fp(r.p), r: f(r.rankBiserial) }] },
     ],
     note: spec.tableNote ?? null,
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,

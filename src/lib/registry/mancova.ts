@@ -47,7 +47,7 @@ export const MANCOVA: TestSpec = {
       ] },
   ],
   tableNote: { kind: 'assume', text: 'assumption checks include homogeneity of regression slopes for each covariate.' },
-  figures: [{ caption: 'Adjusted means per outcome', type: 'adjusted means plot faceted by DV' }],
+  figures: [{ caption: 'Adjusted means per outcome', type: 'adjusted means plot faceted by DV' , file: 'adjusted-means' }],
   howToRead:
     'Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. ' +
     'Interpret the univariate follow-ups only if the multivariate p is significant, and adjust them for the number of DVs (e.g. Bonferroni) to control familywise error.',

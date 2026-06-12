@@ -59,7 +59,7 @@ describe('buildNestedAnova', () => {
   })
 
   it('figure carries spec caption and type', () => {
-    expect(c.figures[0]).toEqual({ caption: 'Grouped means', type: 'grouped means plot (nested groups within each top-level group)', png })
+    expect(c.figures[0]).toEqual({ caption: 'Grouped means', type: 'grouped means plot (nested groups within each top-level group)', file: 'grouped-means', png })
   })
 
   it('howToRead and nExcluded forwarded', () => {

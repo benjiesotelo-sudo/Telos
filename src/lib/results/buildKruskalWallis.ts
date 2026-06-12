@@ -17,7 +17,7 @@ export function buildKruskalWallis(spec: TestSpec, r: KruskalWallisResult): Card
       { spec: spec.tables[2], rows: r.posthoc.map((d) => ({ pair: d.pair, z: f(d.z), padj: fp(d.pAdj) })) },
     ],
     note: null,
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,

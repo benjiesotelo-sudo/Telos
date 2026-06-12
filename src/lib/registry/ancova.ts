@@ -54,7 +54,7 @@ export const ANCOVA: TestSpec = {
       ] },
   ],
   tableNote: { kind: 'assume', text: "assumption checks: homogeneity of regression slopes (factor×covariate interaction) & Levene's; post-hoc on adjusted means." },
-  figures: [{ caption: 'Adjusted means', type: 'adjusted means plot (covariate-controlled, ± CI)' }],
+  figures: [{ caption: 'Adjusted means', type: 'adjusted means plot (covariate-controlled, ± CI)' , file: 'adjusted-means' }],
   howToRead:
     'Compares group means after statistically removing the influence of a numeric covariate. First confirm the ' +
     'factor×covariate interaction is non-significant (homogeneity of slopes) — if it is significant, the ' +

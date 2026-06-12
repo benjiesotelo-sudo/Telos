@@ -21,7 +21,7 @@ export function buildOneWayAnova(spec: TestSpec, r: OneWayAnovaResult): CardCont
       { spec: spec.tables[2], rows: posthocTableRows(r.posthoc, { f, fp }) },
     ],
     note: { kind: 'assume', text: `${spec.tableNote!.text} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · Shapiro W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})${r.levene.p != null && r.levene.p < 0.05 ? " — equal variances look doubtful; consider Welch's ANOVA" : ''}` }, // design §4.4: suggest, never auto-switch
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,

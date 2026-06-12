@@ -27,4 +27,10 @@ describe('catalog stays faithful to the ui-spec picker tree', () => {
     const ids = Object.values(SPECS).flatMap((s) => s.tables.map((t) => t.domId ?? t.id))
     expect(new Set(ids).size).toBe(ids.length)
   })
+  it('ANOVA-family zip figure names derive from FigureSpec.file ?? type and equal the card bundle entries', () => {
+    for (const id of ['one-way-anova', 'factorial-anova', 'repeated-measures-anova', 'mixed-anova', 'nested-anova', 'welch-anova', 'ancova', 'manova', 'mancova', 'kruskal-wallis', 'friedman']) {
+      const s = SPECS[id]!
+      expect(s.figures!.map((f) => `figure_${f.file ?? f.type}.png`)).toEqual(s.bundleFiles.filter((b) => b.startsWith('figure_')))
+    }
+  })
 })

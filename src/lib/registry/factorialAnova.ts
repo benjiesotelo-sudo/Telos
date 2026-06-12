@@ -35,7 +35,7 @@ export const FACTORIAL_ANOVA: TestSpec = {
         { key: 'padj', label: 'p', sub: 'adj' }, { key: 'ci', label: '95% CI' }] },
   ],
   tableNote: { kind: 'assume', text: "assumption checks: Levene's & normality of residuals; post-hoc / simple-effects table when an effect is significant." },
-  figures: [{ caption: 'Interaction', type: 'interaction plot (one line per level of a factor)' }],
+  figures: [{ caption: 'Interaction', type: 'interaction plot (one line per level of a factor)' , file: 'interaction' }],
   howToRead:
     "Each factor's F/p is its main effect; the A×B row tests whether the effect of one factor depends on the other. " +
     'A significant interaction usually takes priority — read it from the interaction plot before the main effects. ' +

@@ -38,7 +38,7 @@ export const REPEATED_MEASURES_ANOVA: TestSpec = {
         { key: 'padj', label: 'p', sub: 'adj' }, { key: 'ci', label: '95% CI' }] },
   ],
   tableNote: { kind: 'assume', text: 'when sphericity is violated the F-test uses the Greenhouse–Geisser / Huynh–Feldt correction; post-hoc table follows. Mauchly\'s test & the GG/HF corrections apply only when the repeated factor has 3+ levels (with 2 levels sphericity is automatically met and this table is omitted).' },
-  figures: [{ caption: 'Means across conditions', type: 'profile plot (means ± CI across conditions)' }],
+  figures: [{ caption: 'Means across conditions', type: 'profile plot (means ± CI across conditions)' , file: 'profile' }],
   howToRead:
     'Tests whether the average differs across conditions measured on the same people. Check sphericity first — if violated, read the corrected F/p. A significant result means conditions differ; post-hoc tests show which.',
   apaTemplate: 'A repeated-measures ANOVA (GG-corrected) found an effect of condition, F({df1},{df2})={f}, p={p}, partial η²={pes}.',

@@ -15,7 +15,7 @@ export function buildWilcoxonSignedRank(spec: TestSpec, r: WilcoxonSignedRankRes
       { spec: spec.tables[1], rows: [{ v: f(r.v), z: f(r.z), p: fp(r.p), r: f(r.r) }] },
     ],
     note: null, // the drawn Wilcoxon card has no table note (design ruling)
-    figures: [{ caption: fig.caption, type: fig.type, png: r.figurePng }],
+    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,

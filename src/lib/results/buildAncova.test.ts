@@ -78,7 +78,7 @@ describe('buildAncova', () => {
   })
 
   it('figure: adjusted means type + png', () => {
-    expect(c.figures).toEqual([{ caption: 'Adjusted means', type: 'adjusted means plot (covariate-controlled, ± CI)', png }])
+    expect(c.figures).toEqual([{ caption: 'Adjusted means', type: 'adjusted means plot (covariate-controlled, ± CI)', file: 'adjusted-means', png }])
   })
 
   it('nExcluded is 0', () => {

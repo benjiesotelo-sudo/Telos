@@ -76,7 +76,7 @@ describe('buildManova', () => {
     })
 
     it('figure caption and type', () => {
-      expect(c.figures).toEqual([{ caption: 'Group means per outcome', type: 'means plot faceted by DV', png }])
+      expect(c.figures).toEqual([{ caption: 'Group means per outcome', type: 'means plot faceted by DV', file: 'means', png }])
     })
 
     it('APA always from Pillai fields: Pillai run', () => {
