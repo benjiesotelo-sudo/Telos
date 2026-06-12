@@ -241,10 +241,11 @@ test('Journey B: wide/repeated — RM ANOVA + Mixed ANOVA + Friedman; sphericity
   // Verify score_t3 chip is removed (the slot hint contains "score_t3" as an example, so scope to .chip.assigned)
   await expect(page.locator('[data-role="measures"] .chip.assigned')).toHaveCount(2)
 
-  // Navigate back to Results — result should be stale
+  // Navigate back to Results — ANY config edit stales ALL runs (navcap rule): three stale
+  // cards appear, so .first() avoids the strict-mode violation flow.spec's single-card path never hit
   await expect(async () => {
     await page.getByRole('navigation', { name: 'Progress' }).getByRole('button', { name: 'Results' }).click()
-    await expect(page.getByText(/Stale — the configuration changed/)).toBeVisible({ timeout: 1000 })
+    await expect(page.getByText(/Stale — the configuration changed/).first()).toBeVisible({ timeout: 1000 })
   }).toPass()
 
   // Re-run the stale RM analysis
