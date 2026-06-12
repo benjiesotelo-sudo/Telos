@@ -8,6 +8,9 @@ export const decode = (s: string) => s
   .replace(/&rarr;/g, '→').replace(/&alpha;/g, 'α').replace(/&ldquo;/g, '“').replace(/&rdquo;/g, '”')
   .replace(/&hellip;/g, '…').replace(/&times;/g, '×').replace(/&ndash;/g, '–').replace(/&deg;/g, '°')
   .replace(/&mu;/g, 'μ').replace(/&#8320;/g, '₀').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
+  // ANOVA-family cards (decode list grows per slice; &amp; stays last)
+  .replace(/&eta;/g, 'η').replace(/&omega;/g, 'ω').replace(/&epsilon;/g, 'ε').replace(/&chi;/g, 'χ')
+  .replace(/&sup2;/g, '²').replace(/&eacute;/g, 'é').replace(/&plusmn;/g, '±')
   .replace(/&amp;/g, '&')
 
 export const strip = (s: string) => decode(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim()
