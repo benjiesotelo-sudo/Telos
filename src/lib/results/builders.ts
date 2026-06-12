@@ -19,6 +19,28 @@ import { runSummaryStatistics, type SummaryStatsResult } from '../stats/summaryS
 import { buildSummaryStatistics } from './buildSummaryStatistics'
 import { runFrequenciesCrosstabs, type FrequenciesResult } from '../stats/frequenciesCrosstabs'
 import { buildFrequenciesCrosstabs } from './buildFrequenciesCrosstabs'
+import { runOneWayAnova, type OneWayAnovaResult } from '../stats/oneWayAnova'
+import { buildOneWayAnova } from './buildOneWayAnova'
+import { runFactorialAnova, type FactorialAnovaResult } from '../stats/factorialAnova'
+import { buildFactorialAnova } from './buildFactorialAnova'
+import { runRepeatedMeasuresAnova, type RepeatedMeasuresAnovaResult } from '../stats/repeatedMeasuresAnova'
+import { buildRepeatedMeasuresAnova } from './buildRepeatedMeasuresAnova'
+import { runMixedAnova, type MixedAnovaResult } from '../stats/mixedAnova'
+import { buildMixedAnova } from './buildMixedAnova'
+import { runNestedAnova, type NestedAnovaResult } from '../stats/nestedAnova'
+import { buildNestedAnova } from './buildNestedAnova'
+import { runWelchAnova, type WelchAnovaResult } from '../stats/welchAnova'
+import { buildWelchAnova } from './buildWelchAnova'
+import { runAncova, type AncovaResult } from '../stats/ancova'
+import { buildAncova } from './buildAncova'
+import { runManova, type ManovaResult } from '../stats/manova'
+import { buildManova } from './buildManova'
+import { runMancova, type MancovaResult } from '../stats/mancova'
+import { buildMancova } from './buildMancova'
+import { runKruskalWallis, type KruskalWallisResult } from '../stats/kruskalWallis'
+import { buildKruskalWallis } from './buildKruskalWallis'
+import { runFriedman, type FriedmanResult } from '../stats/friedman'
+import { buildFriedman } from './buildFriedman'
 
 export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[] }
 export interface CardContent {
@@ -46,6 +68,24 @@ export const RUNNERS: Record<string, Runner> = {
   'summary-statistics': (engine, ds, setup) =>
     runSummaryStatistics(engine, ds, setup.roles['variables'], setup.roles['groupBy'][0]),
   'frequencies-crosstabs': (engine, ds, setup) => runFrequenciesCrosstabs(engine, ds, setup.roles['variables']),
+  'one-way-anova': (engine, ds, setup) =>
+    runOneWayAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'][0], setup.options['posthoc'] as string),
+  'factorial-anova': (engine, ds, setup) =>
+    runFactorialAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factors'], setup.options['interactions'] as boolean),
+  'repeated-measures-anova': (engine, ds, setup) =>
+    runRepeatedMeasuresAnova(engine, ds, setup.roles['subject'][0], setup.roles['measures'], setup.options['sphericity'] as string, setup.options['posthoc'] as boolean),
+  'mixed-anova': (engine, ds, setup) =>
+    runMixedAnova(engine, ds, setup.roles['subject'][0], setup.roles['between'][0], setup.roles['measures'], setup.options['sphericity'] as string, setup.options['posthoc'] as boolean),
+  'nested-anova': (engine, ds, setup) =>
+    runNestedAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'][0], setup.roles['nested'][0], (setup.options['nesting'] as string) === 'random'),
+  'welch-anova': (engine, ds, setup) => runWelchAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'][0]),
+  'ancova': (engine, ds, setup) => runAncova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'], setup.roles['covariates']),
+  'manova': (engine, ds, setup) =>
+    runManova(engine, ds, setup.roles['outcomes'], setup.roles['factors'], setup.options['statistic'] as string, setup.options['followups'] as boolean),
+  'mancova': (engine, ds, setup) =>
+    runMancova(engine, ds, setup.roles['outcomes'], setup.roles['factors'], setup.roles['covariates'], setup.options['statistic'] as string),
+  'kruskal-wallis': (engine, ds, setup) => runKruskalWallis(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0]),
+  'friedman': (engine, ds, setup) => runFriedman(engine, ds, setup.roles['subject'][0], setup.roles['measures']),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -56,4 +96,15 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'distribution-normality': (spec, result) => buildDistributionNormality(spec, result as DistributionNormalityResult),
   'summary-statistics': (spec, result) => buildSummaryStatistics(spec, result as SummaryStatsResult),
   'frequencies-crosstabs': (spec, result) => buildFrequenciesCrosstabs(spec, result as FrequenciesResult),
+  'one-way-anova': (spec, result) => buildOneWayAnova(spec, result as OneWayAnovaResult),
+  'factorial-anova': (spec, result) => buildFactorialAnova(spec, result as FactorialAnovaResult),
+  'repeated-measures-anova': (spec, result) => buildRepeatedMeasuresAnova(spec, result as RepeatedMeasuresAnovaResult),
+  'mixed-anova': (spec, result) => buildMixedAnova(spec, result as MixedAnovaResult),
+  'nested-anova': (spec, result) => buildNestedAnova(spec, result as NestedAnovaResult),
+  'welch-anova': (spec, result) => buildWelchAnova(spec, result as WelchAnovaResult),
+  'ancova': (spec, result) => buildAncova(spec, result as AncovaResult),
+  'manova': (spec, result) => buildManova(spec, result as ManovaResult),
+  'mancova': (spec, result) => buildMancova(spec, result as MancovaResult),
+  'kruskal-wallis': (spec, result) => buildKruskalWallis(spec, result as KruskalWallisResult),
+  'friedman': (spec, result) => buildFriedman(spec, result as FriedmanResult),
 }

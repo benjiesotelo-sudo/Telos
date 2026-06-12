@@ -7,6 +7,17 @@ import { MANN_WHITNEY_U } from './mannWhitneyU'
 import { WILCOXON_SIGNED_RANK } from './wilcoxonSignedRank'
 import { DISTRIBUTION_NORMALITY } from './distributionNormality'
 import { FREQUENCIES_CROSSTABS } from './frequenciesCrosstabs'
+import { ONE_WAY_ANOVA } from './oneWayAnova'
+import { FACTORIAL_ANOVA } from './factorialAnova'
+import { REPEATED_MEASURES_ANOVA } from './repeatedMeasuresAnova'
+import { MIXED_ANOVA } from './mixedAnova'
+import { NESTED_ANOVA } from './nestedAnova'
+import { WELCH_ANOVA } from './welchAnova'
+import { ANCOVA } from './ancova'
+import { MANOVA } from './manova'
+import { MANCOVA } from './mancova'
+import { KRUSKAL_WALLIS } from './kruskalWallis'
+import { FRIEDMAN } from './friedman'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -22,19 +33,19 @@ export const CATALOG: CatalogEntry[] = [
   e('one-sample-t-test', 'One-sample t-test', 'Group comparisons', 'Parametric', 'available'),
   e('independent-t-test', 'Independent t-test', 'Group comparisons', 'Parametric', 'available', 't-test'),
   e('paired-t-test', 'Paired t-test', 'Group comparisons', 'Parametric', 'available'),
-  e('one-way-anova', 'One-way ANOVA + post-hoc', 'Group comparisons', 'Parametric'),
-  e('factorial-anova', 'Factorial ANOVA', 'Group comparisons', 'Parametric'),
-  e('repeated-measures-anova', 'Repeated-measures ANOVA', 'Group comparisons', 'Parametric'),
-  e('mixed-anova', 'Mixed ANOVA', 'Group comparisons', 'Parametric'),
-  e('nested-anova', 'Nested ANOVA', 'Group comparisons', 'Parametric'),
-  e('welch-anova', "Welch's ANOVA", 'Group comparisons', 'Parametric'),
-  e('ancova', 'ANCOVA', 'Group comparisons', 'Parametric'),
-  e('manova', 'MANOVA', 'Group comparisons', 'Parametric'),
-  e('mancova', 'MANCOVA', 'Group comparisons', 'Parametric'),
+  e('one-way-anova', 'One-way ANOVA + post-hoc', 'Group comparisons', 'Parametric', 'available'),
+  e('factorial-anova', 'Factorial ANOVA', 'Group comparisons', 'Parametric', 'available'),
+  e('repeated-measures-anova', 'Repeated-measures ANOVA', 'Group comparisons', 'Parametric', 'available'),
+  e('mixed-anova', 'Mixed ANOVA', 'Group comparisons', 'Parametric', 'available'),
+  e('nested-anova', 'Nested ANOVA', 'Group comparisons', 'Parametric', 'available'),
+  e('welch-anova', "Welch's ANOVA", 'Group comparisons', 'Parametric', 'available'),
+  e('ancova', 'ANCOVA', 'Group comparisons', 'Parametric', 'available'),
+  e('manova', 'MANOVA', 'Group comparisons', 'Parametric', 'available'),
+  e('mancova', 'MANCOVA', 'Group comparisons', 'Parametric', 'available'),
   e('mann-whitney-u', 'Mann-Whitney U', 'Group comparisons', 'Nonparametric', 'available'),
   e('wilcoxon-signed-rank', 'Wilcoxon signed-rank', 'Group comparisons', 'Nonparametric', 'available'),
-  e('kruskal-wallis', 'Kruskal-Wallis', 'Group comparisons', 'Nonparametric'),
-  e('friedman', 'Friedman', 'Group comparisons', 'Nonparametric'),
+  e('kruskal-wallis', 'Kruskal-Wallis', 'Group comparisons', 'Nonparametric', 'available'),
+  e('friedman', 'Friedman', 'Group comparisons', 'Nonparametric', 'available'),
   e('pearson', 'Pearson', 'Association', 'Correlation'),
   e('spearman', 'Spearman', 'Association', 'Correlation'),
   e('kendalls-tau', "Kendall's tau", 'Association', 'Correlation'),
@@ -71,4 +82,7 @@ export const FAMILIES = [...new Set(CATALOG.map((c) => c.family))] // tree order
 export const LATER_SLICE_REASON = 'arrives in a later slice'
 
 /** Runnable test specs this slice ships; later slices add entries here. Keys = catalog ids. */
-export const SPECS: Record<string, TestSpec> = { [SUMMARY_STATISTICS.id]: SUMMARY_STATISTICS, [FREQUENCIES_CROSSTABS.id]: FREQUENCIES_CROSSTABS, [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST, [MANN_WHITNEY_U.id]: MANN_WHITNEY_U, [WILCOXON_SIGNED_RANK.id]: WILCOXON_SIGNED_RANK, [DISTRIBUTION_NORMALITY.id]: DISTRIBUTION_NORMALITY }
+export const SPECS: Record<string, TestSpec> = {
+  [SUMMARY_STATISTICS.id]: SUMMARY_STATISTICS, [FREQUENCIES_CROSSTABS.id]: FREQUENCIES_CROSSTABS, [INDEPENDENT_T_TEST.id]: INDEPENDENT_T_TEST, [ONE_SAMPLE_T_TEST.id]: ONE_SAMPLE_T_TEST, [PAIRED_T_TEST.id]: PAIRED_T_TEST, [MANN_WHITNEY_U.id]: MANN_WHITNEY_U, [WILCOXON_SIGNED_RANK.id]: WILCOXON_SIGNED_RANK, [DISTRIBUTION_NORMALITY.id]: DISTRIBUTION_NORMALITY,
+  [ONE_WAY_ANOVA.id]: ONE_WAY_ANOVA, [FACTORIAL_ANOVA.id]: FACTORIAL_ANOVA, [REPEATED_MEASURES_ANOVA.id]: REPEATED_MEASURES_ANOVA, [MIXED_ANOVA.id]: MIXED_ANOVA, [NESTED_ANOVA.id]: NESTED_ANOVA, [WELCH_ANOVA.id]: WELCH_ANOVA, [ANCOVA.id]: ANCOVA, [MANOVA.id]: MANOVA, [MANCOVA.id]: MANCOVA, [KRUSKAL_WALLIS.id]: KRUSKAL_WALLIS, [FRIEDMAN.id]: FRIEDMAN,
+}

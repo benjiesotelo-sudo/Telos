@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { CATALOG } from './catalog'
+import { CATALOG, SPECS } from './catalog'
 import { readSpec, strip } from './specHtml'
 
 // Scope to the picker tree: from the picktree div to the assumption-diagnostics tbd line.
@@ -21,6 +21,10 @@ describe('catalog stays faithful to the ui-spec picker tree', () => {
     expect(rows).toEqual(CATALOG.map((c) => ({ family: c.family, ...(c.subfamily ? { subfamily: c.subfamily } : {}), leaf: c.name })))
   })
   it('the available tests match the shipped specs, in tree order', () => {
-    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['summary-statistics', 'frequencies-crosstabs', 'distribution-normality', 'one-sample-t-test', 'independent-t-test', 'paired-t-test', 'mann-whitney-u', 'wilcoxon-signed-rank'])
+    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['summary-statistics', 'frequencies-crosstabs', 'distribution-normality', 'one-sample-t-test', 'independent-t-test', 'paired-t-test', 'one-way-anova', 'factorial-anova', 'repeated-measures-anova', 'mixed-anova', 'nested-anova', 'welch-anova', 'ancova', 'manova', 'mancova', 'mann-whitney-u', 'wilcoxon-signed-rank', 'kruskal-wallis', 'friedman'])
+  })
+  it('every table DOM id is unique across all shipped specs (combined-results-page seam)', () => {
+    const ids = Object.values(SPECS).flatMap((s) => s.tables.map((t) => t.domId ?? t.id))
+    expect(new Set(ids).size).toBe(ids.length)
   })
 })
