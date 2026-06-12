@@ -4,10 +4,8 @@ import type { NestedAnovaResult } from '../stats/nestedAnova'
 import type { CardContent } from './builders'
 import { f, fdf, fp, fx } from '../format/apa'
 
-export function buildNestedAnova(
-  spec: TestSpec, r: NestedAnovaResult,
-  factor: string, nested: string,
-): CardContent {
+export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardContent {
+  const { factor, nested } = r
   const rowA = r.rows[0]
   const rowB = r.rows[1]
 

@@ -11,13 +11,14 @@ const spikeResult: NestedAnovaResult = {
     { source: 'A', ss: 307.069, df: 2, ms: 153.5345, f: 1.4799504544885, p: 0.357127524540067, omega2: 0.0583618541479071, errDf: 3 },
     { source: 'B', ss: 311.228999999999, df: 3, ms: 103.743, f: 1.99454911069684, p: 0.12570562659026, omega2: 0.0446070727986374, errDf: 54 },
   ],
+  factor: 'school', nested: 'classroom',
   crossed: [],
   nExcluded: 0,
   figurePng: png,
 }
 
 describe('buildNestedAnova', () => {
-  const c = buildNestedAnova(spec, spikeResult, 'school', 'classroom')
+  const c = buildNestedAnova(spec, spikeResult)
 
   it('produces exactly one table with the nested-anova spec', () => {
     expect(c.tables).toHaveLength(1)
@@ -69,7 +70,7 @@ describe('buildNestedAnova', () => {
 
 describe('buildNestedAnova — crossed warning', () => {
   const resultWithCrossed: NestedAnovaResult = { ...spikeResult, crossed: ['c1', 'c2'] }
-  const c = buildNestedAnova(spec, resultWithCrossed, 'school', 'classroom')
+  const c = buildNestedAnova(spec, resultWithCrossed)
 
   it('appends crossed warning sentence to the note when crossed is non-empty', () => {
     expect(c.note!.kind).toBe('plain')
@@ -88,7 +89,7 @@ describe('buildNestedAnova — omega2 not estimable', () => {
       { ...spikeResult.rows[1], omega2: null },
     ],
   }
-  const c = buildNestedAnova(spec, resultNullOmega, 'school', 'classroom')
+  const c = buildNestedAnova(spec, resultNullOmega)
 
   it('renders em-dash when omega2 is null', () => {
     expect(c.tables[0].rows[0].omega2).toBe('—')
@@ -104,7 +105,7 @@ describe('buildNestedAnova — fixed nesting APA', () => {
       { ...spikeResult.rows[1] },
     ],
   }
-  const c = buildNestedAnova(spec, fixedResult, 'school', 'classroom')
+  const c = buildNestedAnova(spec, fixedResult)
 
   it('APA uses fixed errDf=54 (df 2/54)', () => {
     expect(c.apa).toBe('A nested ANOVA found an effect of A, F(2,54)=2.95, p=.061.')
