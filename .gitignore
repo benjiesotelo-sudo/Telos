@@ -15,3 +15,8 @@ public/webr/
 
 # Brainstorm companion artifacts
 .superpowers/
+
+# Test-run artifacts
+test-results/
+playwright-report/
+.node-xmlhttprequest-*

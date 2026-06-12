@@ -21,6 +21,36 @@ npm run preview      # serve dist/ locally for manual check
 > On first visit the engine preloads six R packages (ggplot2, nortest, effectsize,
 > psych, coin, janitor) from the WebR package repository; the browser caches them afterwards.
 
+## Repository map
+
+```
+telos_test_inputs.html      ┐
+telos_test_outputs.html     ├ the three LOCKED product specs (source of truth; consistency
+telos_ui_spec.html          ┘ tests read them at these root paths — do not move or edit)
+
+docs/superpowers/
+  specs/      one approved design doc per build phase (architecture · frontend flow · core tests)
+  plans/      the executed implementation plan for each phase
+  reviews/    the two pre-build review reports (spec completeness · plan recheck)
+
+src/
+  lib/registry/   one TestSpec per statistical test, encoded verbatim from the spec HTML,
+                  each with a *.consistency.test.ts that fails if it drifts from the card
+  lib/stats/      one WebR runner per test + known-answer tests (values verified in native R)
+  lib/results/    one builder per test (result → card content) + the RUNNERS/BUILDERS maps
+  lib/webr/       the WebR engine wrapper (init, runJson, capturePlot)
+  lib/format/     APA number formatting helpers
+  lib/data/       CSV/Excel parsing and column typing
+  lib/export/     PNG capture and zip bundling
+  components/     React components (screens/ holds one component per flow step)
+  state/          the Zustand session store: step machine, gates, run lifecycle
+  styles/         design tokens (light canonical, dark/auto variants)
+
+tests/e2e/        Playwright journeys (`npm run e2e`); fixtures/ holds the sample CSVs
+scripts/          copy-webr.mjs — copies + decompresses the WebR runtime into public/webr/
+public/           static assets: fonts, COOP/COEP headers file, self-hosted WebR (gitignored)
+```
+
 ## Architecture notes
 
 ### COOP/COEP (cross-origin isolation)
