@@ -27,14 +27,14 @@ export const FRIEDMAN: TestSpec = {
     { id: 'rank-summary', domId: 'friedman-rank-summary', title: 'Rank summary',
       columns: [{ key: 'condition', label: 'Condition' }, { key: 'meanRank', label: 'Mean rank' }] },
     { id: 'friedman', domId: 'friedman-friedman', title: 'Friedman test',
-      columns: [{ key: 'chi2', label: '&chi;&sup2;' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'w', label: "Kendall's W" }] },
+      columns: [{ key: 'chi2', label: 'χ²' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'w', label: "Kendall's W" }] },
     { id: 'posthoc', domId: 'friedman-posthoc', title: 'Post-hoc (Nemenyi)',
       columns: [{ key: 'pair', label: 'Pair' }, { key: 'padj', label: 'p', sub: 'adj' }] },
   ],
   figures: [{ caption: 'Across conditions', type: 'profile / box plot' }],
   howToRead:
-    'The nonparametric counterpart to repeated-measures ANOVA. The &chi;&sup2;/p tests whether ranks differ across conditions; Kendall\'s W is the effect size (0–1 agreement). Post-hoc shows which conditions differ.',
-  apaTemplate: 'A Friedman test found a difference across conditions, &chi;&sup2;({df})={chi2}, p={p}, W={w}.',
-  rMap: 'colMeans(apply(data, 1, rank)) → Table 1 (per-condition mean rank) · friedman.test() → &chi;&sup2;, df, p · rstatix::friedman_effsize() / effectsize::kendalls_w() → Kendall\'s W · PMCMRplus (Nemenyi) → Table 3',
+    'The nonparametric counterpart to repeated-measures ANOVA. The χ²/p tests whether ranks differ across conditions; Kendall\'s W is the effect size (0–1 agreement). Post-hoc shows which conditions differ.',
+  apaTemplate: 'A Friedman test found a difference across conditions, χ²({df})={chi2}, p={p}, W={w}.',
+  rMap: 'colMeans(apply(data, 1, rank)) → Table 1 (per-condition mean rank) · friedman.test() → χ², df, p · rstatix::friedman_effsize() / effectsize::kendalls_w() → Kendall\'s W · PMCMRplus (Nemenyi) → Table 3',
   bundleFiles: ['table_rank-summary.png', 'table_friedman.png', 'table_posthoc.png', 'figure_profile.png'],
 }

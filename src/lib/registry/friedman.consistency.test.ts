@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { FRIEDMAN as spec } from './friedman'
 import { figuresOf } from './types'
-import { strip } from './specHtml'
+import { decode, strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
 const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
@@ -12,7 +12,7 @@ const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Friedman</d
 
 describe('friedman registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
   it('table theads equal the card column sequences (χ² and p_adj as raw HTML)', () => {
-    const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => t[1]))
+    const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => decode(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => (c.sub ? `${c.label}<sub>${c.sub}</sub>` : c.label))))
     // rank-summary has no N column (card-drawn)
     expect(theads[0]).toHaveLength(2)

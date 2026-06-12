@@ -59,7 +59,7 @@ describe('buildFriedman', () => {
   })
 
   it('APA string: χ²(2)=67.19, p<.001, W=0.56', () => {
-    expect(c.apa).toContain('&chi;&sup2;(2)=67.19')
+    expect(c.apa).toContain('χ²(2)=67.19')
     expect(c.apa).toContain('p<.001')
     expect(c.apa).toContain('W=0.56')
   })
