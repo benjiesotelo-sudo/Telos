@@ -1,0 +1,17 @@
+set.seed(42)
+n <- 60
+group <- factor(rep(c("control","drug_a","drug_b"), each=20))
+gender <- factor(rep(c("f","m"), 30))
+school <- factor(rep(c("north","south","west"), each=20))
+classroom <- factor(paste0(school, "_c", rep(rep(1:2, each=10), 3)))
+baseline <- round(rnorm(n, 50, 8), 1)
+ge <- c(control=0, drug_a=4, drug_b=7)[as.character(group)]
+outcome <- round(baseline*0.6 + ge + rnorm(n, 0, 5) + ifelse(gender=="m", 1.5, 0), 1)
+outcome2 <- round(30 + 0.4*ge + rnorm(n, 0, 4), 1)
+score_t1 <- round(60 + rnorm(n, 0, 6), 1)
+score_t2 <- round(score_t1 + 2 + 0.8*ge/4 + rnorm(n, 0, 3), 1)
+score_t3 <- round(score_t1 + 4 + 1.6*ge/4 + rnorm(n, 0, 3), 1)
+subject_id <- sprintf("S%02d", 1:n)
+df <- data.frame(subject_id, group, gender, school, classroom, baseline, outcome, outcome2, score_t1, score_t2, score_t3)
+write.csv(df, "/tmp/anova-spike/fixture.csv", row.names = FALSE)
+cat("fixture written, rows:", nrow(df), "\n")

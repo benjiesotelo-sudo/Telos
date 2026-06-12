@@ -150,8 +150,15 @@ four files + fixtures; catalog registration happens in the serial integration ta
 7. **Missing data:** listwise per test, own N reported — Benjie's standing R2 ruling.
 8. **Multivariate statistics:** Pillai's trace default, Wilks' Λ selectable, both with approx-F
    conversion, per the MANOVA/MANCOVA cards.
-9. **Nested ANOVA:** nesting "random" default with "fixed" toggle as drawn; Factor A tested
-   against the nested factor's MS, B(within A) against residual; ω² effect size.
+9. **Nested ANOVA:** nesting "random" default with "fixed" toggle as drawn — the toggle switches
+   the model per the card's R map: `aov(y ~ A + Error(A:B))` (random) vs `aov(y ~ A/B)` (fixed);
+   Factor A tested against the nested factor's MS under random nesting, B(within A) against
+   residual; ω² effect size via `effectsize::omega_squared` per the card.
+10. **Sums-of-squares types follow each card's own R map** (recorded while transcribing the drawn
+   cards for the plan): factorial/RM/mixed = Type III via `afex` (SPSS convention, afex default);
+   ANCOVA = Type III via `car::Anova(type=3)` (named explicitly on the card); MANOVA = sequential
+   `stats::manova()` + `summary(test=...)` (the card's map); MANCOVA = `car::Manova()` (Type II,
+   the card's map). One-way/Welch/KW/Friedman have a single term — no type question.
 
 ## 5. Problem fixes (Benjie-approved; each is part of the design, not an open risk)
 
