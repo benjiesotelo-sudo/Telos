@@ -133,3 +133,60 @@ it('setProp stales every run (any config edit stales ALL runs)', () => {
   expect(useSession.getState().runs['independent-t-test'].stale).toBe(true)
   expect(useSession.getState().setups['independent-t-test'].props).toEqual({ a: 0.4 })
 })
+
+describe('level-select option kind (B2 — needs the shipped logistic spec)', () => {
+  const lds: Dataset = { columns: ['passed', 'pre'], rows: [
+    { passed: 'no', pre: 10 }, { passed: 'yes', pre: 20 }, { passed: 'no', pre: 15 },
+  ] }
+  beforeEach(() => {
+    useSession.getState().reset()
+    useSession.getState().loadDataset(lds, { name: 'x.csv', rows: 3, cols: 2, encoding: 'UTF-8' })
+    useSession.getState().visitGuide()
+    useSession.getState().toggleSelection('logistic-regression')
+  })
+  it('initialises empty, defaults to the SECOND level on outcome assignment, clears on unassign', () => {
+    expect(useSession.getState().setups['logistic-regression'].options['event']).toBe('')
+    useSession.getState().addRole('logistic-regression', 'outcome', 'passed')
+    expect(useSession.getState().setups['logistic-regression'].options['event']).toBe('yes') // second alphabetically
+    useSession.getState().setOption('logistic-regression', 'event', 'no')
+    useSession.getState().removeRole('logistic-regression', 'outcome', 'passed')
+    expect(useSession.getState().setups['logistic-regression'].options['event']).toBe('')
+  })
+  it('reassignment resets a user-changed choice to the default; OTHER-role edits never touch it', () => {
+    useSession.getState().addRole('logistic-regression', 'outcome', 'passed')
+    useSession.getState().setOption('logistic-regression', 'event', 'no')
+    useSession.getState().addRole('logistic-regression', 'predictors', 'pre')
+    expect(useSession.getState().setups['logistic-regression'].options['event']).toBe('no') // predictor edit: untouched
+    useSession.getState().removeRole('logistic-regression', 'outcome', 'passed')
+    useSession.getState().addRole('logistic-regression', 'outcome', 'passed')
+    expect(useSession.getState().setups['logistic-regression'].options['event']).toBe('yes') // back to the default
+  })
+  it('gateOk blocks while the stored level is not a live category of the assigned column', () => {
+    useSession.getState().addRole('logistic-regression', 'outcome', 'passed')
+    useSession.getState().addRole('logistic-regression', 'predictors', 'pre')
+    expect(gateOk(useSession.getState(), 'test:logistic-regression')).toBe(true)
+    useSession.getState().setOption('logistic-regression', 'event', 'maybe')
+    expect(gateOk(useSession.getState(), 'test:logistic-regression')).toBe(false)
+  })
+})
+
+describe('poisson exposure run gate (B1/convention 11 — needs the shipped poisson spec)', () => {
+  const pds: Dataset = { columns: ['complaints', 'age', 'months'], rows: [
+    { complaints: 3, age: 20, months: 5 }, { complaints: 0, age: 30, months: 0 }, { complaints: 5, age: 40, months: 7 },
+  ] }
+  beforeEach(() => {
+    useSession.getState().reset()
+    useSession.getState().loadDataset(pds, { name: 'p.csv', rows: 3, cols: 3, encoding: 'UTF-8' })
+    useSession.getState().visitGuide()
+    useSession.getState().toggleSelection('poisson-negative-binomial')
+    useSession.getState().addRole('poisson-negative-binomial', 'outcome', 'complaints') // count-tagged int column
+    useSession.getState().addRole('poisson-negative-binomial', 'predictors', 'age')
+  })
+  it('without an exposure the gate passes; an exposure containing 0 blocks (log offset undefined)', () => {
+    expect(gateOk(useSession.getState(), 'test:poisson-negative-binomial')).toBe(true)
+    useSession.getState().addRole('poisson-negative-binomial', 'exposure', 'months')
+    expect(gateOk(useSession.getState(), 'test:poisson-negative-binomial')).toBe(false)
+    useSession.getState().removeRole('poisson-negative-binomial', 'exposure', 'months')
+    expect(gateOk(useSession.getState(), 'test:poisson-negative-binomial')).toBe(true)
+  })
+})

@@ -53,6 +53,14 @@ import { runChiSquareIndependence, type ChiSquareIndependenceResult } from '../s
 import { buildChiSquareIndependence } from './buildChiSquareIndependence'
 import { runFishersExact, type FishersExactResult } from '../stats/fishersExact'
 import { buildFishersExact } from './buildFishersExact'
+import { runSimpleLinearRegression, type SimpleLinearResult } from '../stats/simpleLinearRegression'
+import { buildSimpleLinearRegression } from './buildSimpleLinearRegression'
+import { runMultipleLinearRegression, type MultipleLinearResult } from '../stats/multipleLinearRegression'
+import { buildMultipleLinearRegression } from './buildMultipleLinearRegression'
+import { runLogisticRegression, type LogisticResult } from '../stats/logisticRegression'
+import { buildLogisticRegression } from './buildLogisticRegression'
+import { runPoissonNegativeBinomial, type PoissonNbResult } from '../stats/poissonNegativeBinomial'
+import { buildPoissonNegativeBinomial } from './buildPoissonNegativeBinomial'
 import { categoriesOf, propsArray } from '../data/props'
 
 export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[] }
@@ -110,6 +118,14 @@ export const RUNNERS: Record<string, Runner> = {
   'chi-square-independence': (engine, ds, setup) =>
     runChiSquareIndependence(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0], setup.options['continuity'] as boolean),
   'fishers-exact': (engine, ds, setup) => runFishersExact(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0]),
+  'simple-linear-regression': (engine, ds, setup) =>
+    runSimpleLinearRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictor'][0]),
+  'multiple-linear-regression': (engine, ds, setup) =>
+    runMultipleLinearRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], setup.options['standardize'] as boolean),
+  'logistic-regression': (engine, ds, setup) =>
+    runLogisticRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], String(setup.options['event']), setup.options['reportOR'] as boolean),
+  'poisson-negative-binomial': (engine, ds, setup) =>
+    runPoissonNegativeBinomial(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], setup.roles['exposure'][0] ?? null, setup.options['model'] as 'Poisson' | 'negative binomial'),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -137,4 +153,8 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'chi-square-goodness-of-fit': (spec, result) => buildChiSquareGof(spec, result as ChiSquareGofResult),
   'chi-square-independence': (spec, result) => buildChiSquareIndependence(spec, result as ChiSquareIndependenceResult),
   'fishers-exact': (spec, result) => buildFishersExact(spec, result as FishersExactResult),
+  'simple-linear-regression': (spec, result) => buildSimpleLinearRegression(spec, result as SimpleLinearResult),
+  'multiple-linear-regression': (spec, result) => buildMultipleLinearRegression(spec, result as MultipleLinearResult),
+  'logistic-regression': (spec, result) => buildLogisticRegression(spec, result as LogisticResult),
+  'poisson-negative-binomial': (spec, result) => buildPoissonNegativeBinomial(spec, result as PoissonNbResult),
 }
