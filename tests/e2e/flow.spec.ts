@@ -189,6 +189,19 @@ test('multi-test journey A: five tests, one dataset → combined results + 13-fi
   ])
 })
 
+test('theme toggle: defaults to light, switches to dark, persists across reload', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')   // light is the default even under OS dark
+  await page.getByLabel('Theme').selectOption('dark')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')    // choice survives reload (localStorage)
+  await page.getByLabel('Theme').selectOption('auto')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'auto')
+  await page.getByLabel('Theme').selectOption('light')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+})
+
 test('next-button navigation: config screens link to the following test', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Get started' }).click()
