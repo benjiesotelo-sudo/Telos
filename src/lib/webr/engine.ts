@@ -35,7 +35,9 @@ export class Engine {
     await this.webr.evalRVoid(TELOS_JSON_HELPER)
     // Spike-verified under WebR 0.6.0 (R 4.6.0): ggplot2 + nortest + effectsize + psych + coin + janitor all
     // install from the WebR repo. First visit pays the download (~80s Node-side total); the browser caches.
-    for (const pkg of ['ggplot2', 'nortest', 'effectsize', 'psych', 'coin', 'janitor']) {
+    // ANOVA slice additions spike-verified under WebR 0.6.0 (wf_0a8e8e23-be0): afex (lme4/Matrix/car deps), emmeans, rstatix. PMCMRplus cannot load (Rmpfr lacks a wasm binary) — Nemenyi is hand-rolled in the Friedman stats module.
+    for (const pkg of ['ggplot2', 'nortest', 'effectsize', 'psych', 'coin', 'janitor',
+      'afex', 'emmeans', 'car', 'rstatix']) {
       onStatus?.(`Loading ${pkg}…`)
       await this.webr.installPackages([pkg], { quiet: true })
     }

@@ -15,4 +15,10 @@ describe('Engine', () => {
     const png = await engine.capturePlot('boxplot(c(1,2,3,4) ~ c("a","a","b","b"))')
     expect(Array.from(png.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
+  it('loads the ANOVA-slice packages', async () => {
+    const ok = await engine.runJson<string[]>(`
+      pkgs <- c('afex','emmeans','car','rstatix')
+      as.list(pkgs[vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)])`)
+    expect(ok).toEqual(['afex', 'emmeans', 'car', 'rstatix'])
+  }, 600_000)
 })
