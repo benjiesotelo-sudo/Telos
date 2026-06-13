@@ -66,7 +66,7 @@ import { categoriesOf, propsArray } from '../data/props'
 export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[] }
 export interface CardContent {
   tables: BuiltTable[]
-  note: { kind: 'assume' | 'plain'; text: string } | null
+  note: { kind: 'assume' | 'plain'; text: string; afterTableId?: string } | null // afterTableId: render the note inline after that table (else after all tables)
   figures: { caption: string; type: string; file?: string; png: Uint8Array }[] // file: zip slug when the card bundle name differs from the type
   howToRead: string
   apa: string

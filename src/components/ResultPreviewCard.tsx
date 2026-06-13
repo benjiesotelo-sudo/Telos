@@ -22,9 +22,14 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
         <div key={t.spec.id}>
           <p><b>{t.spec.captionStyle === 'bare' ? 'Table.' : `Table ${i + 1}.`}</b> {t.spec.title}</p>
           <ApaTable id={`table-${t.spec.domId ?? t.spec.id}`} spec={t.spec} rows={t.rows} />
+          {content.note && content.note.afterTableId === t.spec.id && (
+            <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
+          )}
         </div>
       ))}
-      {content.note && <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>}
+      {content.note && !content.tables.some((t) => t.spec.id === content.note!.afterTableId) && (
+        <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
+      )}
       {content.nExcluded > 0 && <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.nExcluded} rows excluded (missing values)</p>}
       {content.figures.map((fig, i) => (
         <div key={`${fig.type}-${i}`}>
@@ -34,7 +39,7 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
       ))}
       <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>How to read this test</h3>
       <p>{content.howToRead}</p>
-      <p>APA: {content.apa}</p>
+      <p><b>APA template:</b> {content.apa}</p>
     </section>
   )
 }
