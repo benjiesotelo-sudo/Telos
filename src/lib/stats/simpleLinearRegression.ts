@@ -26,7 +26,7 @@ names(d)[1] <- yname
 d[[xname]] <- if (x_is_factor) factor(x) else x
 m <- eval(bquote(lm(.(reformulate(xname, response = yname)), data = d)))
 s <- summary(m)
-cf <- s$coefficients; ci <- confint(m)
+cf <- s$coefficients; ci <- confint(m, level = level)
 sp <- parameters::standardise_parameters(m, method = 'refit')
 betas <- setNames(sp$Std_Coefficient, sp$Parameter)
 labs <- rownames(cf)
@@ -86,7 +86,7 @@ const isNumericColumn = (data: Dataset, col: string): boolean => {
   return vals.length > 0 && vals.every((v) => typeof v === 'number')
 }
 
-export async function runSimpleLinearRegression(engine: Engine, data: Dataset, outcome: string, predictor: string): Promise<SimpleLinearResult> {
+export async function runSimpleLinearRegression(engine: Engine, data: Dataset, outcome: string, predictor: string, level = 0.95): Promise<SimpleLinearResult> {
   const xNumeric = isNumericColumn(data, predictor)
   // Per-test listwise (convention 15): outcome numeric-finite; predictor numeric-finite (numeric) or non-blank (categorical).
   const rows = data.rows.filter((r) =>
@@ -98,7 +98,7 @@ export async function runSimpleLinearRegression(engine: Engine, data: Dataset, o
   const env = {
     y: rows.map((r) => r[outcome] as number),
     x: xNumeric ? rows.map((r) => r[predictor] as number) : rows.map((r) => String(r[predictor])),
-    yname: outcome, xname: predictor, x_is_factor: !xNumeric, xlab: predictor, ylab: outcome,
+    yname: outcome, xname: predictor, x_is_factor: !xNumeric, xlab: predictor, ylab: outcome, level,
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figFitPng = await engine.capturePlot(R_FIT, 600, 450, env)

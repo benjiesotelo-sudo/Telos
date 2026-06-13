@@ -11,7 +11,7 @@ export const CHI_SQUARE_INDEPENDENCE: TestSpec = {
     { id: 'colVar', label: 'Column variable', levels: 'nominal / ordinal', arity: 'exactly 1' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     // Drawn ON; only effective for 2×2 in R (the card footnote teaches this).
     { id: 'continuity', label: 'continuity correction', value: 'on (2×2)', kind: 'toggle', default: true },
   ],

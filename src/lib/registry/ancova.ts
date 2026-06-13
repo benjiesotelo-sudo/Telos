@@ -14,9 +14,9 @@ export const ANCOVA: TestSpec = {
       hint: 'e.g. numeric control(s) to hold constant — baseline score, age' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'posthoc', label: 'post-hoc', value: 'adjusted means', kind: 'display' },
-    { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
+    { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
   ],
   constraints: {
     roles: [

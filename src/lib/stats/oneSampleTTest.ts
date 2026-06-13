@@ -21,7 +21,7 @@ export interface OneSampleTTestResult {
 // = conf.int − μ0 (recorded decision; for μ0 = 0 the two coincide).
 const R_STATS = String.raw`
 n <- length(x)
-res <- t.test(x, mu = mu0)
+res <- t.test(x, mu = mu0, conf.level = level)
 d <- effectsize::cohens_d(x, mu = mu0)
 sw <- if (n >= 3 && n <= 5000) shapiro.test(x) else NULL
 list(n = n, mean = mean(x), sd = sd(x), se = sd(x)/sqrt(n),
@@ -44,11 +44,11 @@ interface RawStats {
   shapiro: { W: number | null; p: number | null }
 }
 
-export async function runOneSampleTTest(engine: Engine, data: Dataset, outcome: string, mu0: number): Promise<OneSampleTTestResult> {
+export async function runOneSampleTTest(engine: Engine, data: Dataset, outcome: string, mu0: number, level = 0.95): Promise<OneSampleTTestResult> {
   // Per-test single-column drop (design §2, global R2 policy): keep rows whose outcome value is a finite number.
   const values = data.rows.map((r) => r[outcome]).filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
   const nExcluded = data.rows.length - values.length
-  const env = { x: values, mu0 }
+  const env = { x: values, mu0, level }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_DISTRIBUTION, 600, 450, env)
   return {

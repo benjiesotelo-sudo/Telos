@@ -10,7 +10,7 @@ lev <- anova(lm(z ~ g)); levF <- lev[["F value"]][1]; levP <- lev[["Pr(>F)"]][1]
 if (min(table(g)) < 3) { levF <- NA_real_; levP <- NA_real_ }
 # The user's equal-variance option decides pooled vs Welch (card pill, drawn default off -> Welch).
 # Levene above is the reported assumption check, NOT a gate.
-res <- t.test(score ~ g, var.equal = equal_variance)
+res <- t.test(score ~ g, var.equal = equal_variance, conf.level = level)
 a <- score[g==lv[1]]; b <- score[g==lv[2]]; n1<-length(a); n2<-length(b)
 sp <- sqrt(((n1-1)*sd(a)^2 + (n2-1)*sd(b)^2)/(n1+n2-2)); d <- (mean(a)-mean(b))/sp
 list(groupStats=gs, test=if (equal_variance) 'pooled' else 'welch',
@@ -28,12 +28,12 @@ interface RawStats {
   t: number; df: number; p: number; meanDiff: number; ci: number[]; cohensD: number; levene: { F: number | null; p: number | null }
 }
 
-export async function runIndependentTTest(engine: Engine, data: Dataset, outcome: string, group: string, equalVariance: boolean): Promise<TTestResult> {
+export async function runIndependentTTest(engine: Engine, data: Dataset, outcome: string, group: string, equalVariance: boolean, level = 0.95): Promise<TTestResult> {
   // Per-test listwise (spec step-4a default): drop rows missing/non-numeric in either role column.
   const rows = data.rows.filter((r) =>
     typeof r[outcome] === 'number' && Number.isFinite(r[outcome] as number) && r[group] != null && String(r[group]).trim() !== '')
   const nExcluded = data.rows.length - rows.length
-  const env = { score: rows.map((r) => r[outcome] as number), group: rows.map((r) => String(r[group])), equal_variance: equalVariance }
+  const env = { score: rows.map((r) => r[outcome] as number), group: rows.map((r) => String(r[group])), equal_variance: equalVariance, level }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_BOXPLOT, 600, 450, env)
   return {

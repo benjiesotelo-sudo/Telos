@@ -10,9 +10,9 @@ export const PAIRED_T_TEST: TestSpec = {
     { id: 'conditionB', label: 'Condition B', levels: 'interval / ratio', arity: 'exactly 1' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
-    { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
+    { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
   ],
   constraints: {
     roles: [

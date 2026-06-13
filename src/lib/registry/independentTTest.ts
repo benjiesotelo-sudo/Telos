@@ -10,10 +10,10 @@ export const INDEPENDENT_T_TEST: TestSpec = {
     { id: 'group', label: 'Grouping variable', levels: 'nominal / ordinal', arity: 'exactly 1 · 2 categories' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
     { id: 'equalVariance', label: 'equal variance', value: 'off · Welch', kind: 'toggle', default: false }, // drawn default: OFF → Welch runs (Benjie's ruling)
-    { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
+    { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
   ],
   // Machine-readable mirror of the verbatim role strings above (display strings stay the spec's text).
   // minRule: the ui-spec step-5 DRAFT 'at least 3 complete rows per group', as written.

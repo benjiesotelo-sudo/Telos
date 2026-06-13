@@ -14,7 +14,7 @@ export const NESTED_ANOVA: TestSpec = {
       hint: 'e.g. a sub-group inside the factor — classroom within school' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'nesting', label: 'nesting', value: 'random', kind: 'select', choices: ['random', 'fixed'] },
   ],
   constraints: {

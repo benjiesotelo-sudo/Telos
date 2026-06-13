@@ -10,7 +10,7 @@ export const KENDALLS_TAU: TestSpec = {
     { id: 'variableB', label: 'Variable B', levels: 'ordinal / interval / ratio', arity: 'exactly 1' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
   ],
   constraints: {

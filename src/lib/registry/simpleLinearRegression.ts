@@ -14,8 +14,8 @@ export const SIMPLE_LINEAR_REGRESSION: TestSpec = {
   ],
   options: [
     // House convention: α / CI pills are display-only (ratified Association decision 1).
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
-    { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
+    { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
   ],
   constraints: {
     roles: [

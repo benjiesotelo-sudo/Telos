@@ -11,9 +11,9 @@ export const PEARSON: TestSpec = {
   ],
   options: [
     // House convention (recorded decision 1): α / tails / CI pills are display-only.
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
-    { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
+    { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
   ],
   constraints: {
     roles: [

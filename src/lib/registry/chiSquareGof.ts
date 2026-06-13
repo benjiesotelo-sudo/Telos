@@ -11,7 +11,7 @@ export const CHI_SQUARE_GOF: TestSpec = {
   options: [
     // Card order: expected proportions first, then α. R1 ruling: custom proportions ship now.
     { id: 'expectedProps', label: 'expected proportions', value: 'equal', kind: 'proportions' },
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
   ],
   constraints: {
     roles: [

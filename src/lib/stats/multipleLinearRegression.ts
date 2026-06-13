@@ -25,7 +25,7 @@ for (i in seq_along(numnames)) d[[numnames[i]]] <- nums_flat[((i - 1) * n + 1):(
 for (i in seq_along(catnames)) d[[catnames[i]]] <- factor(cats_flat[((i - 1) * n + 1):(i * n)])
 m <- lm(as.formula(paste('y ~', paste(prednames, collapse = ' + '))), data = d)
 s <- summary(m)
-cf <- s$coefficients; ci <- confint(m)
+cf <- s$coefficients; ci <- confint(m, level = level)
 # β hand formula (spike-pinned ≡ parameters::standardise_parameters refit):
 # numeric terms: B·SD(x)/SD(y); dummy terms: B/SD(y). Intercept: NA_real_.
 sd_y <- sd(d$y)
@@ -88,7 +88,7 @@ d <- data.frame(y = y)
 for (i in seq_along(numnames)) d[[numnames[i]]] <- nums_flat[((i - 1) * n + 1):(i * n)]
 for (i in seq_along(catnames)) d[[catnames[i]]] <- factor(cats_flat[((i - 1) * n + 1):(i * n)])
 m <- lm(as.formula(paste('y ~', paste(prednames, collapse = ' + '))), data = d)
-cf <- summary(m)$coefficients; ci <- confint(m); sd_y <- sd(d$y)
+cf <- summary(m)$coefficients; ci <- confint(m, level = level); sd_y <- sd(d$y)
 labs <- rownames(cf)
 parent <- vapply(labs, function(t) {
   if (t == '(Intercept)') return('')
@@ -120,7 +120,7 @@ const isNumericColumn = (data: Dataset, col: string): boolean => {
 }
 
 export async function runMultipleLinearRegression(engine: Engine, data: Dataset, outcome: string, predictors: string[],
-  standardize: boolean): Promise<MultipleLinearResult> {
+  standardize: boolean, level = 0.95): Promise<MultipleLinearResult> {
   const numPreds = predictors.filter((c) => isNumericColumn(data, c))
   const catPreds = predictors.filter((c) => !isNumericColumn(data, c))
   // Per-test listwise (convention 15): outcome numeric-finite + every predictor complete in the same row.
@@ -141,6 +141,7 @@ export async function runMultipleLinearRegression(engine: Engine, data: Dataset,
     numnames: numNamesEnv, nums_flat: numsFlatEnv, nnum: numPreds.length,
     catnames: catNamesEnv, cats_flat: catsFlatEnv, ncat: catPreds.length,
     n,
+    level,
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figResidualsPng = await engine.capturePlot(R_RESID, 800, 420, env)

@@ -9,3 +9,4 @@ export const fpApa = (p: number) => (p < 0.001 ? '< .001' : `= ${p.toFixed(3).re
 // Bounded statistics (|x| ≤ 1: W, D, r, R², η², ω², β) drop the leading zero in the APA sentence (APA 7 §6.36).
 export const f01 = (n: number, d = 2) => minus(n.toFixed(d)).replace(/^(−?)0\./, '$1.')
 export const fx = (n: number | null, fmt: (v: number) => string) => (n == null || !Number.isFinite(n) ? '—' : fmt(n))
+export const ciLevel = (v: unknown) => { const n = Number(String(v ?? '95').replace('%', '')); return Number.isFinite(n) && n > 0 ? n / 100 : 0.95 }

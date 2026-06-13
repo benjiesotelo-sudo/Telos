@@ -13,7 +13,7 @@ export const FRIEDMAN: TestSpec = {
       hint: 'e.g. same measure each time — score_t1, score_t2, score_t3' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'posthoc', label: 'post-hoc', value: 'Nemenyi', kind: 'display' },
   ],
   constraints: {

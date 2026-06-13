@@ -48,6 +48,15 @@ describe('runSimpleLinearRegression', () => {
     expect(Array.from(r.figFitPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 300_000)
 
+  it('level param: CI width at 0.90 is strictly narrower than at default 0.95', async () => {
+    const ds = loadRegressionFixture()
+    const r95 = await runSimpleLinearRegression(engine, ds, 'post_score', 'pre_score')
+    const r90 = await runSimpleLinearRegression(engine, ds, 'post_score', 'pre_score', 0.90)
+    const width95 = r95.terms[1].ciHigh - r95.terms[1].ciLow
+    const width90 = r90.terms[1].ciHigh - r90.terms[1].ciLow
+    expect(width90).toBeLessThan(width95)
+  }, 300_000)
+
   it('listwise: drops rows missing either column, own N (convention 15)', async () => {
     const ds: Dataset = { columns: ['a', 'b'], rows: [
       { a: 1, b: 2 }, { a: 2, b: 4 }, { a: 3, b: 5 }, { a: 4, b: 9 },

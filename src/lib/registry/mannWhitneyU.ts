@@ -10,7 +10,7 @@ export const MANN_WHITNEY_U: TestSpec = {
     { id: 'group', label: 'Grouping var', levels: 'nominal / ordinal', arity: 'exactly 1 · 2 categories' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
     // Drawn ON. Maps to wilcox.test correct= — only effective on the asymptotic path (spike fact 1).
     { id: 'continuity', label: 'continuity correction', value: 'on', kind: 'toggle', default: true },

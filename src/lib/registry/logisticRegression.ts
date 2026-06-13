@@ -14,8 +14,8 @@ export const LOGISTIC_REGRESSION: TestSpec = {
       hint: 'e.g. explanatory variables — age, gender, hours studied' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
-    { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
+    { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
     // Drawn ON. R1 ruling: off → em-dash OR + 95% CI (OR) cells (and the APA's OR/CI slots — recorded decision 4).
     { id: 'reportOR', label: 'report odds ratios', value: 'on', kind: 'toggle', default: true,
       hint: 'Keep report odds ratios on so each coefficient reads as the multiplier on the odds of the outcome.' },

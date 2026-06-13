@@ -29,7 +29,7 @@ for (i in seq_along(catnames)) d[[catnames[i]]] <- factor(cats_flat[((i - 1) * n
 m <- glm(as.formula(paste('y ~', paste(prednames, collapse = ' + '))), family = binomial, data = d)
 s <- summary(m)
 cf <- s$coefficients
-ci <- suppressMessages(confint(m))
+ci <- suppressMessages(confint(m, level = level))
 labs <- rownames(cf)
 parent <- vapply(labs, function(t) {
   if (t == '(Intercept)') return('')
@@ -92,7 +92,7 @@ const isNumericColumn = (data: Dataset, col: string): boolean => {
 }
 
 export async function runLogisticRegression(engine: Engine, data: Dataset, outcome: string, predictors: string[],
-  event: string, reportOR: boolean): Promise<LogisticResult> {
+  event: string, reportOR: boolean, level = 0.95): Promise<LogisticResult> {
   const numPreds = predictors.filter((c) => isNumericColumn(data, c))
   const catPreds = predictors.filter((c) => !isNumericColumn(data, c))
   // Per-test listwise (convention 15): outcome non-blank (stringified — the level-select choices are strings) +
@@ -109,6 +109,7 @@ export async function runLogisticRegression(engine: Engine, data: Dataset, outco
     numnames: numPreds, nums_flat: numPreds.flatMap((c) => rows.map((r) => r[c] as number)),
     catnames: catPreds, cats_flat: catPreds.flatMap((c) => rows.map((r) => String(r[c]))),
     n,
+    level,
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figRocPng = await engine.capturePlot(R_ROC, 550, 550, env)

@@ -38,7 +38,7 @@ for (fn in fnames) {
   se_rows <- c(se_rows, lapply(e, function(r) { r$term <- fn; r }))
 }
 if (interactions && k >= 2) {
-  emm2 <- emmeans::emmeans(m, as.formula(paste('~', fnames[1], '|', fnames[2])))
+  emm2 <- emmeans::emmeans(m, as.formula(paste('~', fnames[1], '|', fnames[2])), level = level)
   s2 <- summary(pairs(emm2, adjust = 'bonferroni'), infer = TRUE)
   by2 <- as.character(s2[[fnames[2]]])
   se_rows <- c(se_rows, lapply(seq_len(nrow(s2)), function(i) list(
@@ -64,7 +64,7 @@ interface RawStats {
 }
 
 export async function runFactorialAnova(engine: Engine, data: Dataset, outcome: string, factors: string[],
-  interactions: boolean): Promise<FactorialAnovaResult> {
+  interactions: boolean, level = 0.95): Promise<FactorialAnovaResult> {
   const rows = data.rows.filter((r) =>
     typeof r[outcome] === 'number' && Number.isFinite(r[outcome] as number) &&
     factors.every((f) => r[f] != null && String(r[f]).trim() !== ''))
@@ -78,6 +78,7 @@ export async function runFactorialAnova(engine: Engine, data: Dataset, outcome: 
     fnames: factors,
     n,
     interactions,
+    level,
   }
   const s = await engine.runJson<RawStats>(`${POSTHOC_EMM_R}\n${R_STATS}`, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)

@@ -10,7 +10,7 @@ export const WILCOXON_SIGNED_RANK: TestSpec = {
     { id: 'conditionB', label: 'Condition B', levels: 'ordinal / interval / ratio', arity: 'exactly 1' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
     // Maps to wilcox.test(correct=); matters only on the asymptotic path — the default path is EXACT at small N (spike fact 1).
     { id: 'continuity', label: 'continuity correction', value: 'on', kind: 'toggle', default: true },

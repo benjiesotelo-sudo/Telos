@@ -12,7 +12,7 @@ export const MANOVA: TestSpec = {
       hint: 'e.g. grouping labels — method, gender' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'statistic', label: 'test statistic', value: 'Pillai', kind: 'select',
       choices: ['Pillai', 'Wilks'] },
     { id: 'followups', label: 'follow-up ANOVAs', value: 'on', kind: 'toggle', default: true },

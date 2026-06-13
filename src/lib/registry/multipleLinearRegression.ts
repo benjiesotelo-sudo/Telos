@@ -14,8 +14,8 @@ export const MULTIPLE_LINEAR_REGRESSION: TestSpec = {
       hint: 'e.g. explanatory variables — age, gender, hours studied' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
-    { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
+    { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
     // Drawn OFF. R1 ruling: off → em-dash β cells, on → filled; the column set is card-fixed either way.
     { id: 'standardize', label: 'standardize', value: 'off', kind: 'toggle', default: false,
       hint: 'Turn standardize on if you want comparable (beta) coefficients.' },

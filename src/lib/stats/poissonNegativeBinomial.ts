@@ -25,7 +25,7 @@ m <- if (negbin) MASS::glm.nb(as.formula(paste('y ~', rhs)), data = d)
      else glm(as.formula(paste('y ~', rhs)), family = poisson, data = d)
 s <- summary(m)
 cf <- s$coefficients
-ci <- suppressMessages(confint(m))
+ci <- suppressMessages(confint(m, level = level))
 labs <- rownames(cf)
 parent <- vapply(labs, function(t) {
   if (t == '(Intercept)') return('')
@@ -67,7 +67,7 @@ const isNumericColumn = (data: Dataset, col: string): boolean => {
 }
 
 export async function runPoissonNegativeBinomial(engine: Engine, data: Dataset, outcome: string, predictors: string[],
-  exposure: string | null, model: 'Poisson' | 'negative binomial'): Promise<PoissonNbResult> {
+  exposure: string | null, model: 'Poisson' | 'negative binomial', level = 0.95): Promise<PoissonNbResult> {
   const numPreds = predictors.filter((c) => isNumericColumn(data, c))
   const catPreds = predictors.filter((c) => !isNumericColumn(data, c))
   // Per-test listwise (convention 15): outcome + every predictor + exposure (when assigned) complete in the same row.
@@ -87,6 +87,7 @@ export async function runPoissonNegativeBinomial(engine: Engine, data: Dataset, 
     exposure: exposure === null ? [0] : rows.map((r) => r[exposure] as number), // [0] placeholder, never read (has_offset gates)
     negbin: model === 'negative binomial',
     n,
+    level,
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figResidualsPng = await engine.capturePlot(R_FITRES, 600, 450, env)

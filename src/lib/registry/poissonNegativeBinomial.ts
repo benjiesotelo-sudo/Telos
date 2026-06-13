@@ -16,8 +16,8 @@ export const POISSON_NEGATIVE_BINOMIAL: TestSpec = {
   options: [
     { id: 'model', label: 'model', value: 'Poisson', kind: 'select', choices: ['Poisson', 'negative binomial'],
       hint: 'Start with Poisson, but switch to negative binomial if the dispersion check shows the counts are over-dispersed.' },
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
-    { id: 'ci', label: 'CI', value: '95%', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
+    { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
     // Display-only (convention 11): the pill reflects the Exposure role slot, exactly as drawn.
     { id: 'offset', label: 'offset', value: 'from Exposure', kind: 'display' },
   ],

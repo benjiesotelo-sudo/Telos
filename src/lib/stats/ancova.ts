@@ -36,7 +36,7 @@ rows <- lapply(terms, function(t) list(source = gsub(':', ' × ', t),
   f = a3[t, 'F value'], p = a3[t, 'Pr(>F)'],
   pes = pes$Eta2_partial[match(t, pes$Parameter)]))
 dfres <- dfr
-emm <- emmeans::emmeans(m, as.formula(paste('~', frhs)))
+emm <- emmeans::emmeans(m, as.formula(paste('~', frhs)), level = level)
 adj <- .telos_adjmeans(emm)
 ph <- .telos_posthoc(emm, 'tukey')
 mi <- lm(as.formula(paste('y ~ (', paste(covnames, collapse = ' + '), ') * (', frhs, ')')), data = d, contrasts = ctr)
@@ -59,7 +59,7 @@ for (i in seq_along(fnames)) d[[fnames[i]]] <- factor(fvals_flat[((i - 1) * n + 
 ctr <- setNames(lapply(fnames, function(x) 'contr.sum'), fnames)
 frhs <- paste(fnames, collapse = ' * ')
 m <- lm(as.formula(paste('y ~', paste(covnames, collapse = ' + '), '+', frhs)), data = d, contrasts = ctr)
-emm_df <- as.data.frame(emmeans::emmeans(m, as.formula(paste('~', frhs))))
+emm_df <- as.data.frame(emmeans::emmeans(m, as.formula(paste('~', frhs)), level = level))
 g_cols <- setdiff(names(emm_df), c('emmean', 'SE', 'df', 'lower.CL', 'upper.CL'))
 if (length(g_cols) > 1) {
   emm_df$g_lbl <- do.call(paste, c(emm_df[g_cols], sep = ' × '))
@@ -81,7 +81,7 @@ interface RawResult {
 
 export async function runAncova(
   engine: Engine, data: Dataset,
-  outcome: string, factors: string[], covariates: string[],
+  outcome: string, factors: string[], covariates: string[], level = 0.95,
 ): Promise<AncovaResult> {
   // Listwise: numeric-finite for outcome + all covariates; non-blank for all factors
   const rows = data.rows.filter((r) => {
@@ -104,6 +104,7 @@ export async function runAncova(
     fnames: factors,
     fvals_flat: factors.flatMap((fac) => rows.map((r) => String(r[fac]))),
     n,
+    level,
   }
 
   const s = await engine.runJson<RawResult>(`${POSTHOC_EMM_R}\n${ADJMEANS_R}\n${R_STATS}`, env)

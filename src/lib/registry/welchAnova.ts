@@ -12,7 +12,7 @@ export const WELCH_ANOVA: TestSpec = {
       hint: 'e.g. a grouping label — teaching method' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'posthoc', label: 'post-hoc', value: 'Games-Howell', kind: 'display' },
   ],
   constraints: {

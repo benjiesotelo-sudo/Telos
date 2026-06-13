@@ -37,19 +37,19 @@ const R_FIGURE = String.raw`
 gf <- factor(g)
 agg <- data.frame(g = levels(gf), m = as.numeric(tapply(y, gf, mean)))
 n <- as.numeric(tapply(y, gf, length)); sdv <- as.numeric(tapply(y, gf, sd))
-se <- sdv / sqrt(n); tq <- qt(0.975, n - 1)
+se <- sdv / sqrt(n); tq <- qt(1 - (1 - level) / 2, n - 1)
 agg$lo <- agg$m - tq * se; agg$hi <- agg$m + tq * se
 print(ggplot2::ggplot(agg, ggplot2::aes(g, m)) +
   ggplot2::geom_pointrange(ggplot2::aes(ymin = lo, ymax = hi), colour = '#0c447c') +
   ggplot2::labs(x = NULL, y = NULL))`
 
 export async function runOneWayAnova(engine: Engine, data: Dataset, outcome: string, factor: string,
-  posthocChoice: string): Promise<OneWayAnovaResult> {
+  posthocChoice: string, level = 0.95): Promise<OneWayAnovaResult> {
   const rows = data.rows.filter((r) =>
     typeof r[outcome] === 'number' && Number.isFinite(r[outcome] as number) && r[factor] != null && String(r[factor]).trim() !== '')
   const nExcluded = data.rows.length - rows.length
   const adjust = ({ 'Tukey HSD': 'tukey', 'Bonferroni': 'bonferroni', 'Scheffé': 'scheffe' } as Record<string, string>)[posthocChoice] ?? 'tukey'
-  const env = { y: rows.map((r) => r[outcome] as number), g: rows.map((r) => String(r[factor])), adjust }
+  const env = { y: rows.map((r) => r[outcome] as number), g: rows.map((r) => String(r[factor])), adjust, level }
   const s = await engine.runJson<Omit<OneWayAnovaResult, 'nExcluded' | 'figurePng'>>(`${POSTHOC_EMM_R}\n${R_STATS}`, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
   return { ...s, posthocMethod: posthocChoice, nExcluded, figurePng }

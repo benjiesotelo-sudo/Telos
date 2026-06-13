@@ -12,7 +12,7 @@ export const KRUSKAL_WALLIS: TestSpec = {
       hint: 'e.g. label splitting cases into 3+ groups — teaching method' },
   ],
   options: [
-    { id: 'alpha', label: 'α', value: '0.05', kind: 'display' },
+    { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
     { id: 'posthoc', label: 'post-hoc', value: "Dunn's test", kind: 'display' },
   ],
   constraints: {
