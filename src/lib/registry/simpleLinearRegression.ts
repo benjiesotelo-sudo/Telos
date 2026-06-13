@@ -33,9 +33,9 @@ export const SIMPLE_LINEAR_REGRESSION: TestSpec = {
         { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' }] },
   ],
   tableNote: { kind: 'assume', text: 'assumption checks: linearity, normality of residuals, homoscedasticity.' },
-  figures: [ // one drawn figbox, two exported files (bundle line) → two specs sharing type (distribution-normality precedent)
-    { caption: 'Fit & residuals — scatter', type: 'fitted-line scatter + residual diagnostic plots', file: 'fit' },
-    { caption: 'Fit & residuals — diagnostics', type: 'fitted-line scatter + residual diagnostic plots', file: 'residuals' },
+  figures: [ // one drawn figbox, two exported files (bundle line) → two specs sharing caption + type (distribution-normality precedent)
+    { caption: 'Fit & residuals', type: 'fitted-line scatter + residual diagnostic plots', file: 'fit' },
+    { caption: 'Fit & residuals', type: 'fitted-line scatter + residual diagnostic plots', file: 'residuals' },
   ],
   howToRead:
     "R² is the share of outcome variance explained. The predictor's B is the slope (change in outcome per unit), " +

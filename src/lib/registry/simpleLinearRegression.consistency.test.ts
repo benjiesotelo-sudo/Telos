@@ -35,8 +35,8 @@ describe('simple-linear-regression registry stays faithful to the spec HTML (ver
     expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(spec.figures![0].caption)
     expect(strip(card.match(/<div class="ftype">(.*?)<\/div>/s)![1])).toBe(`type: ${spec.figures![0].type}`)
     expect(figuresOf(spec).map((g) => ({ caption: g.caption, type: g.type, file: g.file }))).toEqual([
-      { caption: 'Fit & residuals — scatter', type: 'fitted-line scatter + residual diagnostic plots', file: 'fit' },
-      { caption: 'Fit & residuals — diagnostics', type: 'fitted-line scatter + residual diagnostic plots', file: 'residuals' },
+      { caption: 'Fit & residuals', type: 'fitted-line scatter + residual diagnostic plots', file: 'fit' },
+      { caption: 'Fit & residuals', type: 'fitted-line scatter + residual diagnostic plots', file: 'residuals' },
     ])
   })
   it('APA line equals the template with every {placeholder} as __', () => {
