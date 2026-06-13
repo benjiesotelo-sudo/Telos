@@ -2,14 +2,15 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { OneWayAnovaResult } from '../stats/oneWayAnova'
 import type { CardContent } from './builders'
-import { f, fdf, fp, fx } from '../format/apa'
+import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 import { posthocTableRows } from '../stats/posthoc'
 
 export function buildOneWayAnova(spec: TestSpec, r: OneWayAnovaResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{df1}', fdf(r.dfB)).replace('{df2}', fdf(r.dfW)).replace('{f}', f(r.f))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
-    .replace('{eta2}', f(r.eta2))
+    .replace('{p}', fpApa(r.p))
+    .replace('{eta2}', f01(r.eta2))
+    .replace('{posthoc}', r.posthocMethod)
   const fig = figuresOf(spec)[0]
   return {
     tables: [

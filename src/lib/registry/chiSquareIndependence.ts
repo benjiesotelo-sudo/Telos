@@ -36,7 +36,7 @@ export const CHI_SQUARE_INDEPENDENCE: TestSpec = {
     'Tests whether two categorical variables are associated. A p below alpha means they are related; ' +
     "Cramér's V gives the strength of association (0–1). Valid only when expected counts are mostly ≥ 5 " +
     "(the app flags this and suggests Fisher's exact) and each case appears once (raw counts, not percentages).",
-  apaTemplate: 'A chi-square test of independence was significant, χ²({df}, N={n})={chisq}, p={p}, V={v}.',
+  apaTemplate: 'A chi-square test of independence gave χ²({df}, N={n})={chisq}, p {p}, V={v}.',
   rMap: 'chisq.test() → Table 2 · sqrt(χ²/(N·min(r−1,c−1))) (matches rcompanion::cramerV) → V · ggplot2::geom_bar() → figure',
   bundleFiles: ['table_contingency.png', 'table_chi-square.png', 'figure_bar.png'],
 }

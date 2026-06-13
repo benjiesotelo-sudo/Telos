@@ -30,6 +30,7 @@ const result3: RepeatedMeasuresAnovaResult = {
     { pair: 'score_t1 - score_t3', diff: -5.72, se: 0.51, pAdj: 0.000000001, ciLo: -6.95, ciHi: -4.50 },
     { pair: 'score_t2 - score_t3', diff: -2.85, se: 0.48, pAdj: 0.0002, ciLo: -4.02, ciHi: -1.68 },
   ],
+  sphericityChoice: 'GG correction',
   nExcluded: 0,
   figurePng: png,
 }
@@ -54,6 +55,7 @@ const result2: RepeatedMeasuresAnovaResult = {
   posthoc: [
     { pair: 'score_t1 - score_t2', diff: -2.9, se: 0.39, pAdj: 0.0000001, ciLo: -3.68, ciHi: -2.12 },
   ],
+  sphericityChoice: 'GG correction',
   nExcluded: 2,
   figurePng: png,
 }
@@ -96,12 +98,12 @@ describe('buildRepeatedMeasuresAnova', () => {
       expect(row.ci).toBe('[−3.90, −1.83]')
     })
 
-    it('APA string: GG corrected df, F, p<.001, pes', () => {
-      expect(c.apa).toBe('A repeated-measures ANOVA (GG-corrected) found an effect of condition, F(1.78,104.75)=78.51, p<.001, partial η²=0.57.')
+    it('APA string: GG corrected df, F, p < .001, pes without leading zero', () => {
+      expect(c.apa).toBe('A repeated-measures ANOVA (GG-corrected) gave F(1.78,104.75)=78.51, p < .001, partial η²=.57.')
     })
 
-    it('note is the assume note from the spec', () => {
-      expect(c.note).toEqual(spec.tableNote)
+    it('note is the assume note with afterTableId=sphericity (note renders between Table 3 and Table 4)', () => {
+      expect(c.note).toEqual({ ...spec.tableNote, afterTableId: 'sphericity' })
     })
 
     it('figure caption and type match spec', () => {
@@ -137,6 +139,29 @@ describe('buildRepeatedMeasuresAnova', () => {
     it('3 tables: desc + anova + sphericity (no posthoc)', () => {
       expect(c.tables).toHaveLength(3)
       expect(c.tables.map((t) => t.spec.id)).toEqual(['descriptives', 'rm-anova', 'sphericity'])
+    })
+  })
+
+  describe('sphericityChoice=none (uncorrected run, 3 measures)', () => {
+    const resultNone: RepeatedMeasuresAnovaResult = {
+      ...result3,
+      anova: { ...result3.anova, df1: 2, df2: 118, p: 2.08115277471139e-22 },
+      sphericityChoice: 'none',
+      posthoc: [],
+    }
+    const c = buildRepeatedMeasuresAnova(spec, resultNone)
+
+    it('sphericity table is omitted when correction=none', () => {
+      expect(c.tables.map((t) => t.spec.id)).toEqual(['descriptives', 'rm-anova'])
+    })
+
+    it('APA sentence reads (uncorrected) with integer df', () => {
+      expect(c.apa).toContain('(uncorrected)')
+      expect(c.apa).toContain('F(2,118)=')
+    })
+
+    it('note has no afterTableId when sphericity table is absent', () => {
+      expect((c.note as Record<string, unknown>)['afterTableId']).toBeUndefined()
     })
   })
 })

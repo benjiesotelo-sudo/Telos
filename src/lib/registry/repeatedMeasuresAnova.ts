@@ -41,7 +41,7 @@ export const REPEATED_MEASURES_ANOVA: TestSpec = {
   figures: [{ caption: 'Means across conditions', type: 'profile plot (means ± CI across conditions)' , file: 'profile' }],
   howToRead:
     'Tests whether the average differs across conditions measured on the same people. Check sphericity first — if violated, read the corrected F/p. A significant result means conditions differ; post-hoc tests show which.',
-  apaTemplate: 'A repeated-measures ANOVA (GG-corrected) found an effect of condition, F({df1},{df2})={f}, p={p}, partial η²={pes}.',
+  apaTemplate: 'A repeated-measures ANOVA ({correction}) gave F({df1},{df2})={f}, p {p}, partial η²={pes}.',
   rMap: 'dplyr::group_by()+summarise() → Table 1 (per-condition N/M/SD) · afex::aov_ez() → Tables 2–3 · emmeans → Table 4 (post-hoc) · ggplot2 → profile plot',
   bundleFiles: ['table_descriptives.png', 'table_rm-anova.png', 'table_sphericity.png', 'table_posthoc.png', 'figure_profile.png'],
 }

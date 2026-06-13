@@ -2,13 +2,13 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { PairedTTestResult } from '../stats/pairedTTest'
 import type { CardContent } from './builders'
-import { f, f1, fdf, fp } from '../format/apa'
+import { f, f1, fdf, fp, fpApa } from '../format/apa'
 
 export function buildPairedTTest(spec: TestSpec, r: PairedTTestResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{mdiff}', f1(r.meanDiff))
     .replace('{df}', fdf(r.df)).replace('{t}', f(r.t))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
+    .replace('{p}', fpApa(r.p))
     .replace('{dz}', f(r.dz))
   return {
     tables: [

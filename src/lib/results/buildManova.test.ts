@@ -80,7 +80,7 @@ describe('buildManova', () => {
     })
 
     it('APA always from Pillai fields: Pillai run', () => {
-      expect(c.apa).toBe("A MANOVA found a multivariate group effect, Pillai's V=0.29, F(4,114)=4.74, p=.001.")
+      expect(c.apa).toBe("A MANOVA gave Pillai's V=.29, F(4,114)=4.74, p = .001.")
     })
 
     it('nExcluded passthrough', () => {
@@ -92,7 +92,7 @@ describe('buildManova', () => {
     const c = buildManova(spec, wilksResult)
 
     it('APA still uses Pillai fields even when statistic=Wilks', () => {
-      expect(c.apa).toBe("A MANOVA found a multivariate group effect, Pillai's V=0.29, F(4,114)=4.74, p=.001.")
+      expect(c.apa).toBe("A MANOVA gave Pillai's V=.29, F(4,114)=4.74, p = .001.")
     })
 
     it('Table 1 stat column shows Wilks value (the selected statistic)', () => {
@@ -109,7 +109,7 @@ describe('buildManova', () => {
     })
 
     it('APA still renders (from Pillai)', () => {
-      expect(c.apa).toContain("Pillai's V=0.29")
+      expect(c.apa).toContain("Pillai's V=.29")
     })
   })
 })

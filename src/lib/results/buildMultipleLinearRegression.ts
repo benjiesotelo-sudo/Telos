@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { MultipleLinearResult } from '../stats/multipleLinearRegression'
 import type { CardContent } from './builders'
-import { f, fdf, fp } from '../format/apa'
+import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildMultipleLinearRegression(spec: TestSpec, r: MultipleLinearResult): CardContent {
   // R1 + recorded decision 8: intercept β/VIF blank '' (ghost row); standardize off → predictor β cells '—';
@@ -18,11 +18,11 @@ export function buildMultipleLinearRegression(spec: TestSpec, r: MultipleLinearR
   })
   const first = r.terms.find((x) => x.term !== '(Intercept)')! // APA "predictor X" = first coefficient row (recorded decision 3)
   const apa = spec.apaTemplate
-    .replace('{r2}', f(r.r2)).replace('{df1}', fdf(r.df1)).replace('{df2}', fdf(r.df2)).replace('{f}', f(r.f))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
+    .replace('{r2}', f01(r.r2)).replace('{df1}', fdf(r.df1)).replace('{df2}', fdf(r.df2)).replace('{f}', f(r.f))
+    .replace('p {p}', `p ${fpApa(r.p)}`)
     .replace('predictor X', `predictor ${first.term}`)
     .replace('{b}', f(first.b))
-    .replace('p={p2}', first.p < 0.001 ? 'p<.001' : `p=${fp(first.p)}`)
+    .replace('p {p2}', `p ${fpApa(first.p)}`)
   const [figResiduals, figCoef] = figuresOf(spec) // #11: residual diagnostics, then the coefficient plot
   return {
     tables: [

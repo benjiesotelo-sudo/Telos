@@ -29,7 +29,7 @@ export const SPEARMAN: TestSpec = {
   howToRead:
     'ρ measures how well the relationship follows a consistent up-or-down trend (monotonic), using ranks. ' +
     "Read sign and magnitude like Pearson's r; p tests significance.",
-  apaTemplate: 'A Spearman correlation was ρ={rho}, p={p}, N={n}.',
+  apaTemplate: 'A Spearman correlation gave ρ={rho}, p {p}, N={n}.',
   rMap: 'cor.test(method="spearman") → table · ggplot2 → figure',
   bundleFiles: ['table_correlation.png', 'figure_scatter.png'],
 }

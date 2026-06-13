@@ -32,10 +32,10 @@ describe('buildPairedTTest', () => {
     expect(c.nExcluded).toBe(2)
   })
   it('fills the APA sentence with the p-clause rule and 1-dp change', () => {
-    expect(c.apa).toBe('A paired-samples t-test showed a change of M=−12.0, t(5)=−10.39, p<.001, dz=−4.24.')
+    expect(c.apa).toBe('A paired-samples t-test gave M=−12.0, t(5)=−10.39, p < .001, dz=−4.24.')
   })
-  it('p ≥ .001 renders as p=… (the other p-clause branch)', () => {
-    expect(buildPairedTTest(spec, { ...r, p: 0.042 }).apa).toContain('p=.042')
+  it('p ≥ .001 renders as p = … (the other p-clause branch)', () => {
+    expect(buildPairedTTest(spec, { ...r, p: 0.042 }).apa).toContain('p = .042')
   })
   it('carries the figure with its type for alt-text and export naming', () => {
     expect(c.figures).toEqual([{ caption: 'Change per case', type: 'difference', png: r.figurePng }])

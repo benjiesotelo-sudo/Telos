@@ -2,13 +2,13 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { PearsonResult } from '../stats/pearson'
 import type { CardContent } from './builders'
-import { f, fdf, fp } from '../format/apa'
+import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildPearson(spec: TestSpec, r: PearsonResult): CardContent {
   const apa = spec.apaTemplate
     .replace('[X]', r.varA).replace('[Y]', r.varB)
-    .replace('{df}', fdf(r.df)).replace('{r}', f(r.r))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
+    .replace('{df}', fdf(r.df)).replace('{r}', f01(r.r))
+    .replace('{p}', fpApa(r.p))
     .replace('{ciLow}', f(r.ciLow)).replace('{ciHigh}', f(r.ciHigh))
   const fig = figuresOf(spec)[0]
   return {

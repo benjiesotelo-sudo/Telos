@@ -47,7 +47,7 @@ export const LOGISTIC_REGRESSION: TestSpec = {
   howToRead:
     "Each predictor's odds ratio tells how the odds of the outcome change per unit (>1 increases, <1 decreases); " +
     'p tests significance (read it from the z column, z = B/SE). Model fit and the ROC/AUC show how well it classifies overall.',
-  apaTemplate: 'Predictor X was associated with the outcome, OR={or}, 95% CI [{ciLow}, {ciHigh}], p={p} (AUC={auc}).',
+  apaTemplate: 'Predictor X was associated with the outcome, OR={or}, 95% CI [{ciLow}, {ciHigh}], p {p} (AUC={auc}).',
   rMap: 'glm(family=binomial) → B/SE/z/p · exp(cbind(OR=coef(m), confint(m))) → OR + 95% CI · performance::r2_nagelkerke(m) → Nagelkerke R² · AIC(m) → AIC · anova(m, test="Chisq") → omnibus χ² / −2LL · table(predicted, observed) → Table 3 (classification) · pROC → ROC/AUC',
   bundleFiles: ['table_model-fit.png', 'table_coefficients.png', 'table_classification.png', 'figure_roc.png'],
 }

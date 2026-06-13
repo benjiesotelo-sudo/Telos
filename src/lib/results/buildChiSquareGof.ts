@@ -2,14 +2,14 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { ChiSquareGofResult } from '../stats/chiSquareGof'
 import type { CardContent } from './builders'
-import { f, fdf, fp } from '../format/apa'
+import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildChiSquareGof(spec: TestSpec, r: ChiSquareGofResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{df}', fdf(r.df)) // the drawn "k−1" slot carries the real df at runtime (recorded decision 2)
     .replace('{n}', String(r.n)).replace('{chisq}', f(r.chisq))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
-    .replace('{w}', f(r.w))
+    .replace('{p}', fpApa(r.p))
+    .replace('{w}', f01(r.w))
   const fig = figuresOf(spec)[0]
   return {
     tables: [

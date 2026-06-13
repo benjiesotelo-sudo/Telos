@@ -58,16 +58,16 @@ describe('buildFriedman', () => {
     expect(c.figures).toEqual([{ caption: 'Across conditions', type: 'profile / box plot', file: 'profile', png }])
   })
 
-  it('APA string: χ²(2)=67.19, p<.001, W=0.56', () => {
+  it('APA string: χ²(2)=67.19, p < .001, W=.56', () => {
     expect(c.apa).toContain('χ²(2)=67.19')
-    expect(c.apa).toContain('p<.001')
-    expect(c.apa).toContain('W=0.56')
+    expect(c.apa).toContain('p < .001')
+    expect(c.apa).toContain('W=.56')
   })
 
-  it('p ≥ .001 branch renders fp(p) instead of <.001', () => {
+  it('p ≥ .001 branch renders fpApa(p) instead of < .001', () => {
     const r2: FriedmanResult = { ...result, p: 0.0235 }
     const c2 = buildFriedman(spec, r2)
-    expect(c2.apa).toContain('p=.024')
+    expect(c2.apa).toContain('p = .024')
     expect(c2.tables[1].rows[0].p).toBe('.024')
   })
 

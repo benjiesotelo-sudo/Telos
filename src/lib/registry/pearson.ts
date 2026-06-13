@@ -32,7 +32,7 @@ export const PEARSON: TestSpec = {
     'p tests whether it differs from zero; the 95% CI shows the precision. r measures only linear association — ' +
     'a strong curved relationship can give r near 0, and r is sensitive to outliers, so always inspect the scatterplot ' +
     "(use Spearman's rs for monotonic-but-nonlinear or outlier-affected data). Correlation does not imply causation.",
-  apaTemplate: '[X] and [Y] were correlated, r({df})={r}, p={p}, 95% CI [{ciLow}, {ciHigh}].',
+  apaTemplate: '[X] and [Y] were correlated, r({df})={r}, p {p}, 95% CI [{ciLow}, {ciHigh}].',
   rMap: 'cor.test() → table · geom_point()+geom_smooth(method="lm") → figure',
   bundleFiles: ['table_correlation.png', 'figure_scatter.png'],
 }

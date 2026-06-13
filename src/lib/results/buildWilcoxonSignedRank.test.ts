@@ -19,9 +19,9 @@ describe('buildWilcoxonSignedRank', () => {
   it('Table 1: per-sign rows, em-dash mean rank for empty signs', () => {
     expect(c.tables[0].spec.id).toBe('rank-summary')
     expect(c.tables[0].rows).toEqual([
-      { sign: 'Positive', n: 0, meanRank: '—', sumRanks: '0.00' },
+      { sign: 'Positive', n: 0, meanRank: '—', sumRanks: '—' },
       { sign: 'Negative', n: 6, meanRank: '3.50', sumRanks: '21.00' },
-      { sign: 'Ties', n: 0, meanRank: '—', sumRanks: '0.00' },
+      { sign: 'Ties', n: 0, meanRank: '—', sumRanks: '—' },
     ])
   })
   it('Table 2: one row under the literal V / W header, U+2212 minuses', () => {
@@ -33,7 +33,7 @@ describe('buildWilcoxonSignedRank', () => {
     expect(c.howToRead).toBe(spec.howToRead)
   })
   it('APA omits V/W — only Z, p, r, exactly as drawn', () => {
-    expect(c.apa).toBe('A Wilcoxon signed-rank test showed a change, Z=−2.20, p=.031, r=−1.00.')
+    expect(c.apa).toBe('A Wilcoxon signed-rank test gave Z=−2.20, p = .031, r=−1.00.')
   })
   it('figure carries the difference type for alt-text and export naming', () => {
     expect(c.figures).toEqual([{ caption: 'Change per case', type: 'difference', png: base.figurePng }])
@@ -41,6 +41,6 @@ describe('buildWilcoxonSignedRank', () => {
   it('p-clause branch: tiny p renders p<.001 in table and sentence; midrank V keeps 2 dp', () => {
     const c2 = buildWilcoxonSignedRank(spec, { ...base, v: 1.5, p: 0.0002 })
     expect(c2.tables[1].rows[0]).toMatchObject({ v: '1.50', p: '<.001' })
-    expect(c2.apa).toContain('Z=−2.20, p<.001, r=−1.00.')
+    expect(c2.apa).toContain('Z=−2.20, p < .001, r=−1.00.')
   })
 })

@@ -12,9 +12,9 @@ describe('runMixedAnova (spike known answers, GG correction)', () => {
     const ds = loadAnovaFixture()
     const res = await runMixedAnova(engine, ds, 'subject_id', 'group', ['score_t1', 'score_t2', 'score_t3'], 'GG correction', true)
 
-    // Between row (group)
+    // Between row (title-cased)
     const btwn = res.anovaRows[0]
-    expect(btwn.source).toBe('group (between)')
+    expect(btwn.source).toBe('Group (between)')
     expect(btwn.f).toBeCloseTo(0.24690089648661, 6)
     expect(btwn.p).toBeCloseTo(0.782049251682351, 6)
     expect(btwn.pes).toBeCloseTo(0.00858878309615581, 6)
@@ -41,7 +41,7 @@ describe('runMixedAnova (spike known answers, GG correction)', () => {
     const res = await runMixedAnova(engine, ds, 'subject_id', 'group', ['score_t1', 'score_t2', 'score_t3'], 'GG correction', true)
 
     const inter = res.anovaRows[2]
-    expect(inter.source).toBe('group × Condition')
+    expect(inter.source).toBe('Group × Condition')
     expect(inter.f).toBeCloseTo(2.52167386781147, 6)
     expect(inter.p).toBeCloseTo(0.0561473099306867, 6)
     expect(inter.pes).toBeCloseTo(0.0812874855998016, 6)

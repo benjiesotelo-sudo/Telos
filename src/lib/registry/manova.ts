@@ -47,7 +47,7 @@ export const MANOVA: TestSpec = {
   figures: [{ caption: 'Group means per outcome', type: 'means plot faceted by DV' , file: 'means' }],
   howToRead:
     'Tests whether groups differ on a set of outcomes jointly. Read the multivariate p (Pillai\'s trace is robust) first; if significant, the per-DV follow-up ANOVAs show which individual outcomes drive it. Because you run one ANOVA per outcome, correct those follow-up p-values for multiple comparisons (e.g. Bonferroni: divide alpha by the number of outcomes) before calling each significant.',
-  apaTemplate: "A MANOVA found a multivariate group effect, Pillai's V={v}, F({df1},{df2})={f}, p={p}.",
+  apaTemplate: "A MANOVA gave Pillai's V={v}, F({df1},{df2})={f}, p {p}.",
   rMap: 'manova() + summary(.., test="Pillai") → Table 1 · summary.aov() → Table 2 (F/df/p) · effectsize::eta_squared(partial=TRUE) → partial η²',
   bundleFiles: ['table_multivariate.png', 'table_univariate-followups.png', 'figure_means.png'],
 }

@@ -32,7 +32,7 @@ export const CHI_SQUARE_GOF: TestSpec = {
     'A p below alpha means the observed split differs from expected; a standardized residual beyond about ±1.96 flags ' +
     'a category that significantly drives the result. Valid only when expected counts are mostly ≥ 5 (some texts allow ' +
     '≥ 1 if no more than 20% are below 5); for sparse categories use an exact / simulated test instead.',
-  apaTemplate: 'A goodness-of-fit test, χ²({df}, N={n})={chisq}, p={p}, w={w}.',
+  apaTemplate: 'A goodness-of-fit test, χ²({df}, N={n})={chisq}, p {p}, w={w}.',
   rMap: 'chisq.test(x, p=) → Table 2 · chisq.test(...)$stdres → Table 1 std. residuals · effectsize::cohens_w() → w · chisq.test(..., simulate.p.value=TRUE) for sparse data · ggplot2 → figure',
   bundleFiles: ['table_observed-expected.png', 'table_chi-square.png', 'figure_bar.png'],
 }

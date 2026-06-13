@@ -42,6 +42,6 @@ describe('buildMultipleLinearRegression', () => {
   })
   it('APA: card-literal wording, predictor X = first coefficient row (recorded decision 3)', () => {
     expect(buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res).apa)
-      .toBe('The model explained R²=0.75 of the variance, F(5,34)=20.42, p<.001; predictor pre_score was significant, B=0.61, p<.001.')
+      .toBe('The model explained R²=.75 of the variance, F(5,34)=20.42, p < .001; predictor pre_score gave B=0.61, p < .001.')
   })
 })

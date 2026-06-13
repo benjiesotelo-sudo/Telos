@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { DistributionNormalityResult, VariableNormality } from '../stats/distributionNormality'
 import type { CardContent } from './builders'
-import { f, fp, fx } from '../format/apa'
+import { f, f01, fp, fpApa, fx } from '../format/apa'
 
 export function buildDistributionNormality(spec: TestSpec, r: DistributionNormalityResult): CardContent {
   const row = (v: VariableNormality, test: string, letter: 'W' | 'D', stat: number | null, p: number | null) =>
@@ -12,8 +12,8 @@ export function buildDistributionNormality(spec: TestSpec, r: DistributionNormal
     ? `${spec.tableNote!.text} ${skipped.map((v) => `Shapiro-Wilk not computed for ${v.variable}: N = ${v.n} is outside that range.`).join(' ')}`
     : spec.tableNote!.text
   const sentence = (v: VariableNormality) => spec.apaTemplate
-    .replace('{w}', fx(v.shapiro.W, f))
-    .replace('p = {p}', v.shapiro.p != null && v.shapiro.p < 0.001 ? 'p < .001' : `p = ${fx(v.shapiro.p, fp)}`)
+    .replace('{w}', fx(v.shapiro.W, f01))
+    .replace('{p}', v.shapiro.p != null && Number.isFinite(v.shapiro.p) ? fpApa(v.shapiro.p) : '—')
   const [histSpec, qqSpec] = figuresOf(spec)
   return {
     tables: [{ spec: spec.tables[0], rows: r.variables.flatMap((v) => [

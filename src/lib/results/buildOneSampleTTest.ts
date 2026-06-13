@@ -1,13 +1,13 @@
 import type { TestSpec } from '../registry/types'
 import type { OneSampleTTestResult } from '../stats/oneSampleTTest'
 import type { CardContent } from './builders'
-import { minus, f, f1, fdf, fp, fx } from '../format/apa'
+import { minus, f, f1, fdf, fp, fpApa, fx } from '../format/apa'
 
 export function buildOneSampleTTest(spec: TestSpec, r: OneSampleTTestResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{m}', f1(r.mean)).replace('{mu0}', minus(String(r.mu0)))
     .replace('{df}', fdf(r.df)).replace('{t}', f(r.t))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
+    .replace('{p}', fpApa(r.p))
     .replace('{d}', f(r.cohensD))
   return {
     tables: [

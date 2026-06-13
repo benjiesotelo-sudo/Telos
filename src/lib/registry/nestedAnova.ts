@@ -37,7 +37,7 @@ export const NESTED_ANOVA: TestSpec = {
   figures: [{ caption: 'Grouped means', type: 'grouped means plot (nested groups within each top-level group)' , file: 'grouped-means' }],
   howToRead:
     'Used when one factor sits inside another (e.g. classes within schools). The top factor is tested against variation among its nested units, not raw residuals — a significant F means the top-level groups differ beyond the nested-unit variability.',
-  apaTemplate: 'A nested ANOVA found an effect of A, F({df1},{df2})={f}, p={p}.',
+  apaTemplate: 'A nested ANOVA for A gave F({df1},{df2})={f}, p {p}.',
   rMap: 'aov(y ~ A + Error(A:B)) (random) / aov(y ~ A/B) (fixed) → table · effectsize::omega_squared() → effect size · ggplot2 → figure',
   bundleFiles: ['table_nested-anova.png', 'figure_grouped-means.png'],
 }

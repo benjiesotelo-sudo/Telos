@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { SimpleLinearResult } from '../stats/simpleLinearRegression'
 import type { CardContent } from './builders'
-import { f, fdf, fp } from '../format/apa'
+import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildSimpleLinearRegression(spec: TestSpec, r: SimpleLinearResult): CardContent {
   // Convention 1 / recorded decision 8: intercept β renders blank '' (ghost row); no toggles on this card — β always fills.
@@ -14,8 +14,8 @@ export function buildSimpleLinearRegression(spec: TestSpec, r: SimpleLinearResul
   const pred = r.terms.find((x) => x.term !== '(Intercept)')! // APA fills from the predictor row (recorded decision 3)
   const apa = spec.apaTemplate
     .replace('{b}', f(pred.b)).replace('{df}', fdf(r.df2)).replace('{t}', f(pred.t))
-    .replace('p={p}', pred.p < 0.001 ? 'p<.001' : `p=${fp(pred.p)}`)
-    .replace('{r2}', f(r.r2))
+    .replace('{p}', fpApa(pred.p))
+    .replace('{r2}', f01(r.r2))
   const figs = figuresOf(spec)
   return {
     tables: [

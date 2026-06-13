@@ -37,7 +37,7 @@ export const INDEPENDENT_T_TEST: TestSpec = {
     "The mean difference and 95% CI show the size and precision of the gap; Cohen's d gives effect size (~0.2 small, 0.5 medium, 0.8 large). " +
     "A large p means no significant difference was detected — not that the group means are equal.",
   apaTemplate:
-    'An independent-samples t-test found a difference between {g1} (M={m1}, SD={sd1}) and {g2} (M={m2}, SD={sd2}), t({df})={t}, p={p}, d={d}.',
+    'An independent-samples t-test compared {g1} (M={m1}, SD={sd1}) and {g2} (M={m2}, SD={sd2}), t({df})={t}, p {p}, d={d}.',
   rMap: 't.test() → Table 2 · summary → Table 1 · effectsize::cohens_d() → d · car::leveneTest() → assumption · geom_boxplot() → figure',
   bundleFiles: ['table_group-statistics.png', 'table_t-test.png', 'figure_boxplot.png'],
 }

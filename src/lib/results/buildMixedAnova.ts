@@ -2,19 +2,24 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { MixedAnovaResult } from '../stats/mixedAnova'
 import type { CardContent } from './builders'
-import { f, fdf, fp, fx } from '../format/apa'
+import { f, f01, fdf, fp, fpApa } from '../format/apa'
 import { posthocTableRows } from '../stats/posthoc'
 
 export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardContent {
   const inter = r.anovaRows[2]  // interaction row drives the APA
+  // Derive display names: between from betweenName (title-case), within from row 1 source stripped of ' (within)'
+  const betweenDisplay = r.betweenName.charAt(0).toUpperCase() + r.betweenName.slice(1)
+  const withinDisplay = r.anovaRows[1].source.replace(/\s*\(within\)\s*$/i, '')
   const apa = spec.apaTemplate
+    .replace('{between_name}', betweenDisplay)
+    .replace('{within_name}', withinDisplay)
     .replace('{df1}', fdf(inter.df1)).replace('{df2}', fdf(inter.df2)).replace('{f}', f(inter.f))
-    .replace('p={p}', inter.p < 0.001 ? 'p<.001' : `p=${fp(inter.p)}`)
-    .replace('{pes}', f(inter.pes))
+    .replace('p {p}', `p ${fpApa(inter.p)}`)
+    .replace('{pes}', f01(inter.pes))
 
   const note: CardContent['note'] = {
     kind: 'assume',
-    text: `${spec.tableNote!.text} (Levene on subject means F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)})`,
+    text: spec.tableNote!.text,
   }
 
   const fig = figuresOf(spec)[0]

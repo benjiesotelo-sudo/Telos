@@ -28,6 +28,6 @@ describe('buildChiSquareIndependence', () => {
   })
   it('APA keeps the card-literal wording with real values', () => {
     expect(buildChiSquareIndependence(CHI_SQUARE_INDEPENDENCE, res).apa)
-      .toBe('A chi-square test of independence was significant, χ²(1, N=40)=0.20, p=.653, V=0.10.')
+      .toBe('A chi-square test of independence gave χ²(1, N=40)=0.20, p = .653, V=.10.')
   })
 })

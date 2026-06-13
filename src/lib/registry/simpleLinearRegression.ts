@@ -33,15 +33,15 @@ export const SIMPLE_LINEAR_REGRESSION: TestSpec = {
         { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' }] },
   ],
   tableNote: { kind: 'assume', text: 'assumption checks: linearity, normality of residuals, homoscedasticity.' },
-  figures: [ // one drawn figbox, two exported files (bundle line) → two specs sharing caption + type (distribution-normality precedent)
-    { caption: 'Fit & residuals', type: 'fitted-line scatter + residual diagnostic plots', file: 'fit' },
-    { caption: 'Fit & residuals', type: 'fitted-line scatter + residual diagnostic plots', file: 'residuals' },
+  figures: [ // one drawn figbox, two exported files (bundle line) → two specs sharing type (distribution-normality precedent)
+    { caption: 'Fit & residuals — scatter', type: 'fitted-line scatter + residual diagnostic plots', file: 'fit' },
+    { caption: 'Fit & residuals — diagnostics', type: 'fitted-line scatter + residual diagnostic plots', file: 'residuals' },
   ],
   howToRead:
     "R² is the share of outcome variance explained. The predictor's B is the slope (change in outcome per unit), " +
     'with p testing whether it differs from zero and the CI showing precision. β is the standardized slope ' +
     '(change in outcome in SDs per 1 SD change in the predictor), useful for comparing effect sizes on a common scale.',
-  apaTemplate: 'The predictor significantly predicted the outcome, B={b}, t({df})={t}, p={p}, R²={r2}.',
+  apaTemplate: 'A simple linear regression gave B={b}, t({df})={t}, p {p}, R²={r2}.',
   rMap: 'lm() → Tables 1–2 · parameters::standardise_parameters() → β · ggplot2 → figures',
   bundleFiles: ['table_model-fit.png', 'table_coefficients.png', 'figure_fit.png', 'figure_residuals.png'],
 }

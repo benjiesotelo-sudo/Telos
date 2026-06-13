@@ -115,7 +115,8 @@ export async function runMixedAnova(
     posthocOn,
   }
 
-  const rCode = `${POSTHOC_EMM_R}\n${SPHERICITY_R}\n${R_STATS(between)}`
+  const betweenLabel = between.charAt(0).toUpperCase() + between.slice(1)
+  const rCode = `${POSTHOC_EMM_R}\n${SPHERICITY_R}\n${R_STATS(betweenLabel)}`
   const s = await engine.runJson<RawStats>(rCode, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
 
@@ -125,7 +126,7 @@ export async function runMixedAnova(
     sphericity: s.sphericity,
     posthoc: s.posthoc,
     levene: s.levene,
-    betweenName: between,
+    betweenName: betweenLabel,
     nExcluded,
     figurePng,
   }

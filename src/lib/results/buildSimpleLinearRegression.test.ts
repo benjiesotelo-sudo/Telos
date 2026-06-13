@@ -27,8 +27,8 @@ describe('buildSimpleLinearRegression', () => {
     const c = buildSimpleLinearRegression(SIMPLE_LINEAR_REGRESSION, res)
     expect(c.figures.map((g) => g.file)).toEqual(['fit', 'residuals'])
   })
-  it('APA fills from the predictor row; tiny p becomes p<.001', () => {
+  it('APA fills from the predictor row; tiny p becomes p < .001; R² drops leading zero', () => {
     expect(buildSimpleLinearRegression(SIMPLE_LINEAR_REGRESSION, res).apa)
-      .toBe('The predictor significantly predicted the outcome, B=0.64, t(38)=8.58, p<.001, R²=0.66.')
+      .toBe('A simple linear regression gave B=0.64, t(38)=8.58, p < .001, R²=.66.')
   })
 })

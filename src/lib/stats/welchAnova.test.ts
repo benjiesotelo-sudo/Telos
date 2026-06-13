@@ -22,11 +22,12 @@ describe("Welch's ANOVA stats engine (spike known answers)", () => {
     expect(res.desc.find((d) => d.group === 'control')?.n).toBe(20)
 
     // Games-Howell post-hoc (rstatix rounds p.adj — assert rounded value)
+    // diff = -(group2 − group1) = group1 − group2 to match pair label "control - drug_a"
     const gh = res.posthoc.find((x) => x.pair === 'control - drug_a')!
     expect(gh).toBeDefined()
-    expect(gh.diff).toBeCloseTo(1.37, 6)
-    expect(gh.ciLo).toBeCloseTo(-4.1779984409316, 6)
-    expect(gh.ciHi).toBeCloseTo(6.9179984409316, 6)
+    expect(gh.diff).toBeCloseTo(-1.37, 6)
+    expect(gh.ciLo).toBeCloseTo(-6.9179984409316, 6)
+    expect(gh.ciHi).toBeCloseTo(4.1779984409316, 6)
     expect(gh.pAdj).toBeCloseTo(0.82, 2) // rstatix returns rounded p.adj
 
     // Listwise

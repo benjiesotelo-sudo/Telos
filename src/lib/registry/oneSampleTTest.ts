@@ -34,7 +34,7 @@ export const ONE_SAMPLE_T_TEST: TestSpec = {
     'Compares your sample mean to a fixed value. A p below alpha means the mean differs from that value; ' +
     'the mean difference and 95% CI show by how much (its sign tells you whether the mean is above or below the test value), ' +
     "and Cohen's d gives the effect size. A p at or above alpha does not prove the mean equals the test value — only that you lack evidence it differs.",
-  apaTemplate: 'A one-sample t-test showed M={m} differed from {mu0}, t({df})={t}, p={p}, d={d}.',
+  apaTemplate: 'A one-sample t-test gave M={m} vs. {mu0}, t({df})={t}, p {p}, d={d}.',
   rMap: 't.test(x, mu=) → Table 2 · effectsize::cohens_d() → d · ggplot2 → figure',
   bundleFiles: ['table_descriptives.png', 'table_t-test.png', 'figure_distribution.png'],
 }

@@ -16,7 +16,7 @@ export interface TestSpec {
   id: string; name: string; question: string
   roles: RoleSpec[]; options: OptionSpec[]; tables: TableSpec[]
   assumptionNote?: string                    // t-test only (locked); new entries use tableNote
-  tableNote?: { kind: 'assume' | 'plain'; text: string } // absent = no note (Wilcoxon)
+  tableNote?: { kind: 'assume' | 'plain'; text: string; afterTableId?: string } // absent = no note (Wilcoxon) · afterTableId: render note inline after that table
   figure?: FigureSpec                        // t-test only (locked)
   figures?: FigureSpec[]                     // new entries
   howToRead: string; apaTemplate: string; rMap: string; bundleFiles: string[]

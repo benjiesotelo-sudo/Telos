@@ -58,9 +58,9 @@ describe('buildFactorialAnova — fixture (nothing significant): Table 3 absent'
     expect(c.tables[1].rows[2]).toMatchObject({ source: 'group × gender', df: '2', f: '2.48', p: '.093', pes: '0.08' })
   })
 
-  it('APA from interaction row: F(2,54)=2.48, p=.093, partial η²=0.08', () => {
-    // dfRes = 60 - 1 - (2+1+2) = 54
-    expect(c.apa).toBe('A two-way ANOVA found a significant A×B interaction, F(2,54)=2.48, p=.093, partial η²=0.08.')
+  it('APA from interaction row: neutral phrasing, APA-7 p spacing, bounded η² drops leading zero', () => {
+    // dfRes = 60 - 1 - (2+1+2) = 54; fpApa(.093)='= .093'; f01(.084)='.08'
+    expect(c.apa).toBe('A two-way ANOVA gave A×B interaction F(2,54)=2.48, p = .093, partial η²=.08.')
   })
 
   it('note appends Levene + Shapiro values to card assume text', () => {
@@ -106,6 +106,39 @@ describe('buildFactorialAnova — doctored result (interaction p=.01): Table 3 p
     const firstRow = c.tables[2].rows[0]
     expect('contrast' in firstRow).toBe(true)
     expect('pair' in firstRow).toBe(false)
+  })
+})
+
+describe('buildFactorialAnova — interactions OFF: main-effects APA, title, no figure', () => {
+  // interactions=OFF: no × row in result
+  const noInteractionsResult: FactorialAnovaResult = {
+    ...fixtureResult,
+    rows: [
+      { source: 'group', ss: 131.605, df: 2, ms: 65.8025, f: 3.04, p: 0.056, pes: 0.10 },
+      { source: 'gender', ss: 61.504, df: 1, ms: 61.504, f: 2.84, p: 0.098, pes: 0.05 },
+    ],
+    simpleEffects: [],
+  }
+
+  const c = buildFactorialAnova(spec, noInteractionsResult)
+  // totalN=60, sumEffectDf=2+1=3, dfRes=60-1-3=56
+
+  it('APA reports main effects only with neutral phrasing', () => {
+    expect(c.apa).toBe(
+      'A two-way ANOVA gave main effects of group, F(2,56)=3.04, p = .056, partial η²=.10; gender, F(1,56)=2.84, p = .098, partial η²=.05.'
+    )
+  })
+
+  it('Table 2 title is "ANOVA (main effects)" when interactions OFF', () => {
+    expect(c.tables[1].spec.title).toBe('ANOVA (main effects)')
+  })
+
+  it('Table 2 has only 2 rows (no interaction row)', () => {
+    expect(c.tables[1].rows).toHaveLength(2)
+  })
+
+  it('figures array is empty when interactions OFF', () => {
+    expect(c.figures).toEqual([])
   })
 })
 

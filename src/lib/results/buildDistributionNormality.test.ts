@@ -27,7 +27,7 @@ describe('buildDistributionNormality', () => {
   })
   it('single variable: plain card note verbatim, plain APA exemplar fill, N column carries missingness', () => {
     expect(c.note).toEqual({ kind: 'plain', text: spec.tableNote!.text })
-    expect(c.apa).toBe('Normality was assessed with the Shapiro-Wilk test, W = 0.96, p = .829.')
+    expect(c.apa).toBe('Normality was assessed with the Shapiro-Wilk test, W = .96, p = .829.')
     expect(c.nExcluded).toBe(0) // per-variable N carries missingness (the summary-statistics recorded decision)
     expect(c.howToRead).toBe(spec.howToRead)
   })
@@ -49,8 +49,8 @@ describe('buildDistributionNormality', () => {
     ])
     expect(m.figures.map((g) => g.type)).toEqual(['histogram_score', 'qq_score', 'histogram_anxiety', 'qq_anxiety'])
     expect(m.apa).toBe(
-      'score: Normality was assessed with the Shapiro-Wilk test, W = 0.96, p = .829. ' +
-      'anxiety: Normality was assessed with the Shapiro-Wilk test, W = 0.99, p = .988.')
+      'score: Normality was assessed with the Shapiro-Wilk test, W = .96, p = .829. ' +
+      'anxiety: Normality was assessed with the Shapiro-Wilk test, W = .99, p = .988.')
   })
   it('out-of-range Shapiro → em-dash cells for that variable only, reason folded into the note', () => {
     const big: VariableNormality = { ...anxietyVar, variable: 'reaction', n: 6000, shapiro: { W: null, p: null } }
@@ -59,12 +59,12 @@ describe('buildDistributionNormality', () => {
     expect(m.tables[0].rows[3]).toEqual({ variable: 'reaction', test: 'K–S (Lilliefors)', statistic: 'D 0.08', n: 6000, p: '1.000' })
     expect(m.note).toEqual({ kind: 'plain', text: `${spec.tableNote!.text} Shapiro-Wilk not computed for reaction: N = 6000 is outside that range.` })
     expect(m.apa).toBe(
-      'score: Normality was assessed with the Shapiro-Wilk test, W = 0.96, p = .829. ' +
-      'reaction: Normality was assessed with the Shapiro-Wilk test, W = —, p = —.')
+      'score: Normality was assessed with the Shapiro-Wilk test, W = .96, p = .829. ' +
+      'reaction: Normality was assessed with the Shapiro-Wilk test, W = —, p —.')
   })
   it('p-clause rule: tiny Shapiro p reads "p < .001"', () => {
     const c3 = buildDistributionNormality(spec, { variables: [{ ...scoreVar, shapiro: { W: 0.5, p: 0.0001 } }] })
-    expect(c3.apa).toBe('Normality was assessed with the Shapiro-Wilk test, W = 0.50, p < .001.')
+    expect(c3.apa).toBe('Normality was assessed with the Shapiro-Wilk test, W = .50, p < .001.')
   })
   it('guarded K–S (N below 5) → em-dash K–S row, note unchanged', () => {
     const c4 = buildDistributionNormality(spec, { variables: [{ ...scoreVar, n: 4, ks: { D: null, p: null } }] })

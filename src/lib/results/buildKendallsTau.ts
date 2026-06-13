@@ -2,12 +2,12 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { KendallsTauResult } from '../stats/kendallsTau'
 import type { CardContent } from './builders'
-import { f, fp } from '../format/apa'
+import { f, f01, fp, fpApa } from '../format/apa'
 
 export function buildKendallsTau(spec: TestSpec, r: KendallsTauResult): CardContent {
   const apa = spec.apaTemplate
-    .replace('{tau}', f(r.tau))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
+    .replace('{tau}', f01(r.tau))
+    .replace('p {p}', `p ${fpApa(r.p)}`)
     .replace('{n}', String(r.n))
   const fig = figuresOf(spec)[0]
   return {

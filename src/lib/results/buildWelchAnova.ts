@@ -2,12 +2,12 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { WelchAnovaResult } from '../stats/welchAnova'
 import type { CardContent } from './builders'
-import { f, fdf, fp } from '../format/apa'
+import { f, fdf, fp, fpApa } from '../format/apa'
 
 export function buildWelchAnova(spec: TestSpec, r: WelchAnovaResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{df1}', fdf(r.df1)).replace('{df2}', fdf(r.df2)).replace('{f}', f(r.f))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
+    .replace('{p}', fpApa(r.p))
   const fig = figuresOf(spec)[0]
   return {
     tables: [

@@ -2,14 +2,14 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { FriedmanResult } from '../stats/friedman'
 import type { CardContent } from './builders'
-import { f, fdf, fp } from '../format/apa'
+import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildFriedman(spec: TestSpec, r: FriedmanResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{df}', fdf(r.df))
     .replace('{chi2}', f(r.chi2))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
-    .replace('{w}', f(r.w))
+    .replace('p={p}', `p ${fpApa(r.p)}`)
+    .replace('{w}', f01(r.w))
   const fig = figuresOf(spec)[0]
   return {
     tables: [

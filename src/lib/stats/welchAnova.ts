@@ -17,7 +17,7 @@ res <- oneway.test(y ~ gf, var.equal = FALSE)
 desc <- lapply(levels(gf), function(l) { v <- y[gf == l]; list(group = l, n = length(v), m = mean(v), sd = sd(v)) })
 gh <- rstatix::games_howell_test(data.frame(y = y, g = gf), y ~ g)
 ph <- lapply(seq_len(nrow(gh)), function(i) list(pair = paste(gh$group1[i], '-', gh$group2[i]),
-  diff = gh$estimate[i], pAdj = gh$p.adj[i], ciLo = gh$conf.low[i], ciHi = gh$conf.high[i]))
+  diff = -gh$estimate[i], pAdj = gh$p.adj[i], ciLo = -gh$conf.high[i], ciHi = -gh$conf.low[i]))
 list(desc = desc, f = unname(res$statistic), df1 = unname(res$parameter[1]), df2 = unname(res$parameter[2]),
   p = res$p.value, posthoc = ph)`
 

@@ -48,7 +48,7 @@ export const MIXED_ANOVA: TestSpec = {
     'Read the Group × Condition interaction first — a significant interaction means the groups changed differently across conditions; only then read the main effects. ' +
     'Check sphericity for the within and interaction terms — if violated, read the corrected F/p. ' +
     "When the group × condition interaction is significant, the overall condition comparisons in the post-hoc table can mislead — read each group's line on the profile plot instead.",
-  apaTemplate: 'A mixed ANOVA found a significant group × time interaction, F({df1},{df2})={f}, p={p}, partial η²={pes}.',
+  apaTemplate: 'A mixed ANOVA yielded a {between_name} × {within_name} interaction, F({df1},{df2})={f}, p {p}, partial η²={pes}.',
   rMap: 'dplyr::group_by()+summarise() → Table 1 (group × condition N/M/SD) · afex::aov_ez() → Tables 2–3 · emmeans → Table 4 (post-hoc) · ggplot2 → profile plot',
   bundleFiles: ['table_descriptives.png', 'table_mixed-anova.png', 'table_sphericity.png', 'table_posthoc.png', 'figure_profile.png'],
 }

@@ -21,6 +21,8 @@ describe('buildLogisticRegression', () => {
   it('Table 1 fit row; Table 2 coefficient rows with ORs filled (drawn default ON)', () => {
     const c = buildLogisticRegression(LOGISTIC_REGRESSION, res)
     expect(c.tables[0].rows).toEqual([{ m2ll: '45.91', aic: '53.91', nagelkerke: '0.28', chisq: '9.54', p: '.023' }])
+    // Intercept OR rounds to 0.00 with f() — fOr fallback shows '< 0.01' (finding #1 fix).
+    expect(c.tables[1].rows[0]).toMatchObject({ or: '< 0.01', ci: '[< 0.01, 0.24]' })
     expect(c.tables[1].rows[1]).toEqual({ term: 'pre_score', b: '0.08', se: '0.04', z: '2.11', p: '.035', or: '1.08', ci: '[1.01, 1.18]' })
     expect(c.tables[1].rows[3]).toEqual({ term: 'group: b', b: '1.24', se: '0.72', z: '1.71', p: '.087', or: '3.46', ci: '[0.87, 15.44]' })
     expect(c.note).toBeNull()
@@ -36,10 +38,10 @@ describe('buildLogisticRegression', () => {
   it('report-OR OFF → em-dash OR/CI cells AND em-dash APA slots (R1 + recorded decision 4)', () => {
     const c = buildLogisticRegression(LOGISTIC_REGRESSION, { ...res, reportOR: false })
     expect(c.tables[1].rows[1]).toMatchObject({ or: '—', ci: '—' })
-    expect(c.apa).toBe('Predictor pre_score was associated with the outcome, OR=—, 95% CI [—, —], p=.035 (AUC=0.76).')
+    expect(c.apa).toBe('Predictor pre_score was associated with the outcome, OR=—, 95% CI [—, —], p = .035 (AUC=.76).')
   })
-  it('APA: card-literal wording, Predictor X = first coefficient row, AUC at 2 dp', () => {
+  it('APA: spaced p (policy 3), AUC drops leading zero (policy 3), Predictor X = first non-intercept row', () => {
     expect(buildLogisticRegression(LOGISTIC_REGRESSION, res).apa)
-      .toBe('Predictor pre_score was associated with the outcome, OR=1.08, 95% CI [1.01, 1.18], p=.035 (AUC=0.76).')
+      .toBe('Predictor pre_score was associated with the outcome, OR=1.08, 95% CI [1.01, 1.18], p = .035 (AUC=.76).')
   })
 })

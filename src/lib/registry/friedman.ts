@@ -34,7 +34,7 @@ export const FRIEDMAN: TestSpec = {
   figures: [{ caption: 'Across conditions', type: 'profile / box plot' , file: 'profile' }],
   howToRead:
     'The nonparametric counterpart to repeated-measures ANOVA. The χ²/p tests whether ranks differ across conditions; Kendall\'s W is the effect size (0–1 agreement). Post-hoc shows which conditions differ.',
-  apaTemplate: 'A Friedman test found a difference across conditions, χ²({df})={chi2}, p={p}, W={w}.',
+  apaTemplate: 'A Friedman test gave χ²({df})={chi2}, p={p}, W={w}.',
   rMap: 'colMeans(apply(data, 1, rank)) → Table 1 (per-condition mean rank) · friedman.test() → χ², df, p · rstatix::friedman_effsize() / effectsize::kendalls_w() → Kendall\'s W · PMCMRplus (Nemenyi) → Table 3',
   bundleFiles: ['table_rank-summary.png', 'table_friedman.png', 'table_posthoc.png', 'figure_profile.png'],
 }

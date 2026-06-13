@@ -40,7 +40,7 @@ export const ONE_WAY_ANOVA: TestSpec = {
   howToRead:
     'The F and its p tell you whether the groups differ overall; η² (or ω²) is the effect size. ' +
     'If significant, the post-hoc table shows which specific pairs differ, with multiplicity-adjusted p-values.',
-  apaTemplate: 'A one-way ANOVA found an effect of group, F({df1},{df2})={f}, p={p}, η²={eta2}. Tukey post-hoc tests showed…',
+  apaTemplate: 'A one-way ANOVA gave F({df1},{df2})={f}, p {p}, η²={eta2}. {posthoc} post-hoc tests showed…',
   rMap: 'aov() → Table 2 · emmeans pairwise contrasts (Mdiff, SE, padj, CI) → Table 3 · effectsize::eta_squared() · ggplot2 → means plot',
   bundleFiles: ['table_descriptives.png', 'table_anova.png', 'table_posthoc.png', 'figure_means-plot.png'],
 }

@@ -36,7 +36,7 @@ export const PAIRED_T_TEST: TestSpec = {
     'Tests whether the average change between two related measurements (e.g. before vs. after) differs from zero. ' +
     'A p below alpha means a significant change; the mean difference, CI and dz describe its size (their sign depends on the subtraction order, A−B). ' +
     'A p at or above alpha does not prove there was no change — only that none was detected.',
-  apaTemplate: 'A paired-samples t-test showed a change of M={mdiff}, t({df})={t}, p={p}, dz={dz}.',
+  apaTemplate: 'A paired-samples t-test gave M={mdiff}, t({df})={t}, p {p}, dz={dz}.',
   rMap: 'dplyr::summarise() / psych::describe() → Table 1 (per-condition N/M/SD) · t.test(paired=TRUE) → Table 2 · effectsize::cohens_d(paired=TRUE) → dz · ggplot2 → figure',
   bundleFiles: ['table_paired-descriptives.png', 'table_t-test.png', 'figure_difference.png'],
 }

@@ -19,9 +19,9 @@ const result: MixedAnovaResult = {
     { group: 'drug_b',   condition: 'score_t3', n: 20, m: 36.25, sd: 4.95 },
   ],
   anovaRows: [
-    { source: 'group (between)',   ss: 14.22,  df1: 2,              df2: 57,              ms: 7.11,  f: 0.24690089648661,  p: 0.782049251682351,  pes: 0.00858878309615581 },
+    { source: 'Group (between)',   ss: 14.22,  df1: 2,              df2: 57,              ms: 7.11,  f: 0.24690089648661,  p: 0.782049251682351,  pes: 0.00858878309615581 },
     { source: 'Condition (within)', ss: 489.30, df1: 1.67166869889464, df2: 95.2851158369946, ms: 292.86, f: 82.5610819498742, p: 1.51705412973608e-19, pes: 0.591576683100862 },
-    { source: 'group × Condition', ss: 29.80,  df1: 3.34333739778929, df2: 95.2851158369946, ms: 8.92,  f: 2.52167386781147,  p: 0.0561473099306867,  pes: 0.0812874855998016 },
+    { source: 'Group × Condition', ss: 29.80,  df1: 3.34333739778929, df2: 95.2851158369946, ms: 8.92,  f: 2.52167386781147,  p: 0.0561473099306867,  pes: 0.0812874855998016 },
   ],
   sphericity: [
     { effect: 'condition',    w: 0.803590686765588, p: 0.00219268908877968, ggEps: 0.835834349447321, hfEps: 0.86 },
@@ -33,7 +33,7 @@ const result: MixedAnovaResult = {
     { pair: 'score_t2 - score_t3', diff: -2.87,             se: 0.42,             pAdj: 0.000015,           ciLo: -3.90,             ciHi: -1.84 },
   ],
   levene: { F: 0.35, p: 0.71 },
-  betweenName: 'group',
+  betweenName: 'Group',
   nExcluded: 0,
   figurePng: png,
 }
@@ -56,13 +56,13 @@ describe('buildMixedAnova', () => {
     expect(c.tables[1].spec.id).toBe('mixed-anova')
     expect(c.tables[1].rows).toHaveLength(3)
     const [btwn, within, inter] = c.tables[1].rows
-    expect(btwn.source).toBe('group (between)')
+    expect(btwn.source).toBe('Group (between)')
     expect(btwn.df).toBe('2')
     expect(btwn.p).toBe('.782')
     expect(within.source).toBe('Condition (within)')
     expect(within.df).toBe('1.67')   // GG-corrected fdf
     expect(within.p).toBe('<.001')
-    expect(inter.source).toBe('group × Condition')
+    expect(inter.source).toBe('Group × Condition')
     expect(inter.df).toBe('3.34')
     expect(inter.f).toBe('2.52')
     expect(inter.p).toBe('.056')
@@ -89,14 +89,14 @@ describe('buildMixedAnova', () => {
   })
 
   it('APA string is built from the interaction row', () => {
-    // F(3.34,95.29)=2.52, p=.056, partial η²=0.08
-    expect(c.apa).toBe('A mixed ANOVA found a significant group × time interaction, F(3.34,95.29)=2.52, p=.056, partial η²=0.08.')
+    // F(3.34,95.29)=2.52, p = .056, partial η²=.08 (f01 drops leading zero)
+    expect(c.apa).toBe('A mixed ANOVA yielded a Group × Condition interaction, F(3.34,95.29)=2.52, p = .056, partial η²=.08.')
   })
 
-  it('note is assume kind with card text + Levene parenthetical', () => {
+  it('note is assume kind with card text (no Levene parenthetical)', () => {
     expect(c.note!.kind).toBe('assume')
-    expect(c.note!.text).toContain(spec.tableNote!.text)
-    expect(c.note!.text).toContain('Levene on subject means F=0.35, p=.710')
+    expect(c.note!.text).toBe(spec.tableNote!.text)
+    expect(c.note!.text).not.toContain('Levene')
   })
 
   it('figure has card caption and type', () => {

@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { ChiSquareIndependenceResult } from '../stats/chiSquareIndependence'
 import type { CardContent } from './builders'
-import { f, f1, fdf, fp } from '../format/apa'
+import { f, f01, f1, fdf, fp, fpApa } from '../format/apa'
 
 const pc = (x: number) => x.toFixed(1) // percentages at 1 dp (frequencies precedent)
 
@@ -26,8 +26,8 @@ export function buildChiSquareIndependence(spec: TestSpec, r: ChiSquareIndepende
   const warn = r.minExpected < 5 ? ` Smallest expected count here is ${f1(r.minExpected)} — consider Fisher's exact test.` : ''
   const apa = spec.apaTemplate
     .replace('{df}', fdf(r.df)).replace('{n}', String(r.n)).replace('{chisq}', f(r.chisq))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
-    .replace('{v}', f(r.v))
+    .replace('{p}', fpApa(r.p))
+    .replace('{v}', f01(r.v))
   const fig = figuresOf(spec)[0]
   return {
     tables: [

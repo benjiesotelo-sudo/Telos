@@ -46,9 +46,9 @@ describe('buildMancova', () => {
     expect(c.tables[1].rows[1].dv).toBe('outcome2')
   })
 
-  it('APA uses the first FACTOR row Pillai fields: V=0.37, F(4,112)=6.30, p<.001', () => {
+  it('APA uses the first FACTOR row Pillai fields: V=.37, F(4,112)=6.30, p < .001', () => {
     expect(c.apa).toBe(
-      "A MANCOVA found a covariate-adjusted group effect, Pillai's V=0.37, F(4,112)=6.30, p<.001.",
+      "A MANCOVA gave a covariate-adjusted group effect, Pillai's V=.37, F(4,112)=6.30, p < .001.",
     )
   })
 
@@ -76,8 +76,8 @@ describe('buildMancova', () => {
       ],
     }
     const c2 = buildMancova(spec, wilksResult)
-    // pillai fields unchanged → APA still says Pillai's V=0.37
-    expect(c2.apa).toContain("Pillai's V=0.37")
+    // pillai fields unchanged → APA still says Pillai's V=.37
+    expect(c2.apa).toContain("Pillai's V=.37")
     expect(c2.apa).toContain('F(4,112)=6.30')
   })
 
@@ -90,6 +90,6 @@ describe('buildMancova', () => {
       ],
     }
     const c3 = buildMancova(spec, marginal)
-    expect(c3.apa).toContain('p=.046')
+    expect(c3.apa).toContain('p = .046')
   })
 })

@@ -10,6 +10,7 @@ export interface OneWayAnovaResult {
   levene: { F: number | null; p: number | null }
   shapiro: { W: number | null; p: number | null }
   posthoc: PosthocRow[]
+  posthocMethod: string  // selected label e.g. 'Tukey HSD', 'Bonferroni', 'Scheffé'
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -51,5 +52,5 @@ export async function runOneWayAnova(engine: Engine, data: Dataset, outcome: str
   const env = { y: rows.map((r) => r[outcome] as number), g: rows.map((r) => String(r[factor])), adjust }
   const s = await engine.runJson<Omit<OneWayAnovaResult, 'nExcluded' | 'figurePng'>>(`${POSTHOC_EMM_R}\n${R_STATS}`, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { ...s, nExcluded, figurePng }
+  return { ...s, posthocMethod: posthocChoice, nExcluded, figurePng }
 }

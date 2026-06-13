@@ -29,7 +29,7 @@ export const DISTRIBUTION_NORMALITY: TestSpec = {
     'A small p (below .05) suggests the data depart from normality. With large samples these tests over-flag trivial deviations; ' +
     'with small samples they have low power, so a p > .05 does not prove normality — it only means no departure was detected. ' +
     'Either way, judge normality mainly from the Q–Q plot — points hugging the diagonal indicate normality.',
-  apaTemplate: 'Normality was assessed with the Shapiro-Wilk test, W = {w}, p = {p}.',
+  apaTemplate: 'Normality was assessed with the Shapiro-Wilk test, W = {w}, p {p}.',
   rMap: 'shapiro.test() (returns W, p) / nortest::lillie.test() (returns D, p) → table · ggplot2 + stat_qq() → figures',
   bundleFiles: ['table_normality.png', 'figure_histogram.png', 'figure_qq.png'],
 }

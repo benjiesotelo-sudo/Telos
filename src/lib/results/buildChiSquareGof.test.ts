@@ -20,6 +20,6 @@ describe('buildChiSquareGof', () => {
     expect(c.note).toEqual(CHI_SQUARE_GOF.tableNote)
   })
   it('APA renders the real df in the drawn k−1 slot', () => {
-    expect(buildChiSquareGof(CHI_SQUARE_GOF, res).apa).toBe('A goodness-of-fit test, χ²(2, N=40)=0.53, p=.766, w=0.12.')
+    expect(buildChiSquareGof(CHI_SQUARE_GOF, res).apa).toBe('A goodness-of-fit test, χ²(2, N=40)=0.53, p = .766, w=.12.')
   })
 })

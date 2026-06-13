@@ -17,9 +17,9 @@ const spikeResult: WelchAnovaResult = {
   df2: 37.9023295774865,
   p: 0.0890313047549131,
   posthoc: [
-    { pair: 'control - drug_a', diff: 1.37, pAdj: 0.82, ciLo: -4.1779984409316, ciHi: 6.9179984409316 },
-    { pair: 'control - drug_b', diff: 3.70, pAdj: 0.15, ciLo: -0.5, ciHi: 7.9 },
-    { pair: 'drug_a - drug_b', diff: 2.33, pAdj: 0.45, ciLo: -1.2, ciHi: 5.86 },
+    { pair: 'control - drug_a', diff: -1.37, pAdj: 0.82, ciLo: -6.9179984409316, ciHi: 4.1779984409316 },
+    { pair: 'control - drug_b', diff: -3.70, pAdj: 0.15, ciLo: -7.9, ciHi: 0.5 },
+    { pair: 'drug_a - drug_b', diff: -2.33, pAdj: 0.45, ciLo: -5.86, ciHi: 1.2 },
   ],
   nExcluded: 0,
   figurePng: png,
@@ -44,18 +44,18 @@ describe('buildWelchAnova', () => {
     expect(c.tables[2].spec.columns.map((col) => col.key)).toEqual(['pair', 'mdiff', 'padj', 'ci'])
     const row = c.tables[2].rows[0]
     expect(row.pair).toBe('control - drug_a')
-    expect(row.mdiff).toBe('1.37')
+    expect(row.mdiff).toBe('−1.37')
     expect(row.padj).toBe('.820')
-    expect(row.ci).toBe('[−4.18, 6.92]')
+    expect(row.ci).toBe('[−6.92, 4.18]')
   })
 
-  it('APA string: F(2,37.90)=2.58, p=.089 (p ≥ .001 branch)', () => {
-    expect(c.apa).toBe("Welch's ANOVA found an effect of group, F(2,37.90)=2.58, p=.089.")
+  it('APA string: neutral verb, p spaced (p ≥ .001 branch)', () => {
+    expect(c.apa).toBe("Welch's ANOVA gave F(2,37.90)=2.58, p = .089.")
   })
 
   it('p<.001 branch renders correctly', () => {
     const c2 = buildWelchAnova(spec, { ...spikeResult, p: 0.0004 })
-    expect(c2.apa).toContain('p<.001')
+    expect(c2.apa).toContain('p < .001')
   })
 
   it('note is the card plain text verbatim — no computed assumption append', () => {

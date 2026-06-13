@@ -12,6 +12,7 @@ export interface NestedAnovaRow {
 export interface NestedAnovaResult {
   rows: NestedAnovaRow[]
   factor: string; nested: string  // role column names — the builder renders them as source labels
+  nesting: 'random' | 'fixed'     // passed through from runNestedAnova for conditional note
   crossed: string[]   // child labels that appear under >1 parent (nestedLevelReuse)
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
@@ -66,5 +67,5 @@ export async function runNestedAnova(
   // Re-run R figure using the same factors (af/bf still in scope from R_STATS)
   const figureCode = `${R_STATS}\n${R_FIGURE}`
   const figurePng = await engine.capturePlot(figureCode, 600, 450, env)
-  return { rows: s.rows, factor, nested, crossed, nExcluded, figurePng }
+  return { rows: s.rows, factor, nested, nesting: random ? 'random' : 'fixed', crossed, nExcluded, figurePng }
 }

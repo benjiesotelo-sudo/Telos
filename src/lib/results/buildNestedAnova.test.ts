@@ -12,6 +12,7 @@ const spikeResult: NestedAnovaResult = {
     { source: 'B', ss: 311.228999999999, df: 3, ms: 103.743, f: 1.99454911069684, p: 0.12570562659026, omega2: 0.0446070727986374, errDf: 54 },
   ],
   factor: 'school', nested: 'classroom',
+  nesting: 'random',
   crossed: [],
   nExcluded: 0,
   figurePng: png,
@@ -50,8 +51,8 @@ describe('buildNestedAnova', () => {
   })
 
   it('APA string uses random errDf=3 (df 2/3)', () => {
-    // F(2,3)=1.48, p=.357
-    expect(c.apa).toBe('A nested ANOVA found an effect of A, F(2,3)=1.48, p=.357.')
+    // F(2,3)=1.48, p = .357
+    expect(c.apa).toBe('A nested ANOVA for A gave F(2,3)=1.48, p = .357.')
   })
 
   it('note equals card plain text (no crossed warning when crossed is empty)', () => {
@@ -97,9 +98,10 @@ describe('buildNestedAnova — omega2 not estimable', () => {
   })
 })
 
-describe('buildNestedAnova — fixed nesting APA', () => {
+describe('buildNestedAnova — fixed nesting APA and note', () => {
   const fixedResult: NestedAnovaResult = {
     ...spikeResult,
+    nesting: 'fixed',
     rows: [
       { ...spikeResult.rows[0], f: 2.95183386287543, p: 0.0607280510032202, errDf: 54 },
       { ...spikeResult.rows[1] },
@@ -108,6 +110,13 @@ describe('buildNestedAnova — fixed nesting APA', () => {
   const c = buildNestedAnova(spec, fixedResult)
 
   it('APA uses fixed errDf=54 (df 2/54)', () => {
-    expect(c.apa).toBe('A nested ANOVA found an effect of A, F(2,54)=2.95, p=.061.')
+    expect(c.apa).toBe('A nested ANOVA for A gave F(2,54)=2.95, p = .061.')
+  })
+
+  it('note uses fixed-nesting text (not random-nesting denominator explanation)', () => {
+    expect(c.note!.kind).toBe('plain')
+    expect(c.note!.text).toBe(
+      'Under fixed nesting both F rows are tested against the residual mean square — the two F rows share the same denominator. Variance components (or ω²) are reported as the effect size where estimable.',
+    )
   })
 })

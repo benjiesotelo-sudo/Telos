@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { NestedAnovaResult } from '../stats/nestedAnova'
 import type { CardContent } from './builders'
-import { f, fdf, fp, fx } from '../format/apa'
+import { f, fdf, fp, fpApa, fx } from '../format/apa'
 
 export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardContent {
   const { factor, nested } = r
@@ -29,13 +29,18 @@ export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardCont
     .replace('{df1}', fdf(rowA.df))
     .replace('{df2}', fdf(rowA.errDf))
     .replace('{f}', f(rowA.f))
-    .replace('p={p}', rowA.p < 0.001 ? 'p<.001' : `p=${fp(rowA.p)}`)
+    .replace('{p}', fpApa(rowA.p))
 
-  // Plain note: card text + crossed-data warning when applicable (design §5.4)
+  // Table note: conditional on nesting mode (audit finding)
+  const randomNoteText = spec.tableNote!.text
+  const fixedNoteText = 'Under fixed nesting both F rows are tested against the residual mean square — the two F rows share the same denominator. Variance components (or ω²) are reported as the effect size where estimable.'
+  const baseNoteText = r.nesting === 'random' ? randomNoteText : fixedNoteText
+
+  // Plain note: base text + crossed-data warning when applicable (design §5.4)
   const crossedWarning = r.crossed.length > 0
     ? ` — ${nested} labels repeat across ${factor} levels; results assume distinct groups within each ${factor} — check your coding`
     : ''
-  const noteText = spec.tableNote!.text + crossedWarning
+  const noteText = baseNoteText + crossedWarning
 
   const fig = figuresOf(spec)[0]
   return {

@@ -13,6 +13,7 @@ export interface RepeatedMeasuresAnovaResult {
   sphericity: SphericityInfo[]
   desc: RMConditionDesc[]
   posthoc: PosthocRow[]
+  sphericityChoice: string  // the selected option value, e.g. 'GG correction'
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -44,7 +45,8 @@ mat <- matrix(scores_flat, ncol = length(conds))
 mm <- colMeans(mat); sdv <- apply(mat, 2, sd); se <- sdv / sqrt(nrow(mat)); tq <- qt(0.975, nrow(mat) - 1)
 agg <- data.frame(cond = factor(conds, levels = conds), m = mm, lo = mm - tq * se, hi = mm + tq * se)
 print(ggplot2::ggplot(agg, ggplot2::aes(cond, m, group = 1)) + ggplot2::geom_line(colour = '#0c447c') +
-  ggplot2::geom_pointrange(ggplot2::aes(ymin = lo, ymax = hi), colour = '#0c447c') + ggplot2::labs(x = NULL, y = NULL))`
+  ggplot2::geom_pointrange(ggplot2::aes(ymin = lo, ymax = hi), colour = '#0c447c') + ggplot2::labs(x = NULL, y = NULL) +
+  ggplot2::coord_cartesian(ylim = c(min(agg$lo) - 0.5, max(agg$hi) + 0.5)))`
 
 export async function runRepeatedMeasuresAnova(
   engine: Engine, data: Dataset, subject: string, measures: string[],
@@ -65,9 +67,9 @@ export async function runRepeatedMeasuresAnova(
     correction,
     posthocOn,
   }
-  const s = await engine.runJson<Omit<RepeatedMeasuresAnovaResult, 'nExcluded' | 'figurePng'>>(
+  const s = await engine.runJson<Omit<RepeatedMeasuresAnovaResult, 'nExcluded' | 'figurePng' | 'sphericityChoice'>>(
     `${POSTHOC_EMM_R}\n${SPHERICITY_R}\n${R_STATS}`, env,
   )
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, { scores_flat: env.scores_flat, conds: measures })
-  return { ...s, nExcluded, figurePng }
+  return { ...s, sphericityChoice, nExcluded, figurePng }
 }

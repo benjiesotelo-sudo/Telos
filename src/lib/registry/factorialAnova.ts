@@ -41,7 +41,7 @@ export const FACTORIAL_ANOVA: TestSpec = {
     'A significant interaction usually takes priority — read it from the interaction plot before the main effects. ' +
     "A significant effect for any factor with 3+ levels tells you the levels differ somewhere, not which ones — " +
     'use the post-hoc / simple-effects (emmeans) table to find the specific pairs.',
-  apaTemplate: 'A two-way ANOVA found a significant A×B interaction, F({df1},{df2})={f}, p={p}, partial η²={pes}.',
+  apaTemplate: 'A two-way ANOVA gave A×B interaction F({df1},{df2})={f}, p {p}, partial η²={pes}.',
   rMap: 'aov() / afex::aov_car() → Table 2 · emmeans → Table 3 · ggplot2 → interaction plot',
   bundleFiles: ['table_cell-descriptives.png', 'table_anova.png', 'table_simple-effects.png', 'figure_interaction.png'],
 }

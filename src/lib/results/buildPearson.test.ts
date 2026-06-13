@@ -14,8 +14,8 @@ describe('buildPearson', () => {
     expect(c.note).toBeNull()
     expect(c.figures[0].file).toBe('scatter')
   })
-  it('APA substitutes names + values; tiny p becomes p<.001', () => {
+  it('APA substitutes names + values; tiny p becomes p < .001; r drops leading zero', () => {
     const c = buildPearson(PEARSON, res)
-    expect(c.apa).toBe('hours_studied and exam_score were correlated, r(38)=0.61, p<.001, 95% CI [0.37, 0.77].')
+    expect(c.apa).toBe('hours_studied and exam_score were correlated, r(38)=.61, p < .001, 95% CI [0.37, 0.77].')
   })
 })

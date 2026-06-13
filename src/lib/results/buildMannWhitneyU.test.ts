@@ -31,12 +31,12 @@ describe('buildMannWhitneyU', () => {
     expect(c.nExcluded).toBe(0)
   })
   it('fills the APA exemplar (p ≥ .001 branch)', () => {
-    expect(c.apa).toBe('A Mann-Whitney U test showed a difference, U=6, Z=−1.92, p=.065, r=−0.67.')
+    expect(c.apa).toBe('A Mann-Whitney U test gave U=6, Z=−1.92, p = .065, r=−.67.')
   })
-  it('p-clause flips to p<.001; a midrank U renders at 2 dp', () => {
+  it('p-clause flips to p < .001; a midrank U renders at 2 dp', () => {
     const c2 = buildMannWhitneyU(spec, { ...overlap, u: 6.5, p: 0.0004 })
     expect(c2.apa).toContain('U=6.50')
-    expect(c2.apa).toContain('p<.001')
+    expect(c2.apa).toContain('p < .001')
     expect(c2.tables[1].rows[0].p).toBe('<.001')
   })
 })

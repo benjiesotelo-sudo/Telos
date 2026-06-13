@@ -46,7 +46,7 @@ export const MULTIPLE_LINEAR_REGRESSION: TestSpec = {
     "Each predictor's B is its effect holding the others constant; p and CI assess it. R² is the joint variance " +
     'explained; VIF flags predictors that overlap too much (multicollinearity). B is in each predictor\'s own units, ' +
     'so to compare which predictors matter most use the standardized coefficient (β), not B.',
-  apaTemplate: 'The model explained R²={r2} of the variance, F({df1},{df2})={f}, p={p}; predictor X was significant, B={b}, p={p2}.',
+  apaTemplate: 'The model explained R²={r2} of the variance, F({df1},{df2})={f}, p {p}; predictor X gave B={b}, p {p2}.',
   rMap: 'lm() → Tables 1–2 · parameters::standardise_parameters() → β · car::vif() → VIF · ggplot2/performance::check_model() → figures',
   bundleFiles: ['table_model-fit.png', 'table_coefficients.png', 'figure_residuals.png', 'figure_coefficient-plot.png'],
 }

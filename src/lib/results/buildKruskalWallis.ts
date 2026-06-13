@@ -2,13 +2,13 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { KruskalWallisResult } from '../stats/kruskalWallis'
 import type { CardContent } from './builders'
-import { f, fdf, fp } from '../format/apa'
+import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildKruskalWallis(spec: TestSpec, r: KruskalWallisResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{df}', fdf(r.df)).replace('{h}', f(r.h))
-    .replace('p={p}', r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`)
-    .replace('{eps2}', f(r.eps2))
+    .replace('{p}', fpApa(r.p))
+    .replace('{eps2}', f01(r.eps2))
   const fig = figuresOf(spec)[0]
   return {
     tables: [

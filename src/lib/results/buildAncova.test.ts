@@ -64,17 +64,18 @@ describe('buildAncova', () => {
     })
   })
 
-  it('APA string: factor row F(2,56)=8.07, p<.001, partial η²=0.22', () => {
+  it('APA string: factor row F(2,56)=8.07, p < .001, partial η²=.22', () => {
     expect(c.apa).toBe(
-      'Controlling for the covariate, an ANCOVA found a group effect, F(2,56)=8.07, p<.001, partial η²=0.22.'
+      'Controlling for the covariate, an ANCOVA gave F(2,56)=8.07, p < .001, partial η²=.22.'
     )
   })
 
-  it('note: assume kind with card text + slopes clause + Levene clause', () => {
+  it('note: assume kind with card text + slopes clause + Levene clause + afterTableId', () => {
     expect(c.note!.kind).toBe('assume')
     expect(c.note!.text).toContain("assumption checks: homogeneity of regression slopes (factor×covariate interaction) & Levene's; post-hoc on adjusted means.")
     expect(c.note!.text).toContain('slopes p(baseline × group)=.875')
     expect(c.note!.text).toContain('Levene F=0.51')
+    expect(c.note!.afterTableId).toBe('ancova')
   })
 
   it('figure: adjusted means type + png', () => {

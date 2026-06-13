@@ -34,7 +34,7 @@ export const FISHERS_EXACT: TestSpec = {
     'for 2×2 tables the odds ratio quantifies the association — OR>1 means the outcome is more likely in the first ' +
     'row/group, OR<1 less likely, OR=1 no association. Check the row/column order before reading direction, ' +
     "since the OR reflects the table's orientation.",
-  apaTemplate: "A Fisher's exact test of [Var1] by [Var2] gave p={p}.",
+  apaTemplate: "A Fisher's exact test of [Var1] by [Var2] gave p {p}.",
   rMap: 'fisher.test() → Table 2 · ggplot2::geom_bar() → figure',
   bundleFiles: ['table_contingency.png', 'table_fisher.png', 'figure_bar.png'],
 }

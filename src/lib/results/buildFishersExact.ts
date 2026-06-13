@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { FishersExactResult } from '../stats/fishersExact'
 import type { CardContent } from './builders'
-import { f, fp } from '../format/apa'
+import { f, fp, fpApa } from '../format/apa'
 
 export function buildFishersExact(spec: TestSpec, r: FishersExactResult): CardContent {
   const columns = [{ key: 'rowcat', label: 'Row \\ Column' },
@@ -16,9 +16,9 @@ export function buildFishersExact(spec: TestSpec, r: FishersExactResult): CardCo
   const totalRow: Record<string, string | number> = { rowcat: 'Total', total: String(r.counts[R][C]) }
   r.colCats.forEach((_, j) => { totalRow[`c${j}`] = String(r.counts[R][j]) })
 
-  const pStr = r.p < 0.001 ? 'p<.001' : `p=${fp(r.p)}`
+  const pStr = fpApa(r.p)
   // 2×2: the card's add-on slots in before the period (recorded decision 3); larger tables: base sentence only.
-  const base = spec.apaTemplate.replace('[Var1]', r.rowVar).replace('[Var2]', r.colVar).replace('p={p}', pStr)
+  const base = spec.apaTemplate.replace('[Var1]', r.rowVar).replace('[Var2]', r.colVar).replace('{p}', pStr)
   const apa = r.is2x2
     ? base.replace(/\.$/, ` (OR=${f(r.or!)}, 95% CI [${f(r.ciLow!)}, ${f(r.ciHigh!)}]).`)
     : base

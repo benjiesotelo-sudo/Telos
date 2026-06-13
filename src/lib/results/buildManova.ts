@@ -2,17 +2,17 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { ManovaResult } from '../stats/manova'
 import type { CardContent } from './builders'
-import { f, fdf, fp } from '../format/apa'
+import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildManova(spec: TestSpec, r: ManovaResult): CardContent {
   // APA ALWAYS from Pillai fields of the first effect row (recorded decision 1).
   const mv = r.multivariate[0]
   const apa = spec.apaTemplate
-    .replace('{v}', f(mv.pillai))
+    .replace('{v}', f01(mv.pillai))
     .replace('{df1}', fdf(mv.pillaiDf1))
     .replace('{df2}', fdf(mv.pillaiDf2))
     .replace('{f}', f(mv.pillaiF))
-    .replace('p={p}', mv.pillaiP < 0.001 ? 'p<.001' : `p=${fp(mv.pillaiP)}`)
+    .replace('{p}', fpApa(mv.pillaiP))
 
   const fig = figuresOf(spec)[0]
 

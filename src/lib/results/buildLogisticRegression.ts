@@ -2,16 +2,18 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { LogisticResult } from '../stats/logisticRegression'
 import type { CardContent } from './builders'
-import { f, fp } from '../format/apa'
+import { f, fp, fpApa, f01 } from '../format/apa'
 
 const pc = (x: number | null) => (x == null ? '—' : `${x.toFixed(1)}%`) // percentages 1 dp (house rule)
+// OR table-cell formatter: falls back to '< 0.01' when the value would silently round to '0.00' (finding #1).
+const fOr = (x: number) => (Math.abs(x) < 0.01 ? '< 0.01' : f(x))
 
 export function buildLogisticRegression(spec: TestSpec, r: LogisticResult): CardContent {
   // R1: report-OR off → em-dash OR + CI cells (B/SE/z/p always fill — the column set is card-fixed).
   const coefRows = r.terms.map((x) => ({
     term: x.term, b: f(x.b), se: f(x.se), z: f(x.z), p: fp(x.p),
-    or: r.reportOR ? f(x.or) : '—',
-    ci: r.reportOR ? `[${f(x.orLow)}, ${f(x.orHigh)}]` : '—',
+    or: r.reportOR ? fOr(x.or) : '—',
+    ci: r.reportOR ? `[${fOr(x.orLow)}, ${fOr(x.orHigh)}]` : '—',
   }))
   // Classification (convention 7): real level names replace the drawn 0/1 headers; rows = predicted levels.
   const classColumns = [{ key: 'pred', label: 'Predicted \\ Observed' },
@@ -24,8 +26,8 @@ export function buildLogisticRegression(spec: TestSpec, r: LogisticResult): Card
     .replace('Predictor X', `Predictor ${first.term}`)
     .replace('{or}', r.reportOR ? f(first.or) : '—')           // decision 4: the toggle masks the APA slots too
     .replace('{ciLow}', r.reportOR ? f(first.orLow) : '—').replace('{ciHigh}', r.reportOR ? f(first.orHigh) : '—')
-    .replace('p={p}', first.p < 0.001 ? 'p<.001' : `p=${fp(first.p)}`)
-    .replace('{auc}', f(r.auc))
+    .replace('{p}', fpApa(first.p))                             // policy (3): spaced APA p, "p = .035" / "p < .001"
+    .replace('{auc}', f01(r.auc))                               // policy (3): bounded stat drops leading zero
   const fig = figuresOf(spec)[0]
   return {
     tables: [

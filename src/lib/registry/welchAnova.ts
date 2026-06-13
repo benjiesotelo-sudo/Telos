@@ -35,7 +35,7 @@ export const WELCH_ANOVA: TestSpec = {
   howToRead:
     'A one-way ANOVA that relaxes the equal-variance assumption but still assumes roughly normal data within each group. ' +
     'A significant F means at least one group mean differs from the others; the Games-Howell post-hoc (also variance-robust) then shows which specific pairs differ.',
-  apaTemplate: "Welch's ANOVA found an effect of group, F({df1},{df2})={f}, p={p}.",
+  apaTemplate: "Welch's ANOVA gave F({df1},{df2})={f}, p {p}.",
   rMap: 'oneway.test(var.equal=FALSE) → Table 2 · rstatix::games_howell_test() → Table 3',
   bundleFiles: ['table_descriptives.png', 'table_welch-anova.png', 'table_posthoc.png', 'figure_means-plot.png'],
 }

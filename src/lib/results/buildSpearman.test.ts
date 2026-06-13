@@ -15,6 +15,6 @@ describe('buildSpearman', () => {
     expect(c.nExcluded).toBe(1)
   })
   it('APA line', () => {
-    expect(buildSpearman(SPEARMAN, res).apa).toBe('A Spearman correlation was ρ=0.73, p=.003, N=40.')
+    expect(buildSpearman(SPEARMAN, res).apa).toBe('A Spearman correlation gave ρ=.73, p = .003, N=40.')
   })
 })

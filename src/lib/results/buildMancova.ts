@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { MancovaResult } from '../stats/mancova'
 import type { CardContent } from './builders'
-import { f, fdf, fp } from '../format/apa'
+import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildMancova(spec: TestSpec, r: MancovaResult): CardContent {
   // APA always from the first FACTOR row's Pillai fields (recorded decision 1).
@@ -12,11 +12,11 @@ export function buildMancova(spec: TestSpec, r: MancovaResult): CardContent {
   // More robustly: the last row of multivariate is the factor (formula: covs + factors).
   const factorRow = r.multivariate[r.multivariate.length - 1]
   const apa = spec.apaTemplate
-    .replace('{v}', f(factorRow.pillai))
+    .replace('{v}', f01(factorRow.pillai))
     .replace('{df1}', fdf(factorRow.pillaiDf1))
     .replace('{df2}', fdf(factorRow.pillaiDf2))
     .replace('{f}', f(factorRow.pillaiF))
-    .replace('p={p}', factorRow.pillaiP < 0.001 ? 'p<.001' : `p=${fp(factorRow.pillaiP)}`)
+    .replace('{p}', fpApa(factorRow.pillaiP))
   // Note: card's assume text + per-covariate slopes appended
   const slopesClause = r.slopes.map((s) => `slopes p(${s.term})=${fp(s.p)}`).join(' · ')
   const noteText = `${spec.tableNote!.text}${slopesClause ? ` (${slopesClause})` : ''}`

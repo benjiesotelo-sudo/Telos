@@ -21,7 +21,7 @@ describe('buildOneSampleTTest', () => {
     expect(c.note).toEqual({ kind: 'assume', text: `${spec.tableNote!.text} (Shapiro-Wilk W=0.96, p=.847)` })
   })
   it('fills the APA sentence as a p-clause with a 1-dp M', () => {
-    expect(c.apa).toBe('A one-sample t-test showed M=82.3 differed from 70, t(5)=8.00, p<.001, d=3.27.')
+    expect(c.apa).toBe('A one-sample t-test gave M=82.3 vs. 70, t(5)=8.00, p < .001, d=3.27.')
   })
   it('carries the distribution figure with its type, plus the exclusion count', () => {
     expect(c.figures).toEqual([{ caption: 'Value vs. test value', type: 'distribution', png: r.figurePng }])
@@ -33,6 +33,6 @@ describe('buildOneSampleTTest', () => {
     const v = buildOneSampleTTest(spec, { ...r, mu0: 90, t: -4.971884, p: 0.004205, meanDiff: -7.66667, ci: [-11.630515, -3.702818], cohensD: -2.029763, shapiro: { W: null, p: null } })
     expect(v.note!.text).toBe(`${spec.tableNote!.text} (Shapiro-Wilk W=—, p=—)`)
     expect(v.tables[1].rows[0]).toEqual({ mu0: '90', t: '−4.97', df: '5', p: '.004', mdiff: '−7.67', ci: '[−11.63, −3.70]', d: '−2.03' })
-    expect(v.apa).toBe('A one-sample t-test showed M=82.3 differed from 90, t(5)=−4.97, p=.004, d=−2.03.')
+    expect(v.apa).toBe('A one-sample t-test gave M=82.3 vs. 90, t(5)=−4.97, p = .004, d=−2.03.')
   })
 })

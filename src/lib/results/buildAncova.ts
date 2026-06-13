@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { AncovaResult } from '../stats/ancova'
 import type { CardContent } from './builders'
-import { f, fdf, fp, fx } from '../format/apa'
+import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 import { posthocTableRows } from '../stats/posthoc'
 
 export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
@@ -18,8 +18,8 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
     .replace('{df1}', fdf(firstFactorRow.df))
     .replace('{df2}', fdf(r.dfRes))
     .replace('{f}', f(firstFactorRow.f))
-    .replace('p={p}', firstFactorRow.p < 0.001 ? 'p<.001' : `p=${fp(firstFactorRow.p)}`)
-    .replace('{pes}', f(firstFactorRow.pes))
+    .replace('{p}', fpApa(firstFactorRow.p))
+    .replace('{pes}', f01(firstFactorRow.pes))
 
   // Note: card text + slopes per-term + Levene
   const slopesStr = r.slopes.map((s) => `slopes p(${s.term})=${fp(s.p)}`).join(' · ')
@@ -56,7 +56,7 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
         rows: posthocTableRows(r.posthoc, { f, fp }),
       },
     ],
-    note: { kind: 'assume', text: noteText },
+    note: { kind: 'assume', text: noteText, afterTableId: spec.tableNote?.afterTableId },
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
     apa,

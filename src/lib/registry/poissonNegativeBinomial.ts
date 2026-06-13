@@ -45,7 +45,7 @@ export const POISSON_NEGATIVE_BINOMIAL: TestSpec = {
     'count per unit (>1 more, <1 fewer); p tests significance. Check dispersion to pick Poisson vs. negative binomial. ' +
     'If cases have unequal exposure (different observation time/area/population), add an offset of log(exposure) so the ' +
     'model predicts rates, not raw counts — omitting it biases the IRRs.',
-  apaTemplate: 'Predictor X was associated with the count, IRR={irr}, 95% CI [{ciLow}, {ciHigh}], p={p}.',
+  apaTemplate: 'Predictor X was associated with the count, IRR={irr}, 95% CI [{ciLow}, {ciHigh}], p {p}.',
   rMap: 'glm(family=poisson, offset=log(exposure)) / MASS::glm.nb() → B/SE/z/p · exp(cbind(IRR=coef(m), confint(m))) → IRR + 95% CI · performance::check_overdispersion() → dispersion',
   bundleFiles: ['table_model-fit.png', 'table_coefficients.png', 'figure_residuals.png'],
 }

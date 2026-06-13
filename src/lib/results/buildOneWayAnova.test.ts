@@ -22,6 +22,7 @@ const spikeResult: OneWayAnovaResult = {
     { pair: 'control - drug_b', diff: -4.54, se: 2.33956998597995, pAdj: 0.151, ciLo: -10.17, ciHi: 1.09 },
     { pair: 'drug_a - drug_b', diff: -3.17, se: 2.33956998597995, pAdj: 0.371, ciLo: -8.80, ciHi: 2.46 },
   ],
+  posthocMethod: 'Tukey HSD',
   nExcluded: 0,
   figurePng: png,
 }
@@ -58,13 +59,18 @@ describe('buildOneWayAnova (pure, no engine)', () => {
     expect(row.ci).toBe('[−7.00, 4.26]')
   })
 
-  it('APA string has spike numbers with entity-encoded eta2 placeholder filled', () => {
-    expect(c.apa).toBe('A one-way ANOVA found an effect of group, F(2,57)=2.81, p=.069, η²=0.09. Tukey post-hoc tests showed…')
+  it('APA string has spike numbers: neutral verb, selection-aware posthoc, no leading zero on eta2', () => {
+    expect(c.apa).toBe('A one-way ANOVA gave F(2,57)=2.81, p = .069, η²=.09. Tukey HSD post-hoc tests showed…')
   })
 
-  it('APA p-clause flips to p<.001 when p is tiny', () => {
+  it('APA p-clause flips to p < .001 when p is tiny', () => {
     const c2 = buildOneWayAnova(spec, { ...spikeResult, p: 0.0004 })
-    expect(c2.apa).toContain('p<.001')
+    expect(c2.apa).toContain('p < .001')
+  })
+
+  it('APA interpolates Bonferroni when posthocMethod is Bonferroni', () => {
+    const c3 = buildOneWayAnova(spec, { ...spikeResult, posthocMethod: 'Bonferroni' })
+    expect(c3.apa).toContain('Bonferroni post-hoc tests showed')
   })
 
   it('note is assume kind with Levene + Shapiro appended; no warning when Levene p > .05', () => {

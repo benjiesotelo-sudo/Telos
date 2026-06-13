@@ -26,7 +26,7 @@ describe('buildPoissonNegativeBinomial', () => {
   it('Poisson: Dispersion cell = Pearson ratio; coefficient rows with IRR + profile CI', () => {
     const c = buildPoissonNegativeBinomial(POISSON_NEGATIVE_BINOMIAL, poisson)
     expect(c.tables[0].rows).toEqual([{ aic: '202.37', dev: '67.57', df: '37', dispersion: '1.69' }])
-    expect(c.tables[1].rows[1]).toEqual({ term: 'age', b: '0.01', se: '0.00', z: '2.69', p: '.007', irr: '1.01', ci: '[1.00, 1.02]' })
+    expect(c.tables[1].rows[1]).toEqual({ term: 'age', b: '0.01', se: '0.005', z: '2.69', p: '.007', irr: '1.01', ci: '[1.00, 1.02]' })
     expect(c.tables[1].rows[0]).toMatchObject({ term: '(Intercept)', b: '−1.46', z: '−6.24', p: '<.001' })
     expect(c.note).toEqual(POISSON_NEGATIVE_BINOMIAL.tableNote) // card-literal/static
   })
@@ -37,6 +37,6 @@ describe('buildPoissonNegativeBinomial', () => {
   })
   it('APA: card-literal wording, Predictor X = first coefficient row', () => {
     expect(buildPoissonNegativeBinomial(POISSON_NEGATIVE_BINOMIAL, poisson).apa)
-      .toBe('Predictor age was associated with the count, IRR=1.01, 95% CI [1.00, 1.02], p=.007.')
+      .toBe('Predictor age was associated with the count, IRR=1.01, 95% CI [1.00, 1.02], p = .007.')
   })
 })

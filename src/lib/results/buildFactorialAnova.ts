@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { FactorialAnovaResult } from '../stats/factorialAnova'
 import type { CardContent } from './builders'
-import { f, fdf, fp, fx } from '../format/apa'
+import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 import type { PosthocRow } from '../stats/posthoc'
 
 /** Render simple-effects rows using the 'contrast' key (column key on Table 3). */
@@ -15,13 +15,27 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
   const sumEffectDf = r.rows.reduce((s, row) => s + row.df, 0)
   const dfRes = totalN - 1 - sumEffectDf
 
-  // APA from the interaction row (A×B); fall back to the last row if no interaction term.
-  const interactionRow = r.rows.find((row) => row.source.includes('×')) ?? r.rows[r.rows.length - 1]
-  const apa = spec.apaTemplate
-    .replace('{df1}', fdf(interactionRow.df)).replace('{df2}', String(dfRes))
-    .replace('{f}', f(interactionRow.f))
-    .replace('p={p}', interactionRow.p < 0.001 ? 'p<.001' : `p=${fp(interactionRow.p)}`)
-    .replace('{pes}', f(interactionRow.pes))
+  // Detect whether the model included an interaction term.
+  const hasInteractions = r.rows.some((row) => row.source.includes('×'))
+
+  // Build APA sentence.
+  let apa: string
+  if (hasInteractions) {
+    // Use the interaction row (A×B) from the template.
+    const interactionRow = r.rows.find((row) => row.source.includes('×'))!
+    apa = spec.apaTemplate
+      .replace('{df1}', fdf(interactionRow.df)).replace('{df2}', String(dfRes))
+      .replace('{f}', f(interactionRow.f))
+      .replace('{p}', fpApa(interactionRow.p))
+      .replace('{pes}', f01(interactionRow.pes))
+  } else {
+    // Interactions OFF: report main effects only (first factor row anchors the sentence).
+    const rows = r.rows
+    const apaRows = rows.map((row) =>
+      `${row.source}, F(${fdf(row.df)},${dfRes})=${f(row.f)}, p ${fpApa(row.p)}, partial η²=${f01(row.pes)}`
+    )
+    apa = `A two-way ANOVA gave main effects of ${apaRows.join('; ')}.`
+  }
 
   const noteText = `${spec.tableNote!.text} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · Shapiro W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})`
 
@@ -33,7 +47,9 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
   const filteredSE = r.simpleEffects.filter((seRow) => sigSources.has(seRow.term))
 
   const table1 = { spec: spec.tables[0], rows: r.desc.map((c) => ({ cell: c.cell, n: c.n, m: f(c.m), sd: f(c.sd) })) }
-  const table2 = { spec: spec.tables[1], rows: r.rows.map((row) => ({
+  // Table 2 title reflects whether interactions were modelled.
+  const anovaTableTitle = hasInteractions ? spec.tables[1].title : 'ANOVA (main effects)'
+  const table2 = { spec: { ...spec.tables[1], title: anovaTableTitle }, rows: r.rows.map((row) => ({
     source: row.source, ss: f(row.ss), df: fdf(row.df),
     ms: f(row.ms), f: f(row.f), p: fp(row.p), pes: f(row.pes),
   })) }
@@ -41,7 +57,8 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
 
   const base = {
     note: { kind: 'assume' as const, text: noteText },
-    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
+    // Suppress the interaction figure when interactions are not modelled.
+    figures: hasInteractions ? [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }] : [],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,
