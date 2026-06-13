@@ -41,11 +41,11 @@ describe('one-sample t-test registry stays faithful to the spec HTML (verbatim, 
     expect([...inCard.matchAll(/<div class="sl-cons">(.*?)<\/div>/g)].map((m) => strip(m[1]))).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
     expect(spec.constraints.roles).toEqual([{ roleId: 'outcome', levels: ['interval', 'ratio'], arity: { min: 1, max: 1 } }])
   })
-  it('options equal the inputs card option strip; μ₀ is the only interactive (number, default 0)', () => {
+  it('options equal the inputs card option strip; μ₀ number, α adjustable, tails display, CI adjustable', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'display', 'display', 'display'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'number', 'display', 'select'])
     expect(spec.options[0]).toMatchObject({ id: 'mu0', default: 0 })
   })
 })

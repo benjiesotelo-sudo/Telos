@@ -46,11 +46,11 @@ describe('factorial-anova registry stays faithful to the spec HTML (verbatim, ca
     expect(cons).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
     expect(hints).toEqual(spec.roles.map((r) => r.hint))
   })
-  it('options equal the inputs card option strip; interactions is the only interactive pill', () => {
+  it('options equal the inputs card option strip; α adjustable, CI adjustable, interactions is toggle, post-hoc display', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'toggle', 'display', 'display'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'toggle', 'display', 'select'])
     expect(spec.options[1]).toMatchObject({ id: 'interactions', default: true })
   })
 })

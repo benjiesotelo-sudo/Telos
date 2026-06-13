@@ -46,10 +46,10 @@ describe("welch-anova registry stays faithful to the spec HTML (verbatim, card-s
     const hints = [...inCard.matchAll(/<div class="sl-hint">(.*?)<\/div>/g)].map((m) => strip(m[1]))
     expect(hints).toEqual(spec.roles.map((r) => r.hint))
   })
-  it('options equal the inputs card option strip; both are display kind (Games-Howell locked)', () => {
+  it('options equal the inputs card option strip; α adjustable, post-hoc display (Games-Howell locked)', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'display'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'display'])
   })
 })

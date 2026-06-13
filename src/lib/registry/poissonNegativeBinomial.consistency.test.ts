@@ -50,7 +50,7 @@ describe('poisson-negative-binomial registry stays faithful to the spec HTML (ve
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['select', 'display', 'display', 'display'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['select', 'number', 'select', 'display'])
     expect(spec.options[0]).toMatchObject({ id: 'model', choices: ['Poisson', 'negative binomial'] })
   })
   it('the model hint is the drawn config-guide sentence (cfgguide wording)', () => {

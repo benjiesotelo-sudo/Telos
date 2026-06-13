@@ -41,11 +41,11 @@ describe('chi-square-independence registry stays faithful to the spec HTML (verb
     expect(labels).toEqual(spec.roles.map((r) => r.label))
     expect(cons).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
   })
-  it('options equal the inputs card option strip; kinds are [display, toggle]; continuity default is true', () => {
+  it('options equal the inputs card option strip; α adjustable, continuity is toggle; continuity default is true', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'toggle'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'toggle'])
     expect(spec.options[1]).toMatchObject({ id: 'continuity', default: true })
   })
 })

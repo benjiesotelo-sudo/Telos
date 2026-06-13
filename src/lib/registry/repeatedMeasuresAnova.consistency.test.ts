@@ -44,11 +44,11 @@ describe('repeated-measures-anova registry stays faithful to the spec HTML (verb
     expect(cons).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
     expect(hints).toEqual(spec.roles.map((r) => r.hint))
   })
-  it('options equal the inputs card option strip; select + toggle kinds; sphericity choices drawn', () => {
+  it('options equal the inputs card option strip; α adjustable, sphericity select, post-hoc toggle', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'select', 'toggle'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'select', 'toggle'])
     expect(spec.options[1]).toMatchObject({ id: 'sphericity', choices: ['GG correction', 'HF correction', 'none'] })
     expect(spec.options[2]).toMatchObject({ id: 'posthoc', default: true })
   })

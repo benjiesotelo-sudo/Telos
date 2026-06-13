@@ -53,7 +53,7 @@ describe('manova registry stays faithful to the spec HTML (verbatim, card-scoped
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'select', 'toggle'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'select', 'toggle'])
     expect(spec.options[1]).toMatchObject({ id: 'statistic', choices: ['Pillai', 'Wilks'] })
     expect(spec.options[2]).toMatchObject({ id: 'followups', default: true })
   })

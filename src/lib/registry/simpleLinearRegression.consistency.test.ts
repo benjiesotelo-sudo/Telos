@@ -55,10 +55,10 @@ describe('simple-linear-regression registry stays faithful to the spec HTML (ver
     expect(hints).toEqual(spec.roles.map((r) => r.hint))
     expect(cons).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
   })
-  it('options equal the inputs card option strip; both display-only', () => {
+  it('options equal the inputs card option strip; α adjustable, CI adjustable', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.every((o) => o.kind === 'display')).toBe(true)
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'select'])
   })
 })

@@ -51,7 +51,7 @@ describe('logistic-regression registry stays faithful to the spec HTML (verbatim
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'display', 'toggle', 'level-select'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'select', 'toggle', 'level-select'])
     expect(spec.options[2]).toMatchObject({ id: 'reportOR', default: true })
     expect(spec.options[3]).toMatchObject({ id: 'event', fromRole: 'outcome' })
   })

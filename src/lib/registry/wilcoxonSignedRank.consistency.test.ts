@@ -48,11 +48,11 @@ describe('wilcoxon-signed-rank registry stays faithful to the spec HTML (verbati
     ])
     expect(spec.constraints.minRule).toEqual({ kind: 'complete-pairs', n: 3 })
   })
-  it('options equal the inputs card option strip; only continuity is interactive (toggle, drawn on)', () => {
+  it('options equal the inputs card option strip; α adjustable, tails display, continuity is toggle', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'display', 'toggle'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'display', 'toggle'])
     expect(spec.options[2]).toMatchObject({ id: 'continuity', default: true })
   })
 })

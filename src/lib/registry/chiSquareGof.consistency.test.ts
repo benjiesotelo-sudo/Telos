@@ -44,6 +44,6 @@ describe('chi-square-goodness-of-fit registry stays faithful to the spec HTML (v
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['proportions', 'display'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['proportions', 'number'])
   })
 })

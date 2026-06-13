@@ -46,11 +46,11 @@ describe('one-way-anova registry stays faithful to the spec HTML (verbatim, card
     const hints = [...inCard.matchAll(/<div class="sl-hint">(.*?)<\/div>/g)].map((m) => strip(m[1]))
     expect(hints).toEqual(spec.roles.map((r) => r.hint))
   })
-  it('options pills (label+value) equal; kinds are display/select/display; select choices + hint correct', () => {
+  it('options pills (label+value) equal; kinds are number/select/select; α adjustable, CI adjustable', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'select', 'display'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'select', 'select'])
     expect(spec.options[1]).toMatchObject({ id: 'posthoc', choices: ['Tukey HSD', 'Bonferroni', 'Scheffé'] })
     // The hint note under the options strip (class="s" div inside the options inner)
     const hintDiv = inCard.match(/<div class="s"[^>]*>(.*?)<\/div>/s)

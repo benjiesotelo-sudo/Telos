@@ -53,7 +53,7 @@ describe('nested-anova registry stays faithful to the spec HTML (verbatim, card-
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'select'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'select'])
     expect(spec.options[1]).toMatchObject({ id: 'nesting', choices: ['random', 'fixed'] })
   })
 })

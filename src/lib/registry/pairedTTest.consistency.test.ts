@@ -46,10 +46,10 @@ describe('paired-t-test registry stays faithful to the spec HTML (verbatim, card
     expect(spec.constraints.roles.map((r) => r.arity)).toEqual([{ min: 1, max: 1 }, { min: 1, max: 1 }])
     expect(spec.constraints.minRule).toEqual({ kind: 'complete-pairs', n: 3 })
   })
-  it('options equal the inputs card option strip — all display pills (no interactive option on this card)', () => {
+  it('options equal the inputs card option strip; α adjustable, tails display, CI adjustable', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.every((o) => o.kind === 'display')).toBe(true)
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'display', 'select'])
   })
 })

@@ -42,11 +42,11 @@ describe('mann-whitney-u registry stays faithful to the spec HTML (verbatim, car
     expect(labels).toEqual(spec.roles.map((r) => r.label))
     expect(cons).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
   })
-  it('options equal the inputs card option strip; continuity is the only interactive pill (drawn on)', () => {
+  it('options equal the inputs card option strip; α adjustable, tails display, continuity is toggle', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['display', 'display', 'toggle'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'display', 'toggle'])
     expect(spec.options[2]).toMatchObject({ id: 'continuity', default: true })
   })
 })
