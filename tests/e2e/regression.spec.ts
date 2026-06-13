@@ -183,7 +183,7 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   await expect(nbFit).toContainText('45.81')
   await expect(nbFit).toContainText('9.00')
 
-  // ── 9. Download & unzip — assert the exact 14-file path set (NN = selection order; card-faithful names) ──
+  // ── 9. Download & unzip — assert the exact 15-file path set (NN = selection order; card-faithful names) ──
   await page.getByRole('checkbox', { name: /Table images/ }).check()
   const [download] = await Promise.all([
     page.waitForEvent('download'),
@@ -198,10 +198,11 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   expect(entries).toContain('01_simple-linear-regression/figure_fit.png')
   expect(entries).toContain('01_simple-linear-regression/figure_residuals.png')
 
-  // 02_multiple-linear-regression: 3 files
+  // 02_multiple-linear-regression: 4 files (#11 — residual diagnostics + coefficient plot)
   expect(entries).toContain('02_multiple-linear-regression/table_model-fit.png')
   expect(entries).toContain('02_multiple-linear-regression/table_coefficients.png')
   expect(entries).toContain('02_multiple-linear-regression/figure_residuals.png')
+  expect(entries).toContain('02_multiple-linear-regression/figure_coefficient-plot.png')
 
   // 03_logistic-regression: 4 files
   expect(entries).toContain('03_logistic-regression/table_model-fit.png')
@@ -213,5 +214,5 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   expect(entries).toContain('04_poisson-negative-binomial/table_model-fit.png')
   expect(entries).toContain('04_poisson-negative-binomial/table_coefficients.png')
   expect(entries).toContain('04_poisson-negative-binomial/figure_residuals.png')
-  expect(entries.filter((e) => /^0[1-4]_/.test(e)).length).toBe(14)
+  expect(entries.filter((e) => /^0[1-4]_/.test(e)).length).toBe(15)
 })

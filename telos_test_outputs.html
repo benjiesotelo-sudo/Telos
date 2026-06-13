@@ -729,14 +729,15 @@
       <div class="apa-cap"><b>Table 2.</b> Coefficients</div>
       <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>&beta;</th><th>t</th><th>p</th><th>95% CI</th><th>VIF</th></tr></thead><tbody class="ghost"><tr><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td><td></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td></td></tr><tr><td>Predictor 1&hellip;k</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks: linearity, normality, homoscedasticity, and multicollinearity (VIF).</p>
-      <div class="zlabel">Figure</div>
-      <div class="figbox"><div class="fcap"><b>Figure.</b> Residual diagnostics</div><div class="ftype">type: <b>residual / diagnostic plots</b> (and optional coefficient plot)</div></div>
+      <div class="zlabel">Figures</div>
+      <div class="figbox"><div class="fcap"><b>Figure.</b> Residual diagnostics</div><div class="ftype">type: <b>residual / diagnostic plots</b></div></div>
+      <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficient plot</div><div class="ftype">type: <b>coefficient plot, standardized &beta; with 95% CI</b></div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Each predictor's <b>B</b> is its effect holding the others constant; <b>p</b> and <b>CI</b> assess it. <b>R&sup2;</b> is the joint variance explained; <b>VIF</b> flags predictors that overlap too much (multicollinearity). <b>B</b> is in each predictor's own units, so to compare which predictors matter most use the standardized coefficient (<b>&beta;</b>), not B.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The model explained R&sup2;=__ of the variance, <i>F</i>(__,__)=__, <i>p</i>=__; predictor X was significant, <i>B</i>=__, <i>p</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lm()</code> &rarr; Tables 1&ndash;2 &middot; <code>parameters::standardise_parameters()</code> &rarr; &beta; &middot; <code>car::vif()</code> &rarr; VIF &middot; <code>ggplot2</code>/<code>performance::check_model()</code> &rarr; figures</div>
-        <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; figure_residuals.png</div>
+        <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; figure_residuals.png &middot; figure_coefficient-plot.png</div>
       </div>
     </div>
   </div>

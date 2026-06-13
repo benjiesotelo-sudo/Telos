@@ -24,11 +24,14 @@ describe('multiple-linear-regression registry stays faithful to the spec HTML (v
   it('the ghost intercept row pins convention 1 + decision 8: β AND VIF cells EMPTY on the intercept', () => {
     expect(card.includes('<tr><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td><td></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td></td></tr>')).toBe(true)
   })
-  it('question, assume table note, figure caption + type, how-to-read and R map match verbatim', () => {
+  it('question, assume table note, BOTH figure captions + types, how-to-read and R map match verbatim', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/s)![1])).toBe(spec.question)
     expect(spec.tableNote).toEqual({ kind: 'assume', text: strip(card.match(/<p class="tbl-note assume">(.*?)<\/p>/s)![1]) })
-    expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(spec.figures![0].caption)
-    expect(strip(card.match(/<div class="ftype">(.*?)<\/div>/s)![1])).toBe(`type: ${spec.figures![0].type}`)
+    // #11: two figboxes (residual diagnostics + coefficient plot) — every fcap/ftype in card order equals figures[].
+    const fcaps = [...card.matchAll(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/gs)].map((m) => strip(m[1]))
+    const ftypes = [...card.matchAll(/<div class="ftype">(.*?)<\/div>/gs)].map((m) => strip(m[1]))
+    expect(fcaps).toEqual(spec.figures!.map((f) => f.caption))
+    expect(ftypes).toEqual(spec.figures!.map((f) => `type: ${f.type}`))
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)
     expect(strip(card.match(/<b>R map:<\/b>(.*?)<\/div>/s)![1])).toBe(spec.rMap)
   })

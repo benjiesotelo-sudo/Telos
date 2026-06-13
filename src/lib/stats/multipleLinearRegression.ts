@@ -9,6 +9,7 @@ export interface MultipleLinearResult {
   terms: MultipleLinearTerm[]
   n: number; nExcluded: number
   figResidualsPng: Uint8Array<ArrayBuffer>
+  figCoefPlotPng: Uint8Array<ArrayBuffer>
 }
 
 // Data frame assembled with REAL column names (ancova flat-pack precedent) so coefficient rownames carry them.
@@ -78,6 +79,38 @@ print(ggplot2::ggplot(panels, ggplot2::aes(x, y)) +
   ggplot2::facet_wrap(~panel, scales = 'free') +
   ggplot2::labs(x = NULL, y = NULL))`
 
+// Card figure 2 (#11): standardized-β forest plot with 95% CIs, intercept excluded, first predictor on top.
+// Self-contained (re-fits like R_RESID). β + βCI use the rescaling factor sd(x)/sd(y) (numeric) or 1/sd(y) (dummy);
+// scaling the raw B CI by that factor ≡ parameters' refit-method standardized CI (spike-pinned to 4.4e-16).
+const R_COEFPLOT = String.raw`
+numnames <- numnames[seq_len(nnum)]; catnames <- catnames[seq_len(ncat)]
+d <- data.frame(y = y)
+for (i in seq_along(numnames)) d[[numnames[i]]] <- nums_flat[((i - 1) * n + 1):(i * n)]
+for (i in seq_along(catnames)) d[[catnames[i]]] <- factor(cats_flat[((i - 1) * n + 1):(i * n)])
+m <- lm(as.formula(paste('y ~', paste(prednames, collapse = ' + '))), data = d)
+cf <- summary(m)$coefficients; ci <- confint(m); sd_y <- sd(d$y)
+labs <- rownames(cf)
+parent <- vapply(labs, function(t) {
+  if (t == '(Intercept)') return('')
+  for (cn in catnames) if (startsWith(t, cn) && nchar(t) > nchar(cn)) return(cn)
+  t
+}, character(1))
+fac <- vapply(labs, function(t) {
+  if (t == '(Intercept)') return(NA_real_)
+  if (parent[t] %in% catnames) return(1 / sd_y)  # dummy: B/SD(y)
+  sd(d[[t]]) / sd_y                               # numeric: B·SD(x)/SD(y)
+}, numeric(1))
+pretty <- vapply(labs, function(t) {
+  if (parent[t] %in% catnames) paste0(parent[t], ': ', substring(t, nchar(parent[t]) + 1)) else t
+}, character(1))
+keep <- labs != '(Intercept)'
+df <- data.frame(term = pretty[keep], beta = (cf[, 1] * fac)[keep], lo = (ci[, 1] * fac)[keep], hi = (ci[, 2] * fac)[keep])
+df$term <- factor(df$term, levels = rev(df$term))  # drag/formula order → first predictor on top
+print(ggplot2::ggplot(df, ggplot2::aes(x = beta, y = term)) +
+  ggplot2::geom_vline(xintercept = 0, colour = '#9cc2ec', linetype = 'dashed') +
+  ggplot2::geom_pointrange(ggplot2::aes(xmin = lo, xmax = hi), colour = '#0c447c') +
+  ggplot2::labs(x = 'Standardized β (95% CI)', y = NULL))`
+
 interface RawStats { r2: number; adjR2: number; f: number; df1: number; df2: number; p: number; terms: MultipleLinearTerm[]; n: number }
 
 /** Storage-type classification (recorded decision 1): all-numeric non-missing values → linear term; else factor. */
@@ -111,5 +144,6 @@ export async function runMultipleLinearRegression(engine: Engine, data: Dataset,
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figResidualsPng = await engine.capturePlot(R_RESID, 800, 420, env)
-  return { outcome, standardize, ...s, nExcluded, figResidualsPng }
+  const figCoefPlotPng = await engine.capturePlot(R_COEFPLOT, 600, 450, env)
+  return { outcome, standardize, ...s, nExcluded, figResidualsPng, figCoefPlotPng }
 }

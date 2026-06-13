@@ -15,7 +15,7 @@ const res: MultipleLinearResult = { outcome: 'post_score', standardize: false,
     { term: 'method: online', b: -2.049172535, se: 2.021575603, beta: -0.216138004, t: -1.013651199, p: 0.317908726, ciLow: -6.157508455, ciHigh: 2.059163385, vif: 1.247536921 },
     { term: 'method: workshop', b: -3.247840455, se: 2.272989373, beta: -0.342568398, t: -1.428885016, p: 0.162160847, ciLow: -7.867110628, ciHigh: 1.371429717, vif: 1.247536921 },
   ],
-  n: 40, nExcluded: 0, figResidualsPng: png }
+  n: 40, nExcluded: 0, figResidualsPng: png, figCoefPlotPng: png }
 
 describe('buildMultipleLinearRegression', () => {
   it('standardize OFF (the drawn default) → β cells em-dash; intercept β/VIF blank; VIF filled (GVIF convention)', () => {
@@ -33,6 +33,12 @@ describe('buildMultipleLinearRegression', () => {
     const one = { ...res, terms: res.terms.slice(0, 2).map((t) => ({ ...t, vif: null })) }
     const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, one)
     expect(c.tables[1].rows.map((row) => row.vif)).toEqual(['', '—'])
+  })
+  it('#11: emits both figures in card order — residual diagnostics, then coefficient plot', () => {
+    const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res)
+    expect(c.figures.map((g) => g.file)).toEqual(['residuals', 'coefficient-plot'])
+    expect(c.figures.map((g) => g.caption)).toEqual(['Residual diagnostics', 'Coefficient plot'])
+    expect(c.figures.every((g) => g.png === png)).toBe(true)
   })
   it('APA: card-literal wording, predictor X = first coefficient row (recorded decision 3)', () => {
     expect(buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res).apa)

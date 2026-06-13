@@ -52,6 +52,7 @@ describe('runMultipleLinearRegression', () => {
     expect(r.n).toBe(40)
     expect(r.nExcluded).toBe(0)
     expect(Array.from(r.figResidualsPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+    expect(Array.from(r.figCoefPlotPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47]) // #11 coefficient plot renders
   }, 900_000)
 
   it('k = 1 predictor — VIF undefined (car::vif would error "fewer than 2 terms") → null; fit ≡ the simple-linear spike', async () => {

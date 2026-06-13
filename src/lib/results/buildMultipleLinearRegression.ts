@@ -23,14 +23,17 @@ export function buildMultipleLinearRegression(spec: TestSpec, r: MultipleLinearR
     .replace('predictor X', `predictor ${first.term}`)
     .replace('{b}', f(first.b))
     .replace('p={p2}', first.p < 0.001 ? 'p<.001' : `p=${fp(first.p)}`)
-  const fig = figuresOf(spec)[0]
+  const [figResiduals, figCoef] = figuresOf(spec) // #11: residual diagnostics, then the coefficient plot
   return {
     tables: [
       { spec: spec.tables[0], rows: [{ r2: f(r.r2), adjR2: f(r.adjR2), f: f(r.f), df1: fdf(r.df1), df2: fdf(r.df2), p: fp(r.p) }] },
       { spec: spec.tables[1], rows: coefRows },
     ],
     note: spec.tableNote ?? null,
-    figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figResidualsPng }],
+    figures: [
+      { caption: figResiduals.caption, type: figResiduals.type, file: figResiduals.file, png: r.figResidualsPng },
+      { caption: figCoef.caption, type: figCoef.type, file: figCoef.file, png: r.figCoefPlotPng },
+    ],
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,
