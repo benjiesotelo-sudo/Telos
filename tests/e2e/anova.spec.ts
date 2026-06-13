@@ -82,11 +82,11 @@ test('Journey A: between-subjects — one-way ANOVA + factorial ANOVA + Kruskal-
   await expect(page.getByRole('button', { name: 'Download' })).toBeEnabled({ timeout: 360_000 })
 
   // ── Assert One-way ANOVA card ──
-  const owaApa = page.getByText(/A one-way ANOVA found an effect of group/)
+  const owaApa = page.getByText(/A one-way ANOVA gave/)
   await expect(owaApa).toBeVisible()
   await expect(owaApa).toContainText('F(2,57)=2.81')
-  await expect(owaApa).toContainText('p=.069')
-  await expect(owaApa).toContainText('η²=0.09')
+  await expect(owaApa).toContainText('p = .069')
+  await expect(owaApa).toContainText('η²=.09')
 
   const owaAnova = page.locator('#table-one-way-anova-anova')
   await expect(owaAnova).toContainText('2.81')

@@ -12,7 +12,7 @@ export function PickTestsScreen() {
     <section>
       <div className="eyebrow">Step 5</div>
       <h1 className="title">Pick a test</h1>
-      <p className="hint">Folders expand only · tick individual tests · multi-select on · greyed + reason if data unsupported — eligibility = level/arity fit plus per-test minimum data requirements (registry-defined · DRAFT — confirm: e.g. at least 3 complete rows per group) · if every test is greyed, a panel explains why and points back to steps 2/4</p>
+      <p className="hint">Select one or more tests below. Tests that don't fit your data are greyed out — hover to see why. Each test you pick gets its own configuration step.</p>
       {allGreyed && (
         <div className="error-box" role="alert">
           No test fits the current data: every option is greyed out. Check the uploaded file (step 2) or the column levels and Use toggles (step 4).

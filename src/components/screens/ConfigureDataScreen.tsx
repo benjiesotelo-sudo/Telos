@@ -62,7 +62,7 @@ export function ConfigureDataScreen() {
       <p className="hint">Derived tags (count · datetime · id) are auto-detected column properties used by test eligibility — not levels you set.</p>
 
       <div className="btn-row">
-        <span className="hint">disabled until every used column has a level</span>
+        {!ready && <span className="hint">set a level for every used column to continue</span>}
         <button className="btn" disabled={!ready} onClick={() => s.goTo('pick-tests')}>Confirm &amp; pick test</button>
       </div>
     </section>

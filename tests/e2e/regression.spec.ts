@@ -109,7 +109,7 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   const slCoef = page.locator('#table-simple-linear-coefficients')
   await expect(slCoef).toContainText('0.64')
   await expect(slCoef).toContainText('0.81')
-  await expect(page.getByText('The predictor significantly predicted the outcome, B=0.64, t(38)=8.58, p<.001, R²=0.66.')).toBeVisible()
+  await expect(page.getByText('A simple linear regression gave B=0.64, t(38)=8.58, p < .001, R²=.66.')).toBeVisible()
 
   // Multiple linear: standardize OFF → β cells are em-dash (asserted FIRST, before the flip); VIF filled (GVIF convention)
   const mlCoef = page.locator('#table-multiple-linear-coefficients')
@@ -120,7 +120,7 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   await expect(mlCoef).toContainText('group: b') // dummy-row naming (convention 1)
   await expect(mlCoef).toContainText('−2.05')    // B method: online — U+2212 minus
   await expect(page.locator('#table-multiple-linear-model-fit')).toContainText('20.42')
-  await expect(page.getByText('The model explained R²=0.75 of the variance, F(5,34)=20.42, p<.001; predictor pre_score was significant, B=0.61, p<.001.')).toBeVisible()
+  await expect(page.getByText('The model explained R²=.75 of the variance, F(5,34)=20.42, p < .001; predictor pre_score gave B=0.61, p < .001.')).toBeVisible()
 
   // Logistic (event yes): fit −2LL=45.91, Nagelkerke=0.28, omnibus 9.54/.023; OR group: b = 3.46 [0.87, 15.44]; classification 65.0%; AUC in APA
   const lgFit = page.locator('#table-logistic-model-fit')
@@ -136,7 +136,7 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   await expect(lgClass).toContainText('no')      // real level names as headers (convention 7)
   await expect(lgClass).toContainText('yes')
   await expect(lgClass).toContainText('65.0%')
-  await expect(page.getByText('Predictor pre_score was associated with the outcome, OR=1.08, 95% CI [1.01, 1.18], p=.035 (AUC=0.76).')).toBeVisible()
+  await expect(page.getByText('Predictor pre_score was associated with the outcome, OR=1.08, 95% CI [1.01, 1.18], p = .035 (AUC=.76).')).toBeVisible()
 
   // Poisson (offset model): AIC=202.37, deviance=67.57, df=37, dispersion ratio=1.69; IRR age = 1.01
   const poFit = page.locator('#table-poisson-nb-model-fit')
@@ -144,7 +144,7 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   await expect(poFit).toContainText('67.57')
   await expect(poFit).toContainText('37')
   await expect(poFit).toContainText('1.69')
-  await expect(page.getByText('Predictor age was associated with the count, IRR=1.01, 95% CI [1.00, 1.02], p=.007.')).toBeVisible()
+  await expect(page.getByText('Predictor age was associated with the count, IRR=1.01, 95% CI [1.00, 1.02], p = .007.')).toBeVisible()
 
   // ── 7. Flip all three config switches (each edit stales ALL runs — journey-B rule), then re-run once ──
   await expect(async () => {
@@ -175,7 +175,7 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   await expect(page.locator('#table-logistic-coefficients')).toContainText('0.29')
   await expect(page.locator('#table-logistic-coefficients')).toContainText('[0.06, 1.15]')
   await expect(page.locator('#table-logistic-model-fit')).toContainText('45.91')
-  await expect(page.getByText('Predictor pre_score was associated with the outcome, OR=0.92, 95% CI [0.85, 0.99], p=.035 (AUC=0.76).')).toBeVisible()
+  await expect(page.getByText('Predictor pre_score was associated with the outcome, OR=0.92, 95% CI [0.85, 0.99], p = .035 (AUC=.76).')).toBeVisible()
 
   // Negative binomial (offset): theta replaces the dispersion ratio in the SAME cell (convention 10)
   const nbFit = page.locator('#table-poisson-nb-model-fit')

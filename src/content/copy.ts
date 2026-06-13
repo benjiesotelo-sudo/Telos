@@ -3,7 +3,7 @@ export const FEEDBACK_URL = 'https://docs.google.com/forms/REPLACE_WITH_YOUR_FOR
 
 export const WELCOME_COPY =
   'Telos runs your statistics in the browser — built for thesis students. Upload your data, get guided to the right tests, ' +
-  'and read APA-7 results with plain-language explainers. Export everything as one bundle: PDF, R script, figures. ' +
+  'and read APA-7 results with plain-language explainers. Export your tables and figures as images (PDF and R-script export are coming soon). ' +
   'Your data never leaves your browser. Built by Benjamin Sotelo — linkedin.com/in/benjaminsotelo1.'
 
 // Rendered with <b> on the b-segments, exactly as the spec draws emphasis.
@@ -13,7 +13,7 @@ export const TERMS_COPY: { b?: string; t?: string }[] = [
   { b: 'Ordinal' }, { t: ' — ordered categories with uneven steps (a 1–5 satisfaction rating). ' },
   { b: 'Interval' }, { t: ' — equal steps but no true zero (temperature in °C). ' },
   { b: 'Ratio' }, { t: ' — equal steps and a true zero (income, test score). ' },
-  { b: 'Missing data:' }, { t: ' empty cells — by default each test simply skips the rows that are incomplete for its own columns (step 4a lets you change this).' },
+  { b: 'Missing data:' }, { t: ' empty cells — by default each test simply skips the rows that are incomplete for its own columns (the Configure data step lets you change this).' },
 ]
 
 export const UPLOAD_ACCEPT = '.csv,.xlsx,.xls'

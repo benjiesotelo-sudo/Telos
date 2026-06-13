@@ -118,7 +118,7 @@ test('Journey: association — Pearson, Spearman, Kendall, χ² independence, χ
   await expect(pearsonTable).toContainText('6.07')
   await expect(pearsonTable).toContainText('38')
   await expect(pearsonTable).toContainText('<.001')
-  await expect(page.getByText('hours_studied and exam_score were correlated, r(38)=0.70, p<.001, 95% CI [0.50, 0.83].')).toBeVisible()
+  await expect(page.getByText('hours_studied and exam_score were correlated, r(38)=.70, p < .001, 95% CI [0.50, 0.83].')).toBeVisible()
 
   // Spearman (tied ordinal pair): rho=0.85, S=1632.68, p<.001
   const spearmanTable = page.locator('#table-spearman-correlation')
@@ -157,7 +157,7 @@ test('Journey: association — Pearson, Spearman, Kendall, χ² independence, χ
   await expect(fisherExactTable).toContainText('.056')
   await expect(fisherExactTable).toContainText('4.16')
   await expect(fisherExactTable).toContainText('[0.97, 20.18]')
-  await expect(page.getByText(/A Fisher's exact test.*gave p=\.056.*OR=4\.16.*95% CI \[0\.97, 20\.18\]/)).toBeVisible()
+  await expect(page.getByText(/A Fisher's exact test.*gave p = \.056.*OR=4\.16.*95% CI \[0\.97, 20\.18\]/)).toBeVisible()
 
   // ── 7. Download & unzip — assert exact 13-file path set ──
   await page.getByRole('checkbox', { name: /Table images/ }).check()
