@@ -18,7 +18,8 @@ lapply(gs, function(l) {
 const R_HIST = String.raw`
 print(ggplot2::ggplot(data.frame(x = x), ggplot2::aes(x)) +
   ggplot2::geom_histogram(bins = 12, fill = '#9cc2ec', colour = '#0c447c') +
-  ggplot2::labs(x = NULL, y = NULL))`
+  ggplot2::scale_y_continuous(breaks = scales::breaks_extended(only.loose = TRUE, Q = c(1,2,5,10)), labels = scales::label_number(accuracy = 1)) +
+  ggplot2::labs(x = NULL, y = 'Count'))`
 
 export interface SummaryRow {
   variable: string; group?: string; n: number

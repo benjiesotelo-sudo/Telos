@@ -14,8 +14,8 @@ describe('buildKendallsTau', () => {
     expect(c.note).toBeNull()
     expect(c.figures[0].file).toBe('scatter')
   })
-  it('APA substitutes names + values; tiny p becomes p<.001', () => {
+  it('APA is a full sentence mirroring Spearman; tiny p becomes p<.001', () => {
     const c = buildKendallsTau(KENDALLS_TAU, res)
-    expect(c.apa).toBe("Kendall's τ=.51, p < .001, N=40.")
+    expect(c.apa).toBe("A Kendall's tau correlation gave τ=.51, p < .001, N=40.")
   })
 })

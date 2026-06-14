@@ -27,8 +27,8 @@ export function buildSimpleLinearRegression(spec: TestSpec, r: SimpleLinearResul
     ],
     note: spec.tableNote ?? null,
     figures: [
-      { caption: figs[0].caption, type: figs[0].type, file: figs[0].file, png: r.figFitPng },
-      { caption: figs[1].caption, type: figs[1].type, file: figs[1].file, png: r.figResidualsPng },
+      { caption: 'Fitted-line scatter', type: figs[0].type, file: figs[0].file, png: r.figFitPng },
+      { caption: 'Residual diagnostics', type: figs[1].type, file: figs[1].file, png: r.figResidualsPng },
     ],
     howToRead: spec.howToRead,
     apa,

@@ -20,7 +20,7 @@ export const DISTRIBUTION_NORMALITY: TestSpec = {
     { id: 'normality', title: 'Normality tests', captionStyle: 'bare', // the card prints bare "Table."
       columns: [{ key: 'variable', label: 'Variable' }, { key: 'test', label: 'Test' }, { key: 'statistic', label: 'Statistic' }, { key: 'n', label: 'N' }, { key: 'p', label: 'p' }] },
   ],
-  tableNote: { kind: 'plain', text: 'skewness & kurtosis are reported alongside; Shapiro-Wilk applies for 3–5000 cases.' },
+  tableNote: { kind: 'plain', text: 'skewness & kurtosis appear in the Summary statistics card; Shapiro-Wilk applies for 3–5000 cases.' },
   figures: [ // one drawn figbox, two exported files (bundle line) → two specs sharing the caption
     { caption: 'Distribution shape', type: 'histogram' },
     { caption: 'Distribution shape', type: 'qq' },

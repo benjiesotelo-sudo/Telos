@@ -28,7 +28,7 @@ export const KENDALLS_TAU: TestSpec = {
   howToRead:
     'τ is a rank correlation based on concordant vs. discordant pairs — well suited to small samples and many ties. ' +
     'Sign = direction, magnitude = strength; p tests significance.',
-  apaTemplate: "Kendall's τ={tau}, p {p}, N={n}.",
+  apaTemplate: "A Kendall's tau correlation gave τ={tau}, p {p}, N={n}.",
   rMap: 'cor.test(method="kendall") → table · ggplot2 → figure',
   bundleFiles: ['table_correlation.png', 'figure_scatter.png'],
 }

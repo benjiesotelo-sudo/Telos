@@ -25,12 +25,16 @@ export function buildPoissonNegativeBinomial(spec: TestSpec, r: PoissonNbResult)
     .replace('{p}', fpApa(first.p))
   const fig = figuresOf(spec)[0]
   const t2cols = spec.tables[1].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
+  // Dispersion note is model-aware: Poisson advises on the ratio; NB describes theta.
+  const note: CardContent['note'] = r.model === 'negative binomial'
+    ? { kind: 'assume', text: 'Dispersion cell = theta (the negative binomial overdispersion parameter); larger theta means the model is less over-dispersed relative to Poisson.' }
+    : (spec.tableNote ?? null)
   return {
     tables: [
       { spec: spec.tables[0], rows: [{ aic: f(r.aic), dev: f(r.deviance), df: fdf(r.dfResid), dispersion: f(r.dispersion) }] },
       { spec: { ...spec.tables[1], columns: t2cols }, rows: coefRows },
     ],
-    note: spec.tableNote ?? null, // card-literal/static (convention 10)
+    note,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figResidualsPng }],
     howToRead: spec.howToRead,
     apa,

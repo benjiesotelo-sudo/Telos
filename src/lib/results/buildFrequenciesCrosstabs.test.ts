@@ -19,7 +19,7 @@ const twoVar: FrequenciesResult = { kind: 'two', freq: null, nExcluded: 1, figur
   } }
 
 describe('buildFrequenciesCrosstabs', () => {
-  it('one variable → the frequency table only, 1-dp percentages, NO note, APA filled with Table 1', () => {
+  it('one variable → the frequency table only, 1-dp percentages, NO note, APA uses literal Table X', () => {
     const c = buildFrequenciesCrosstabs(spec, oneVar)
     expect(c.tables).toHaveLength(1)
     expect(c.tables[0].spec.id).toBe('frequencies')
@@ -30,7 +30,7 @@ describe('buildFrequenciesCrosstabs', () => {
     ])
     expect(c.note).toBeNull()
     expect(c.figures).toEqual([{ caption: 'Category counts', type: 'bar', png }])
-    expect(c.apa).toBe('Frequencies (and cross-tabulations) are reported in Table 1.')
+    expect(c.apa).toBe('Frequencies (and cross-tabulations) are reported in Table X.')
     expect(c.nExcluded).toBe(0)
   })
   it('two variables → DATA-DRIVEN columns, n (row% / col%) cells, count margins, the card note', () => {
@@ -44,7 +44,7 @@ describe('buildFrequenciesCrosstabs', () => {
     expect(c.tables[0].rows[2]).toEqual({ rowcat: 'south', c0: '2 (66.7% / 66.7%)', c1: '1 (33.3% / 33.3%)', total: '3' })
     expect(c.tables[0].rows[3]).toEqual({ rowcat: 'Total', c0: '3', c1: '3', total: '6' })
     expect(c.note).toEqual({ kind: 'plain', text: spec.tableNote!.text })
-    expect(c.apa).toBe('Frequencies (and cross-tabulations) are reported in Table 1.')
+    expect(c.apa).toBe('Frequencies (and cross-tabulations) are reported in Table X.')
     expect(c.nExcluded).toBe(1)
   })
 })

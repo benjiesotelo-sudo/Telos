@@ -30,7 +30,7 @@ export const FREQUENCIES_CROSSTABS: TestSpec = {
   howToRead:
     'Frequencies show how many cases fall in each category and what share of the total that is. ' +
     'A cross-tab shows counts for combinations of two categories — to test whether the two are related, run a chi-square test.',
-  apaTemplate: 'Frequencies (and cross-tabulations) are reported in Table {n}.',
+  apaTemplate: 'Frequencies (and cross-tabulations) are reported in Table X.',
   rMap: 'janitor::tabyl() (+ adorn_* for cross-tab %, cumsum() for cumulative %) → tables · ggplot2::geom_bar() → figure',
   bundleFiles: ['table_frequencies.png', 'table_crosstab.png', 'figure_bar.png'],
 }

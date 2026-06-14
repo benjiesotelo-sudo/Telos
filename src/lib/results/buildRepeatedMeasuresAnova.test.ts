@@ -162,8 +162,12 @@ describe('buildRepeatedMeasuresAnova', () => {
       expect(c.apa).toContain('F(2,118)=')
     })
 
-    it('note has no afterTableId when sphericity table is absent', () => {
-      expect((c.note as Record<string, unknown>)['afterTableId']).toBeUndefined()
+    it('note has afterTableId=rm-anova when correction=none (anchors before posthoc, not after it)', () => {
+      expect((c.note as Record<string, unknown>)['afterTableId']).toBe('rm-anova')
+    })
+
+    it('note text omits the correction sentence when correction=none', () => {
+      expect(c.note!.text).not.toContain('Greenhouse–Geisser')
     })
   })
 })

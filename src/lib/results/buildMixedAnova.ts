@@ -17,9 +17,13 @@ export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardConten
     .replace('p {p}', `p ${fpApa(inter.p)}`)
     .replace('{pes}', f01(inter.pes))
 
+  // Note anchors after the sphericity table (before posthoc) when sphericity rows are present.
+  // When sphericity is absent (2-level within factor), the note renders after the ANOVA table.
+  const showSphericity = r.sphericity.length > 0
   const note: CardContent['note'] = {
     kind: 'assume',
     text: spec.tableNote!.text,
+    ...(showSphericity ? { afterTableId: 'sphericity' } : { afterTableId: 'mixed-anova' }),
   }
 
   const fig = figuresOf(spec)[0]

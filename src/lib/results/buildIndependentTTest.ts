@@ -1,7 +1,7 @@
 import type { TestSpec } from '../registry/types'
 import type { TTestResult } from '../stats/types'
 import type { CardContent } from './builders'
-import { f, f01, f1, fdf, fp, fpApa, fx } from '../format/apa'
+import { f, f1, fdf, fp, fpApa, fx } from '../format/apa'
 
 export function buildIndependentTTest(spec: TestSpec, r: TTestResult): CardContent {
   const [g1, g2] = r.groupStats
@@ -12,7 +12,7 @@ export function buildIndependentTTest(spec: TestSpec, r: TTestResult): CardConte
     .replace('{g2}', g2.group).replace('{m2}', f1(g2.mean)).replace('{sd2}', f1(g2.sd))
     .replace('{df}', fdf(r.df)).replace('{t}', f(r.t))
     .replace('{p}', fpApa(r.p))
-    .replace('{d}', f01(r.cohensD))
+    .replace('{d}', f(r.cohensD))
   const t2cols = spec.tables[1].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
   return {
     tables: [

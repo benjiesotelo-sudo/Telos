@@ -195,7 +195,7 @@
       <div class="apa-cap"><b>Table.</b> Normality tests</div>
       <table class="apa"><thead><tr><th>Variable</th><th>Test</th><th>Statistic</th><th>N</th><th>p</th></tr></thead>
       <tbody class="ghost"><tr><td>post_score</td><td>Shapiro-Wilk</td><td>W &mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>post_score</td><td>K&ndash;S (Lilliefors)</td><td>D &mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">skewness &amp; kurtosis are reported alongside; Shapiro-Wilk applies for 3&ndash;5000 cases.</p>
+      <p class="tbl-note">skewness &amp; kurtosis appear in the Summary statistics card; Shapiro-Wilk applies for 3&ndash;5000 cases.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Distribution shape</div><div class="ftype">type: <b>histogram</b> + <b>Q&ndash;Q plot</b> per variable</div></div>
       <div class="zlabel">How to read this test</div>
@@ -386,7 +386,7 @@
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> Nested ANOVA</div>
       <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>&omega;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>Factor A</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>B (nested in A)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual &mdash; so the two F rows do not share the same denominator. Variance components (or &omega;&sup2;) are reported as the effect size where estimable.</p>
+      <p class="tbl-note">Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual &mdash; so the two F rows do not share the same denominator. Variance components (or &omega;&sup2;) are reported as the effect size where estimable.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Grouped means</div><div class="ftype">type: <b>grouped means plot</b> (nested groups within each top-level group)</div></div>
       <div class="zlabel">How to read this test</div>
@@ -624,7 +624,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p><b>&tau;</b> is a rank correlation based on concordant vs. discordant pairs &mdash; well suited to small samples and many ties. Sign = direction, magnitude = strength; <b>p</b> tests significance.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;Kendall's &tau;=__, <i>p</i>&nbsp;__, <i>N</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Kendall's tau correlation gave &tau;=__, <i>p</i>&nbsp;__, <i>N</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>cor.test(method="kendall")</code> &rarr; table &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_correlation.png &middot; figure_scatter.png</div>
       </div>

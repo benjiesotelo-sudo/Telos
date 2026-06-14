@@ -49,12 +49,25 @@ export function buildRepeatedMeasuresAnova(spec: TestSpec, r: RepeatedMeasuresAn
     ...(posthocTable ? [posthocTable] : []),
   ]
 
-  // Note renders after the sphericity table when it is present (afterTableId),
-  // otherwise after the last table in the card.
+  // When sphericity is present: note anchors after the sphericity table (before posthoc).
+  // When sphericity='none': note anchors after the ANOVA table (before posthoc) and omits
+  //   the correction sentence since no correction is applied.
+  // When sphericity is absent because of 2 levels (empty array, choice not 'none'): same anchor.
   const noteBase = spec.tableNote ?? null
-  const note: CardContent['note'] = noteBase
-    ? { ...noteBase, ...(showSphericity ? { afterTableId: 'sphericity' } : {}) }
-    : null
+  let note: CardContent['note'] = null
+  if (noteBase) {
+    if (showSphericity) {
+      note = { ...noteBase, afterTableId: 'sphericity' }
+    } else if (r.sphericityChoice === 'none') {
+      // Sphericity deliberately omitted — reword to remove the now-inapplicable correction sentence.
+      const trimmedText = noteBase.text
+        .replace('when sphericity is violated the F-test uses the Greenhouse–Geisser / Huynh–Feldt correction; post-hoc table follows. ', '')
+      note = { ...noteBase, text: trimmedText, afterTableId: 'rm-anova' }
+    } else {
+      // 2-level case: sphericity not needed; no afterTableId — note renders after last table.
+      note = { ...noteBase }
+    }
+  }
 
   return {
     tables,

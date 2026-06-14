@@ -36,6 +36,7 @@ list(rowCats = as.list(as.character(ct[[1]])), colCats = as.list(as.character(na
 const R_BAR = String.raw`
 print(ggplot2::ggplot(data.frame(v = v1), ggplot2::aes(v)) +
   ggplot2::geom_bar(fill = '#9cc2ec', colour = '#0c447c') +
+  ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.10))) +
   ggplot2::labs(x = NULL, y = NULL))`
 
 const R_GROUPED_BAR = String.raw`

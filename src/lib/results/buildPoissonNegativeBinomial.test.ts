@@ -35,6 +35,11 @@ describe('buildPoissonNegativeBinomial', () => {
     expect(c.tables[0].rows).toEqual([{ aic: '200.10', dev: '45.81', df: '37', dispersion: '9.00' }])
     expect(c.tables[1].rows[2]).toEqual({ term: 'group: b', b: '0.18', se: '0.18', z: '1.03', p: '.304', irr: '1.20', ci: '[0.85, 1.70]' })
   })
+  it('negative binomial: note describes theta instead of Poisson switch advice', () => {
+    const c = buildPoissonNegativeBinomial(POISSON_NEGATIVE_BINOMIAL, negbin)
+    expect(c.note!.text).toContain('theta')
+    expect(c.note!.text).not.toContain('switch to negative binomial')
+  })
   it('APA: card-literal wording, Predictor X = first coefficient row', () => {
     expect(buildPoissonNegativeBinomial(POISSON_NEGATIVE_BINOMIAL, poisson).apa)
       .toBe('Predictor age was associated with the count, IRR=1.01, 95% CI [1.00, 1.02], p = .007.')

@@ -11,7 +11,7 @@ export function buildFrequenciesCrosstabs(spec: TestSpec, r: FrequenciesResult):
   const base = {
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead,
-    apa: spec.apaTemplate.replace('{n}', '1'), // exactly one table is built per run → always Table 1 at runtime
+    apa: spec.apaTemplate, // apaTemplate uses literal "Table X" (no substitution needed)
     nExcluded: r.nExcluded,
   }
   if (r.kind === 'one') {
