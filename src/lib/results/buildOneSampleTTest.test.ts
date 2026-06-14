@@ -7,7 +7,7 @@ import type { OneSampleTTestResult } from '../stats/oneSampleTTest'
 const r: OneSampleTTestResult = {
   variable: 'post_score', n: 6, mean: 82.33333, sd: 3.77712, se: 1.542,
   mu0: 70, t: 7.99825, df: 5, p: 0.000493, meanDiff: 12.33333, ci: [8.36948, 16.29718], cohensD: 3.26527,
-  shapiro: { W: 0.96354, p: 0.84654 }, nExcluded: 2,
+  shapiro: { W: 0.96354, p: 0.84654 }, ciLevel: 0.95, nExcluded: 2,
   figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
 }
 

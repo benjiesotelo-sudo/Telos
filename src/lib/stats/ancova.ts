@@ -14,6 +14,7 @@ export interface AncovaResult {
   posthoc: PosthocRow[]
   slopes: SlopeCheck[]
   levene: { F: number | null; p: number | null }
+  ciLevel: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -38,7 +39,7 @@ rows <- lapply(terms, function(t) list(source = gsub(':', ' × ', t),
 dfres <- dfr
 emm <- emmeans::emmeans(m, as.formula(paste('~', frhs)), level = level)
 adj <- .telos_adjmeans(emm)
-ph <- .telos_posthoc(emm, 'tukey')
+ph <- .telos_posthoc(emm, 'tukey', level)
 mi <- lm(as.formula(paste('y ~ (', paste(covnames, collapse = ' + '), ') * (', frhs, ')')), data = d, contrasts = ctr)
 ai <- car::Anova(mi, type = 3)
 slope_terms <- grep(':', setdiff(rownames(ai), c('(Intercept)', 'Residuals')), value = TRUE)
@@ -110,5 +111,5 @@ export async function runAncova(
   const s = await engine.runJson<RawResult>(`${POSTHOC_EMM_R}\n${ADJMEANS_R}\n${R_STATS}`, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
 
-  return { ...s, nExcluded, figurePng }
+  return { ...s, ciLevel: level, nExcluded, figurePng }
 }

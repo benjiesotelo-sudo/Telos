@@ -9,6 +9,8 @@ const pc = (x: number | null) => (x == null ? '—' : `${x.toFixed(1)}%`) // per
 const fOr = (x: number) => (Math.abs(x) < 0.01 ? '< 0.01' : f(x))
 
 export function buildLogisticRegression(spec: TestSpec, r: LogisticResult): CardContent {
+  const pct = Math.round(r.ciLevel * 100)
+  const ciLabel = `${pct}% CI (OR)`
   // R1: report-OR off → em-dash OR + CI cells (B/SE/z/p always fill — the column set is card-fixed).
   const coefRows = r.terms.map((x) => ({
     term: x.term, b: f(x.b), se: f(x.se), z: f(x.z), p: fp(x.p),
@@ -25,14 +27,16 @@ export function buildLogisticRegression(spec: TestSpec, r: LogisticResult): Card
   const apa = spec.apaTemplate
     .replace('Predictor X', `Predictor ${first.term}`)
     .replace('{or}', r.reportOR ? f(first.or) : '—')           // decision 4: the toggle masks the APA slots too
+    .replace('95% CI', `${pct}% CI`)
     .replace('{ciLow}', r.reportOR ? f(first.orLow) : '—').replace('{ciHigh}', r.reportOR ? f(first.orHigh) : '—')
     .replace('{p}', fpApa(first.p))                             // policy (3): spaced APA p, "p = .035" / "p < .001"
     .replace('{auc}', f01(r.auc))                               // policy (3): bounded stat drops leading zero
   const fig = figuresOf(spec)[0]
+  const t2cols = spec.tables[1].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
   return {
     tables: [
       { spec: spec.tables[0], rows: [{ m2ll: f(r.m2ll), aic: f(r.aic), nagelkerke: f(r.nagelkerke), chisq: f(r.omnibusChisq), p: fp(r.omnibusP) }] },
-      { spec: spec.tables[1], rows: coefRows },
+      { spec: { ...spec.tables[1], columns: t2cols }, rows: coefRows },
       { spec: { ...spec.tables[2], columns: classColumns }, rows: classRows },
     ],
     note: spec.tableNote ?? null,

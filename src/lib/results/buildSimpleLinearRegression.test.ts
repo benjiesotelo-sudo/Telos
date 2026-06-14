@@ -11,7 +11,7 @@ const res: SimpleLinearResult = { outcome: 'post_score', predictor: 'pre_score',
     { term: '(Intercept)', b: 20.070279220, se: 4.539674859, beta: null, t: 4.421082972, p: 7.946544031e-5, ciLow: 10.880187930, ciHigh: 29.260370510 },
     { term: 'pre_score', b: 0.641817080, se: 0.074825777, beta: 0.812044727, t: 8.577486346, p: 2.024931906e-10, ciLow: 0.490340214, ciHigh: 0.793293946 },
   ],
-  n: 40, nExcluded: 0, figFitPng: png, figResidualsPng: png }
+  ciLevel: 0.95, n: 40, nExcluded: 0, figFitPng: png, figResidualsPng: png }
 
 describe('buildSimpleLinearRegression', () => {
   it('Table 1 = fit row (SE = sigma, convention 3); Table 2 = coefficient rows with blank intercept β', () => {

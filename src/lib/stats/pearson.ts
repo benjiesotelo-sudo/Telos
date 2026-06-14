@@ -4,6 +4,7 @@ import type { Dataset } from './types'
 export interface PearsonResult {
   varA: string; varB: string // role names — builders get (spec, result) only
   r: number; t: number; df: number; p: number; ciLow: number; ciHigh: number; n: number
+  ciLevel: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -31,5 +32,5 @@ export async function runPearson(engine: Engine, data: Dataset, varA: string, va
   const env = { x: rows.map((r) => r[varA] as number), y: rows.map((r) => r[varB] as number), xlab: varA, ylab: varB, level }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_SCATTER, 600, 450, env)
-  return { varA, varB, ...s, nExcluded, figurePng }
+  return { varA, varB, ...s, ciLevel: level, nExcluded, figurePng }
 }

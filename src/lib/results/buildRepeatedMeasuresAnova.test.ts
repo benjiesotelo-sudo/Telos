@@ -31,6 +31,7 @@ const result3: RepeatedMeasuresAnovaResult = {
     { pair: 'score_t2 - score_t3', diff: -2.85, se: 0.48, pAdj: 0.0002, ciLo: -4.02, ciHi: -1.68 },
   ],
   sphericityChoice: 'GG correction',
+  ciLevel: 0.95,
   nExcluded: 0,
   figurePng: png,
 }
@@ -56,6 +57,7 @@ const result2: RepeatedMeasuresAnovaResult = {
     { pair: 'score_t1 - score_t2', diff: -2.9, se: 0.39, pAdj: 0.0000001, ciLo: -3.68, ciHi: -2.12 },
   ],
   sphericityChoice: 'GG correction',
+  ciLevel: 0.95,
   nExcluded: 2,
   figurePng: png,
 }

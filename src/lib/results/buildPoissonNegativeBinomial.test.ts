@@ -12,7 +12,7 @@ const poisson: PoissonNbResult = { outcome: 'complaints', model: 'Poisson',
     { term: 'age', b: 0.013258484, se: 0.004919987, z: 2.694820707, p: 0.007042652, irr: 1.013346767, irrLow: 1.003600186, irrHigh: 1.023164956 },
     { term: 'group: b', b: 0.173785589, se: 0.139443640, z: 1.246278344, p: 0.212662225, irr: 1.189800432, irrLow: 0.903978021, irrHigh: 1.562820565 },
   ],
-  n: 40, nExcluded: 0, figResidualsPng: png }
+  ciLevel: 0.95, n: 40, nExcluded: 0, figResidualsPng: png }
 // nboff_ keys — negative binomial with offset: the Dispersion cell carries theta.
 const negbin: PoissonNbResult = { ...poisson, model: 'negative binomial',
   aic: 200.096113400, deviance: 45.810830490, dispersion: 9.000773027,

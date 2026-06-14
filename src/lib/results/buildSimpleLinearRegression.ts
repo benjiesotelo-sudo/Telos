@@ -5,6 +5,8 @@ import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildSimpleLinearRegression(spec: TestSpec, r: SimpleLinearResult): CardContent {
+  const pct = Math.round(r.ciLevel * 100)
+  const ciLabel = `${pct}% CI`
   // Convention 1 / recorded decision 8: intercept β renders blank '' (ghost row); no toggles on this card — β always fills.
   const coefRows = r.terms.map((x) => ({
     term: x.term, b: f(x.b), se: f(x.se),
@@ -17,10 +19,11 @@ export function buildSimpleLinearRegression(spec: TestSpec, r: SimpleLinearResul
     .replace('{p}', fpApa(pred.p))
     .replace('{r2}', f01(r.r2))
   const figs = figuresOf(spec)
+  const t2cols = spec.tables[1].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
   return {
     tables: [
       { spec: spec.tables[0], rows: [{ r2: f(r.r2), adjR2: f(r.adjR2), f: f(r.f), df1: fdf(r.df1), df2: fdf(r.df2), p: fp(r.p), se: f(r.sigma) }] },
-      { spec: spec.tables[1], rows: coefRows },
+      { spec: { ...spec.tables[1], columns: t2cols }, rows: coefRows },
     ],
     note: spec.tableNote ?? null,
     figures: [

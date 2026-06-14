@@ -11,6 +11,7 @@ export interface OneWayAnovaResult {
   shapiro: { W: number | null; p: number | null }
   posthoc: PosthocRow[]
   posthocMethod: string  // selected label e.g. 'Tukey HSD', 'Bonferroni', 'Scheffé'
+  ciLevel: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -26,7 +27,7 @@ lev <- tryCatch({ ls <- summary(aov(abs(y - ave(y, gf, FUN = median)) ~ gf))[[1]
   list(F = ls[1, 'F value'], p = ls[1, 'Pr(>F)']) }, error = function(e) list(F = NULL, p = NULL))
 sh <- tryCatch({ t <- shapiro.test(residuals(m)); list(W = unname(t$statistic), p = t$p.value) },
   error = function(e) list(W = NULL, p = NULL))
-ph <- .telos_posthoc(emmeans::emmeans(m, ~g), adjust)
+ph <- .telos_posthoc(emmeans::emmeans(m, ~g), adjust, level)
 list(desc = desc, ssB = s['g', 'Sum Sq'], dfB = s['g', 'Df'], msB = s['g', 'Mean Sq'],
   f = s['g', 'F value'], p = s['g', 'Pr(>F)'], eta2 = eta2,
   ssW = s['Residuals', 'Sum Sq'], dfW = s['Residuals', 'Df'], msW = s['Residuals', 'Mean Sq'],
@@ -52,5 +53,5 @@ export async function runOneWayAnova(engine: Engine, data: Dataset, outcome: str
   const env = { y: rows.map((r) => r[outcome] as number), g: rows.map((r) => String(r[factor])), adjust, level }
   const s = await engine.runJson<Omit<OneWayAnovaResult, 'nExcluded' | 'figurePng'>>(`${POSTHOC_EMM_R}\n${R_STATS}`, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { ...s, posthocMethod: posthocChoice, nExcluded, figurePng }
+  return { ...s, posthocMethod: posthocChoice, ciLevel: level, nExcluded, figurePng }
 }

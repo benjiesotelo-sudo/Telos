@@ -14,6 +14,7 @@ export interface RepeatedMeasuresAnovaResult {
   desc: RMConditionDesc[]
   posthoc: PosthocRow[]
   sphericityChoice: string  // the selected option value, e.g. 'GG correction'
+  ciLevel: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -37,7 +38,7 @@ anova_row <- list(source = 'Condition', ss = ss, df1 = at['condition', 'num Df']
   ms = ss / at['condition', 'num Df'], f = at['condition', 'F'], p = at['condition', 'Pr(>F)'], pes = at['condition', 'pes'])
 spher <- .telos_sphericity(m)
 desc <- lapply(conds, function(cn) { v <- long$score[long$condition == cn]; list(condition = cn, n = length(v), m = mean(v), sd = sd(v)) })
-ph <- if (posthocOn) .telos_posthoc(emmeans::emmeans(m, ~condition), 'bonferroni') else list()
+ph <- if (posthocOn) .telos_posthoc(emmeans::emmeans(m, ~condition), 'bonferroni', level) else list()
 list(anova = anova_row, sphericity = spher, desc = desc, posthoc = ph)`
 
 const R_FIGURE = String.raw`
@@ -50,7 +51,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(cond, m, group = 1)) + ggplot2::geom_lin
 
 export async function runRepeatedMeasuresAnova(
   engine: Engine, data: Dataset, subject: string, measures: string[],
-  sphericityChoice: string, posthocOn: boolean,
+  sphericityChoice: string, posthocOn: boolean, level = 0.95,
 ): Promise<RepeatedMeasuresAnovaResult> {
   // Listwise: keep rows where subject non-blank AND every measure is numeric-finite.
   const rows = data.rows.filter((r) =>
@@ -66,10 +67,11 @@ export async function runRepeatedMeasuresAnova(
     n,
     correction,
     posthocOn,
+    level,
   }
   const s = await engine.runJson<Omit<RepeatedMeasuresAnovaResult, 'nExcluded' | 'figurePng' | 'sphericityChoice'>>(
     `${POSTHOC_EMM_R}\n${SPHERICITY_R}\n${R_STATS}`, env,
   )
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, { scores_flat: env.scores_flat, conds: measures })
-  return { ...s, sphericityChoice, nExcluded, figurePng }
+  return { ...s, sphericityChoice, ciLevel: level, nExcluded, figurePng }
 }

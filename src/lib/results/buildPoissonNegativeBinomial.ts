@@ -8,6 +8,8 @@ import { f, fdf, fp, fpApa } from '../format/apa'
 const fCoef = (n: number) => Math.abs(n) < 0.01 ? (n < 0 ? '−' : '') + Math.abs(n).toFixed(3) : f(n)
 
 export function buildPoissonNegativeBinomial(spec: TestSpec, r: PoissonNbResult): CardContent {
+  const pct = Math.round(r.ciLevel * 100)
+  const ciLabel = `${pct}% CI (IRR)`
   // Convention 10 / recorded decision 10: the Dispersion cell carries the Pearson ratio (Poisson) or theta (NB) —
   // same drawn column either way; the card-literal note explains the swap.
   const coefRows = r.terms.map((x) => ({
@@ -18,13 +20,15 @@ export function buildPoissonNegativeBinomial(spec: TestSpec, r: PoissonNbResult)
   const apa = spec.apaTemplate
     .replace('Predictor X', `Predictor ${first.term}`)
     .replace('{irr}', f(first.irr))
+    .replace('95% CI', `${pct}% CI`)
     .replace('{ciLow}', f(first.irrLow)).replace('{ciHigh}', f(first.irrHigh))
     .replace('{p}', fpApa(first.p))
   const fig = figuresOf(spec)[0]
+  const t2cols = spec.tables[1].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
   return {
     tables: [
       { spec: spec.tables[0], rows: [{ aic: f(r.aic), dev: f(r.deviance), df: fdf(r.dfResid), dispersion: f(r.dispersion) }] },
-      { spec: spec.tables[1], rows: coefRows },
+      { spec: { ...spec.tables[1], columns: t2cols }, rows: coefRows },
     ],
     note: spec.tableNote ?? null, // card-literal/static (convention 10)
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figResidualsPng }],

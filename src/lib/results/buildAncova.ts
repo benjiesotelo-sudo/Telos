@@ -6,6 +6,8 @@ import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 import { posthocTableRows } from '../stats/posthoc'
 
 export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
+  const pct = Math.round(r.ciLevel * 100)
+  const ciLabel = `${pct}% CI`
   // APA from the first FACTOR row + dfRes.
   // Row order from car::Anova(type=3): covariates first, then factors, then interactions.
   // Interaction rows contain ' × ' (from gsub(':', ' × ', t)).
@@ -28,10 +30,12 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
 
   const fig = figuresOf(spec)[0]
 
+  const t0cols = spec.tables[0].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
+  const t2cols = spec.tables[2].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
   return {
     tables: [
       {
-        spec: spec.tables[0],
+        spec: { ...spec.tables[0], columns: t0cols },
         rows: r.adjusted.map((a) => ({
           group: a.group,
           adjm: f(a.mean),
@@ -52,7 +56,7 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
         })),
       },
       {
-        spec: spec.tables[2],
+        spec: { ...spec.tables[2], columns: t2cols },
         rows: posthocTableRows(r.posthoc, { f, fp }),
       },
     ],

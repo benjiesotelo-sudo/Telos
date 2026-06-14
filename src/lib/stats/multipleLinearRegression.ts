@@ -7,6 +7,7 @@ export interface MultipleLinearResult {
   standardize: boolean // R1 display toggle — β is always computed; the builder masks
   r2: number; adjR2: number; f: number; df1: number; df2: number; p: number
   terms: MultipleLinearTerm[]
+  ciLevel: number
   n: number; nExcluded: number
   figResidualsPng: Uint8Array<ArrayBuffer>
   figCoefPlotPng: Uint8Array<ArrayBuffer>
@@ -109,7 +110,7 @@ df$term <- factor(df$term, levels = rev(df$term))  # drag/formula order → firs
 print(ggplot2::ggplot(df, ggplot2::aes(x = beta, y = term)) +
   ggplot2::geom_vline(xintercept = 0, colour = '#9cc2ec', linetype = 'dashed') +
   ggplot2::geom_pointrange(ggplot2::aes(xmin = lo, xmax = hi), colour = '#0c447c') +
-  ggplot2::labs(x = 'Standardized β (95% CI)', y = NULL))`
+  ggplot2::labs(x = paste0('Standardized β (', round(level * 100), '% CI)'), y = NULL))`
 
 interface RawStats { r2: number; adjR2: number; f: number; df1: number; df2: number; p: number; terms: MultipleLinearTerm[]; n: number }
 
@@ -146,5 +147,5 @@ export async function runMultipleLinearRegression(engine: Engine, data: Dataset,
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figResidualsPng = await engine.capturePlot(R_RESID, 800, 420, env)
   const figCoefPlotPng = await engine.capturePlot(R_COEFPLOT, 600, 450, env)
-  return { outcome, standardize, ...s, nExcluded, figResidualsPng, figCoefPlotPng }
+  return { outcome, standardize, ...s, ciLevel: level, nExcluded, figResidualsPng, figCoefPlotPng }
 }

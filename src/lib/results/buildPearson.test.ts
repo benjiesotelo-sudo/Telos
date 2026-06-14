@@ -5,7 +5,7 @@ import type { PearsonResult } from '../stats/pearson'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 const res: PearsonResult = { varA: 'hours_studied', varB: 'exam_score',
-  r: 0.61234, t: 4.7789, df: 38, p: 0.0000271, ciLow: 0.3712, ciHigh: 0.7741, n: 40, nExcluded: 0, figurePng: png }
+  r: 0.61234, t: 4.7789, df: 38, p: 0.0000271, ciLow: 0.3712, ciHigh: 0.7741, n: 40, ciLevel: 0.95, nExcluded: 0, figurePng: png }
 
 describe('buildPearson', () => {
   it('fills the correlation row per format conventions', () => {

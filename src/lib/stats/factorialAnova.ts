@@ -10,6 +10,7 @@ export interface FactorialAnovaResult {
   levene: { F: number | null; p: number | null }
   shapiro: { W: number | null; p: number | null }
   simpleEffects: (PosthocRow & { term: string })[]
+  ciLevel: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -34,12 +35,12 @@ sh <- tryCatch({ t <- shapiro.test(residuals(m$lm)); list(W = unname(t$statistic
   error = function(e) list(W = NULL, p = NULL))
 se_rows <- list()
 for (fn in fnames) {
-  e <- .telos_posthoc(emmeans::emmeans(m, as.formula(paste('~', fn))), 'tukey')
+  e <- .telos_posthoc(emmeans::emmeans(m, as.formula(paste('~', fn))), 'tukey', level)
   se_rows <- c(se_rows, lapply(e, function(r) { r$term <- fn; r }))
 }
 if (interactions && k >= 2) {
   emm2 <- emmeans::emmeans(m, as.formula(paste('~', fnames[1], '|', fnames[2])), level = level)
-  s2 <- summary(pairs(emm2, adjust = 'bonferroni'), infer = TRUE)
+  s2 <- summary(pairs(emm2, adjust = 'bonferroni'), infer = TRUE, level = level)
   by2 <- as.character(s2[[fnames[2]]])
   se_rows <- c(se_rows, lapply(seq_len(nrow(s2)), function(i) list(
     pair = paste0(as.character(s2$contrast[i]), ' | ', by2[i]), diff = s2$estimate[i], se = s2$SE[i],
@@ -82,5 +83,5 @@ export async function runFactorialAnova(engine: Engine, data: Dataset, outcome: 
   }
   const s = await engine.runJson<RawStats>(`${POSTHOC_EMM_R}\n${R_STATS}`, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { ...s, nExcluded, figurePng }
+  return { ...s, ciLevel: level, nExcluded, figurePng }
 }

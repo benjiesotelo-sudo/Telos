@@ -40,6 +40,6 @@ export async function runIndependentTTest(engine: Engine, data: Dataset, outcome
     groupStats: [s.groupStats[0], s.groupStats[1]],
     contrast: `${s.groupStats[0].group} − ${s.groupStats[1].group}`, test: s.test,
     t: s.t, df: s.df, p: s.p, meanDiff: s.meanDiff, ci: [s.ci[0], s.ci[1]], cohensD: s.cohensD,
-    levene: s.levene, nExcluded, figurePng,
+    levene: s.levene, ciLevel: level, nExcluded, figurePng,
   }
 }

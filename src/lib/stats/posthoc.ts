@@ -4,11 +4,11 @@
 
 export interface PosthocRow { pair: string; diff: number; se: number; pAdj: number; ciLo: number; ciHi: number }
 
-/** R helper: define once per stats block, call with an emmeans object + adjust method.
- * summary(pairs(...), infer=TRUE) yields estimate/SE/p.value/lower.CL/upper.CL under ONE adjustment. */
+/** R helper: define once per stats block, call with an emmeans object + adjust method + CI level.
+ * summary(pairs(...), infer=TRUE, level=level) yields estimate/SE/p.value/lower.CL/upper.CL under ONE adjustment. */
 export const POSTHOC_EMM_R = String.raw`
-.telos_posthoc <- function(emm, adjust) {
-  s <- summary(pairs(emm, adjust = adjust), infer = TRUE)
+.telos_posthoc <- function(emm, adjust, level = 0.95) {
+  s <- summary(pairs(emm, adjust = adjust), infer = TRUE, level = level)
   lapply(seq_len(nrow(s)), function(i) list(
     pair = as.character(s$contrast[i]), diff = s$estimate[i], se = s$SE[i],
     pAdj = s$p.value[i], ciLo = s$lower.CL[i], ciHi = s$upper.CL[i]))

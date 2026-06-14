@@ -23,6 +23,7 @@ const spikeResult: OneWayAnovaResult = {
     { pair: 'drug_a - drug_b', diff: -3.17, se: 2.33956998597995, pAdj: 0.371, ciLo: -8.80, ciHi: 2.46 },
   ],
   posthocMethod: 'Tukey HSD',
+  ciLevel: 0.95,
   nExcluded: 0,
   figurePng: png,
 }

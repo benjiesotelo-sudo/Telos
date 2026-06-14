@@ -24,6 +24,7 @@ const spikeResult: AncovaResult = {
   ],
   slopes: [{ term: 'baseline × group', p: 0.875021940147328 }],
   levene: { F: 0.512, p: 0.602 },
+  ciLevel: 0.95,
   nExcluded: 0,
   figurePng: png,
 }

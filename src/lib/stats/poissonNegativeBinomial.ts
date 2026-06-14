@@ -8,6 +8,7 @@ export interface PoissonNbResult {
   aic: number; deviance: number; dfResid: number
   dispersion: number // Poisson: check_overdispersion $dispersion_ratio (≡ hand Pearson χ²/df); NB: theta (convention 10)
   terms: PoissonNbTerm[]
+  ciLevel: number
   n: number; nExcluded: number
   figResidualsPng: Uint8Array<ArrayBuffer>
 }
@@ -91,5 +92,5 @@ export async function runPoissonNegativeBinomial(engine: Engine, data: Dataset, 
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figResidualsPng = await engine.capturePlot(R_FITRES, 600, 450, env)
-  return { outcome, model, ...s, nExcluded, figResidualsPng }
+  return { outcome, model, ...s, ciLevel: level, nExcluded, figResidualsPng }
 }

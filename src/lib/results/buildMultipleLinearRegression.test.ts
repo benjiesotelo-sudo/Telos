@@ -15,7 +15,7 @@ const res: MultipleLinearResult = { outcome: 'post_score', standardize: false,
     { term: 'method: online', b: -2.049172535, se: 2.021575603, beta: -0.216138004, t: -1.013651199, p: 0.317908726, ciLow: -6.157508455, ciHigh: 2.059163385, vif: 1.247536921 },
     { term: 'method: workshop', b: -3.247840455, se: 2.272989373, beta: -0.342568398, t: -1.428885016, p: 0.162160847, ciLow: -7.867110628, ciHigh: 1.371429717, vif: 1.247536921 },
   ],
-  n: 40, nExcluded: 0, figResidualsPng: png, figCoefPlotPng: png }
+  ciLevel: 0.95, n: 40, nExcluded: 0, figResidualsPng: png, figCoefPlotPng: png }
 
 describe('buildMultipleLinearRegression', () => {
   it('standardize OFF (the drawn default) → β cells em-dash; intercept β/VIF blank; VIF filled (GVIF convention)', () => {

@@ -95,7 +95,7 @@ export const RUNNERS: Record<string, Runner> = {
   'factorial-anova': (engine, ds, setup) =>
     runFactorialAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factors'], setup.options['interactions'] as boolean, ciLevel(setup.options['ci'])),
   'repeated-measures-anova': (engine, ds, setup) =>
-    runRepeatedMeasuresAnova(engine, ds, setup.roles['subject'][0], setup.roles['measures'], setup.options['sphericity'] as string, setup.options['posthoc'] as boolean),
+    runRepeatedMeasuresAnova(engine, ds, setup.roles['subject'][0], setup.roles['measures'], setup.options['sphericity'] as string, setup.options['posthoc'] as boolean, ciLevel(setup.options['ci'])),
   'mixed-anova': (engine, ds, setup) =>
     runMixedAnova(engine, ds, setup.roles['subject'][0], setup.roles['between'][0], setup.roles['measures'], setup.options['sphericity'] as string, setup.options['posthoc'] as boolean),
   'nested-anova': (engine, ds, setup) =>

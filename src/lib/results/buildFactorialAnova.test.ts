@@ -31,6 +31,7 @@ const fixtureResult: FactorialAnovaResult = {
     { term: 'group × gender', pair: 'control - drug_a | f', diff: -3.55, se: 3.18, pAdj: 0.806, ciLo: -11.40, ciHi: 4.30 },
     { term: 'group × gender', pair: 'control - drug_a | m', diff: 0.81, se: 3.18, pAdj: 1.0, ciLo: -7.04, ciHi: 8.66 },
   ],
+  ciLevel: 0.95,
   nExcluded: 0,
   figurePng: png,
 }

@@ -12,6 +12,7 @@ export interface LogisticResult {
   classCounts: number[][]          // rows = PREDICTED level (levels order), cols = observed (levels order)
   pctCorrect: (number | null)[]    // per-predicted-row 100·diag/rowsum; null when a row predicts nothing
   auc: number
+  ciLevel: number
   n: number; nExcluded: number
   figRocPng: Uint8Array<ArrayBuffer>
 }
@@ -113,5 +114,5 @@ export async function runLogisticRegression(engine: Engine, data: Dataset, outco
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figRocPng = await engine.capturePlot(R_ROC, 550, 550, env)
-  return { outcome, event, reportOR, ...s, nExcluded, figRocPng }
+  return { outcome, event, reportOR, ...s, ciLevel: level, nExcluded, figRocPng }
 }

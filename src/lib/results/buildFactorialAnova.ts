@@ -10,6 +10,8 @@ const seTableRows = (rows: (PosthocRow & { term: string })[], fmt: { f: (n: numb
   rows.map((r) => ({ contrast: r.pair, mdiff: fmt.f(r.diff), se: fmt.f(r.se), padj: fmt.fp(r.pAdj), ci: `[${fmt.f(r.ciLo)}, ${fmt.f(r.ciHi)}]` }))
 
 export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): CardContent {
+  const pct = Math.round(r.ciLevel * 100)
+  const ciLabel = `${pct}% CI`
   // Residual df: (totalN - 1) - sum of all effect dfs (balanced between-subjects factorial).
   const totalN = r.desc.reduce((s, c) => s + c.n, 0)
   const sumEffectDf = r.rows.reduce((s, row) => s + row.df, 0)
@@ -69,6 +71,7 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
     return { tables: [table1, table2], ...base }
   }
 
-  const table3 = { spec: spec.tables[2], rows: seTableRows(filteredSE, { f, fp }) }
+  const t3cols = spec.tables[2].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
+  const table3 = { spec: { ...spec.tables[2], columns: t3cols }, rows: seTableRows(filteredSE, { f, fp }) }
   return { tables: [table1, table2, table3], ...base }
 }

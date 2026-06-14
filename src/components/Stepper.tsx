@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useSession, stepsOf, canEnter, type StepId } from '../state/session'
 import { CATALOG } from '../lib/registry/catalog'
 
@@ -8,15 +9,18 @@ const label = (st: StepId): string =>
 
 export function Stepper() {
   const s = useSession()
-  if (s.step === 'welcome') return null
+  const curRef = useRef<HTMLButtonElement>(null)
   const steps = stepsOf(s).filter((st) => st !== 'welcome')
-  const cur = steps.indexOf(s.step)
+  const cur = s.step === 'welcome' ? -1 : steps.indexOf(s.step)
+  // Keep the active node visible when the strip overflows (8+ steps) — horizontal scroll only.
+  useEffect(() => { curRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' }) }, [cur, s.step])
+  if (s.step === 'welcome') return null
   return (
     <nav className="stepper" aria-label="Progress">
       {steps.map((st, i) => (
         <span key={st} style={{ display: 'contents' }}>
           {i > 0 && <span className={`connector${i <= cur ? ' done' : ''}`} />}
-          <button type="button" className={`step${i < cur ? ' done' : ''}${i === cur ? ' current' : ''}`}
+          <button type="button" ref={i === cur ? curRef : undefined} className={`step${i < cur ? ' done' : ''}${i === cur ? ' current' : ''}`}
             disabled={!canEnter(s, st) || s.runStatus === 'running'} // locked steps are real disabled buttons (no silent dead clicks, skipped by Tab); ALL nav locks while an analysis runs (design rule)
             onClick={() => s.goTo(st)}
             aria-current={i === cur ? 'step' : undefined}>

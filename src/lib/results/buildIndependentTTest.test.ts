@@ -10,7 +10,7 @@ const r: TTestResult = {
   ],
   contrast: 'control − treatment', test: 'welch',
   t: -5.98340, df: 9.67829, p: 0.00015, meanDiff: -12, ci: [-16.48886, -7.51114], cohensD: -3.45437,
-  levene: { F: null, p: null }, nExcluded: 0, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
+  levene: { F: null, p: null }, ciLevel: 0.95, nExcluded: 0, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
 }
 
 describe('buildIndependentTTest', () => {

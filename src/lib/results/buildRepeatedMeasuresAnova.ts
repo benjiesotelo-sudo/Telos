@@ -13,6 +13,8 @@ const CORRECTION_LABEL: Record<string, string> = {
 }
 
 export function buildRepeatedMeasuresAnova(spec: TestSpec, r: RepeatedMeasuresAnovaResult): CardContent {
+  const pct = Math.round(r.ciLevel * 100)
+  const ciLabel = `${pct}% CI`
   const correctionLabel = CORRECTION_LABEL[r.sphericityChoice] ?? 'GG-corrected'
   const apa = spec.apaTemplate
     .replace('{correction}', correctionLabel)
@@ -35,8 +37,9 @@ export function buildRepeatedMeasuresAnova(spec: TestSpec, r: RepeatedMeasuresAn
     : null
 
   // Table 4 (posthoc): only when posthoc rows are non-empty (toggle was on).
+  const t4cols = spec.tables[3].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
   const posthocTable = r.posthoc.length > 0
-    ? { spec: spec.tables[3], rows: posthocTableRows(r.posthoc, { f, fp }) }
+    ? { spec: { ...spec.tables[3], columns: t4cols }, rows: posthocTableRows(r.posthoc, { f, fp }) }
     : null
 
   const tables = [

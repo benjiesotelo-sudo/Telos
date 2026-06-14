@@ -7,8 +7,9 @@ export interface PairedTTestResult {
   pair: string                          // 'A − B' (U+2212); diffs = A − B per the card's subtraction order
   t: number; df: number; p: number
   meanDiff: number                      // mean(A − B) = t.test estimate
-  ci: [number, number]                  // 95% CI of the mean difference
+  ci: [number, number]                  // CI of the mean difference at the requested level
   dz: number                            // effectsize::cohens_d(paired=TRUE)
+  ciLevel: number
   nExcluded: number                     // incomplete pairs dropped listwise
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -49,6 +50,6 @@ export async function runPairedTTest(engine: Engine, data: Dataset, conditionA: 
     ],
     pair: `${conditionA} − ${conditionB}`,
     t: s.t, df: s.df, p: s.p, meanDiff: s.meanDiff, ci: [s.ci[0], s.ci[1]], dz: s.dz,
-    nExcluded, figurePng,
+    ciLevel: level, nExcluded, figurePng,
   }
 }

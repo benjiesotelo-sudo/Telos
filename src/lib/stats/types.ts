@@ -6,6 +6,7 @@ export interface TTestResult {
   test: 'pooled' | 'welch'
   t: number; df: number; p: number; meanDiff: number; ci: [number, number]; cohensD: number
   levene: { F: number | null; p: number | null } // null when degenerate (n < 3 per group) — rendered as em-dash
+  ciLevel: number
   nExcluded: number                              // rows dropped listwise (missing/non-numeric role value)
   figurePng: Uint8Array<ArrayBuffer>
 }

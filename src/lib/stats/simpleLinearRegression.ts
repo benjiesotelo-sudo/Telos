@@ -6,6 +6,7 @@ export interface SimpleLinearResult {
   outcome: string; predictor: string
   r2: number; adjR2: number; f: number; df1: number; df2: number; p: number; sigma: number // sigma = summary(m)$sigma — the Table 1 SE (convention 3)
   terms: SimpleLinearTerm[]
+  ciLevel: number
   n: number; nExcluded: number
   figFitPng: Uint8Array<ArrayBuffer>
   figResidualsPng: Uint8Array<ArrayBuffer>
@@ -103,5 +104,5 @@ export async function runSimpleLinearRegression(engine: Engine, data: Dataset, o
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figFitPng = await engine.capturePlot(R_FIT, 600, 450, env)
   const figResidualsPng = await engine.capturePlot(R_RESID, 800, 420, env)
-  return { outcome, predictor, ...s, nExcluded, figFitPng, figResidualsPng }
+  return { outcome, predictor, ...s, ciLevel: level, nExcluded, figFitPng, figResidualsPng }
 }
