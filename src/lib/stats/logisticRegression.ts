@@ -28,6 +28,7 @@ d <- data.frame(y = factor(yv, levels = c(oth, event)))
 for (i in seq_along(numnames)) d[[numnames[i]]] <- nums_flat[((i - 1) * n + 1):(i * n)]
 for (i in seq_along(catnames)) d[[catnames[i]]] <- factor(cats_flat[((i - 1) * n + 1):(i * n)])
 m <- glm(as.formula(paste('y ~', paste(prednames, collapse = ' + '))), family = binomial, data = d)
+if (!isTRUE(m$converged) || any(!is.finite(coef(m))) || max(abs(coef(m))) > 30) stop('The logistic regression did not fit reliably — usually (quasi-)complete separation, where a predictor (or combination) splits the outcome almost perfectly so the coefficients diverge. Try removing a predictor or using more data.')
 s <- summary(m)
 cf <- s$coefficients
 ci <- suppressMessages(confint(m, level = level))
