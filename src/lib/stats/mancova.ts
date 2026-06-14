@@ -13,6 +13,8 @@ export interface MancovaResult {
   multivariate: MultivarRow[]
   followups: UnivariateFollowupRow[]
   slopes: { term: string; p: number }[]   // cov × factor interaction rows (per-covariate slope check)
+  statistic: string
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -106,7 +108,7 @@ interface RawStats {
 export async function runMancova(
   engine: Engine, data: Dataset,
   outcomes: string[], factors: string[], covariates: string[],
-  statisticChoice: string,
+  statisticChoice: string, alpha = 0.05,
 ): Promise<MancovaResult> {
   // Listwise: all DVs numeric + all covariates numeric + all factors non-blank
   const rows = data.rows.filter((r) => {
@@ -134,5 +136,5 @@ export async function runMancova(
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { ...s, nExcluded, figurePng }
+  return { ...s, statistic, alpha, nExcluded, figurePng }
 }

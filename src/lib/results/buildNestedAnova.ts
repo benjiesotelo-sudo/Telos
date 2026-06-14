@@ -47,7 +47,7 @@ export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardCont
     tables: [{ spec: spec.tables[0], rows: tableRows }],
     note: { kind: 'plain', text: noteText },
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

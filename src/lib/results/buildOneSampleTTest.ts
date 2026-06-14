@@ -19,7 +19,7 @@ export function buildOneSampleTTest(spec: TestSpec, r: OneSampleTTestResult): Ca
     ],
     note: { kind: 'assume', text: `${spec.tableNote!.text} (Shapiro-Wilk W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})` },
     figures: [{ caption: spec.figures![0].caption, type: spec.figures![0].type, png: r.figurePng }],
-    howToRead: spec.howToRead.replace('95% CI', ciLabel),
+    howToRead: spec.howToRead.replace('95% CI', ciLabel) + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

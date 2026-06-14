@@ -14,6 +14,7 @@ const spikeResult: NestedAnovaResult = {
   factor: 'school', nested: 'classroom',
   nesting: 'random',
   crossed: [],
+  alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
 }
@@ -64,7 +65,7 @@ describe('buildNestedAnova', () => {
   })
 
   it('howToRead and nExcluded forwarded', () => {
-    expect(c.howToRead).toBe(spec.howToRead)
+    expect(c.howToRead).toBe(spec.howToRead + ' Your significance threshold (α) is 0.05.')
     expect(c.nExcluded).toBe(0)
   })
 })

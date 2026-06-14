@@ -37,7 +37,7 @@ export function buildMultipleLinearRegression(spec: TestSpec, r: MultipleLinearR
       { caption: figResiduals.caption, type: figResiduals.type, file: figResiduals.file, png: r.figResidualsPng },
       { caption: figCoef.caption, type: figCoef.type, file: figCoef.file, png: r.figCoefPlotPng },
     ],
-    howToRead: spec.howToRead,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

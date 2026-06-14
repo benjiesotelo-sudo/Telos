@@ -8,7 +8,7 @@ const res: ChiSquareIndependenceResult = { rowVar: 'passed', colVar: 'gender',
   rowCats: ['no', 'yes'], colCats: ['female', 'male'],
   counts: [[8, 10, 18], [12, 10, 22], [20, 20, 40]],
   expected: [[9, 9], [11, 11]], rowPct: [[44.444, 55.556], [54.545, 45.455]], colPct: [[40, 50], [60, 50]],
-  chisq: 0.2020, df: 1, p: 0.6531, v: 0.1005, minExpected: 9, n: 40, nExcluded: 0, figurePng: png }
+  chisq: 0.2020, df: 1, p: 0.6531, v: 0.1005, minExpected: 9, n: 40, alpha: 0.05, nExcluded: 0, figurePng: png }
 
 describe('buildChiSquareIndependence', () => {
   it('contingency expands columns; cell = obs [exp] (row% / col%); margins plain', () => {

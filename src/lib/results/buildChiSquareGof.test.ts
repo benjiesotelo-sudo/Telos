@@ -10,7 +10,7 @@ const res: ChiSquareGofResult = { variable: 'method',
     { category: 'lecture', observed: 14, expected: 12, stdRes: 0.683 },
     { category: 'seminar', observed: 8, expected: 8, stdRes: 0 },
   ],
-  chisq: 0.5333, df: 2, p: 0.7659, w: 0.1155, n: 40, nExcluded: 0, figurePng: png }
+  chisq: 0.5333, df: 2, p: 0.7659, w: 0.1155, n: 40, alpha: 0.05, nExcluded: 0, figurePng: png }
 
 describe('buildChiSquareGof', () => {
   it('Table 1 rows (expected 2 dp, stdres 2 dp with U+2212 minus) + Table 2', () => {

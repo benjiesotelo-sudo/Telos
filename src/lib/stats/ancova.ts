@@ -15,6 +15,7 @@ export interface AncovaResult {
   slopes: SlopeCheck[]
   levene: { F: number | null; p: number | null }
   ciLevel: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -82,7 +83,7 @@ interface RawResult {
 
 export async function runAncova(
   engine: Engine, data: Dataset,
-  outcome: string, factors: string[], covariates: string[], level = 0.95,
+  outcome: string, factors: string[], covariates: string[], level = 0.95, alpha = 0.05,
 ): Promise<AncovaResult> {
   // Listwise: numeric-finite for outcome + all covariates; non-blank for all factors
   const rows = data.rows.filter((r) => {
@@ -111,5 +112,5 @@ export async function runAncova(
   const s = await engine.runJson<RawResult>(`${POSTHOC_EMM_R}\n${ADJMEANS_R}\n${R_STATS}`, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
 
-  return { ...s, ciLevel: level, nExcluded, figurePng }
+  return { ...s, ciLevel: level, alpha, nExcluded, figurePng }
 }

@@ -22,7 +22,7 @@ export function buildPearson(spec: TestSpec, r: PearsonResult): CardContent {
     }] }],
     note: null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead.replace('95% CI', ciLabel),
+    howToRead: spec.howToRead.replace('95% CI', ciLabel) + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

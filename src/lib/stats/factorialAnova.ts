@@ -11,6 +11,7 @@ export interface FactorialAnovaResult {
   shapiro: { W: number | null; p: number | null }
   simpleEffects: (PosthocRow & { term: string })[]
   ciLevel: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -65,7 +66,7 @@ interface RawStats {
 }
 
 export async function runFactorialAnova(engine: Engine, data: Dataset, outcome: string, factors: string[],
-  interactions: boolean, level = 0.95): Promise<FactorialAnovaResult> {
+  interactions: boolean, level = 0.95, alpha = 0.05): Promise<FactorialAnovaResult> {
   const rows = data.rows.filter((r) =>
     typeof r[outcome] === 'number' && Number.isFinite(r[outcome] as number) &&
     factors.every((f) => r[f] != null && String(r[f]).trim() !== ''))
@@ -83,5 +84,5 @@ export async function runFactorialAnova(engine: Engine, data: Dataset, outcome: 
   }
   const s = await engine.runJson<RawStats>(`${POSTHOC_EMM_R}\n${R_STATS}`, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { ...s, ciLevel: level, nExcluded, figurePng }
+  return { ...s, ciLevel: level, alpha, nExcluded, figurePng }
 }

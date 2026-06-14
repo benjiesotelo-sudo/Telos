@@ -36,7 +36,7 @@ export function buildChiSquareIndependence(spec: TestSpec, r: ChiSquareIndepende
     ],
     note: spec.tableNote ? { ...spec.tableNote, text: spec.tableNote.text + warn } : null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

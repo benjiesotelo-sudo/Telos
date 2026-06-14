@@ -6,6 +6,7 @@ export interface ChiSquareGofResult {
   variable: string
   rows: GofRow[]
   chisq: number; df: number; p: number; w: number; n: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -39,7 +40,7 @@ print(ggplot2::ggplot(d, ggplot2::aes(category, count, fill = kind)) +
 interface RawStats { categories: string[]; observed: number[]; expected: number[]; stdres: number[]; chisq: number; df: number; p: number; w: number; n: number }
 
 /** props: alphabetical-category-order proportions (custom mode) or null (equal split). */
-export async function runChiSquareGof(engine: Engine, data: Dataset, variable: string, props: number[] | null): Promise<ChiSquareGofResult> {
+export async function runChiSquareGof(engine: Engine, data: Dataset, variable: string, props: number[] | null, alpha = 0.05): Promise<ChiSquareGofResult> {
   // Per-test listwise: non-empty value (categorical — numbers allowed, stringified like the column meta does).
   const vals = data.rows.map((r) => r[variable]).filter((v) => v !== null && v !== undefined && String(v).trim() !== '').map(String)
   const nExcluded = data.rows.length - vals.length
@@ -48,5 +49,5 @@ export async function runChiSquareGof(engine: Engine, data: Dataset, variable: s
   const figurePng = await engine.capturePlot(R_BAR, 600, 450, env)
   return { variable,
     rows: s.categories.map((c, i) => ({ category: c, observed: s.observed[i], expected: s.expected[i], stdRes: s.stdres[i] })),
-    chisq: s.chisq, df: s.df, p: s.p, w: s.w, n: s.n, nExcluded, figurePng }
+    chisq: s.chisq, df: s.df, p: s.p, w: s.w, n: s.n, alpha, nExcluded, figurePng }
 }

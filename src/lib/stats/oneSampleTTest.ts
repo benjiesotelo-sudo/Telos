@@ -11,6 +11,7 @@ export interface OneSampleTTestResult {
   cohensD: number
   shapiro: { W: number | null; p: number | null } // null outside Shapiro's 3–5000 range — rendered as em-dash
   ciLevel: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -45,7 +46,7 @@ interface RawStats {
   shapiro: { W: number | null; p: number | null }
 }
 
-export async function runOneSampleTTest(engine: Engine, data: Dataset, outcome: string, mu0: number, level = 0.95): Promise<OneSampleTTestResult> {
+export async function runOneSampleTTest(engine: Engine, data: Dataset, outcome: string, mu0: number, level = 0.95, alpha = 0.05): Promise<OneSampleTTestResult> {
   // Per-test single-column drop (design §2, global R2 policy): keep rows whose outcome value is a finite number.
   const values = data.rows.map((r) => r[outcome]).filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
   const nExcluded = data.rows.length - values.length
@@ -55,6 +56,6 @@ export async function runOneSampleTTest(engine: Engine, data: Dataset, outcome: 
   return {
     variable: outcome, n: s.n, mean: s.mean, sd: s.sd, se: s.se, mu0,
     t: s.t, df: s.df, p: s.p, meanDiff: s.meanDiff, ci: [s.ci[0], s.ci[1]], cohensD: s.cohensD,
-    shapiro: s.shapiro, ciLevel: level, nExcluded, figurePng,
+    shapiro: s.shapiro, ciLevel: level, alpha, nExcluded, figurePng,
   }
 }

@@ -7,6 +7,7 @@ const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
 // Spike numbers from known answers (fixture score_t1/t2/t3)
 const result: FriedmanResult = {
+  alpha: 0.05,
   ranks: [
     { condition: 'score_t1', meanRank: 1.08333333333333 },
     { condition: 'score_t2', meanRank: 1.93333333333333 },

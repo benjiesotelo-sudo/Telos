@@ -15,6 +15,8 @@ export interface FollowupRow {
 export interface ManovaResult {
   multivariate: MultivarRow[]
   followups: FollowupRow[]
+  statistic: string
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -63,7 +65,7 @@ interface RawResult { multivariate: MultivarRow[]; followups: FollowupRow[] }
 export async function runManova(
   engine: Engine, data: Dataset,
   outcomes: string[], factors: string[],
-  statistic: string, followups: boolean,
+  statistic: string, followups: boolean, alpha = 0.05,
 ): Promise<ManovaResult> {
   // Listwise: all DVs numeric-finite + all factors non-blank.
   const rows = data.rows.filter((r) =>
@@ -82,5 +84,5 @@ export async function runManova(
   }
   const s = await engine.runJson<RawResult>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { multivariate: s.multivariate, followups: s.followups, nExcluded, figurePng }
+  return { multivariate: s.multivariate, followups: s.followups, statistic, alpha, nExcluded, figurePng }
 }

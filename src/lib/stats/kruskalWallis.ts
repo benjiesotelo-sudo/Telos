@@ -7,6 +7,7 @@ export interface KruskalWallisResult {
   ranks: RankSummaryRow[]
   h: number; df: number; p: number; eps2: number
   posthoc: DunnRow[]
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -31,7 +32,7 @@ print(ggplot2::ggplot(data.frame(group = factor(g), score = y), ggplot2::aes(gro
 
 interface RawStats { ranks: RankSummaryRow[]; h: number; df: number; p: number; eps2: number; posthoc: DunnRow[] }
 
-export async function runKruskalWallis(engine: Engine, data: Dataset, outcome: string, group: string): Promise<KruskalWallisResult> {
+export async function runKruskalWallis(engine: Engine, data: Dataset, outcome: string, group: string, alpha = 0.05): Promise<KruskalWallisResult> {
   // Per-test listwise: drop rows missing/non-numeric in either role column.
   const rows = data.rows.filter((r) =>
     typeof r[outcome] === 'number' && Number.isFinite(r[outcome] as number) && r[group] != null && String(r[group]).trim() !== '')
@@ -39,5 +40,5 @@ export async function runKruskalWallis(engine: Engine, data: Dataset, outcome: s
   const env = { y: rows.map((r) => r[outcome] as number), g: rows.map((r) => String(r[group])) }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_BOXPLOT, 600, 450, env)
-  return { ...s, nExcluded, figurePng }
+  return { ...s, alpha, nExcluded, figurePng }
 }

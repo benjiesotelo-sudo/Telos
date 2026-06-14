@@ -7,7 +7,7 @@ const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 const base: FishersExactResult = { rowVar: 'passed', colVar: 'gender',
   rowCats: ['no', 'yes'], colCats: ['female', 'male'],
   counts: [[8, 10, 18], [12, 10, 22], [20, 20, 40]],
-  p: 0.7508, is2x2: true, or: 0.6712, ciLow: 0.1612, ciHigh: 2.7344, n: 40, nExcluded: 0, figurePng: png }
+  p: 0.7508, is2x2: true, or: 0.6712, ciLow: 0.1612, ciHigh: 2.7344, n: 40, alpha: 0.05, nExcluded: 0, figurePng: png }
 
 describe('buildFishersExact', () => {
   it('2×2 → OR + CI cells and the APA add-on before the period', () => {

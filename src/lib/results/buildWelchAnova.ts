@@ -22,7 +22,7 @@ export function buildWelchAnova(spec: TestSpec, r: WelchAnovaResult): CardConten
     ],
     note: spec.tableNote ?? null, // card plain text verbatim — NO computed append for Welch's
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

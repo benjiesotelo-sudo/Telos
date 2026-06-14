@@ -75,58 +75,60 @@ export interface CardContent {
 }
 export type Runner = (engine: Engine, ds: Dataset, setup: TestSetup) => Promise<unknown>
 
+const alphaOf = (setup: TestSetup) => Number(setup.options['alpha'] ?? 0.05)
+
 export const RUNNERS: Record<string, Runner> = {
   'independent-t-test': (engine, ds, setup) =>
-    runIndependentTTest(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['equalVariance'] as boolean, ciLevel(setup.options['ci'])),
+    runIndependentTTest(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['equalVariance'] as boolean, ciLevel(setup.options['ci']), alphaOf(setup)),
   'one-sample-t-test': (engine, ds, setup) =>
-    runOneSampleTTest(engine, ds, setup.roles['outcome'][0], setup.options['mu0'] as number, ciLevel(setup.options['ci'])),
+    runOneSampleTTest(engine, ds, setup.roles['outcome'][0], setup.options['mu0'] as number, ciLevel(setup.options['ci']), alphaOf(setup)),
   'paired-t-test': (engine, ds, setup) =>
-    runPairedTTest(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0], ciLevel(setup.options['ci'])),
+    runPairedTTest(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0], ciLevel(setup.options['ci']), alphaOf(setup)),
   'mann-whitney-u': (engine, ds, setup) =>
-    runMannWhitneyU(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['continuity'] as boolean),
+    runMannWhitneyU(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['continuity'] as boolean, false, alphaOf(setup)),
   'wilcoxon-signed-rank': (engine, ds, setup) =>
-    runWilcoxonSignedRank(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0], setup.options['continuity'] as boolean),
+    runWilcoxonSignedRank(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0], setup.options['continuity'] as boolean, false, alphaOf(setup)),
   'distribution-normality': (engine, ds, setup) => runDistributionNormality(engine, ds, setup.roles['variable']),
   'summary-statistics': (engine, ds, setup) =>
     runSummaryStatistics(engine, ds, setup.roles['variables'], setup.roles['groupBy'][0]),
   'frequencies-crosstabs': (engine, ds, setup) => runFrequenciesCrosstabs(engine, ds, setup.roles['variables']),
   'one-way-anova': (engine, ds, setup) =>
-    runOneWayAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'][0], setup.options['posthoc'] as string, ciLevel(setup.options['ci'])),
+    runOneWayAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'][0], setup.options['posthoc'] as string, ciLevel(setup.options['ci']), alphaOf(setup)),
   'factorial-anova': (engine, ds, setup) =>
-    runFactorialAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factors'], setup.options['interactions'] as boolean, ciLevel(setup.options['ci'])),
+    runFactorialAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factors'], setup.options['interactions'] as boolean, ciLevel(setup.options['ci']), alphaOf(setup)),
   'repeated-measures-anova': (engine, ds, setup) =>
-    runRepeatedMeasuresAnova(engine, ds, setup.roles['subject'][0], setup.roles['measures'], setup.options['sphericity'] as string, setup.options['posthoc'] as boolean, ciLevel(setup.options['ci'])),
+    runRepeatedMeasuresAnova(engine, ds, setup.roles['subject'][0], setup.roles['measures'], setup.options['sphericity'] as string, setup.options['posthoc'] as boolean, ciLevel(setup.options['ci']), alphaOf(setup)),
   'mixed-anova': (engine, ds, setup) =>
-    runMixedAnova(engine, ds, setup.roles['subject'][0], setup.roles['between'][0], setup.roles['measures'], setup.options['sphericity'] as string, setup.options['posthoc'] as boolean),
+    runMixedAnova(engine, ds, setup.roles['subject'][0], setup.roles['between'][0], setup.roles['measures'], setup.options['sphericity'] as string, setup.options['posthoc'] as boolean, alphaOf(setup)),
   'nested-anova': (engine, ds, setup) =>
-    runNestedAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'][0], setup.roles['nested'][0], (setup.options['nesting'] as string) === 'random'),
-  'welch-anova': (engine, ds, setup) => runWelchAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'][0]),
-  'ancova': (engine, ds, setup) => runAncova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'], setup.roles['covariates'], ciLevel(setup.options['ci'])),
+    runNestedAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'][0], setup.roles['nested'][0], (setup.options['nesting'] as string) === 'random', alphaOf(setup)),
+  'welch-anova': (engine, ds, setup) => runWelchAnova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'][0], alphaOf(setup)),
+  'ancova': (engine, ds, setup) => runAncova(engine, ds, setup.roles['outcome'][0], setup.roles['factor'], setup.roles['covariates'], ciLevel(setup.options['ci']), alphaOf(setup)),
   'manova': (engine, ds, setup) =>
-    runManova(engine, ds, setup.roles['outcomes'], setup.roles['factors'], setup.options['statistic'] as string, setup.options['followups'] as boolean),
+    runManova(engine, ds, setup.roles['outcomes'], setup.roles['factors'], setup.options['statistic'] as string, setup.options['followups'] as boolean, alphaOf(setup)),
   'mancova': (engine, ds, setup) =>
-    runMancova(engine, ds, setup.roles['outcomes'], setup.roles['factors'], setup.roles['covariates'], setup.options['statistic'] as string),
-  'kruskal-wallis': (engine, ds, setup) => runKruskalWallis(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0]),
-  'friedman': (engine, ds, setup) => runFriedman(engine, ds, setup.roles['subject'][0], setup.roles['measures']),
-  'pearson': (engine, ds, setup) => runPearson(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], ciLevel(setup.options['ci'])),
-  'spearman': (engine, ds, setup) => runSpearman(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0]),
-  'kendalls-tau': (engine, ds, setup) => runKendallsTau(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0]),
+    runMancova(engine, ds, setup.roles['outcomes'], setup.roles['factors'], setup.roles['covariates'], setup.options['statistic'] as string, alphaOf(setup)),
+  'kruskal-wallis': (engine, ds, setup) => runKruskalWallis(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], alphaOf(setup)),
+  'friedman': (engine, ds, setup) => runFriedman(engine, ds, setup.roles['subject'][0], setup.roles['measures'], alphaOf(setup)),
+  'pearson': (engine, ds, setup) => runPearson(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], ciLevel(setup.options['ci']), alphaOf(setup)),
+  'spearman': (engine, ds, setup) => runSpearman(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], alphaOf(setup)),
+  'kendalls-tau': (engine, ds, setup) => runKendallsTau(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], alphaOf(setup)),
   'chi-square-goodness-of-fit': (engine, ds, setup) => {
     const v = setup.roles['variable'][0]
     const custom = setup.options['expectedProps'] === 'custom'
-    return runChiSquareGof(engine, ds, v, custom ? propsArray(categoriesOf(ds, v), setup.props) : null)
+    return runChiSquareGof(engine, ds, v, custom ? propsArray(categoriesOf(ds, v), setup.props) : null, alphaOf(setup))
   },
   'chi-square-independence': (engine, ds, setup) =>
-    runChiSquareIndependence(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0], setup.options['continuity'] as boolean),
-  'fishers-exact': (engine, ds, setup) => runFishersExact(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0]),
+    runChiSquareIndependence(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0], setup.options['continuity'] as boolean, alphaOf(setup)),
+  'fishers-exact': (engine, ds, setup) => runFishersExact(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0], alphaOf(setup)),
   'simple-linear-regression': (engine, ds, setup) =>
-    runSimpleLinearRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictor'][0], ciLevel(setup.options['ci'])),
+    runSimpleLinearRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictor'][0], ciLevel(setup.options['ci']), alphaOf(setup)),
   'multiple-linear-regression': (engine, ds, setup) =>
-    runMultipleLinearRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], setup.options['standardize'] as boolean, ciLevel(setup.options['ci'])),
+    runMultipleLinearRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], setup.options['standardize'] as boolean, ciLevel(setup.options['ci']), alphaOf(setup)),
   'logistic-regression': (engine, ds, setup) =>
-    runLogisticRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], String(setup.options['event']), setup.options['reportOR'] as boolean, ciLevel(setup.options['ci'])),
+    runLogisticRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], String(setup.options['event']), setup.options['reportOR'] as boolean, ciLevel(setup.options['ci']), alphaOf(setup)),
   'poisson-negative-binomial': (engine, ds, setup) =>
-    runPoissonNegativeBinomial(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], setup.roles['exposure'][0] ?? null, setup.options['model'] as 'Poisson' | 'negative binomial', ciLevel(setup.options['ci'])),
+    runPoissonNegativeBinomial(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], setup.roles['exposure'][0] ?? null, setup.options['model'] as 'Poisson' | 'negative binomial', ciLevel(setup.options['ci']), alphaOf(setup)),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),

@@ -4,6 +4,7 @@ import type { Dataset } from './types'
 export interface SpearmanResult {
   varA: string; varB: string
   rho: number; s: number; p: number; n: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -23,7 +24,7 @@ print(ggplot2::ggplot(data.frame(x = x, y = y), ggplot2::aes(x, y)) +
 
 interface RawStats { rho: number; s: number; p: number; n: number }
 
-export async function runSpearman(engine: Engine, data: Dataset, varA: string, varB: string): Promise<SpearmanResult> {
+export async function runSpearman(engine: Engine, data: Dataset, varA: string, varB: string, alpha = 0.05): Promise<SpearmanResult> {
   const rows = data.rows.filter((r) =>
     typeof r[varA] === 'number' && Number.isFinite(r[varA] as number)
     && typeof r[varB] === 'number' && Number.isFinite(r[varB] as number))
@@ -31,5 +32,5 @@ export async function runSpearman(engine: Engine, data: Dataset, varA: string, v
   const env = { x: rows.map((r) => r[varA] as number), y: rows.map((r) => r[varB] as number), xlab: varA, ylab: varB }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_SCATTER, 600, 450, env)
-  return { varA, varB, ...s, nExcluded, figurePng }
+  return { varA, varB, ...s, alpha, nExcluded, figurePng }
 }

@@ -20,7 +20,7 @@ export function buildPairedTTest(spec: TestSpec, r: PairedTTestResult): CardCont
     ],
     note: spec.tableNote ?? null, // the card's static text — no computed values (the card draws no blanks)
     figures: figuresOf(spec).map((fg) => ({ caption: fg.caption, type: fg.type, png: r.figurePng })),
-    howToRead: spec.howToRead,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

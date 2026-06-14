@@ -3,7 +3,7 @@ export const FEEDBACK_URL = 'https://docs.google.com/forms/REPLACE_WITH_YOUR_FOR
 
 export const WELCOME_COPY =
   'Telos runs your statistics in the browser — built for thesis students. Upload your data, get guided to the right tests, ' +
-  'and read APA-7 results with plain-language explainers. Export your tables and figures as images (PDF and R-script export are coming soon). ' +
+  'and read APA-7 results with plain-language explainers. Export everything — tables, figures, a full APA PDF report, and a reproducible R script that re-runs your entire analysis. ' +
   'Your data never leaves your browser. Built by Benjamin Sotelo — linkedin.com/in/benjaminsotelo1.'
 
 // Rendered with <b> on the b-segments, exactly as the spec draws emphasis.

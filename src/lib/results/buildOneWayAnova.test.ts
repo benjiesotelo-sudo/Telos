@@ -24,6 +24,7 @@ const spikeResult: OneWayAnovaResult = {
   ],
   posthocMethod: 'Tukey HSD',
   ciLevel: 0.95,
+  alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
 }

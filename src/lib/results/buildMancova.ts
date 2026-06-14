@@ -5,18 +5,17 @@ import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildMancova(spec: TestSpec, r: MancovaResult): CardContent {
-  // APA always from the first FACTOR row's Pillai fields (recorded decision 1).
-  // "First factor row" = the first row in multivariate whose effect matches a factor name
-  // (after covariate rows). In our sequential manova formula the factor row comes last.
-  // Find the first non-covariate row (heuristic: last row is the factor in the single-factor case).
-  // More robustly: the last row of multivariate is the factor (formula: covs + factors).
+  // APA from the SELECTED statistic's fields of the first FACTOR row (owner ruling: option b).
+  // The last row of multivariate is the factor (formula: covs + factors).
   const factorRow = r.multivariate[r.multivariate.length - 1]
+  const statLabel = r.statistic === 'Wilks' ? "Wilks' Λ" : "Pillai's V"
   const apa = spec.apaTemplate
-    .replace('{v}', f01(factorRow.pillai))
-    .replace('{df1}', fdf(factorRow.pillaiDf1))
-    .replace('{df2}', fdf(factorRow.pillaiDf2))
-    .replace('{f}', f(factorRow.pillaiF))
-    .replace('{p}', fpApa(factorRow.pillaiP))
+    .replace("Pillai's V", statLabel)
+    .replace('{v}', f01(factorRow.stat))
+    .replace('{df1}', fdf(factorRow.df1))
+    .replace('{df2}', fdf(factorRow.df2))
+    .replace('{f}', f(factorRow.f))
+    .replace('{p}', fpApa(factorRow.p))
   // Note: card's assume text + per-covariate slopes appended
   const slopesClause = r.slopes.map((s) => `slopes p(${s.term})=${fp(s.p)}`).join(' · ')
   const noteText = `${spec.tableNote!.text}${slopesClause ? ` (${slopesClause})` : ''}`
@@ -32,7 +31,7 @@ export function buildMancova(spec: TestSpec, r: MancovaResult): CardContent {
     ],
     note: { kind: 'assume', text: noteText },
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

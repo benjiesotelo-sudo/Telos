@@ -16,11 +16,13 @@ const pillaiResult: ManovaResult = {
     { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843 },
     { dv: 'outcome2', f: 7.71055236740481, df1: 2, df2: 57, p: 0.00108711814052799, pes: 0.213 },
   ],
+  statistic: 'Pillai',
+  alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
 }
 
-// Wilks run: stat differs; Pillai fields still carry Pillai numbers (recorded decision 1)
+// Wilks run: stat and selected values differ from Pillai
 const wilksResult: ManovaResult = {
   multivariate: [{
     effect: 'group',
@@ -31,11 +33,13 @@ const wilksResult: ManovaResult = {
     { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843 },
     { dv: 'outcome2', f: 7.71055236740481, df1: 2, df2: 57, p: 0.00108711814052799, pes: 0.213 },
   ],
+  statistic: 'Wilks',
+  alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
 }
 
-// No follow-ups result
+// No follow-ups result (Pillai selected)
 const noFollowupsResult: ManovaResult = {
   ...pillaiResult,
   followups: [],
@@ -79,7 +83,7 @@ describe('buildManova', () => {
       expect(c.figures).toEqual([{ caption: 'Group means per outcome', type: 'means plot faceted by DV', file: 'means', png }])
     })
 
-    it('APA always from Pillai fields: Pillai run', () => {
+    it('APA from selected stat fields: Pillai run gives Pillai label', () => {
       expect(c.apa).toBe("A MANOVA gave Pillai's V=.29, F(4,114)=4.74, p = .001.")
     })
 
@@ -88,11 +92,11 @@ describe('buildManova', () => {
     })
   })
 
-  describe('Wilks-selected run APAs Pillai (recorded decision 1)', () => {
+  describe('Wilks-selected run APAs the selected statistic (owner ruling)', () => {
     const c = buildManova(spec, wilksResult)
 
-    it('APA still uses Pillai fields even when statistic=Wilks', () => {
-      expect(c.apa).toBe("A MANOVA gave Pillai's V=.29, F(4,114)=4.74, p = .001.")
+    it('APA uses Wilks label and values when statistic=Wilks', () => {
+      expect(c.apa).toBe("A MANOVA gave Wilks' Λ=.72, F(4,114)=5.11, p < .001.")
     })
 
     it('Table 1 stat column shows Wilks value (the selected statistic)', () => {
@@ -108,7 +112,7 @@ describe('buildManova', () => {
       expect(c.tables[0].spec.id).toBe('multivariate')
     })
 
-    it('APA still renders (from Pillai)', () => {
+    it('APA still renders with Pillai label (Pillai selected)', () => {
       expect(c.apa).toContain("Pillai's V=.29")
     })
   })

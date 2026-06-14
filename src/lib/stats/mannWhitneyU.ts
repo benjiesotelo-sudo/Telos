@@ -5,6 +5,7 @@ export interface RankSummaryRow { group: string; n: number; meanRank: number; su
 export interface MannWhitneyUResult {
   ranks: [RankSummaryRow, RankSummaryRow]
   u: number; z: number; p: number; rankBiserial: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -34,7 +35,7 @@ interface RawStats { ranks: RankSummaryRow[]; u: number; z: number; p: number; r
 
 /** forceApprox is test-only (and the implicit large-N path): exact=FALSE pins the branch where correct= matters. */
 export async function runMannWhitneyU(engine: Engine, data: Dataset, outcome: string, group: string,
-  continuity: boolean, forceApprox = false): Promise<MannWhitneyUResult> {
+  continuity: boolean, forceApprox = false, alpha = 0.05): Promise<MannWhitneyUResult> {
   // Per-test listwise (spec step-4a default): drop rows missing/non-numeric in either role column.
   const rows = data.rows.filter((r) =>
     typeof r[outcome] === 'number' && Number.isFinite(r[outcome] as number) && r[group] != null && String(r[group]).trim() !== '')
@@ -42,5 +43,5 @@ export async function runMannWhitneyU(engine: Engine, data: Dataset, outcome: st
   const env = { score: rows.map((r) => r[outcome] as number), group: rows.map((r) => String(r[group])), continuity, force_approx: forceApprox }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_BOXPLOT, 600, 450, env)
-  return { ranks: [s.ranks[0], s.ranks[1]], u: s.u, z: s.z, p: s.p, rankBiserial: s.rankBiserial, nExcluded, figurePng }
+  return { ranks: [s.ranks[0], s.ranks[1]], u: s.u, z: s.z, p: s.p, rankBiserial: s.rankBiserial, alpha, nExcluded, figurePng }
 }

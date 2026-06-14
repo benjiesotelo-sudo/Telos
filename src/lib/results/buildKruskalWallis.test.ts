@@ -20,6 +20,7 @@ const spikeResult: KruskalWallisResult = {
     { pair: 'control - drug_b', z: 2.4538937510129, pAdj: 0.0423956188352741 },
     { pair: 'drug_a - drug_b', z: 1.86532144910944, pAdj: 0.124272720791776 },
   ],
+  alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
 }

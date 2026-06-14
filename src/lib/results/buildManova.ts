@@ -5,14 +5,16 @@ import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
 export function buildManova(spec: TestSpec, r: ManovaResult): CardContent {
-  // APA ALWAYS from Pillai fields of the first effect row (recorded decision 1).
+  // APA from the SELECTED statistic's fields (owner ruling: option b).
   const mv = r.multivariate[0]
+  const statLabel = r.statistic === 'Wilks' ? "Wilks' Λ" : "Pillai's V"
   const apa = spec.apaTemplate
-    .replace('{v}', f01(mv.pillai))
-    .replace('{df1}', fdf(mv.pillaiDf1))
-    .replace('{df2}', fdf(mv.pillaiDf2))
-    .replace('{f}', f(mv.pillaiF))
-    .replace('{p}', fpApa(mv.pillaiP))
+    .replace("Pillai's V", statLabel)
+    .replace('{v}', f01(mv.stat))
+    .replace('{df1}', fdf(mv.df1))
+    .replace('{df2}', fdf(mv.df2))
+    .replace('{f}', f(mv.f))
+    .replace('{p}', fpApa(mv.p))
 
   const fig = figuresOf(spec)[0]
 
@@ -49,7 +51,7 @@ export function buildManova(spec: TestSpec, r: ManovaResult): CardContent {
     tables,
     note: null, // NO tableNote (plan: card has none)
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

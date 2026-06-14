@@ -11,7 +11,7 @@ const base: WilcoxonSignedRankResult = {
     { sign: 'Ties', n: 0, meanRank: null, sumRanks: 0 },
   ],
   v: 0, z: -2.20139816, p: 0.03125, r: -1, method: 'Wilcoxon signed rank exact test',
-  nExcluded: 2, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
+  alpha: 0.05, nExcluded: 2, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
 }
 
 describe('buildWilcoxonSignedRank', () => {
@@ -30,7 +30,7 @@ describe('buildWilcoxonSignedRank', () => {
   it('NO note (the drawn card has none); excluded pairs and how-to-read carry through', () => {
     expect(c.note).toBeNull()
     expect(c.nExcluded).toBe(2)
-    expect(c.howToRead).toBe(spec.howToRead)
+    expect(c.howToRead).toBe(spec.howToRead + ' Your significance threshold (α) is 0.05.')
   })
   it('APA omits V/W — only Z, p, r, exactly as drawn', () => {
     expect(c.apa).toBe('A Wilcoxon signed-rank test gave Z=−2.20, p = .031, r=−1.00.')

@@ -21,7 +21,7 @@ export function buildIndependentTTest(spec: TestSpec, r: TTestResult): CardConte
     ],
     note: { kind: 'assume', text: `${spec.assumptionNote} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · ${r.test === 'welch' ? 'Welch' : 'pooled'} test)` },
     figures: [{ caption: spec.figure!.caption, type: spec.figure!.type, png: r.figurePng }],
-    howToRead: spec.howToRead.replace('95% CI', ciLabel),
+    howToRead: spec.howToRead.replace('95% CI', ciLabel).replace('(e.g. .05)', `(e.g. ${r.alpha})`),
     apa,
     nExcluded: r.nExcluded,
   }

@@ -8,6 +8,7 @@ export interface MultipleLinearResult {
   r2: number; adjR2: number; f: number; df1: number; df2: number; p: number
   terms: MultipleLinearTerm[]
   ciLevel: number
+  alpha: number
   n: number; nExcluded: number
   figResidualsPng: Uint8Array<ArrayBuffer>
   figCoefPlotPng: Uint8Array<ArrayBuffer>
@@ -121,7 +122,7 @@ const isNumericColumn = (data: Dataset, col: string): boolean => {
 }
 
 export async function runMultipleLinearRegression(engine: Engine, data: Dataset, outcome: string, predictors: string[],
-  standardize: boolean, level = 0.95): Promise<MultipleLinearResult> {
+  standardize: boolean, level = 0.95, alpha = 0.05): Promise<MultipleLinearResult> {
   const numPreds = predictors.filter((c) => isNumericColumn(data, c))
   const catPreds = predictors.filter((c) => !isNumericColumn(data, c))
   // Per-test listwise (convention 15): outcome numeric-finite + every predictor complete in the same row.
@@ -147,5 +148,5 @@ export async function runMultipleLinearRegression(engine: Engine, data: Dataset,
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figResidualsPng = await engine.capturePlot(R_RESID, 800, 420, env)
   const figCoefPlotPng = await engine.capturePlot(R_COEFPLOT, 600, 450, env)
-  return { outcome, standardize, ...s, ciLevel: level, nExcluded, figResidualsPng, figCoefPlotPng }
+  return { outcome, standardize, ...s, ciLevel: level, alpha, nExcluded, figResidualsPng, figCoefPlotPng }
 }

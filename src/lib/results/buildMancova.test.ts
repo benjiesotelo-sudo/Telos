@@ -22,6 +22,8 @@ const spikeResult: MancovaResult = {
     { dv: 'outcome2', f: 7.47387842662194, df1: 2, df2: 56, p: 0.00132733951909915, pes: 0.21 },
   ],
   slopes: [{ term: 'baseline × group', p: 0.875021940147328 }],
+  statistic: 'Pillai',
+  alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
 }
@@ -46,7 +48,7 @@ describe('buildMancova', () => {
     expect(c.tables[1].rows[1].dv).toBe('outcome2')
   })
 
-  it('APA uses the first FACTOR row Pillai fields: V=.37, F(4,112)=6.30, p < .001', () => {
+  it('APA from selected stat (Pillai): V=.37, F(4,112)=6.30, p < .001', () => {
     expect(c.apa).toBe(
       "A MANCOVA gave a covariate-adjusted group effect, Pillai's V=.37, F(4,112)=6.30, p < .001.",
     )
@@ -66,19 +68,18 @@ describe('buildMancova', () => {
     expect(c.nExcluded).toBe(0)
   })
 
-  it('Wilks-selected result: APA still uses Pillai fields (recorded decision 1)', () => {
-    // If stat = Wilks value but pillai fields are preserved, APA should still report Pillai
+  it('Wilks-selected result: APA uses Wilks label and selected stat values (owner ruling)', () => {
     const wilksResult: MancovaResult = {
       ...spikeResult,
+      statistic: 'Wilks',
       multivariate: [
         spikeResult.multivariate[0],
-        { ...spikeResult.multivariate[1], stat: 0.634151614316368 }, // Wilks stat replaces stat
+        { ...spikeResult.multivariate[1], stat: 0.634151614316368, f: 5.80, p: 0.000130150921618041 },
       ],
     }
     const c2 = buildMancova(spec, wilksResult)
-    // pillai fields unchanged → APA still says Pillai's V=.37
-    expect(c2.apa).toContain("Pillai's V=.37")
-    expect(c2.apa).toContain('F(4,112)=6.30')
+    expect(c2.apa).toContain("Wilks' Λ=.63")
+    expect(c2.apa).toContain('F(4,112)=5.80')
   })
 
   it('p≥.001 branch formats p properly', () => {
@@ -86,7 +87,7 @@ describe('buildMancova', () => {
       ...spikeResult,
       multivariate: [
         spikeResult.multivariate[0],
-        { ...spikeResult.multivariate[1], pillaiP: 0.0456789 },
+        { ...spikeResult.multivariate[1], p: 0.0456789 },
       ],
     }
     const c3 = buildMancova(spec, marginal)

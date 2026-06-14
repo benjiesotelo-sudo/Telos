@@ -12,6 +12,7 @@ export interface MixedAnovaResult {
   posthoc: PosthocRow[]
   levene: { F: number | null; p: number | null }
   betweenName: string
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -92,7 +93,7 @@ interface RawStats {
 export async function runMixedAnova(
   engine: Engine, data: Dataset,
   subject: string, between: string, measures: string[],
-  sphericityChoice: string, posthocOn: boolean
+  sphericityChoice: string, posthocOn: boolean, alpha = 0.05
 ): Promise<MixedAnovaResult> {
   // Listwise: subject + between non-blank AND all measures numeric-finite
   const rows = data.rows.filter((r) =>
@@ -127,6 +128,7 @@ export async function runMixedAnova(
     posthoc: s.posthoc,
     levene: s.levene,
     betweenName: betweenLabel,
+    alpha,
     nExcluded,
     figurePng,
   }

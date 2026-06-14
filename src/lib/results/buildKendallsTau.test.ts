@@ -5,7 +5,7 @@ import type { KendallsTauResult } from '../stats/kendallsTau'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 const res: KendallsTauResult = { varA: 'satisfaction', varB: 'motivation',
-  tau: 0.512, z: 3.456, p: 0.00055, n: 40, nExcluded: 0, figurePng: png }
+  tau: 0.512, z: 3.456, p: 0.00055, n: 40, alpha: 0.05, nExcluded: 0, figurePng: png }
 
 describe('buildKendallsTau', () => {
   it('fills the correlation row per format conventions', () => {

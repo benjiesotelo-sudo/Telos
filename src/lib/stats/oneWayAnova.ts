@@ -12,6 +12,7 @@ export interface OneWayAnovaResult {
   posthoc: PosthocRow[]
   posthocMethod: string  // selected label e.g. 'Tukey HSD', 'Bonferroni', 'Scheffé'
   ciLevel: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -45,7 +46,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(g, m)) +
   ggplot2::labs(x = NULL, y = NULL))`
 
 export async function runOneWayAnova(engine: Engine, data: Dataset, outcome: string, factor: string,
-  posthocChoice: string, level = 0.95): Promise<OneWayAnovaResult> {
+  posthocChoice: string, level = 0.95, alpha = 0.05): Promise<OneWayAnovaResult> {
   const rows = data.rows.filter((r) =>
     typeof r[outcome] === 'number' && Number.isFinite(r[outcome] as number) && r[factor] != null && String(r[factor]).trim() !== '')
   const nExcluded = data.rows.length - rows.length
@@ -53,5 +54,5 @@ export async function runOneWayAnova(engine: Engine, data: Dataset, outcome: str
   const env = { y: rows.map((r) => r[outcome] as number), g: rows.map((r) => String(r[factor])), adjust, level }
   const s = await engine.runJson<Omit<OneWayAnovaResult, 'nExcluded' | 'figurePng'>>(`${POSTHOC_EMM_R}\n${R_STATS}`, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { ...s, posthocMethod: posthocChoice, ciLevel: level, nExcluded, figurePng }
+  return { ...s, posthocMethod: posthocChoice, ciLevel: level, alpha, nExcluded, figurePng }
 }

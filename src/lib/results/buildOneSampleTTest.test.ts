@@ -7,7 +7,7 @@ import type { OneSampleTTestResult } from '../stats/oneSampleTTest'
 const r: OneSampleTTestResult = {
   variable: 'post_score', n: 6, mean: 82.33333, sd: 3.77712, se: 1.542,
   mu0: 70, t: 7.99825, df: 5, p: 0.000493, meanDiff: 12.33333, ci: [8.36948, 16.29718], cohensD: 3.26527,
-  shapiro: { W: 0.96354, p: 0.84654 }, ciLevel: 0.95, nExcluded: 2,
+  shapiro: { W: 0.96354, p: 0.84654 }, ciLevel: 0.95, alpha: 0.05, nExcluded: 2,
   figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
 }
 
@@ -26,7 +26,7 @@ describe('buildOneSampleTTest', () => {
   it('carries the distribution figure with its type, plus the exclusion count', () => {
     expect(c.figures).toEqual([{ caption: 'Value vs. test value', type: 'distribution', png: r.figurePng }])
     expect(c.nExcluded).toBe(2)
-    expect(c.howToRead).toBe(spec.howToRead)
+    expect(c.howToRead).toBe(spec.howToRead + ' Your significance threshold (α) is 0.05.')
   })
   it('branches: Shapiro null → em-dashes; p ≥ .001 stays a p= clause; negatives typeset U+2212', () => {
     // μ0 = 90 derivation pinned in native R: t = −4.971884, p = 0.004205, diff CI [−11.630515, −3.702818], d = −2.029763.

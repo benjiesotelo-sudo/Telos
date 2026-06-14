@@ -28,7 +28,7 @@ interface RawStats {
   t: number; df: number; p: number; meanDiff: number; ci: number[]; cohensD: number; levene: { F: number | null; p: number | null }
 }
 
-export async function runIndependentTTest(engine: Engine, data: Dataset, outcome: string, group: string, equalVariance: boolean, level = 0.95): Promise<TTestResult> {
+export async function runIndependentTTest(engine: Engine, data: Dataset, outcome: string, group: string, equalVariance: boolean, level = 0.95, alpha = 0.05): Promise<TTestResult> {
   // Per-test listwise (spec step-4a default): drop rows missing/non-numeric in either role column.
   const rows = data.rows.filter((r) =>
     typeof r[outcome] === 'number' && Number.isFinite(r[outcome] as number) && r[group] != null && String(r[group]).trim() !== '')
@@ -40,6 +40,6 @@ export async function runIndependentTTest(engine: Engine, data: Dataset, outcome
     groupStats: [s.groupStats[0], s.groupStats[1]],
     contrast: `${s.groupStats[0].group} − ${s.groupStats[1].group}`, test: s.test,
     t: s.t, df: s.df, p: s.p, meanDiff: s.meanDiff, ci: [s.ci[0], s.ci[1]], cohensD: s.cohensD,
-    levene: s.levene, ciLevel: level, nExcluded, figurePng,
+    levene: s.levene, ciLevel: level, alpha, nExcluded, figurePng,
   }
 }

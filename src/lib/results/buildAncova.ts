@@ -62,7 +62,7 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
     ],
     note: { kind: 'assume', text: noteText, afterTableId: spec.tableNote?.afterTableId },
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

@@ -15,6 +15,7 @@ export interface RepeatedMeasuresAnovaResult {
   posthoc: PosthocRow[]
   sphericityChoice: string  // the selected option value, e.g. 'GG correction'
   ciLevel: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -51,7 +52,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(cond, m, group = 1)) + ggplot2::geom_lin
 
 export async function runRepeatedMeasuresAnova(
   engine: Engine, data: Dataset, subject: string, measures: string[],
-  sphericityChoice: string, posthocOn: boolean, level = 0.95,
+  sphericityChoice: string, posthocOn: boolean, level = 0.95, alpha = 0.05,
 ): Promise<RepeatedMeasuresAnovaResult> {
   // Listwise: keep rows where subject non-blank AND every measure is numeric-finite.
   const rows = data.rows.filter((r) =>
@@ -73,5 +74,5 @@ export async function runRepeatedMeasuresAnova(
     `${POSTHOC_EMM_R}\n${SPHERICITY_R}\n${R_STATS}`, env,
   )
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, { scores_flat: env.scores_flat, conds: measures })
-  return { ...s, sphericityChoice, ciLevel: level, nExcluded, figurePng }
+  return { ...s, sphericityChoice, ciLevel: level, alpha, nExcluded, figurePng }
 }

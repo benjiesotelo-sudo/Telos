@@ -59,11 +59,12 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
 
   // When interactions are not modelled there is no A×B row or interaction plot, so trim the
   // two interaction-specific sentences from howToRead. (Runtime-built; registry string unchanged.)
-  const howToRead = hasInteractions
+  const howToReadBase = hasInteractions
     ? spec.howToRead
     : spec.howToRead
         .replace("Each factor's F/p is its main effect; the A×B row tests whether the effect of one factor depends on the other. ", '')
         .replace('A significant interaction usually takes priority — read it from the interaction plot before the main effects. ', '')
+  const howToRead = howToReadBase + ` Your significance threshold (α) is ${r.alpha}.`
   const base = {
     note: { kind: 'assume' as const, text: noteText },
     // Suppress the interaction figure when interactions are not modelled.

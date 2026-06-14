@@ -15,7 +15,7 @@ const res: LogisticResult = { outcome: 'passed', event: 'yes', reportOR: true,
     { term: 'group: b', b: 1.240356431, se: 0.724147424, z: 1.712850712, p: 0.086740008, or: 3.456845371, orLow: 0.866707308, orHigh: 15.442995620 },
   ],
   levels: ['no', 'yes'], classCounts: [[13, 7], [7, 13]], pctCorrect: [65, 65], auc: 0.76,
-  ciLevel: 0.95, n: 40, nExcluded: 0, figRocPng: png }
+  ciLevel: 0.95, alpha: 0.05, n: 40, nExcluded: 0, figRocPng: png }
 
 describe('buildLogisticRegression', () => {
   it('Table 1 fit row; Table 2 coefficient rows with ORs filled (drawn default ON)', () => {

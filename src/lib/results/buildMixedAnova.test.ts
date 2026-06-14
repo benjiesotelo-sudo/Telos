@@ -34,6 +34,7 @@ const result: MixedAnovaResult = {
   ],
   levene: { F: 0.35, p: 0.71 },
   betweenName: 'Group',
+  alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
 }

@@ -5,6 +5,7 @@ export interface PearsonResult {
   varA: string; varB: string // role names — builders get (spec, result) only
   r: number; t: number; df: number; p: number; ciLow: number; ciHigh: number; n: number
   ciLevel: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -23,7 +24,7 @@ print(ggplot2::ggplot(data.frame(x = x, y = y), ggplot2::aes(x, y)) +
 
 interface RawStats { r: number; t: number; df: number; p: number; ciLow: number; ciHigh: number; n: number }
 
-export async function runPearson(engine: Engine, data: Dataset, varA: string, varB: string, level = 0.95): Promise<PearsonResult> {
+export async function runPearson(engine: Engine, data: Dataset, varA: string, varB: string, level = 0.95, alpha = 0.05): Promise<PearsonResult> {
   // Per-test listwise (spec step-4a default): both role columns numeric-finite in the same row.
   const rows = data.rows.filter((r) =>
     typeof r[varA] === 'number' && Number.isFinite(r[varA] as number)
@@ -32,5 +33,5 @@ export async function runPearson(engine: Engine, data: Dataset, varA: string, va
   const env = { x: rows.map((r) => r[varA] as number), y: rows.map((r) => r[varB] as number), xlab: varA, ylab: varB, level }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_SCATTER, 600, 450, env)
-  return { varA, varB, ...s, ciLevel: level, nExcluded, figurePng }
+  return { varA, varB, ...s, ciLevel: level, alpha, nExcluded, figurePng }
 }

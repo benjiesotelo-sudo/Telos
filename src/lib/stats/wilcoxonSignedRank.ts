@@ -27,13 +27,14 @@ export interface SignedRankRow { sign: 'Positive' | 'Negative' | 'Ties'; n: numb
 export interface WilcoxonSignedRankResult {
   ranks: [SignedRankRow, SignedRankRow, SignedRankRow]   // Positive, Negative, Ties — card row order
   v: number; z: number; p: number; r: number; method: string
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
 interface RawStats { ranks: SignedRankRow[]; v: number; z: number; p: number; r: number; method: string }
 
 export async function runWilcoxonSignedRank(
-  engine: Engine, data: Dataset, conditionA: string, conditionB: string, continuity: boolean, forceApprox = false,
+  engine: Engine, data: Dataset, conditionA: string, conditionB: string, continuity: boolean, forceApprox = false, alpha = 0.05,
 ): Promise<WilcoxonSignedRankResult> {
   // Complete pairs (card's missing-data unit): keep rows where BOTH condition columns are numeric-finite.
   const rows = data.rows.filter((r) =>
@@ -43,5 +44,5 @@ export async function runWilcoxonSignedRank(
   const env = { a: rows.map((r) => r[conditionA] as number), b: rows.map((r) => r[conditionB] as number), continuity, force_approx: forceApprox }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_DIFFPLOT, 600, 450, env)
-  return { ranks: [s.ranks[0], s.ranks[1], s.ranks[2]], v: s.v, z: s.z, p: s.p, r: s.r, method: s.method, nExcluded, figurePng }
+  return { ranks: [s.ranks[0], s.ranks[1], s.ranks[2]], v: s.v, z: s.z, p: s.p, r: s.r, method: s.method, alpha, nExcluded, figurePng }
 }

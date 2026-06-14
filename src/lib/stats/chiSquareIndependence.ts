@@ -9,6 +9,7 @@ export interface ContingencyData {
 export interface ChiSquareIndependenceResult extends ContingencyData {
   rowVar: string; colVar: string
   chisq: number; df: number; p: number; v: number; minExpected: number; n: number
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -40,7 +41,7 @@ print(ggplot2::ggplot(d, ggplot2::aes(rv, fill = cv)) +
 interface RawStats extends ContingencyData { chisq: number; df: number; p: number; v: number; minExpected: number; n: number }
 
 export async function runChiSquareIndependence(engine: Engine, data: Dataset, rowVar: string, colVar: string,
-  continuity: boolean): Promise<ChiSquareIndependenceResult> {
+  continuity: boolean, alpha = 0.05): Promise<ChiSquareIndependenceResult> {
   const rows = data.rows.filter((r) =>
     r[rowVar] !== null && r[rowVar] !== undefined && String(r[rowVar]).trim() !== ''
     && r[colVar] !== null && r[colVar] !== undefined && String(r[colVar]).trim() !== '')
@@ -48,5 +49,5 @@ export async function runChiSquareIndependence(engine: Engine, data: Dataset, ro
   const env = { rv: rows.map((r) => String(r[rowVar])), cv: rows.map((r) => String(r[colVar])), continuity }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_GROUPED_BAR, 600, 450, env)
-  return { rowVar, colVar, ...s, nExcluded, figurePng }
+  return { rowVar, colVar, ...s, alpha, nExcluded, figurePng }
 }

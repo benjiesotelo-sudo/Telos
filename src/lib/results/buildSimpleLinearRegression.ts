@@ -30,7 +30,7 @@ export function buildSimpleLinearRegression(spec: TestSpec, r: SimpleLinearResul
       { caption: 'Fitted-line scatter', type: figs[0].type, file: figs[0].file, png: r.figFitPng },
       { caption: 'Residual diagnostics', type: figs[1].type, file: figs[1].file, png: r.figResidualsPng },
     ],
-    howToRead: spec.howToRead,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
   }

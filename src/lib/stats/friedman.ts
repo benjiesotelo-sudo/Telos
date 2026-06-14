@@ -7,6 +7,7 @@ export interface FriedmanResult {
   ranks: RankSummaryRow[]
   chi2: number; df: number; p: number; w: number
   posthoc: NemenyiRow[]
+  alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -40,7 +41,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(cond, m, group = 1)) + ggplot2::geom_lin
 
 interface RawStats { ranks: RankSummaryRow[]; chi2: number; df: number; p: number; w: number; posthoc: NemenyiRow[] }
 
-export async function runFriedman(engine: Engine, data: Dataset, subject: string, measures: string[]): Promise<FriedmanResult> {
+export async function runFriedman(engine: Engine, data: Dataset, subject: string, measures: string[], alpha = 0.05): Promise<FriedmanResult> {
   // Listwise: keep rows where subject is non-blank AND all chosen measure columns are numeric-finite.
   const rows = data.rows.filter((r) => {
     if (r[subject] == null || String(r[subject]).trim() === '') return false
@@ -53,5 +54,5 @@ export async function runFriedman(engine: Engine, data: Dataset, subject: string
   const env = { conds: measures, scores_flat: scoresFlat, n }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { ranks: s.ranks, chi2: s.chi2, df: s.df, p: s.p, w: s.w, posthoc: s.posthoc, nExcluded, figurePng }
+  return { ranks: s.ranks, chi2: s.chi2, df: s.df, p: s.p, w: s.w, posthoc: s.posthoc, alpha, nExcluded, figurePng }
 }

@@ -13,6 +13,7 @@ export interface LogisticResult {
   pctCorrect: (number | null)[]    // per-predicted-row 100·diag/rowsum; null when a row predicts nothing
   auc: number
   ciLevel: number
+  alpha: number
   n: number; nExcluded: number
   figRocPng: Uint8Array<ArrayBuffer>
 }
@@ -94,7 +95,7 @@ const isNumericColumn = (data: Dataset, col: string): boolean => {
 }
 
 export async function runLogisticRegression(engine: Engine, data: Dataset, outcome: string, predictors: string[],
-  event: string, reportOR: boolean, level = 0.95): Promise<LogisticResult> {
+  event: string, reportOR: boolean, level = 0.95, alpha = 0.05): Promise<LogisticResult> {
   const numPreds = predictors.filter((c) => isNumericColumn(data, c))
   const catPreds = predictors.filter((c) => !isNumericColumn(data, c))
   // Per-test listwise (convention 15): outcome non-blank (stringified — the level-select choices are strings) +
@@ -115,5 +116,5 @@ export async function runLogisticRegression(engine: Engine, data: Dataset, outco
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figRocPng = await engine.capturePlot(R_ROC, 550, 550, env)
-  return { outcome, event, reportOR, ...s, ciLevel: level, nExcluded, figRocPng }
+  return { outcome, event, reportOR, ...s, ciLevel: level, alpha, nExcluded, figRocPng }
 }

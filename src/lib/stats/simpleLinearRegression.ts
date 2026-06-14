@@ -7,6 +7,7 @@ export interface SimpleLinearResult {
   r2: number; adjR2: number; f: number; df1: number; df2: number; p: number; sigma: number // sigma = summary(m)$sigma — the Table 1 SE (convention 3)
   terms: SimpleLinearTerm[]
   ciLevel: number
+  alpha: number
   n: number; nExcluded: number
   figFitPng: Uint8Array<ArrayBuffer>
   figResidualsPng: Uint8Array<ArrayBuffer>
@@ -87,7 +88,7 @@ const isNumericColumn = (data: Dataset, col: string): boolean => {
   return vals.length > 0 && vals.every((v) => typeof v === 'number')
 }
 
-export async function runSimpleLinearRegression(engine: Engine, data: Dataset, outcome: string, predictor: string, level = 0.95): Promise<SimpleLinearResult> {
+export async function runSimpleLinearRegression(engine: Engine, data: Dataset, outcome: string, predictor: string, level = 0.95, alpha = 0.05): Promise<SimpleLinearResult> {
   const xNumeric = isNumericColumn(data, predictor)
   // Per-test listwise (convention 15): outcome numeric-finite; predictor numeric-finite (numeric) or non-blank (categorical).
   const rows = data.rows.filter((r) =>
@@ -104,5 +105,5 @@ export async function runSimpleLinearRegression(engine: Engine, data: Dataset, o
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figFitPng = await engine.capturePlot(R_FIT, 600, 450, env)
   const figResidualsPng = await engine.capturePlot(R_RESID, 800, 420, env)
-  return { outcome, predictor, ...s, ciLevel: level, nExcluded, figFitPng, figResidualsPng }
+  return { outcome, predictor, ...s, ciLevel: level, alpha, nExcluded, figFitPng, figResidualsPng }
 }

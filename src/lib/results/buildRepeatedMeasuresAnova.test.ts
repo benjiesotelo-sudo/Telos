@@ -32,6 +32,7 @@ const result3: RepeatedMeasuresAnovaResult = {
   ],
   sphericityChoice: 'GG correction',
   ciLevel: 0.95,
+  alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
 }
@@ -58,6 +59,7 @@ const result2: RepeatedMeasuresAnovaResult = {
   ],
   sphericityChoice: 'GG correction',
   ciLevel: 0.95,
+  alpha: 0.05,
   nExcluded: 2,
   figurePng: png,
 }

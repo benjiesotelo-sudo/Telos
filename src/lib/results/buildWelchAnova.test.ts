@@ -21,6 +21,7 @@ const spikeResult: WelchAnovaResult = {
     { pair: 'control - drug_b', diff: -3.70, pAdj: 0.15, ciLo: -7.9, ciHi: 0.5 },
     { pair: 'drug_a - drug_b', diff: -2.33, pAdj: 0.45, ciLo: -5.86, ciHi: 1.2 },
   ],
+  alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
 }

@@ -10,7 +10,7 @@ const r: PairedTTestResult = {
   ],
   pair: 'pre − post',
   t: -10.39230, df: 5, p: 0.000142, meanDiff: -12, ci: [-14.96825, -9.03175], dz: -4.24264,
-  ciLevel: 0.95, nExcluded: 2, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
+  ciLevel: 0.95, alpha: 0.05, nExcluded: 2, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
 }
 
 describe('buildPairedTTest', () => {

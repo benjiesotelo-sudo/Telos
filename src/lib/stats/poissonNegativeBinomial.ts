@@ -9,6 +9,7 @@ export interface PoissonNbResult {
   dispersion: number // Poisson: check_overdispersion $dispersion_ratio (≡ hand Pearson χ²/df); NB: theta (convention 10)
   terms: PoissonNbTerm[]
   ciLevel: number
+  alpha: number
   n: number; nExcluded: number
   figResidualsPng: Uint8Array<ArrayBuffer>
 }
@@ -68,7 +69,7 @@ const isNumericColumn = (data: Dataset, col: string): boolean => {
 }
 
 export async function runPoissonNegativeBinomial(engine: Engine, data: Dataset, outcome: string, predictors: string[],
-  exposure: string | null, model: 'Poisson' | 'negative binomial', level = 0.95): Promise<PoissonNbResult> {
+  exposure: string | null, model: 'Poisson' | 'negative binomial', level = 0.95, alpha = 0.05): Promise<PoissonNbResult> {
   const numPreds = predictors.filter((c) => isNumericColumn(data, c))
   const catPreds = predictors.filter((c) => !isNumericColumn(data, c))
   // Per-test listwise (convention 15): outcome + every predictor + exposure (when assigned) complete in the same row.
@@ -92,5 +93,5 @@ export async function runPoissonNegativeBinomial(engine: Engine, data: Dataset, 
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figResidualsPng = await engine.capturePlot(R_FITRES, 600, 450, env)
-  return { outcome, model, ...s, ciLevel: level, nExcluded, figResidualsPng }
+  return { outcome, model, ...s, ciLevel: level, alpha, nExcluded, figResidualsPng }
 }
