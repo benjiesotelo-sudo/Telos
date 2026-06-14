@@ -3,6 +3,8 @@ import type { CardContent } from './builders'
 import type { WilcoxonSignedRankResult } from '../stats/wilcoxonSignedRank'
 import { f, f01, fp, fpApa, fx } from '../format/apa'
 
+const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
+
 export function buildWilcoxonSignedRank(spec: TestSpec, r: WilcoxonSignedRankResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{z}', f(r.z))
@@ -16,7 +18,7 @@ export function buildWilcoxonSignedRank(spec: TestSpec, r: WilcoxonSignedRankRes
     ],
     note: null, // the drawn Wilcoxon card has no table note (design ruling)
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
   }

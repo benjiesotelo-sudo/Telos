@@ -4,6 +4,8 @@ import type { FishersExactResult } from '../stats/fishersExact'
 import type { CardContent } from './builders'
 import { f, fp, fpApa } from '../format/apa'
 
+const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
+
 export function buildFishersExact(spec: TestSpec, r: FishersExactResult): CardContent {
   const columns = [{ key: 'rowcat', label: 'Row \\ Column' },
     ...r.colCats.map((cat, j) => ({ key: `c${j}`, label: cat })), { key: 'total', label: 'Total' }]
@@ -32,7 +34,7 @@ export function buildFishersExact(spec: TestSpec, r: FishersExactResult): CardCo
     ],
     note: spec.tableNote ?? null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
   }

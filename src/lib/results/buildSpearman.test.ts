@@ -5,7 +5,7 @@ import type { SpearmanResult } from '../stats/spearman'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 const res: SpearmanResult = { varA: 'satisfaction', varB: 'motivation',
-  rho: 0.7321, s: 2854.4, p: 0.00321, n: 40, alpha: 0.05, nExcluded: 1, figurePng: png }
+  rho: 0.7321, s: 2854.4, p: 0.00321, n: 40, alpha: 0.05, tails: 'two.sided', nExcluded: 1, figurePng: png }
 
 describe('buildSpearman', () => {
   it('fills the row; S uses fdf (integers bare, ties give decimals)', () => {

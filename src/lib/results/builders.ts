@@ -64,6 +64,10 @@ import { buildPoissonNegativeBinomial } from './buildPoissonNegativeBinomial'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
 
+/** Map the tails option choice to R's alternative= string (default: 'two.sided'). */
+export const alternativeOf = (setup: TestSetup): string =>
+  ({ 'one-tailed (greater)': 'greater', 'one-tailed (less)': 'less' }[String(setup.options['tails'] ?? 'two-tailed')] ?? 'two.sided')
+
 export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[] }
 export interface CardContent {
   tables: BuiltTable[]
@@ -79,15 +83,15 @@ const alphaOf = (setup: TestSetup) => Number(setup.options['alpha'] ?? 0.05)
 
 export const RUNNERS: Record<string, Runner> = {
   'independent-t-test': (engine, ds, setup) =>
-    runIndependentTTest(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['equalVariance'] as boolean, ciLevel(setup.options['ci']), alphaOf(setup)),
+    runIndependentTTest(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['equalVariance'] as boolean, ciLevel(setup.options['ci']), alphaOf(setup), alternativeOf(setup)),
   'one-sample-t-test': (engine, ds, setup) =>
-    runOneSampleTTest(engine, ds, setup.roles['outcome'][0], setup.options['mu0'] as number, ciLevel(setup.options['ci']), alphaOf(setup)),
+    runOneSampleTTest(engine, ds, setup.roles['outcome'][0], setup.options['mu0'] as number, ciLevel(setup.options['ci']), alphaOf(setup), alternativeOf(setup)),
   'paired-t-test': (engine, ds, setup) =>
-    runPairedTTest(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0], ciLevel(setup.options['ci']), alphaOf(setup)),
+    runPairedTTest(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0], ciLevel(setup.options['ci']), alphaOf(setup), alternativeOf(setup)),
   'mann-whitney-u': (engine, ds, setup) =>
-    runMannWhitneyU(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['continuity'] as boolean, false, alphaOf(setup)),
+    runMannWhitneyU(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], setup.options['continuity'] as boolean, false, alphaOf(setup), alternativeOf(setup)),
   'wilcoxon-signed-rank': (engine, ds, setup) =>
-    runWilcoxonSignedRank(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0], setup.options['continuity'] as boolean, false, alphaOf(setup)),
+    runWilcoxonSignedRank(engine, ds, setup.roles['conditionA'][0], setup.roles['conditionB'][0], setup.options['continuity'] as boolean, false, alphaOf(setup), alternativeOf(setup)),
   'distribution-normality': (engine, ds, setup) => runDistributionNormality(engine, ds, setup.roles['variable']),
   'summary-statistics': (engine, ds, setup) =>
     runSummaryStatistics(engine, ds, setup.roles['variables'], setup.roles['groupBy'][0]),
@@ -110,9 +114,9 @@ export const RUNNERS: Record<string, Runner> = {
     runMancova(engine, ds, setup.roles['outcomes'], setup.roles['factors'], setup.roles['covariates'], setup.options['statistic'] as string, alphaOf(setup)),
   'kruskal-wallis': (engine, ds, setup) => runKruskalWallis(engine, ds, setup.roles['outcome'][0], setup.roles['group'][0], alphaOf(setup)),
   'friedman': (engine, ds, setup) => runFriedman(engine, ds, setup.roles['subject'][0], setup.roles['measures'], alphaOf(setup)),
-  'pearson': (engine, ds, setup) => runPearson(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], ciLevel(setup.options['ci']), alphaOf(setup)),
-  'spearman': (engine, ds, setup) => runSpearman(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], alphaOf(setup)),
-  'kendalls-tau': (engine, ds, setup) => runKendallsTau(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], alphaOf(setup)),
+  'pearson': (engine, ds, setup) => runPearson(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], ciLevel(setup.options['ci']), alphaOf(setup), alternativeOf(setup)),
+  'spearman': (engine, ds, setup) => runSpearman(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], alphaOf(setup), alternativeOf(setup)),
+  'kendalls-tau': (engine, ds, setup) => runKendallsTau(engine, ds, setup.roles['variableA'][0], setup.roles['variableB'][0], alphaOf(setup), alternativeOf(setup)),
   'chi-square-goodness-of-fit': (engine, ds, setup) => {
     const v = setup.roles['variable'][0]
     const custom = setup.options['expectedProps'] === 'custom'
@@ -120,7 +124,7 @@ export const RUNNERS: Record<string, Runner> = {
   },
   'chi-square-independence': (engine, ds, setup) =>
     runChiSquareIndependence(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0], setup.options['continuity'] as boolean, alphaOf(setup)),
-  'fishers-exact': (engine, ds, setup) => runFishersExact(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0], alphaOf(setup)),
+  'fishers-exact': (engine, ds, setup) => runFishersExact(engine, ds, setup.roles['rowVar'][0], setup.roles['colVar'][0], alphaOf(setup), alternativeOf(setup)),
   'simple-linear-regression': (engine, ds, setup) =>
     runSimpleLinearRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictor'][0], ciLevel(setup.options['ci']), alphaOf(setup)),
   'multiple-linear-regression': (engine, ds, setup) =>

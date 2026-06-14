@@ -7,13 +7,13 @@ export interface FishersExactResult {
   counts: number[][]            // (R+1) × (C+1) with margins
   p: number; is2x2: boolean
   or?: number; ciLow?: number; ciHigh?: number // 2×2 only
-  n: number; alpha: number; nExcluded: number
+  n: number; alpha: number; tails: string; nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
 
 const R_STATS = String.raw`
 tab <- table(rv, cv)
-ft <- fisher.test(tab)
+ft <- fisher.test(tab, alternative = alternative)
 is22 <- all(dim(tab) == 2)
 m <- addmargins(tab)
 c(list(rowCats = rownames(tab), colCats = colnames(tab),
@@ -29,13 +29,13 @@ print(ggplot2::ggplot(d, ggplot2::aes(rv, fill = cv)) +
 
 interface RawStats { rowCats: string[]; colCats: string[]; counts: number[][]; p: number; is2x2: boolean; n: number; or?: number; ciLow?: number; ciHigh?: number }
 
-export async function runFishersExact(engine: Engine, data: Dataset, rowVar: string, colVar: string, alpha = 0.05): Promise<FishersExactResult> {
+export async function runFishersExact(engine: Engine, data: Dataset, rowVar: string, colVar: string, alpha = 0.05, alternative = 'two.sided'): Promise<FishersExactResult> {
   const rows = data.rows.filter((r) =>
     r[rowVar] !== null && r[rowVar] !== undefined && String(r[rowVar]).trim() !== ''
     && r[colVar] !== null && r[colVar] !== undefined && String(r[colVar]).trim() !== '')
   const nExcluded = data.rows.length - rows.length
-  const env = { rv: rows.map((r) => String(r[rowVar])), cv: rows.map((r) => String(r[colVar])) }
+  const env = { rv: rows.map((r) => String(r[rowVar])), cv: rows.map((r) => String(r[colVar])), alternative }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_GROUPED_BAR, 600, 450, env)
-  return { rowVar, colVar, ...s, alpha, nExcluded, figurePng }
+  return { rowVar, colVar, ...s, alpha, tails: alternative, nExcluded, figurePng }
 }

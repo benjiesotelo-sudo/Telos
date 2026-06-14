@@ -63,6 +63,11 @@ export function TestConfigScreen({ testId }: { testId: string }) {
           </label>
         ))}
       </div>
+      {spec.options.some((o) => o.id === 'tails') && String(setup.options['tails'] ?? '').startsWith('one-tailed') && (
+        <p className="hint" role="note" style={{ color: 'var(--error-tx)', marginTop: 6 }}>
+          ⚠ One-tailed test — only valid for a directional hypothesis set <em>in advance</em>; choosing it after seeing your data inflates false positives.
+        </p>
+      )}
       {spec.options.filter((o) => o.kind === 'proportions' && setup.options[o.id] === 'custom').map((o) => {
         const col = setup.roles[spec.constraints.roles[0].roleId][0]
         if (!col) return <p key={o.id} className="hint" style={{ marginTop: 6 }}>assign a column to {spec.roles[0].label} to set custom proportions</p>

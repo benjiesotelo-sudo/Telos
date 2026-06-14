@@ -6,6 +6,7 @@ export interface MannWhitneyUResult {
   ranks: [RankSummaryRow, RankSummaryRow]
   u: number; z: number; p: number; rankBiserial: number
   alpha: number
+  tails: string
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -18,8 +19,8 @@ ranks <- lapply(lv, function(l) { v <- rk[g == l]; list(group = l, n = length(v)
 # Default run keeps wilcox.test's own path choice (R 4.6.0: EXACT at these N, even with ties — spike fact 1).
 # correct= only matters on the asymptotic branch; force_approx pins exact=FALSE so the known-answer tests can
 # verify both toggle positions (large-N/tied data reaches that branch on its own in real runs).
-res <- if (force_approx) wilcox.test(score ~ g, data = df, exact = FALSE, correct = continuity)
-       else wilcox.test(score ~ g, data = df, correct = continuity)
+res <- if (force_approx) wilcox.test(score ~ g, data = df, exact = FALSE, correct = continuity, alternative = alternative)
+       else wilcox.test(score ~ g, data = df, correct = continuity, alternative = alternative)
 # wilcox.test W IS the Mann-Whitney U for the FIRST factor level (alphabetical) — spike-verified.
 z <- as.numeric(coin::statistic(coin::wilcox_test(score ~ g, data = df)))  # asymptotic standardized Z (card R map)
 r <- as.numeric(effectsize::rank_biserial(score ~ g, data = df)$r_rank_biserial)
@@ -35,13 +36,13 @@ interface RawStats { ranks: RankSummaryRow[]; u: number; z: number; p: number; r
 
 /** forceApprox is test-only (and the implicit large-N path): exact=FALSE pins the branch where correct= matters. */
 export async function runMannWhitneyU(engine: Engine, data: Dataset, outcome: string, group: string,
-  continuity: boolean, forceApprox = false, alpha = 0.05): Promise<MannWhitneyUResult> {
+  continuity: boolean, forceApprox = false, alpha = 0.05, alternative = 'two.sided'): Promise<MannWhitneyUResult> {
   // Per-test listwise (spec step-4a default): drop rows missing/non-numeric in either role column.
   const rows = data.rows.filter((r) =>
     typeof r[outcome] === 'number' && Number.isFinite(r[outcome] as number) && r[group] != null && String(r[group]).trim() !== '')
   const nExcluded = data.rows.length - rows.length
-  const env = { score: rows.map((r) => r[outcome] as number), group: rows.map((r) => String(r[group])), continuity, force_approx: forceApprox }
+  const env = { score: rows.map((r) => r[outcome] as number), group: rows.map((r) => String(r[group])), continuity, force_approx: forceApprox, alternative }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_BOXPLOT, 600, 450, env)
-  return { ranks: [s.ranks[0], s.ranks[1]], u: s.u, z: s.z, p: s.p, rankBiserial: s.rankBiserial, alpha, nExcluded, figurePng }
+  return { ranks: [s.ranks[0], s.ranks[1]], u: s.u, z: s.z, p: s.p, rankBiserial: s.rankBiserial, alpha, tails: alternative, nExcluded, figurePng }
 }

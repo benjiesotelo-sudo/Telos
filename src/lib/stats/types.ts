@@ -8,6 +8,7 @@ export interface TTestResult {
   levene: { F: number | null; p: number | null } // null when degenerate (n < 3 per group) — rendered as em-dash
   ciLevel: number
   alpha: number
+  tails: string
   nExcluded: number                              // rows dropped listwise (missing/non-numeric role value)
   figurePng: Uint8Array<ArrayBuffer>
 }

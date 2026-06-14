@@ -31,4 +31,18 @@ describe('runPearson', () => {
     expect(r.n).toBe(4)
     expect(r.nExcluded).toBe(2)
   }, 300_000)
+
+  it('alternative=greater yields ~half the two-tailed p for a positive correlation', async () => {
+    // hours_studied × exam_score: r=0.70 (positive), so 'greater' (positive association) is in the predicted direction.
+    const twoTailed = await runPearson(engine, loadAssociationFixture(), 'hours_studied', 'exam_score', 0.95, 0.05, 'two.sided')
+    const greater   = await runPearson(engine, loadAssociationFixture(), 'hours_studied', 'exam_score', 0.95, 0.05, 'greater')
+    const less      = await runPearson(engine, loadAssociationFixture(), 'hours_studied', 'exam_score', 0.95, 0.05, 'less')
+    // Positive t: greater ≈ two-sided/2; less ≈ 1 − two-sided/2
+    expect(greater.p).toBeCloseTo(twoTailed.p / 2, 9)
+    expect(less.p).toBeCloseTo(1 - twoTailed.p / 2, 9)
+    // Confirm tails field flows through
+    expect(twoTailed.tails).toBe('two.sided')
+    expect(greater.tails).toBe('greater')
+    expect(less.tails).toBe('less')
+  }, 900_000)
 })

@@ -9,7 +9,7 @@ const overlap: MannWhitneyUResult = { // cross-verified overlap12 numbers
     { group: 'control', n: 6, meanRank: 4.5, sumRanks: 27 },
     { group: 'treatment', n: 6, meanRank: 8.5, sumRanks: 51 },
   ],
-  u: 6, z: -1.92153785, p: 0.0649350649, rankBiserial: -0.666666667, alpha: 0.05, nExcluded: 0, figurePng: png,
+  u: 6, z: -1.92153785, p: 0.0649350649, rankBiserial: -0.666666667, alpha: 0.05, tails: 'two.sided', nExcluded: 0, figurePng: png,
 }
 
 describe('buildMannWhitneyU', () => {

@@ -5,6 +5,7 @@ export interface SpearmanResult {
   varA: string; varB: string
   rho: number; s: number; p: number; n: number
   alpha: number
+  tails: string
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -13,7 +14,7 @@ export interface SpearmanResult {
 // with ties anyway, and this pins WebR ≡ native R regardless of tie pattern. Spike-verified both ways.
 // suppressWarnings: the tie warning is expected, and the spike battery ran exactly this form.
 const R_STATS = String.raw`
-ct <- suppressWarnings(cor.test(x, y, method = 'spearman', exact = FALSE))
+ct <- suppressWarnings(cor.test(x, y, method = 'spearman', exact = FALSE, alternative = alternative))
 list(rho = unname(ct$estimate), s = unname(ct$statistic), p = ct$p.value, n = length(x))`
 
 // Card R map: ggplot2 → figure; raw values (design §3.9), column names as axis labels.
@@ -24,13 +25,13 @@ print(ggplot2::ggplot(data.frame(x = x, y = y), ggplot2::aes(x, y)) +
 
 interface RawStats { rho: number; s: number; p: number; n: number }
 
-export async function runSpearman(engine: Engine, data: Dataset, varA: string, varB: string, alpha = 0.05): Promise<SpearmanResult> {
+export async function runSpearman(engine: Engine, data: Dataset, varA: string, varB: string, alpha = 0.05, alternative = 'two.sided'): Promise<SpearmanResult> {
   const rows = data.rows.filter((r) =>
     typeof r[varA] === 'number' && Number.isFinite(r[varA] as number)
     && typeof r[varB] === 'number' && Number.isFinite(r[varB] as number))
   const nExcluded = data.rows.length - rows.length
-  const env = { x: rows.map((r) => r[varA] as number), y: rows.map((r) => r[varB] as number), xlab: varA, ylab: varB }
+  const env = { x: rows.map((r) => r[varA] as number), y: rows.map((r) => r[varB] as number), xlab: varA, ylab: varB, alternative }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_SCATTER, 600, 450, env)
-  return { varA, varB, ...s, alpha, nExcluded, figurePng }
+  return { varA, varB, ...s, alpha, tails: alternative, nExcluded, figurePng }
 }

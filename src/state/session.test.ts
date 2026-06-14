@@ -43,7 +43,7 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     useSession.getState().addRole('independent-t-test', 'group', 'group')
   }
   it('selection creates a setup with the drawn defaults (equal variance OFF)', () => {
-    expect(useSession.getState().setups['independent-t-test']).toEqual({ roles: { outcome: [], group: [] }, options: { equalVariance: false, alpha: 0.05, ci: '95%' }, props: {}, blocked: null })
+    expect(useSession.getState().setups['independent-t-test']).toEqual({ roles: { outcome: [], group: [] }, options: { equalVariance: false, alpha: 0.05, ci: '95%', tails: 'two-tailed' }, props: {}, blocked: null })
   })
   it('a level edit that breaks an assigned role blocks the config with the reason and marks results stale', () => {
     assign(); fakeRun()

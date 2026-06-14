@@ -13,7 +13,7 @@ export const ONE_SAMPLE_T_TEST: TestSpec = {
     { id: 'mu0', label: 'test value (μ₀)', value: '0', kind: 'number', default: 0,
       hint: 'The test value defaults to 0, so be sure to set it to the figure that actually matters for your question.' },
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
-    { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
+    { id: 'tails', label: 'tails', value: 'two-tailed', kind: 'select', choices: ['two-tailed', 'one-tailed (greater)', 'one-tailed (less)'], hint: 'one-tailed needs a directional hypothesis set in advance' },
     { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
   ],
   constraints: {

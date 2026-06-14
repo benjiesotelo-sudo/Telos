@@ -11,7 +11,7 @@ const base: WilcoxonSignedRankResult = {
     { sign: 'Ties', n: 0, meanRank: null, sumRanks: 0 },
   ],
   v: 0, z: -2.20139816, p: 0.03125, r: -1, method: 'Wilcoxon signed rank exact test',
-  alpha: 0.05, nExcluded: 2, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
+  alpha: 0.05, tails: 'two.sided', nExcluded: 2, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
 }
 
 describe('buildWilcoxonSignedRank', () => {

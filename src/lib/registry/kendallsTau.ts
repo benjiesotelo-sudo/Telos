@@ -11,7 +11,7 @@ export const KENDALLS_TAU: TestSpec = {
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
-    { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
+    { id: 'tails', label: 'tails', value: 'two-tailed', kind: 'select', choices: ['two-tailed', 'one-tailed (greater)', 'one-tailed (less)'], hint: 'one-tailed needs a directional hypothesis set in advance' },
   ],
   constraints: {
     roles: [

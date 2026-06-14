@@ -12,6 +12,7 @@ export interface OneSampleTTestResult {
   shapiro: { W: number | null; p: number | null } // null outside Shapiro's 3–5000 range — rendered as em-dash
   ciLevel: number
   alpha: number
+  tails: string
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -23,7 +24,7 @@ export interface OneSampleTTestResult {
 // = conf.int − μ0 (recorded decision; for μ0 = 0 the two coincide).
 const R_STATS = String.raw`
 n <- length(x)
-res <- t.test(x, mu = mu0, conf.level = level)
+res <- t.test(x, mu = mu0, conf.level = level, alternative = alternative)
 d <- effectsize::cohens_d(x, mu = mu0)
 sw <- if (n >= 3 && n <= 5000) shapiro.test(x) else NULL
 list(n = n, mean = mean(x), sd = sd(x), se = sd(x)/sqrt(n),
@@ -46,16 +47,16 @@ interface RawStats {
   shapiro: { W: number | null; p: number | null }
 }
 
-export async function runOneSampleTTest(engine: Engine, data: Dataset, outcome: string, mu0: number, level = 0.95, alpha = 0.05): Promise<OneSampleTTestResult> {
+export async function runOneSampleTTest(engine: Engine, data: Dataset, outcome: string, mu0: number, level = 0.95, alpha = 0.05, alternative = 'two.sided'): Promise<OneSampleTTestResult> {
   // Per-test single-column drop (design §2, global R2 policy): keep rows whose outcome value is a finite number.
   const values = data.rows.map((r) => r[outcome]).filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
   const nExcluded = data.rows.length - values.length
-  const env = { x: values, mu0, level }
+  const env = { x: values, mu0, level, alternative }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_DISTRIBUTION, 600, 450, env)
   return {
     variable: outcome, n: s.n, mean: s.mean, sd: s.sd, se: s.se, mu0,
     t: s.t, df: s.df, p: s.p, meanDiff: s.meanDiff, ci: [s.ci[0], s.ci[1]], cohensD: s.cohensD,
-    shapiro: s.shapiro, ciLevel: level, alpha, nExcluded, figurePng,
+    shapiro: s.shapiro, ciLevel: level, alpha, tails: alternative, nExcluded, figurePng,
   }
 }

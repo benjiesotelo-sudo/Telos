@@ -4,6 +4,8 @@ import type { PairedTTestResult } from '../stats/pairedTTest'
 import type { CardContent } from './builders'
 import { f, f1, fdf, fp, fpApa } from '../format/apa'
 
+const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
+
 export function buildPairedTTest(spec: TestSpec, r: PairedTTestResult): CardContent {
   const pct = Math.round(r.ciLevel * 100)
   const ciLabel = `${pct}% CI`
@@ -20,7 +22,7 @@ export function buildPairedTTest(spec: TestSpec, r: PairedTTestResult): CardCont
     ],
     note: spec.tableNote ?? null, // the card's static text — no computed values (the card draws no blanks)
     figures: figuresOf(spec).map((fg) => ({ caption: fg.caption, type: fg.type, png: r.figurePng })),
-    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
   }

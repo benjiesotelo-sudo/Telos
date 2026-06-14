@@ -40,10 +40,10 @@ describe('spearman registry stays faithful to the spec HTML (verbatim, card-scop
     expect(labels).toEqual(spec.roles.map((r) => r.label))
     expect(cons).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
   })
-  it('options equal the inputs card option strip; α adjustable, tails display', () => {
+  it('options equal the inputs card option strip; α adjustable, tails select', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
-    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'display'])
+    expect(spec.options.map((o) => o.kind)).toEqual(['number', 'select'])
   })
 })

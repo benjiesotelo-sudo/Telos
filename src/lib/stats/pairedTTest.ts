@@ -11,13 +11,14 @@ export interface PairedTTestResult {
   dz: number                            // effectsize::cohens_d(paired=TRUE)
   ciLevel: number
   alpha: number
+  tails: string
   nExcluded: number                     // incomplete pairs dropped listwise
   figurePng: Uint8Array<ArrayBuffer>
 }
 
 const R_STATS = String.raw`
 desc <- psych::describe(data.frame(a = a, b = b))
-res <- t.test(a, b, paired = TRUE, conf.level = level)
+res <- t.test(a, b, paired = TRUE, conf.level = level, alternative = alternative)
 dz <- effectsize::cohens_d(a, b, paired = TRUE)$Cohens_d
 list(stats = list(list(n = desc$n[1], mean = desc$mean[1], sd = desc$sd[1]),
                   list(n = desc$n[2], mean = desc$mean[2], sd = desc$sd[2])),
@@ -35,13 +36,13 @@ print(ggplot2::ggplot(df, ggplot2::aes(cond, value, group = case)) +
 
 interface RawStats { stats: { n: number; mean: number; sd: number }[]; t: number; df: number; p: number; meanDiff: number; ci: number[]; dz: number }
 
-export async function runPairedTTest(engine: Engine, data: Dataset, conditionA: string, conditionB: string, level = 0.95, alpha = 0.05): Promise<PairedTTestResult> {
+export async function runPairedTTest(engine: Engine, data: Dataset, conditionA: string, conditionB: string, level = 0.95, alpha = 0.05, alternative = 'two.sided'): Promise<PairedTTestResult> {
   // Complete-pairs listwise (the card's missing-data unit): keep rows where BOTH condition columns are numeric-finite.
   const rows = data.rows.filter((r) =>
     typeof r[conditionA] === 'number' && Number.isFinite(r[conditionA] as number) &&
     typeof r[conditionB] === 'number' && Number.isFinite(r[conditionB] as number))
   const nExcluded = data.rows.length - rows.length
-  const env = { a: rows.map((r) => r[conditionA] as number), b: rows.map((r) => r[conditionB] as number), la: conditionA, lb: conditionB, level }
+  const env = { a: rows.map((r) => r[conditionA] as number), b: rows.map((r) => r[conditionB] as number), la: conditionA, lb: conditionB, level, alternative }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
   return {
@@ -51,6 +52,6 @@ export async function runPairedTTest(engine: Engine, data: Dataset, conditionA: 
     ],
     pair: `${conditionA} − ${conditionB}`,
     t: s.t, df: s.df, p: s.p, meanDiff: s.meanDiff, ci: [s.ci[0], s.ci[1]], dz: s.dz,
-    ciLevel: level, alpha, nExcluded, figurePng,
+    ciLevel: level, alpha, tails: alternative, nExcluded, figurePng,
   }
 }

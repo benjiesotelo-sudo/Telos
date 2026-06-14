@@ -11,7 +11,7 @@ export const INDEPENDENT_T_TEST: TestSpec = {
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
-    { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
+    { id: 'tails', label: 'tails', value: 'two-tailed', kind: 'select', choices: ['two-tailed', 'one-tailed (greater)', 'one-tailed (less)'], hint: 'one-tailed needs a directional hypothesis set in advance' },
     { id: 'equalVariance', label: 'equal variance', value: 'off · Welch', kind: 'toggle', default: false }, // drawn default: OFF → Welch runs (Benjie's ruling)
     { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
   ],

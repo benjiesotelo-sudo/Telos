@@ -10,9 +10,8 @@ export const PEARSON: TestSpec = {
     { id: 'variableB', label: 'Variable B', levels: 'interval / ratio', arity: 'exactly 1' },
   ],
   options: [
-    // House convention (recorded decision 1): α / tails / CI pills are display-only.
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
-    { id: 'tails', label: 'tails', value: 'two', kind: 'display' },
+    { id: 'tails', label: 'tails', value: 'two-tailed', kind: 'select', choices: ['two-tailed', 'one-tailed (greater)', 'one-tailed (less)'], hint: 'one-tailed needs a directional hypothesis set in advance' },
     { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
   ],
   constraints: {

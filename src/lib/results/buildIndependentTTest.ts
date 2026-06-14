@@ -3,6 +3,8 @@ import type { TTestResult } from '../stats/types'
 import type { CardContent } from './builders'
 import { f, f1, fdf, fp, fpApa, fx } from '../format/apa'
 
+const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
+
 export function buildIndependentTTest(spec: TestSpec, r: TTestResult): CardContent {
   const [g1, g2] = r.groupStats
   const pct = Math.round(r.ciLevel * 100)
@@ -21,7 +23,7 @@ export function buildIndependentTTest(spec: TestSpec, r: TTestResult): CardConte
     ],
     note: { kind: 'assume', text: `${spec.assumptionNote} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · ${r.test === 'welch' ? 'Welch' : 'pooled'} test)` },
     figures: [{ caption: spec.figure!.caption, type: spec.figure!.type, png: r.figurePng }],
-    howToRead: spec.howToRead.replace('95% CI', ciLabel).replace('(e.g. .05)', `(e.g. ${r.alpha})`),
+    howToRead: spec.howToRead.replace('95% CI', ciLabel).replace('(e.g. .05)', `(e.g. ${r.alpha})`) + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
   }

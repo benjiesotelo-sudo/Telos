@@ -4,6 +4,8 @@ import type { PearsonResult } from '../stats/pearson'
 import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
+const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
+
 export function buildPearson(spec: TestSpec, r: PearsonResult): CardContent {
   const pct = Math.round(r.ciLevel * 100)
   const ciLabel = `${pct}% CI`
@@ -22,7 +24,7 @@ export function buildPearson(spec: TestSpec, r: PearsonResult): CardContent {
     }] }],
     note: null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead.replace('95% CI', ciLabel) + ` Your significance threshold (α) is ${r.alpha}.`,
+    howToRead: spec.howToRead.replace('95% CI', ciLabel) + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
   }

@@ -4,6 +4,8 @@ import type { SpearmanResult } from '../stats/spearman'
 import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
+const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
+
 export function buildSpearman(spec: TestSpec, r: SpearmanResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{rho}', f01(r.rho))
@@ -16,7 +18,7 @@ export function buildSpearman(spec: TestSpec, r: SpearmanResult): CardContent {
     }] }],
     note: spec.tableNote ?? null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
   }

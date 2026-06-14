@@ -45,4 +45,22 @@ describe('runIndependentTTest', () => {
     expect(r.ci[1]).toBeCloseTo(-7.511, 2)
     expect(r.nExcluded).toBe(0)
   })
+
+  it('alternative=greater yields ~half the two-tailed p when effect is in that direction (control<treatment)', async () => {
+    // The unequal dataset has control mean 70.3 < treatment mean 82.3; contrast is control−treatment (negative t).
+    // alternative='greater' means μ_first − μ_second > 0 (control > treatment), which is AGAINST the observed direction.
+    // So p(greater) ≈ 1 − p(two-sided)/2, and p(less) ≈ p(two-sided)/2.
+    const twoTailed = await runIndependentTTest(engine, unequal, 'score', 'group', false, 0.95, 0.05, 'two.sided')
+    const greater   = await runIndependentTTest(engine, unequal, 'score', 'group', false, 0.95, 0.05, 'greater')
+    const less      = await runIndependentTTest(engine, unequal, 'score', 'group', false, 0.95, 0.05, 'less')
+    // t is negative (control below treatment), so:
+    //   less (predicted control < treatment): p ≈ two-tailed / 2
+    //   greater (opposite direction): p ≈ 1 - two-tailed / 2
+    expect(less.p).toBeCloseTo(twoTailed.p / 2, 6)
+    expect(greater.p).toBeCloseTo(1 - twoTailed.p / 2, 6)
+    // Confirm tails field flows through
+    expect(twoTailed.tails).toBe('two.sided')
+    expect(greater.tails).toBe('greater')
+    expect(less.tails).toBe('less')
+  })
 })
