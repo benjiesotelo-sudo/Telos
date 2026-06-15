@@ -91,7 +91,7 @@ const freshSetup = (id: string): TestSetup => ({
   roles: Object.fromEntries((SPECS[id]?.constraints.roles ?? []).map((r) => [r.roleId, []])),
   options: Object.fromEntries((SPECS[id]?.options ?? []).filter((o) => o.kind !== 'display').map((o) => [o.id,
     o.kind === 'level-select' ? '' :
-    o.kind === 'select' || o.kind === 'proportions' ? (o.default != null ? String(o.default) : o.value) : o.default!,
+    o.kind === 'select' || o.kind === 'proportions' || o.kind === 'arima-order' ? (o.default != null ? String(o.default) : o.value) : o.default!,
   ])),
   props: {},
   blocked: null,

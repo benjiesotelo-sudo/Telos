@@ -45,13 +45,13 @@ export function TestConfigScreen({ testId }: { testId: string }) {
               </label>
             )
           })()
-        ) : o.kind === 'select' || o.kind === 'proportions' ? (
+        ) : o.kind === 'select' || o.kind === 'proportions' || o.kind === 'arima-order' ? (
           <label key={o.id} className="pill">
             {o.label}{' '}
             <select aria-label={o.label} value={String(setup.options[o.id] ?? o.value)} disabled={running}
               onChange={(e) => s.setOption(testId, o.id, e.target.value)}
               style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
-              {(o.kind === 'proportions' ? ['equal', 'custom'] : o.choices!).map((c) => <option key={c} value={c}>{c}</option>)}
+              {(o.kind === 'proportions' ? ['equal', 'custom'] : o.kind === 'arima-order' ? ['auto-select', 'manual'] : o.choices!).map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
         ) : (
@@ -88,6 +88,19 @@ export function TestConfigScreen({ testId }: { testId: string }) {
           </div>
         )
       })}
+      {spec.options.filter((o) => o.kind === 'arima-order' && setup.options[o.id] === 'manual').map((o) => (
+        <div key={o.id} style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span className="hint">manual order (p, d, q)(P, D, Q):</span>
+          {(['p', 'd', 'q', 'P', 'D', 'Q'] as const).map((k) => (
+            <label key={k} className="pill">
+              {k}{' '}
+              <input type="number" min={0} step={1} value={Number(setup.options[`${o.id}.${k}`] ?? 0)} disabled={running}
+                aria-label={`order ${k}`} onChange={(e) => s.setOption(testId, `${o.id}.${k}`, Number(e.target.value))}
+                style={{ width: '3.5em', border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }} />
+            </label>
+          ))}
+        </div>
+      ))}
       {spec.options.filter((o) => o.hint).map((o) => (
         <p key={o.id} className="hint" style={{ marginTop: 6 }}>{o.hint}</p>
       ))}
