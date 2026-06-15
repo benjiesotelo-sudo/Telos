@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { slotCompatibility, testEligibility, completeRowsPerGroup, nestedLevelReuse } from './eligibility'
 import { INDEPENDENT_T_TEST } from '../registry/independentTTest'
+import { ARIMA_SARIMA } from '../registry/arimaSarima'
 import { CATALOG } from '../registry/catalog'
 import type { ColumnMeta } from '../data/columnMeta'
 import type { Dataset } from '../stats/types'
@@ -46,6 +47,15 @@ describe('time-order + excludeTag guards (econometrics)', () => {
     expect(slotCompatibility(seriesRole, dt('month'), ds)).toEqual({ ok: false, reason: 'the date/time column belongs in the Time slot, not here' }))
   it('series role still accepts a ratio column', () =>
     expect(slotCompatibility(seriesRole, col('sales', 'ratio'), ds).ok).toBe(true))
+  it('a time-series test is eligible when the series has ≥n values (values minRule; Time role is non-numeric)', () => {
+    const cols: ColumnMeta[] = [
+      { name: 'month', detected: 'datetime64', tags: ['datetime'], level: 'interval', used: true },
+      { name: 'sales', detected: 'float64', tags: [], level: 'ratio', used: true },
+    ]
+    const tsDs: Dataset = { columns: ['month', 'sales'], rows: Array.from({ length: 25 }, (_, i) => ({ month: `2020-${String(i + 1).padStart(2, '0')}-01`, sales: i + 1.5 })) }
+    const entry = CATALOG.find((c) => c.id === 'arima-sarima')!
+    expect(testEligibility(entry, ARIMA_SARIMA, cols, tsDs).ok).toBe(true)
+  })
 })
 
 describe('completeRowsPerGroup', () => {

@@ -83,7 +83,9 @@ export function testEligibility(entry: CatalogEntry, spec: TestSpec | null, colu
     return { ok: false, reason: `needs at least ${rule.n} complete pairs` }
   }
   if (rule.kind === 'values') {
-    if (candidates[0].some((c) => numericValues(working, c.name) >= rule.n)) return { ok: true, reason: null }
+    // any role's candidate column with ≥n numeric values (the time-series Time role is a non-numeric
+    // datetime, so check across all roles — not just candidates[0], which for those tests is the Time slot)
+    if (candidates.flat().some((c) => numericValues(working, c.name) >= rule.n)) return { ok: true, reason: null }
     return { ok: false, reason: `needs at least ${rule.n} values` }
   }
   if (rule.kind === 'complete-wide-rows') {
