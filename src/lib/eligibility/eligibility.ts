@@ -14,6 +14,12 @@ export function slotCompatibility(role: RoleConstraint, col: ColumnMeta | undefi
   if (!col) return { ok: false, reason: 'column not found' }
   if (!col.used) return { ok: false, reason: 'column is not marked Use' }
   if (col.level === null) return { ok: false, reason: 'needs a measurement level' }
+  // time-series Time role: a datetime-tagged or ordinal column (ignores the levels list, which is empty for this role)
+  if (role.timeOrder) return (col.tags.includes('datetime') || col.level === 'ordinal')
+    ? { ok: true, reason: null } : { ok: false, reason: 'needs a date/time or ordered column' }
+  // numeric Series roles must reject the date column (a datetime column auto-levels to 'interval')
+  if (role.excludeTag && col.tags.includes(role.excludeTag))
+    return { ok: false, reason: 'the date/time column belongs in the Time slot, not here' }
   if (!role.levels.includes(col.level)) return { ok: false, reason: `needs ${role.levels[0] === 'interval' ? 'an' : 'a'} ${role.levels.join(' / ')} column` }
   if (role.tag && !col.tags.includes(role.tag))
     return { ok: false, reason: 'needs a count column (non-negative whole numbers)' }

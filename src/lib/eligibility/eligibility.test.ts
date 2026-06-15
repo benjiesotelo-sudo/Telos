@@ -32,6 +32,22 @@ describe('slotCompatibility', () => {
   })
 })
 
+describe('time-order + excludeTag guards (econometrics)', () => {
+  const dt = (name: string): ColumnMeta => ({ name, detected: 'datetime64', tags: ['datetime'], level: 'interval', used: true })
+  const timeRole: RoleConstraint = { roleId: 'time', levels: [], arity: { min: 1, max: 1 }, timeOrder: true }
+  const seriesRole: RoleConstraint = { roleId: 'series', levels: ['interval', 'ratio'], arity: { min: 1, max: 1 }, excludeTag: 'datetime' }
+  it('time role accepts a datetime-tagged column', () =>
+    expect(slotCompatibility(timeRole, dt('month'), ds).ok).toBe(true))
+  it('time role accepts an ordinal column', () =>
+    expect(slotCompatibility(timeRole, col('year', 'ordinal'), ds).ok).toBe(true))
+  it('time role rejects a plain ratio column', () =>
+    expect(slotCompatibility(timeRole, col('sales', 'ratio'), ds)).toEqual({ ok: false, reason: 'needs a date/time or ordered column' }))
+  it('series role excludes the datetime column', () =>
+    expect(slotCompatibility(seriesRole, dt('month'), ds)).toEqual({ ok: false, reason: 'the date/time column belongs in the Time slot, not here' }))
+  it('series role still accepts a ratio column', () =>
+    expect(slotCompatibility(seriesRole, col('sales', 'ratio'), ds).ok).toBe(true))
+})
+
 describe('completeRowsPerGroup', () => {
   it('counts complete (outcome numeric, group present) rows per group', () => {
     const holes: Dataset = { columns: ['score', 'group'], rows: [
