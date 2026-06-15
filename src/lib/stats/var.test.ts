@@ -118,6 +118,8 @@ describe('runVar', () => {
     expect(r.lagRows).toHaveLength(2)
     expect(r.lagRows[1].lag).toBe(2)
     expect(r.lagRows[1].aic).toBeCloseTo(-2.5629342, 5)
+    expect(r.lagRows[1].bic).toBeCloseTo(-2.2694319, 5)  // SC(n)=BIC — guards the VARselect row mapping (criteria[3,])
+    expect(r.lagRows[1].hq).toBeCloseTo(-2.4450975, 5)   // HQ(n) — criteria[2,]
   }, 300_000)
 
   it('listwise: drops rows with missing time or any series column', async () => {

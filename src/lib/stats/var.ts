@@ -59,11 +59,11 @@ colnames(df) <- series_names
 # VARselect: cap search at floor((n-1)/k) to keep models identified
 safe_max <- max(1L, min(as.integer(lag_max), floor((n_obs - 1L) / k)))
 sel <- vars::VARselect(df, lag.max = safe_max, type = 'const')
-criteria <- sel$criteria   # rows: AIC SC HQ FPE; cols: lag 1..safe_max
+criteria <- sel$criteria   # vars::VARselect rownames: AIC(n), HQ(n), SC(n)=Schwarz=BIC, FPE(n)
 
 aic_vec <- criteria[1, ]
-bic_vec <- criteria[2, ]
-hq_vec  <- criteria[3, ]
+bic_vec <- criteria[3, ]   # SC(n) = Schwarz criterion = BIC
+hq_vec  <- criteria[2, ]   # HQ(n)
 lags_vec <- seq_len(ncol(criteria))
 lag_table <- lapply(seq_along(lags_vec), function(i)
   list(lag = lags_vec[i], aic = aic_vec[i], bic = bic_vec[i], hq = hq_vec[i]))

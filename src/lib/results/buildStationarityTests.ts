@@ -8,6 +8,9 @@ import { f, fp, fpApa } from '../format/apa'
 // otherwise the compact table-style p (no leading zero).
 const pCell = (row: StationarityRow): string =>
   row.pBounded === 'less' ? `< ${fp(row.p)}` : row.pBounded === 'greater' ? `> ${fp(row.p)}` : fp(row.p)
+// APA-sentence p: bounded values keep the interpolation operator ("< .01" / "> .10"); else report-only fpApa ("= .253")
+const apaP = (row: StationarityRow): string =>
+  row.pBounded === 'less' ? `< ${fp(row.p)}` : row.pBounded === 'greater' ? `> ${fp(row.p)}` : fpApa(row.p)
 
 export function buildStationarityTests(spec: TestSpec, r: StationarityResult): CardContent {
   const rows = r.rows.map((row) => ({
@@ -17,8 +20,8 @@ export function buildStationarityTests(spec: TestSpec, r: StationarityResult): C
   const adf = r.rows.find((x) => x.test === 'ADF')!
   const kpss = r.rows.find((x) => x.test === 'KPSS')!
   const apa = spec.apaTemplate
-    .replace('{adf}', f(adf.statistic)).replace('{adfp}', fpApa(adf.p))
-    .replace('{kpss}', f(kpss.statistic)).replace('{kpssp}', fpApa(kpss.p))
+    .replace('{adf}', f(adf.statistic)).replace('{adfp}', apaP(adf))
+    .replace('{kpss}', f(kpss.statistic)).replace('{kpssp}', apaP(kpss))
     .replace('{alpha}', String(r.alpha))
   const figs = figuresOf(spec)
   return {
