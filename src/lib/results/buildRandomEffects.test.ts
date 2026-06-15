@@ -24,7 +24,7 @@ describe('buildRandomEffects', () => {
   })
   it('APA names the first SLOPE (not the intercept), report-only', () => {
     expect(buildRandomEffects(RANDOM_EFFECTS, mock()).apa)
-      .toBe('In a random-effects model, leverage gave B = −4.05, p = .002.')
+      .toBe('In a random-effects model, predictor leverage gave B=−4.05, p = .002.')
   })
   it('threads CI level into the coefficient header', () => {
     expect(buildRandomEffects(RANDOM_EFFECTS, mock({ ciLevel: 0.99 })).tables[0].spec.columns.find((c) => c.key === 'ci')!.label).toBe('99% CI')

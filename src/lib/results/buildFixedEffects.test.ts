@@ -25,7 +25,7 @@ describe('buildFixedEffects', () => {
 
   it('APA is report-only (states the estimate, no verdict) and names the first predictor', () => {
     expect(buildFixedEffects(FIXED_EFFECTS, mock()).apa)
-      .toBe('In a fixed-effects (within) model, leverage gave B = −5.57, p < .001 (clustered SE).')
+      .toBe('In a fixed-effects model, predictor leverage gave B=−5.57, p < .001 (clustered SE).')
   })
 
   it('threads the CI level into the coefficient table header', () => {

@@ -1,21 +1,21 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Random effects card).
-// Report-only APA (drawn "gave" wording already neutral; templated). Clustered SE like FE.
+// Encoded VERBATIM from telos_test_outputs.html + telos_test_inputs.html (Random effects card).
+// Report-only APA — drawn "gave" wording already neutral.
+// tableNote verbatim from the drawn card (kind 'plain', afterTableId 're-model-fit').
 export const RANDOM_EFFECTS: TestSpec = {
   id: 'random-effects',
   name: 'Random effects',
-  question: 'a panel outcome with entity differences modelled as random',
+  question: 'panel regression, random entity effects',
   roles: [
     { id: 'entity', label: 'Entity', levels: 'nominal / ordinal', arity: 'exactly 1', hint: 'e.g. the unit observed repeatedly — firm, country, student' },
-    { id: 'time', label: 'Time', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the period — month, year' },
-    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured — roa, income' },
-    { id: 'regressors', label: 'Regressors', levels: 'any', arity: 'one or more', hint: 'e.g. explanatory variables — leverage, R&D spend' },
+    { id: 'time', label: 'Time', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the date / time-order column — month, year' },
+    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured — test score, income' },
+    { id: 'regressors', label: 'Regressors', levels: 'any level', arity: 'one or more', hint: 'e.g. explanatory variables — R&D spend, leverage' },
   ],
   options: [
-    { id: 'se', label: 'std. errors', value: 'clustered by entity', kind: 'select', choices: ['clustered by entity', 'classical'] },
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
-    { id: 'ci', label: 'CI', value: '95%', kind: 'select', choices: ['90%', '95%', '99%'] },
+    { id: 'se', label: 'std. errors', value: 'clustered by entity', kind: 'select', choices: ['clustered by entity', 'classical'] },
   ],
   constraints: {
     roles: [
@@ -44,13 +44,13 @@ export const RANDOM_EFFECTS: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'Unlike fixed effects, random effects retains time-invariant predictors; it is more efficient than fixed effects but only valid when the entity effects are uncorrelated with the predictors — check this with the Hausman test.',
+    text: 'unlike fixed effects, time-invariant predictors can be retained. summary(plm) returns a single R² / adj. R² (not a within/between/overall split).',
     afterTableId: 're-model-fit',
   },
-  figures: [{ caption: 'Coefficients', type: 'coefficient plot (estimate ± CI)', file: 'coefficients' }],
+  figures: [{ caption: 'Coefficients', type: 'coefficient plot', file: 'coefficients' }],
   howToRead:
     'Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each B/p as usual — but only trust this model if the Hausman test favours random over fixed effects.',
-  apaTemplate: 'In a random-effects model, {predictor} gave B = {b}, p {p}.',
-  rMap: 'plm::plm(model="random") → coefficients · plm::vcovHC(method="arellano") → clustered SE · ggplot2 → figure',
+  apaTemplate: 'In a random-effects model, predictor X gave B={b}, p {p}.',
+  rMap: 'plm(model="random") → Tables · ggplot2 → figure',
   bundleFiles: ['table_coefficients.png', 'table_model-fit.png', 'figure_coefficients.png'],
 }

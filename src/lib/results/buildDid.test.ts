@@ -21,12 +21,12 @@ describe('buildDid', () => {
     expect(c.tables[0].rows.map((r) => r.term)).toEqual(['Intercept', 'Treated', 'Post', 'Treated × Post'])
     expect(c.tables[0].rows[3]).toEqual({ term: 'Treated × Post', b: '1.53', se: '0.12', t: '12.47', p: '<.001', ci: '[1.28, 1.77]' })
   })
-  it('APA reports the DiD interaction estimate with threaded CI (report-only)', () => {
-    expect(buildDid(DID, mock()).apa).toBe('The DiD estimate was B = 1.53, 95% CI [1.28, 1.77], p < .001 (clustered SE).')
+  it('APA reports the DiD interaction estimate with literal 95% CI (report-only)', () => {
+    expect(buildDid(DID, mock()).apa).toBe('The DiD estimate was B=1.53, 95% CI [1.28, 1.77], p < .001 (clustered SE).')
   })
-  it('threads a non-default CI level into the APA + header', () => {
+  it('threads a non-default CI level into the column header (APA uses literal 95% CI)', () => {
     const c = buildDid(DID, mock({ ciLevel: 0.9 }))
-    expect(c.apa).toContain('90% CI')
+    // APA template has literal "95% CI" — not threaded; column label still updates from ciLevel
     expect(c.tables[0].spec.columns.find((col) => col.key === 'ci')!.label).toBe('90% CI')
   })
 })

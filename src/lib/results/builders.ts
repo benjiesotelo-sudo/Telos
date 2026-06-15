@@ -69,6 +69,20 @@ import { runGrangerCausality, type GrangerResult } from '../stats/grangerCausali
 import { buildGrangerCausality } from './buildGrangerCausality'
 import { runVar, type VarResult } from '../stats/var'
 import { buildVar } from './buildVar'
+import { runFixedEffects, type FixedEffectsResult } from '../stats/fixedEffects'
+import { buildFixedEffects } from './buildFixedEffects'
+import { runRandomEffects, type RandomEffectsResult } from '../stats/randomEffects'
+import { buildRandomEffects } from './buildRandomEffects'
+import { runHausmanTest, type HausmanResult } from '../stats/hausmanTest'
+import { buildHausmanTest } from './buildHausmanTest'
+import { runDid, type DidResult } from '../stats/did'
+import { buildDid } from './buildDid'
+import { runIvTwoStage, type IvResult } from '../stats/ivTwoStage'
+import { buildIvTwoStage } from './buildIvTwoStage'
+import { runRdd, type RddResult } from '../stats/rdd'
+import { buildRdd } from './buildRdd'
+import { runPropensityScoreMatching, type PsmResult } from '../stats/propensityScoreMatching'
+import { buildPropensityScoreMatching } from './buildPropensityScoreMatching'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
 
@@ -155,6 +169,22 @@ export const RUNNERS: Record<string, Runner> = {
     runGrangerCausality(engine, ds, setup.roles['time'][0], setup.roles['seriesX'][0], setup.roles['seriesY'][0], { maxLag: Number(setup.options['maxLag'] ?? 4), alpha: alphaOf(setup) }),
   'var': (engine, ds, setup) =>
     runVar(engine, ds, setup.roles['time'][0], setup.roles['series'], { lagOrder: setup.options['lagOrder'] === 'auto' ? 'auto' : Number(setup.options['lagOrder']), irfHorizon: Number(setup.options['irfHorizon'] ?? 10) }),
+  'fixed-effects': (engine, ds, setup) =>
+    runFixedEffects(engine, ds, setup.roles['entity'][0], setup.roles['time'][0], setup.roles['outcome'][0], setup.roles['regressors'], { effect: String(setup.options['effects'] ?? 'entity'), seClustered: setup.options['se'] !== 'classical', alpha: alphaOf(setup) }),
+  'random-effects': (engine, ds, setup) =>
+    runRandomEffects(engine, ds, setup.roles['entity'][0], setup.roles['time'][0], setup.roles['outcome'][0], setup.roles['regressors'], { seClustered: setup.options['se'] !== 'classical', alpha: alphaOf(setup) }),
+  'hausman-test': (engine, ds, setup) =>
+    runHausmanTest(engine, ds, setup.roles['entity'][0], setup.roles['time'][0], setup.roles['outcome'][0], setup.roles['regressors'], { alpha: alphaOf(setup) }),
+  'did': (engine, ds, setup) =>
+    runDid(engine, ds, setup.roles['outcome'][0], setup.roles['treatment'][0], setup.roles['period'][0], setup.roles['entity'][0], setup.roles['time'][0], { seClustered: setup.options['se'] !== 'classical', alpha: alphaOf(setup) }),
+  'iv-2sls': (engine, ds, setup) =>
+    runIvTwoStage(engine, ds, setup.roles['outcome'][0], setup.roles['endogenous'], setup.roles['instruments'], setup.roles['controls'] ?? [], { seRobust: setup.options['se'] !== 'classical', alpha: alphaOf(setup) }),
+  'rdd': (engine, ds, setup) =>
+    runRdd(engine, ds, setup.roles['outcome'][0], setup.roles['running'][0], { cutoff: Number(setup.options['cutoff'] ?? 50), polyOrder: parseInt(String(setup.options['poly'] ?? '1'), 10) || 1, alpha: alphaOf(setup) }),
+  'propensity-score-matching': (engine, ds, setup) => {
+    const cal = Number(setup.options['caliper'])
+    return runPropensityScoreMatching(engine, ds, setup.roles['outcome'][0], setup.roles['treatment'][0], setup.roles['covariates'], { ratio: parseInt(String(setup.options['ratio'] ?? '1'), 10) || 1, caliper: Number.isFinite(cal) ? cal : 0, alpha: alphaOf(setup) })
+  },
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -190,4 +220,11 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'stationarity-tests': (spec, result) => buildStationarityTests(spec, result as StationarityResult),
   'granger-causality': (spec, result) => buildGrangerCausality(spec, result as GrangerResult),
   'var': (spec, result) => buildVar(spec, result as VarResult),
+  'fixed-effects': (spec, result) => buildFixedEffects(spec, result as FixedEffectsResult),
+  'random-effects': (spec, result) => buildRandomEffects(spec, result as RandomEffectsResult),
+  'hausman-test': (spec, result) => buildHausmanTest(spec, result as HausmanResult),
+  'did': (spec, result) => buildDid(spec, result as DidResult),
+  'iv-2sls': (spec, result) => buildIvTwoStage(spec, result as IvResult),
+  'rdd': (spec, result) => buildRdd(spec, result as RddResult),
+  'propensity-score-matching': (spec, result) => buildPropensityScoreMatching(spec, result as PsmResult),
 }

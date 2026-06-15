@@ -885,7 +885,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Each <b>B</b> is the within-entity effect of a predictor, controlling for everything stable about each entity. <b>p</b> and the clustered <b>CI</b> assess it; within R&sup2; is the variance explained by the time-varying predictors.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;In a fixed-effects model, predictor X gave <i>B</i>=__, <i>p</i>=__ (clustered SE).&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;In a fixed-effects model, predictor X gave <i>B</i>=__, <i>p</i>&nbsp;__ (clustered SE).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>plm(model="within")</code> / <code>fixest::feols()</code> &rarr; Tables &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_coefficients.png &middot; table_model-fit.png &middot; figure_coefficients.png</div>
       </div>
@@ -906,7 +906,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each <b>B</b>/<b>p</b> as usual &mdash; but only trust this model if the Hausman test favours random over fixed effects.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;In a random-effects model, predictor X gave <i>B</i>=__, <i>p</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;In a random-effects model, predictor X gave <i>B</i>=__, <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>plm(model="random")</code> &rarr; Tables &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_coefficients.png &middot; table_model-fit.png &middot; figure_coefficients.png</div>
       </div>
@@ -926,7 +926,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Tests whether the random-effects assumption holds. A <b>p</b> below alpha means the estimates differ systematically &rarr; use <b>fixed effects</b>; a non-significant p means random effects is acceptable (and more efficient).</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A Hausman test favoured fixed effects, &chi;&sup2;(__)=__, <i>p</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Hausman test comparing the fixed- and random-effects estimates gave &chi;&sup2;(__)=__, <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>plm::phtest()</code> &rarr; Table 1 &middot; compare <code>plm</code> fits &rarr; Table 2</div>
         <div class="m bundle">table_hausman.png &middot; table_fe-vs-re.png &middot; figure_coefficients.png</div>
       </div>
@@ -944,7 +944,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Estimates the jump in the outcome right at the cutoff &mdash; the <b>estimate</b> is the treatment effect for cases near the threshold. <b>p</b>/<b>CI</b> assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold &mdash; check a density (McCrary) test for sorting and covariate-balance / placebo checks.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;At the cutoff, the treatment effect was __, 95% CI [__, __], <i>p</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;At the cutoff, the treatment effect was __, 95% CI [__, __], <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>rdrobust::rdrobust()</code> &rarr; table &middot; <code>rdrobust::rdplot()</code> &rarr; figure</div>
         <div class="m bundle">table_rd-estimate.png &middot; figure_rd-plot.png</div>
       </div>
@@ -965,7 +965,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Check the <b>first-stage F</b> first (rule of thumb &gt; 10 = strong instruments). Then read the 2SLS <b>B</b> for the endogenous predictor as the causal effect, with <b>p</b>/<b>CI</b>. This causal reading rests on the instrument being <b>valid</b> &mdash; relevant <i>and</i> affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;Using 2SLS, X had an effect of <i>B</i>=__, <i>p</i>=__ (first-stage F=__).&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;The 2SLS estimate for X was <i>B</i>=__, <i>p</i>&nbsp;__ (first-stage F=__).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lm(endog ~ instruments + covariates)</code> &rarr; Table 1 (first-stage coef./SE/partial F) &middot; <code>summary(AER::ivreg(...), diagnostics=TRUE)</code> &rarr; Table 2 (2SLS) + weak-IV F, Wu-Hausman, Sargan</div>
         <div class="m bundle">table_first-stage.png &middot; table_2sls.png &middot; figure_coefficients.png</div>
       </div>
@@ -986,7 +986,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>First confirm <b>balance</b> &mdash; matched groups should look alike on the covariates (small standardized differences). Then read the <b>ATT</b> as the treatment effect for the treated, with <b>p</b>/<b>CI</b>. PSM only balances the covariates you measured and included, so the causal reading also assumes no important confounder was left unmeasured (ignorability) &mdash; an assumption that cannot be verified from the data.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;After matching (all SMDs &lt; .1), the ATT was __, 95% CI [__, __], <i>p</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;After propensity-score matching, the ATT was __, 95% CI [__, __], <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>MatchIt::matchit()</code> &rarr; balance + matched data &middot; <code>lm()</code>/<code>marginaleffects</code> on matched data &rarr; ATT &middot; <code>cobalt::love.plot()</code></div>
         <div class="m bundle">table_balance.png &middot; table_att.png &middot; figure_love-plot.png</div>
       </div>
@@ -1005,7 +1005,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The <b>Treated&times;Post</b> coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups <i>would have</i> moved together absent treatment. Similar <b>pre</b>-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it &mdash; a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;The DiD estimate was <i>B</i>=__, 95% CI [__, __], <i>p</i>=__ (clustered SE).&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;The DiD estimate was <i>B</i>=__, 95% CI [__, __], <i>p</i>&nbsp;__ (clustered SE).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>fixest::feols()</code> / <code>lm()</code> with clustered SE &rarr; table &middot; <code>ggplot2</code> &rarr; trends plot</div>
         <div class="m bundle">table_did.png &middot; figure_parallel-trends.png</div>
       </div>

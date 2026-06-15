@@ -15,7 +15,6 @@ export function buildDid(spec: TestSpec, r: DidResult): CardContent {
   const did = r.coefRows.find((x) => x.term === 'tr:po')
   const apa = spec.apaTemplate
     .replace('{b}', did ? f(did.b) : '—')
-    .replace('{pct}', String(pct))
     .replace('{lo}', did ? f(did.ciLow) : '—')
     .replace('{hi}', did ? f(did.ciHigh) : '—')
     .replace('p {p}', `p ${did ? fpApa(did.p) : '—'}`)

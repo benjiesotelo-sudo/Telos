@@ -17,12 +17,15 @@ describe('buildRdd', () => {
       bandwidth: '8.66', estimate: '9.90', se: '0.21', z: '47.99', p: '<.001', ci: '[9.48, 10.28]', n: '18 / 16',
     })
   })
-  it('APA reports the estimate at the cutoff with threaded CI (report-only)', () => {
-    expect(buildRdd(RDD, mock()).apa).toBe('At the cutoff, the RD estimate was 9.90, 95% CI [9.48, 10.28], p < .001.')
+  it('APA reports the estimate at the cutoff with literal 95% CI (report-only)', () => {
+    expect(buildRdd(RDD, mock()).apa).toBe('At the cutoff, the treatment effect was 9.90, 95% CI [9.48, 10.28], p < .001.')
   })
-  it('threads a non-default CI level', () => {
-    const c = buildRdd(RDD, mock({ ciLevel: 0.99 }))
-    expect(c.apa).toContain('99% CI')
-    expect(c.tables[0].spec.columns.find((col) => col.key === 'ci')!.label).toBe('99% CI')
+  it('note is null (no drawn table note)', () => {
+    expect(buildRdd(RDD, mock()).note).toBeNull()
+  })
+  it('howToRead is taken verbatim from the spec (no α threading)', () => {
+    const c = buildRdd(RDD, mock())
+    expect(c.howToRead).toBe(RDD.howToRead)
+    expect(c.howToRead).not.toContain('significance threshold')
   })
 })

@@ -27,7 +27,7 @@ describe('buildHausmanTest', () => {
   })
   it('APA is neutralised — reports the statistic, no "favoured" verdict', () => {
     const apa = buildHausmanTest(HAUSMAN_TEST, mock()).apa
-    expect(apa).toBe('A Hausman test comparing the fixed- and random-effects estimates gave χ²(3) = 3.07, p = .381.')
+    expect(apa).toBe('A Hausman test comparing the fixed- and random-effects estimates gave χ²(3)=3.07, p = .381.')
     expect(apa).not.toContain('favoured')
   })
 })

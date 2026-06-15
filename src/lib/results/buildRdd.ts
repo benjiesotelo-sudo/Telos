@@ -13,16 +13,15 @@ export function buildRdd(spec: TestSpec, r: RddResult): CardContent {
   }
   const apa = spec.apaTemplate
     .replace('{b}', f(r.estimate))
-    .replace('{pct}', String(pct))
     .replace('{lo}', f(r.ciLow))
     .replace('{hi}', f(r.ciHigh))
     .replace('p {p}', `p ${fpApa(r.p)}`)
   const figs = figuresOf(spec)
   return {
     tables: [{ spec: { ...spec.tables[0], columns: t1cols }, rows: [row] }],
-    note: spec.tableNote ?? null,
+    note: null,
     figures: [{ caption: figs[0].caption, type: figs[0].type, file: figs[0].file, png: r.figRdPng }],
-    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
+    howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,
   }

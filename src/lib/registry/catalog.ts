@@ -32,6 +32,13 @@ import { ARIMA_SARIMA } from './arimaSarima'
 import { STATIONARITY_TESTS } from './stationarityTests'
 import { GRANGER_CAUSALITY } from './grangerCausality'
 import { VAR } from './var'
+import { FIXED_EFFECTS } from './fixedEffects'
+import { RANDOM_EFFECTS } from './randomEffects'
+import { HAUSMAN_TEST } from './hausmanTest'
+import { DID } from './did'
+import { RDD } from './rdd'
+import { IV_TWO_STAGE } from './ivTwoStage'
+import { PROPENSITY_SCORE_MATCHING } from './propensityScoreMatching'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -74,13 +81,13 @@ export const CATALOG: CatalogEntry[] = [
   e('stationarity-tests', 'Stationarity tests (ADF, KPSS)', 'Econometrics', 'Time series', 'available'),
   e('granger-causality', 'Granger causality', 'Econometrics', 'Time series', 'available'),
   e('var', 'VAR', 'Econometrics', 'Time series', 'available'),
-  e('fixed-effects', 'Fixed effects', 'Econometrics', 'Panel data'),
-  e('random-effects', 'Random effects', 'Econometrics', 'Panel data'),
-  e('hausman-test', 'Hausman test', 'Econometrics', 'Panel data'),
-  e('did', 'Difference-in-differences (DiD)', 'Econometrics', 'Causal inference'),
-  e('rdd', 'Regression discontinuity (RDD)', 'Econometrics', 'Causal inference'),
-  e('iv-2sls', 'Instrumental variables (IV / 2SLS)', 'Econometrics', 'Causal inference'),
-  e('propensity-score-matching', 'Propensity score matching', 'Econometrics', 'Causal inference'),
+  e('fixed-effects', 'Fixed effects', 'Econometrics', 'Panel data', 'available'),
+  e('random-effects', 'Random effects', 'Econometrics', 'Panel data', 'available'),
+  e('hausman-test', 'Hausman test', 'Econometrics', 'Panel data', 'available'),
+  e('did', 'Difference-in-differences (DiD)', 'Econometrics', 'Causal inference', 'available'),
+  e('rdd', 'Regression discontinuity (RDD)', 'Econometrics', 'Causal inference', 'available'),
+  e('iv-2sls', 'Instrumental variables (IV / 2SLS)', 'Econometrics', 'Causal inference', 'available'),
+  e('propensity-score-matching', 'Propensity score matching', 'Econometrics', 'Causal inference', 'available'),
   e('cronbachs-alpha', "Cronbach's alpha", 'Latent variable models', 'Reliability'),
   e('ave', 'Average variance extracted (AVE)', 'Latent variable models', 'Reliability'),
   e('composite-reliability', 'Composite reliability (CR)', 'Latent variable models', 'Reliability'),
@@ -103,4 +110,5 @@ export const SPECS: Record<string, TestSpec> = {
   [SIMPLE_LINEAR_REGRESSION.id]: SIMPLE_LINEAR_REGRESSION, [MULTIPLE_LINEAR_REGRESSION.id]: MULTIPLE_LINEAR_REGRESSION,
   [LOGISTIC_REGRESSION.id]: LOGISTIC_REGRESSION, [POISSON_NEGATIVE_BINOMIAL.id]: POISSON_NEGATIVE_BINOMIAL,
   [ARIMA_SARIMA.id]: ARIMA_SARIMA, [STATIONARITY_TESTS.id]: STATIONARITY_TESTS, [GRANGER_CAUSALITY.id]: GRANGER_CAUSALITY, [VAR.id]: VAR,
+  [FIXED_EFFECTS.id]: FIXED_EFFECTS, [RANDOM_EFFECTS.id]: RANDOM_EFFECTS, [HAUSMAN_TEST.id]: HAUSMAN_TEST, [DID.id]: DID, [RDD.id]: RDD, [IV_TWO_STAGE.id]: IV_TWO_STAGE, [PROPENSITY_SCORE_MATCHING.id]: PROPENSITY_SCORE_MATCHING,
 }

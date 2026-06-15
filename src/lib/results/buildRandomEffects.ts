@@ -12,7 +12,7 @@ export function buildRandomEffects(spec: TestSpec, r: RandomEffectsResult): Card
   }))
   const first = r.coefRows.find((x) => x.term !== '(Intercept)') // APA names the first slope, not the intercept
   const apa = spec.apaTemplate
-    .replace('{predictor}', first ? first.term : 'the predictor')
+    .replace('predictor X', first ? `predictor ${first.term}` : 'predictor X')
     .replace('{b}', first ? f(first.b) : '—')
     .replace('p {p}', `p ${first ? fpApa(first.p) : '—'}`)
   const figs = figuresOf(spec)

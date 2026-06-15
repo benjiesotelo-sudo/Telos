@@ -12,13 +12,15 @@ export function buildFixedEffects(spec: TestSpec, r: FixedEffectsResult): CardCo
   }))
   const first = r.coefRows[0]
   const apa = spec.apaTemplate
-    .replace('{predictor}', first ? first.term : 'the predictor')
+    .replace('predictor X', `predictor ${first ? first.term : 'X'}`)
     .replace('{b}', first ? f(first.b) : '—')
     .replace('p {p}', `p ${first ? fpApa(first.p) : '—'}`)
-  // §2.8 poolability F appended to the drawn within-variation note (registry/HTML carry only the drawn text).
-  const note = spec.tableNote
-    ? { ...spec.tableNote, text: `${spec.tableNote.text} F-test for individual effects (poolability): F = ${f(r.poolF)}, p ${fpApa(r.poolP)}.` }
-    : null
+  // §2.8 poolability — builder-constructed note (the drawn card has none).
+  const note: CardContent['note'] = {
+    kind: 'plain',
+    text: `F-test for individual effects (poolability): F = ${f(r.poolF)}, p ${fpApa(r.poolP)} — a low p favours the entity effects over pooled OLS.`,
+    afterTableId: 'fe-model-fit',
+  }
   const figs = figuresOf(spec)
   return {
     tables: [

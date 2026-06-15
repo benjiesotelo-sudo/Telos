@@ -24,12 +24,13 @@ describe('buildIvTwoStage', () => {
   })
   it('APA is softened — "the 2SLS estimate for X was B", no causal "had an effect"', () => {
     const apa = buildIvTwoStage(IV_TWO_STAGE, mock()).apa
-    expect(apa).toBe('The 2SLS estimate for educ was B = 7.82, p < .001 (first-stage F = 438.50).')
+    expect(apa).toBe('The 2SLS estimate for educ was B=7.82, p < .001 (first-stage F=438.50).')
     expect(apa).not.toContain('had an effect')
   })
-  it('§2.8 diagnostics note surfaces weak-IV, Wu–Hausman, and Sargan (NA when just-identified)', () => {
+  it('§2.8 diagnostics note prepends spec.tableNote.text then appends live values', () => {
     const note = buildIvTwoStage(IV_TWO_STAGE, mock()).note!.text
-    expect(note).toContain('weak instruments: F = 438.50')
+    expect(note).toContain('diagnostics: weak-instrument (first-stage F), Wu-Hausman endogeneity, and Sargan over-identification (when applicable).')
+    expect(note).toContain('Weak instruments: F = 438.50')
     expect(note).toContain('Wu–Hausman endogeneity: F = 1022.75')
     expect(note).toContain('just-identified')
   })

@@ -6,12 +6,12 @@ import type { TestSpec } from './types'
 export const HAUSMAN_TEST: TestSpec = {
   id: 'hausman-test',
   name: 'Hausman test',
-  question: 'whether to prefer fixed or random effects for a panel model',
+  question: 'fixed vs. random effects?',
   roles: [
     { id: 'entity', label: 'Entity', levels: 'nominal / ordinal', arity: 'exactly 1', hint: 'e.g. the unit observed repeatedly — firm, country, student' },
-    { id: 'time', label: 'Time', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the period — month, year' },
-    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured — roa, income' },
-    { id: 'regressors', label: 'Regressors', levels: 'any', arity: 'one or more', hint: 'e.g. explanatory variables — leverage, R&D spend' },
+    { id: 'time', label: 'Time', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the date / time-order column — month, year' },
+    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured — test score, income' },
+    { id: 'regressors', label: 'Regressors', levels: 'any level', arity: 'one or more', hint: 'e.g. explanatory variables — R&D spend, leverage' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -42,7 +42,7 @@ export const HAUSMAN_TEST: TestSpec = {
   figures: [{ caption: 'FE vs. RE', type: 'side-by-side coefficient plot', file: 'coefficients' }],
   howToRead:
     'Tests whether the random-effects assumption holds. A p below alpha means the estimates differ systematically → use fixed effects; a non-significant p means random effects is acceptable (and more efficient).',
-  apaTemplate: 'A Hausman test comparing the fixed- and random-effects estimates gave χ²({df}) = {chisq}, p {p}.',
-  rMap: 'plm::phtest(fixed, random) → Table 1 · compare plm fits → Table 2 · ggplot2 → figure',
+  apaTemplate: 'A Hausman test comparing the fixed- and random-effects estimates gave χ²({df})={chisq}, p {p}.',
+  rMap: 'plm::phtest() → Table 1 · compare plm fits → Table 2',
   bundleFiles: ['table_hausman.png', 'table_fe-vs-re.png', 'figure_coefficients.png'],
 }

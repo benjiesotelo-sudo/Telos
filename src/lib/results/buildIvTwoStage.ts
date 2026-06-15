@@ -12,15 +12,16 @@ export function buildIvTwoStage(spec: TestSpec, r: IvResult): CardContent {
   const endo = r.endogenous[0]
   const endoCoef = r.coefRows.find((x) => x.term === endo)
   const apa = spec.apaTemplate
-    .replace('{endogenous}', endo ?? 'the endogenous regressor')
+    .replace('for X was', `for ${endo ?? 'the endogenous regressor'} was`)
     .replace('{b}', endoCoef ? f(endoCoef.b) : '—')
     .replace('p {p}', `p ${endoCoef ? fpApa(endoCoef.p) : '—'}`)
     .replace('{f}', f(r.weakF))
-  // §2.8 diagnostics surfaced as a dynamic note (weak instruments, Wu–Hausman endogeneity, Sargan over-id).
+  // §2.8 diagnostics appended to the static spec.tableNote.text (weak instruments, Wu–Hausman, Sargan).
   const sargan = r.sargan == null ? '— (just-identified, over-identification not testable)' : `${f(r.sargan)}, p ${fpApa(r.sarganP ?? 1)}`
+  const staticNote = spec.tableNote?.text ?? ''
   const note: CardContent['note'] = {
     kind: 'plain',
-    text: `Diagnostics — weak instruments: F = ${f(r.weakF)}, p ${fpApa(r.weakP)} (rule of thumb: F > 10); `
+    text: staticNote + ` Weak instruments: F = ${f(r.weakF)}, p ${fpApa(r.weakP)} (rule of thumb: F > 10); `
       + `Wu–Hausman endogeneity: F = ${f(r.wuF)}, p ${fpApa(r.wuP)}; Sargan over-identification: ${sargan}.`,
     afterTableId: 'iv-2sls',
   }

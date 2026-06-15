@@ -5,13 +5,10 @@ import type { CardContent } from './builders'
 import { f, fp, fpApa } from '../format/apa'
 
 export function buildPropensityScoreMatching(spec: TestSpec, r: PsmResult): CardContent {
-  const pct = Math.round(r.ciLevel * 100)
   const balanceRows = r.balance.map((b) => ({ covariate: b.covariate, smdPre: f(b.smdPre), smdPost: f(b.smdPost), varRatio: f(b.varRatio) }))
-  const t2cols = spec.tables[1].columns.map((c) => (c.key === 'ci' ? { ...c, label: `${pct}% CI` } : c))
   const attRow = { estimate: f(r.attB), se: f(r.attSe), t: f(r.attT), p: fp(r.attP), ci: `[${f(r.attLo)}, ${f(r.attHi)}]` }
   const apa = spec.apaTemplate
     .replace('{b}', f(r.attB))
-    .replace('{pct}', String(pct))
     .replace('{lo}', f(r.attLo))
     .replace('{hi}', f(r.attHi))
     .replace('p {p}', `p ${fpApa(r.attP)}`)
@@ -19,7 +16,7 @@ export function buildPropensityScoreMatching(spec: TestSpec, r: PsmResult): Card
   return {
     tables: [
       { spec: spec.tables[0], rows: balanceRows },
-      { spec: { ...spec.tables[1], columns: t2cols }, rows: [attRow] },
+      { spec: spec.tables[1], rows: [attRow] },
     ],
     note: spec.tableNote ?? null,
     figures: [{ caption: figs[0].caption, type: figs[0].type, file: figs[0].file, png: r.figLovePng }],
