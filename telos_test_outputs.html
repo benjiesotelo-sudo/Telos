@@ -806,7 +806,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The chosen <b>(p,d,q)(P,D,Q)</b> orders describe the model. Use the <b>Ljung&ndash;Box p</b> (large = residuals look like white noise, good) and <b>AIC/BIC</b> to judge fit; the forecast table and plot give predictions with uncertainty bands. AIC/BIC compare models only when fit to the same series with identical differencing (d, D) and transformation; lower is better, but they are relative, not absolute, measures of fit.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;An ARIMA(__)(__) model was fit (AIC=__); residuals were white noise (Ljung&ndash;Box <i>p</i>=__).&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;An ARIMA(__)(__) model was fit (AIC=__); the Ljung&ndash;Box test of residual autocorrelation gave p __.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>forecast::auto.arima()</code> / <code>arima()</code> &rarr; Tables &middot; <code>forecast()</code> + <code>autoplot()</code> &rarr; figure</div>
         <div class="m bundle">table_model-summary.png &middot; table_diagnostics.png &middot; table_forecast.png &middot; figure_forecast.png</div>
       </div>
@@ -825,7 +825,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>For <b>ADF</b>, a small p means stationary; for <b>KPSS</b>, a small p means <i>non</i>-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;The series was non-stationary (ADF <i>p</i>=__; KPSS <i>p</i>=__) and was differenced once.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;ADF gave &tau;=__, p __; KPSS gave LM=__, p __ (&alpha;=__).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>tseries::adf.test()</code> / <code>tseries::kpss.test()</code> &rarr; table &middot; <code>forecast::ggAcf()</code> &rarr; figures</div>
         <div class="m bundle">table_stationarity.png &middot; figure_series.png &middot; figure_acf.png</div>
       </div>
@@ -844,7 +844,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>A significant <b>X&rarr;Y</b> p means past values of X help predict Y beyond Y's own past &mdash; this is <i>predictive precedence</i>, not proof that X causes Y. Check both directions. The result depends entirely on the <b>lag order</b> (default 1 in <code>grangertest()</code>): choose it on theory or by AIC/BIC and report it, since different lags can flip the conclusion. Make both series stationary first.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;X Granger-caused Y, <i>F</i>(__,__)=__, <i>p</i>=__, but not the reverse.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;Granger test X&rarr;Y: F(__,__)=__, p __; Y&rarr;X: F(__,__)=__, p __ (lag=__).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lmtest::grangertest()</code> run once per direction (or <code>vars::causality()</code>) &rarr; the two table rows &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_granger.png &middot; figure_cross-series.png</div>
       </div>
@@ -864,7 +864,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>A VAR models several series as functions of their joint past. The <b>impulse-response</b> plots show how a shock to one series propagates to the others over time; read each IRF together with its bootstrap confidence band, and note that orthogonalised (Cholesky) IRFs depend on the ordering of the series. Lag selection picks how many past periods to include. A level VAR assumes stationary series &mdash; difference them (or use a VECM) if they are not.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A VAR(__) model was selected by AIC; impulse-response analysis showed&hellip;&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A VAR(__) model was selected by AIC; impulse-response functions are shown (Figure).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>vars::VARselect()</code> &rarr; Table 1 &middot; <code>vars::VAR()</code> &rarr; Table 2 &middot; <code>vars::irf()</code> &rarr; figure</div>
         <div class="m bundle">table_lag-selection.png &middot; table_var-coefficients.png &middot; figure_irf.png</div>
       </div>

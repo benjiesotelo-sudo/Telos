@@ -73,9 +73,9 @@ export const ARIMA_SARIMA: TestSpec = {
     'white noise, good) and AIC/BIC to judge fit; the forecast table and plot give predictions with uncertainty ' +
     'bands. AIC/BIC compare models only when fit to the same series with identical differencing (d, D) and ' +
     'transformation; lower is better, but they are relative, not absolute, measures of fit.',
-  // {pdq} → (p,d,q) rendered at display time; {PDQ} → (P,D,Q)[s]. Replacing /\{\w+\}/g → __ gives
-  // "An ARIMA(__)(__) model was fit (AIC=__); residuals were white noise (Ljung–Box p=__)." — matches drawn card.
-  apaTemplate: 'An ARIMA({pdq})({PDQ}) model was fit (AIC={aic}); residuals were white noise (Ljung–Box p={ljungbox_p}).',
+  // Report-only neutralisation: state the model + diagnostic p without a "white noise / good fit" verdict.
+  // {pdq} → (p,d,q); {PDQ} → (P,D,Q)[s], filled at build time. Replacing /\{\w+\}/g → __ matches the HTML card line.
+  apaTemplate: 'An ARIMA({pdq})({PDQ}) model was fit (AIC={aic}); the Ljung–Box test of residual autocorrelation gave p {ljungbox_p}.',
   rMap: 'forecast::auto.arima() / arima() → Tables · forecast() + autoplot() → figure',
   bundleFiles: ['table_model-summary.png', 'table_diagnostics.png', 'table_forecast.png', 'figure_forecast.png', 'figure_residuals.png'],
 }

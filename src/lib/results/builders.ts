@@ -61,6 +61,14 @@ import { runLogisticRegression, type LogisticResult } from '../stats/logisticReg
 import { buildLogisticRegression } from './buildLogisticRegression'
 import { runPoissonNegativeBinomial, type PoissonNbResult } from '../stats/poissonNegativeBinomial'
 import { buildPoissonNegativeBinomial } from './buildPoissonNegativeBinomial'
+import { runArimaSarima, type ArimaSarimaResult } from '../stats/arimaSarima'
+import { buildArimaSarima } from './buildArimaSarima'
+import { runStationarityTests, type StationarityResult } from '../stats/stationarityTests'
+import { buildStationarityTests } from './buildStationarityTests'
+import { runGrangerCausality, type GrangerResult } from '../stats/grangerCausality'
+import { buildGrangerCausality } from './buildGrangerCausality'
+import { runVar, type VarResult } from '../stats/var'
+import { buildVar } from './buildVar'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
 
@@ -133,6 +141,20 @@ export const RUNNERS: Record<string, Runner> = {
     runLogisticRegression(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], String(setup.options['event']), setup.options['reportOR'] as boolean, ciLevel(setup.options['ci']), alphaOf(setup)),
   'poisson-negative-binomial': (engine, ds, setup) =>
     runPoissonNegativeBinomial(engine, ds, setup.roles['outcome'][0], setup.roles['predictors'], setup.roles['exposure'][0] ?? null, setup.options['model'] as 'Poisson' | 'negative binomial', ciLevel(setup.options['ci']), alphaOf(setup)),
+  'arima-sarima': (engine, ds, setup) =>
+    runArimaSarima(engine, ds, setup.roles['time'][0], setup.roles['series'][0], {
+      auto: String(setup.options['order'] ?? 'auto-select') !== 'manual',
+      p: Number(setup.options['order.p'] ?? 0), d: Number(setup.options['order.d'] ?? 0), q: Number(setup.options['order.q'] ?? 0),
+      P: Number(setup.options['order.P'] ?? 0), D: Number(setup.options['order.D'] ?? 0), Q: Number(setup.options['order.Q'] ?? 0),
+      seasonalPeriod: Number(setup.options['seasonalPeriod'] ?? 1), horizon: Number(setup.options['horizon'] ?? 12),
+      ciLevel: ciLevel(setup.options['ci']),
+    }),
+  'stationarity-tests': (engine, ds, setup) =>
+    runStationarityTests(engine, ds, setup.roles['time'][0], setup.roles['series'][0], { alpha: alphaOf(setup) }),
+  'granger-causality': (engine, ds, setup) =>
+    runGrangerCausality(engine, ds, setup.roles['time'][0], setup.roles['seriesX'][0], setup.roles['seriesY'][0], { maxLag: Number(setup.options['maxLag'] ?? 4), alpha: alphaOf(setup) }),
+  'var': (engine, ds, setup) =>
+    runVar(engine, ds, setup.roles['time'][0], setup.roles['series'], { lagOrder: setup.options['lagOrder'] === 'auto' ? 'auto' : Number(setup.options['lagOrder']), irfHorizon: Number(setup.options['irfHorizon'] ?? 10) }),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -164,4 +186,8 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'multiple-linear-regression': (spec, result) => buildMultipleLinearRegression(spec, result as MultipleLinearResult),
   'logistic-regression': (spec, result) => buildLogisticRegression(spec, result as LogisticResult),
   'poisson-negative-binomial': (spec, result) => buildPoissonNegativeBinomial(spec, result as PoissonNbResult),
+  'arima-sarima': (spec, result) => buildArimaSarima(spec, result as ArimaSarimaResult),
+  'stationarity-tests': (spec, result) => buildStationarityTests(spec, result as StationarityResult),
+  'granger-causality': (spec, result) => buildGrangerCausality(spec, result as GrangerResult),
+  'var': (spec, result) => buildVar(spec, result as VarResult),
 }

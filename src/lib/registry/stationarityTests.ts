@@ -53,7 +53,8 @@ export const STATIONARITY_TESTS: TestSpec = {
   ],
   howToRead:
     'For ADF, a small p means stationary; for KPSS, a small p means non-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value.',
-  apaTemplate: 'The series was non-stationary (ADF p={adf_p}; KPSS p={kpss_p}) and was differenced once.',
+  // Report-only neutralisation: report each test's statistic + p and α, no "was non-stationary / differenced" verdict.
+  apaTemplate: 'ADF gave τ={adf}, p {adfp}; KPSS gave LM={kpss}, p {kpssp} (α={alpha}).',
   rMap: 'tseries::adf.test() / tseries::kpss.test() → table · forecast::ggAcf() → figures',
   bundleFiles: ['table_stationarity.png', 'figure_series.png', 'figure_acf.png'],
 }

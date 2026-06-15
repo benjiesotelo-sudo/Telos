@@ -28,6 +28,10 @@ import { SIMPLE_LINEAR_REGRESSION } from './simpleLinearRegression'
 import { MULTIPLE_LINEAR_REGRESSION } from './multipleLinearRegression'
 import { LOGISTIC_REGRESSION } from './logisticRegression'
 import { POISSON_NEGATIVE_BINOMIAL } from './poissonNegativeBinomial'
+import { ARIMA_SARIMA } from './arimaSarima'
+import { STATIONARITY_TESTS } from './stationarityTests'
+import { GRANGER_CAUSALITY } from './grangerCausality'
+import { VAR } from './var'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -66,10 +70,10 @@ export const CATALOG: CatalogEntry[] = [
   e('multiple-linear-regression', 'Multiple linear regression', 'Regression & prediction', undefined, 'available'),
   e('logistic-regression', 'Logistic regression', 'Regression & prediction', undefined, 'available'),
   e('poisson-negative-binomial', 'Poisson / negative binomial', 'Regression & prediction', undefined, 'available'),
-  e('arima-sarima', 'ARIMA / SARIMA', 'Econometrics', 'Time series'),
-  e('stationarity-tests', 'Stationarity tests (ADF, KPSS)', 'Econometrics', 'Time series'),
-  e('granger-causality', 'Granger causality', 'Econometrics', 'Time series'),
-  e('var', 'VAR', 'Econometrics', 'Time series'),
+  e('arima-sarima', 'ARIMA / SARIMA', 'Econometrics', 'Time series', 'available'),
+  e('stationarity-tests', 'Stationarity tests (ADF, KPSS)', 'Econometrics', 'Time series', 'available'),
+  e('granger-causality', 'Granger causality', 'Econometrics', 'Time series', 'available'),
+  e('var', 'VAR', 'Econometrics', 'Time series', 'available'),
   e('fixed-effects', 'Fixed effects', 'Econometrics', 'Panel data'),
   e('random-effects', 'Random effects', 'Econometrics', 'Panel data'),
   e('hausman-test', 'Hausman test', 'Econometrics', 'Panel data'),
@@ -98,4 +102,5 @@ export const SPECS: Record<string, TestSpec> = {
   [PEARSON.id]: PEARSON, [SPEARMAN.id]: SPEARMAN, [KENDALLS_TAU.id]: KENDALLS_TAU, [CHI_SQUARE_INDEPENDENCE.id]: CHI_SQUARE_INDEPENDENCE, [CHI_SQUARE_GOF.id]: CHI_SQUARE_GOF, [FISHERS_EXACT.id]: FISHERS_EXACT,
   [SIMPLE_LINEAR_REGRESSION.id]: SIMPLE_LINEAR_REGRESSION, [MULTIPLE_LINEAR_REGRESSION.id]: MULTIPLE_LINEAR_REGRESSION,
   [LOGISTIC_REGRESSION.id]: LOGISTIC_REGRESSION, [POISSON_NEGATIVE_BINOMIAL.id]: POISSON_NEGATIVE_BINOMIAL,
+  [ARIMA_SARIMA.id]: ARIMA_SARIMA, [STATIONARITY_TESTS.id]: STATIONARITY_TESTS, [GRANGER_CAUSALITY.id]: GRANGER_CAUSALITY, [VAR.id]: VAR,
 }
