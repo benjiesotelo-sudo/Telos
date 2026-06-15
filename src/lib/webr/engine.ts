@@ -42,10 +42,14 @@ export class Engine {
     // — classification is a hand 2×2 tabulation). MASS ships with base R (glm.nb) — load-checked only.
     // Econometrics time-series slice additions — spike-verified install + load under WebR 0.6.0 (2026-06-15-econometrics-spike.md):
     // forecast (auto.arima/forecast), tseries + urca (ADF/KPSS), vars (VAR/IRF), lmtest (Granger). All match native R 4.6.0.
+    // Econometrics panel+causal slice additions — native-R-verified (2026-06-15-panel-causal-spike.md):
+    // plm (FE/RE/Hausman), sandwich (clustered/robust vcov for DiD/IV), ivreg (2SLS), rdrobust (RDD), MatchIt (PSM).
+    // (cobalt NOT shipped — unavailable under WebR; the PSM love plot is hand-rolled in ggplot2.)
     for (const pkg of ['ggplot2', 'nortest', 'effectsize', 'psych', 'coin', 'janitor',
       'afex', 'emmeans', 'car', 'rstatix',
       'pROC', 'parameters', 'performance',
-      'forecast', 'tseries', 'urca', 'vars', 'lmtest']) {
+      'forecast', 'tseries', 'urca', 'vars', 'lmtest',
+      'plm', 'sandwich', 'ivreg', 'rdrobust', 'MatchIt']) {
       onStatus?.(`Loading ${pkg}…`)
       await this.webr.installPackages([pkg], { quiet: true })
     }

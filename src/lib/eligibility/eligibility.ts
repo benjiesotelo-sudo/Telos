@@ -55,6 +55,18 @@ export function numericValues(ds: Dataset, col: string): number {
   return ds.rows.filter((r) => typeof r[col] === 'number' && Number.isFinite(r[col] as number)).length
 }
 
+/** Panel completeness: rows with entity + time present, outcome finite, and ≥1 regressor finite. */
+export function panelStructure(ds: Dataset, entity: string, time: string, outcome: string, regressors: string[]): number {
+  const present = (v: unknown) => v !== null && v !== undefined && String(v).trim() !== ''
+  let complete = 0
+  for (const r of ds.rows) {
+    const o = r[outcome]
+    const xOk = regressors.some((x) => typeof r[x] === 'number' && Number.isFinite(r[x] as number))
+    if (present(r[entity]) && present(r[time]) && typeof o === 'number' && Number.isFinite(o) && xOk) complete++
+  }
+  return complete
+}
+
 /** Step-5 verdict: greyed + reason, or eligible. Candidate sets per role, then the test's minRule. */
 export function testEligibility(entry: CatalogEntry, spec: TestSpec | null, columns: ColumnMeta[], working: Dataset): Verdict {
   if (entry.status === 'later-slice' || !spec) return { ok: false, reason: LATER_SLICE_REASON }
@@ -93,6 +105,20 @@ export function testEligibility(entry: CatalogEntry, spec: TestSpec | null, colu
     for (const a of measures) for (const b of measures)
       if (a.name !== b.name && completePairs(working, a.name, b.name) >= rule.n) return { ok: true, reason: null }
     return { ok: false, reason: `needs at least ${rule.n} complete rows across two repeated-measure columns` }
+  }
+  if (rule.kind === 'panel') {
+    // roles order: entity(0), time(1), outcome(2), regressors(3). Eligible if some valid assignment has
+    // ≥2 entities, ≥2 periods, ≥1 regressor, and ≥n complete (entity,time,outcome,regressor) rows.
+    for (const ent of candidates[0]) for (const tm of candidates[1]) {
+      if (ent.name === tm.name) continue
+      for (const out of candidates[2]) {
+        if (out.name === ent.name || out.name === tm.name) continue
+        if (distinct(working, ent.name) < 2 || distinct(working, tm.name) < 2) continue
+        const regs = candidates[3].map((c) => c.name).filter((n) => n !== ent.name && n !== tm.name && n !== out.name)
+        if (regs.length && panelStructure(working, ent.name, tm.name, out.name, regs) >= rule.n) return { ok: true, reason: null }
+      }
+    }
+    return { ok: false, reason: `needs ≥2 entities, ≥2 periods, and ≥${rule.n} complete observations` }
   }
   if (candidates[0].length >= rule.n) return { ok: true, reason: null } // 'used-columns'
   return { ok: false, reason: `needs at least ${rule.n} usable column${rule.n > 1 ? 's' : ''}` }

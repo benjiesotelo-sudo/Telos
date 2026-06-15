@@ -155,3 +155,35 @@ describe('count-tag role constraint (B1)', () => {
     expect(testEligibility(entry, spec, [floatCol], ds).reason).toBe('needs a count column (non-negative whole numbers) for Outcome (DV)')
   })
 })
+
+describe('testEligibility panel (FE/RE/Hausman)', () => {
+  const panelSpec: TestSpec = {
+    id: 'fe-test', name: 'FE', question: 'q?', roles: [
+      { id: 'entity', label: 'Entity', levels: 'nominal / ordinal', arity: 'exactly 1' },
+      { id: 'time', label: 'Time', levels: 'datetime / ordered', arity: 'exactly 1' },
+      { id: 'outcome', label: 'Outcome', levels: 'interval / ratio', arity: 'exactly 1' },
+      { id: 'regressors', label: 'Regressors', levels: 'any', arity: '1+' },
+    ],
+    options: [], tables: [], howToRead: '', apaTemplate: '', rMap: '', bundleFiles: [],
+    constraints: {
+      roles: [
+        { roleId: 'entity', levels: ['nominal', 'ordinal'] as Level[], arity: { min: 1, max: 1 } },
+        { roleId: 'time', levels: [] as Level[], arity: { min: 1, max: 1 }, timeOrder: true },
+        { roleId: 'outcome', levels: ['interval', 'ratio'] as Level[], arity: { min: 1, max: 1 }, excludeTag: 'datetime' },
+        { roleId: 'regressors', levels: ['nominal', 'ordinal', 'interval', 'ratio'] as Level[], arity: { min: 1, max: Infinity }, excludeTag: 'datetime' },
+      ],
+      minRule: { kind: 'panel', n: 12 },
+    },
+  }
+  const panelEntry = { id: 'fe-test', name: 'FE', family: 'Econometrics', status: 'available' as const }
+  const cols = [col('firm', 'nominal'), col('year', 'ordinal'), col('roa', 'ratio'), col('leverage', 'ratio')]
+  const mk = (firms: number[], years: number[]): Dataset => ({ columns: ['firm', 'year', 'roa', 'leverage'],
+    rows: firms.flatMap((f) => years.map((y) => ({ firm: `firm${f}`, year: y, roa: f + y, leverage: 0.1 * y }))) })
+  it('eligible with ≥2 entities, ≥2 periods, ≥12 complete rows', () =>
+    expect(testEligibility(panelEntry, panelSpec, cols, mk([1, 2, 3], [1, 2, 3, 4, 5]))).toEqual({ ok: true, reason: null })) // 15 rows
+  it('greyed when only 1 entity', () =>
+    expect(testEligibility(panelEntry, panelSpec, cols, mk([1], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])).reason)
+      .toBe('needs ≥2 entities, ≥2 periods, and ≥12 complete observations'))
+  it('greyed when too few complete rows', () =>
+    expect(testEligibility(panelEntry, panelSpec, cols, mk([1, 2], [1, 2, 3])).ok).toBe(false)) // 6 rows
+})

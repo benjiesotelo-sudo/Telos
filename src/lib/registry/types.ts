@@ -10,6 +10,7 @@ export type MinRule =
   | { kind: 'values'; n: number }           // One-sample, Distribution
   | { kind: 'used-columns'; n: number }     // Summary, Frequencies (≥1 compatible Used column)
   | { kind: 'complete-wide-rows'; n: number } // RM/Mixed/Friedman: ≥n rows complete across ≥2 candidate measure columns
+  | { kind: 'panel'; n: number }            // FE/RE/Hausman: ≥2 entities, ≥2 periods, ≥n complete (entity,time,outcome,≥1 regressor) rows. Roles order: entity,time,outcome,regressors
 export interface TestConstraints { roles: RoleConstraint[]; minRule: MinRule }
 export interface FigureSpec { caption: string; type: string; file?: string; optional?: true } // file: zip slug when the card's bundle name doesn't equal the type (ANOVA cards: 'means-plot' vs type 'means plot with 95% CI error bars')
 export interface TestSpec {
