@@ -40,9 +40,12 @@ export class Engine {
     // parameters (4.35 MiB — β via refit), performance (2.36 MiB — Nagelkerke R², dispersion ratio). caret and broom
     // deliberately NOT shipped (spike D4/B4: 51-pkg ≥26.8 MiB and 21-pkg 23.05 MiB closures; nothing computed needs them
     // — classification is a hand 2×2 tabulation). MASS ships with base R (glm.nb) — load-checked only.
+    // Econometrics time-series slice additions — spike-verified install + load under WebR 0.6.0 (2026-06-15-econometrics-spike.md):
+    // forecast (auto.arima/forecast), tseries + urca (ADF/KPSS), vars (VAR/IRF), lmtest (Granger). All match native R 4.6.0.
     for (const pkg of ['ggplot2', 'nortest', 'effectsize', 'psych', 'coin', 'janitor',
       'afex', 'emmeans', 'car', 'rstatix',
-      'pROC', 'parameters', 'performance']) {
+      'pROC', 'parameters', 'performance',
+      'forecast', 'tseries', 'urca', 'vars', 'lmtest']) {
       onStatus?.(`Loading ${pkg}…`)
       await this.webr.installPackages([pkg], { quiet: true })
     }

@@ -15,6 +15,8 @@ export const decode = (s: string) => s
   .replace(/&rho;/g, 'ρ').replace(/&tau;/g, 'τ').replace(/&ge;/g, '≥').replace(/&lt;/g, '<')
   // Regression-family cards
   .replace(/&beta;/g, 'β')
+  // Econometrics time-series cards (ARIMA σ²; τ already covered above)
+  .replace(/&sigma;/g, 'σ')
   .replace(/&amp;/g, '&')
 
 export const strip = (s: string) => decode(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim()
