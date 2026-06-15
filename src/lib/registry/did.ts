@@ -32,7 +32,7 @@ export const DID: TestSpec = {
   },
   tables: [
     {
-      id: 'did-model', title: 'DiD model', domId: 'did-model', captionStyle: 'bare',
+      id: 'did', title: 'DiD model', domId: 'did-model', captionStyle: 'bare',
       columns: [
         { key: 'term', label: 'Term' }, { key: 'b', label: 'B' }, { key: 'se', label: 'Clustered SE' },
         { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' },

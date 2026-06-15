@@ -16,15 +16,15 @@ Each slice gets its own design spec + implementation plan here when it starts. S
 | Association — 6 tests live (Pearson, Spearman, Kendall's tau, χ² independence, χ² goodness-of-fit incl. **custom expected proportions (owner-ruled R1)**, Fisher's exact); proportions option kind; grouped-bar figure + hand-V spec amendments (R2/D1) | 2026-06-12 | `specs+plans/2026-06-12-telos-association-family*`, spike `reviews/2026-06-12-association-spike-report.md` |
 | Regression & prediction — 4 tests live (simple linear, multiple linear, logistic incl. event-category level-select (B2), Poisson/negative binomial incl. count-tag gate (B1) + exposure offset); pROC/parameters/performance preloaded | 2026-06-13 | `specs+plans/2026-06-12-telos-regression-family*`, spike `reviews/2026-06-12-regression-spike-report.md` |
 | Dogfood audit + report-only policy + adjustable α/CI — 57 verified audit findings fixed (0 blockers/6 majors/38 minors/13 polish); **neutral report-only APA** across all 47 cards (registries + spec HTML) — outputs report the numbers, never declare a verdict; the "how to read" layer does the general teaching; fpApa/f01 APA-sentence formatters; per-test value fixes (Welch Games-Howell sign, logistic/Poisson "0.00" rounding, factorial wrong-row + main-effects branch, RM/one-way/nested/mixed labels, note anchoring, sticky clearance); **α (reference) + CI (threaded into R, 90/95/99) now adjustable** (defaults 0.05/95%). No new live tests (still 29/47). | 2026-06-13 | `reviews/2026-06-13-dogfood-audit.md`, `reviews/2026-06-13-design-theme-menu.md`, `plans/2026-06-13-audit-fixes-and-report-policy.md` |
+| Econometrics — 11 tests live (time series: ARIMA/SARIMA, stationarity ADF/KPSS/**PP**, Granger, VAR + §2.5 econometrics-grade extras [ARIMA residual diagnostics, VAR FEVD + stability]; panel: **fixed effects, random effects, Hausman, DiD**; cross-sectional causal: **IV/2SLS, RDD, PSM**); new `time` + `entity` roles + `panel` minRule; plm/sandwich/ivreg/rdrobust/MatchIt preloaded; every statistic WebR ≡ native R 4.6.0; report-only APA (Hausman/IV/PSM verdicts neutralised); hand-rolled PSM love plot (cobalt absent); new `panel.csv` + `causal.csv` testing fixtures + guide | 2026-06-15 | `specs+plans/2026-06-15-telos-econometrics-{timeseries,panel-causal}*`, spikes `reviews/2026-06-15-econometrics-spike.md` + `reviews/2026-06-15-panel-causal-spike.md` |
 
 ## Remaining (in order)
 
 | # | Slice | Tests / scope | Est. sessions | Risk notes |
 |---|---|---|---|---|
-| 1 | Econometrics | ~11: ARIMA, ADF/KPSS, Granger, VAR, FE/RE, Hausman, DiD, RDD, IV, PSM | ~1.5–2 | **main risk: package availability under WebR** — spike first |
-| 2 | Latent variables & SEM | ~7: alpha, AVE/CR, EFA, PCA, CB-SEM, PLS-SEM, mediation (R1) | ~2–3 | AMOS-style canvas = new UI surface; full review gauntlet per owner ruling |
-| 3 | Report & export | PDF report, LaTeX, R script, LICENSES in bundle | ~1–2 | client-side APA-7 PDF generation |
-| 4 | Polish & launch | design pass, DRAFT copy confirmations, B-list, feedback URL, analytics, licence, a11y, deploy | ~1 | mostly owner decisions |
+| 1 | Latent variables & SEM | ~7: alpha, AVE/CR, EFA, PCA, CB-SEM, PLS-SEM, mediation (R1) | ~2–3 | AMOS-style canvas = new UI surface; full review gauntlet per owner ruling |
+| 2 | Report & export | PDF report, LaTeX, R script, LICENSES in bundle | ~1–2 | client-side APA-7 PDF generation |
+| 3 | Polish & launch | design pass, DRAFT copy confirmations, B-list, feedback URL, analytics, licence, a11y, deploy | ~1 | mostly owner decisions |
 
 ## Process per slice (owner-ruled 2026-06-12, replaces the full gauntlet)
 

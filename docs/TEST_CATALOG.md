@@ -2,7 +2,7 @@
 
 > **Auto-generated** from the registries (`src/lib/registry/*.ts`) via `npx tsx scripts/gen-test-tree.ts` — do not hand-edit; regenerate after registry changes.
 >
-> Purpose: a single reviewable breakdown of every test — **how it is configured** (role slots + options) and **what it outputs** (tables, figures, assumption notes, APA write-up, R map) — for completeness review. **29 of 47 tests run live**; the rest are drawn in the picker but greyed ("arrives in a later slice").
+> Purpose: a single reviewable breakdown of every test — **how it is configured** (role slots + options) and **what it outputs** (tables, figures, assumption notes, APA write-up, R map) — for completeness review. **40 of 47 tests run live**; the rest are drawn in the picker but greyed ("arrives in a later slice").
 
 ## Flow
 
@@ -49,6 +49,18 @@ flowchart TD
   F4 --> F4_1["Multiple linear regression"]
   F4 --> F4_2["Logistic regression"]
   F4 --> F4_3["Poisson / negative binomial"]
+  T --> F5[Econometrics]
+  F5 --> F5_0["ARIMA / SARIMA"]
+  F5 --> F5_1["Stationarity tests (ADF, KPSS)"]
+  F5 --> F5_2["Granger causality"]
+  F5 --> F5_3["VAR"]
+  F5 --> F5_4["Fixed effects"]
+  F5 --> F5_5["Random effects"]
+  F5 --> F5_6["Hausman test"]
+  F5 --> F5_7["Difference-in-differences (DiD)"]
+  F5 --> F5_8["Regression discontinuity (RDD)"]
+  F5 --> F5_9["Instrumental variables (IV / 2SLS)"]
+  F5 --> F5_10["Propensity score matching"]
 ```
 
 ---
@@ -88,7 +100,7 @@ flowchart TD
   - **Table 2 — Cross-tabulation (two variables · n, row %, col %)**: Row \ Column · Col 1 · Col 2 · … · Total
   - *Figure* — Category counts: bar
   - *Assumption / note* — cross-tab columns expand to the number of categories in the column variable; each cell shows the count plus row and column percentages.
-  - *APA template* — "Frequencies (and cross-tabulations) are reported in Table {n}."
+  - *APA template* — "Frequencies (and cross-tabulations) are reported in Table X."
   - *R map* — janitor::tabyl() (+ adorn_* for cross-tab %, cumsum() for cumulative %) → tables · ggplot2::geom_bar() → figure
 
 ### Distribution & normality
@@ -103,7 +115,7 @@ flowchart TD
 - **Outputs**
   - **Table — Normality tests**: Variable · Test · Statistic · N · p
   - *Figure* — Distribution shape: histogram (2 exported panels: histogram, qq)
-  - *Assumption / note* — skewness & kurtosis are reported alongside; Shapiro-Wilk applies for 3–5000 cases.
+  - *Assumption / note* — skewness & kurtosis appear in the Summary statistics card; Shapiro-Wilk applies for 3–5000 cases.
   - *APA template* — "Normality was assessed with the Shapiro-Wilk test, W = {w}, p {p}."
   - *R map* — shapiro.test() (returns W, p) / nortest::lillie.test() (returns D, p) → table · ggplot2 + stat_qq() → figures
 
@@ -118,7 +130,7 @@ flowchart TD
   - Options:
     - test value (μ₀) — number input (default 0)
     - α — number input (default 0.05)
-    - tails — fixed display: `two`
+    - tails — select: two-tailed / one-tailed (greater) / one-tailed (less) (default two-tailed)
     - CI — select: 90% / 95% / 99% (default 95%)
 - **Outputs**
   - **Table 1 — Descriptives**: Variable · N · M · SD · SE
@@ -137,7 +149,7 @@ flowchart TD
     - **Grouping variable** — `nominal / ordinal` · *exactly 1 · 2 categories*
   - Options:
     - α — number input (default 0.05)
-    - tails — fixed display: `two`
+    - tails — select: two-tailed / one-tailed (greater) / one-tailed (less) (default two-tailed)
     - equal variance — toggle (default off)
     - CI — select: 90% / 95% / 99% (default 95%)
 - **Outputs**
@@ -157,7 +169,7 @@ flowchart TD
     - **Condition B** — `interval / ratio` · *exactly 1*
   - Options:
     - α — number input (default 0.05)
-    - tails — fixed display: `two`
+    - tails — select: two-tailed / one-tailed (greater) / one-tailed (less) (default two-tailed)
     - CI — select: 90% / 95% / 99% (default 95%)
 - **Outputs**
   - **Table 1 — Paired descriptives**: Condition · N · M · SD
@@ -265,7 +277,7 @@ flowchart TD
 - **Outputs**
   - **Table — Nested ANOVA**: Source · SS · df · MS · F · p · ω²
   - *Figure* — Grouped means: grouped means plot (nested groups within each top-level group)
-  - *Assumption / note* — under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual — so the two F rows do not share the same denominator. Variance components (or ω²) are reported as the effect size where estimable.
+  - *Assumption / note* — Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual — so the two F rows do not share the same denominator. Variance components (or ω²) are reported as the effect size where estimable.
   - *APA template* — "A nested ANOVA for A gave F({df1},{df2})={f}, p {p}."
   - *R map* — aov(y ~ A + Error(A:B)) (random) / aov(y ~ A/B) (fixed) → table · effectsize::omega_squared() → effect size · ggplot2 → figure
 
@@ -355,7 +367,7 @@ flowchart TD
     - **Grouping var** — `nominal / ordinal` · *exactly 1 · 2 categories*
   - Options:
     - α — number input (default 0.05)
-    - tails — fixed display: `two`
+    - tails — select: two-tailed / one-tailed (greater) / one-tailed (less) (default two-tailed)
     - continuity correction — toggle (default on)
 - **Outputs**
   - **Table 1 — Rank summary**: Group · N · Mean rank · Sum of ranks
@@ -374,7 +386,7 @@ flowchart TD
     - **Condition B** — `ordinal / interval / ratio` · *exactly 1*
   - Options:
     - α — number input (default 0.05)
-    - tails — fixed display: `two`
+    - tails — select: two-tailed / one-tailed (greater) / one-tailed (less) (default two-tailed)
     - continuity correction — toggle (default on)
 - **Outputs**
   - **Table 1 — Rank summary**: Sign · N · Mean rank · Sum of ranks
@@ -430,7 +442,7 @@ flowchart TD
     - **Variable B** — `interval / ratio` · *exactly 1*
   - Options:
     - α — number input (default 0.05)
-    - tails — fixed display: `two`
+    - tails — select: two-tailed / one-tailed (greater) / one-tailed (less) (default two-tailed)
     - CI — select: 90% / 95% / 99% (default 95%)
 - **Outputs**
   - **Table — Pearson correlation**: Pair · r · 95% CI · t · df · p · N
@@ -447,7 +459,7 @@ flowchart TD
     - **Variable B** — `ordinal / interval / ratio` · *exactly 1*
   - Options:
     - α — number input (default 0.05)
-    - tails — fixed display: `two`
+    - tails — select: two-tailed / one-tailed (greater) / one-tailed (less) (default two-tailed)
 - **Outputs**
   - **Table — Spearman correlation**: Pair · ρ · S · p · N
   - *Figure* — Relationship: scatter plot (optionally on ranks)
@@ -464,11 +476,11 @@ flowchart TD
     - **Variable B** — `ordinal / interval / ratio` · *exactly 1*
   - Options:
     - α — number input (default 0.05)
-    - tails — fixed display: `two`
+    - tails — select: two-tailed / one-tailed (greater) / one-tailed (less) (default two-tailed)
 - **Outputs**
   - **Table — Kendall's tau**: Pair · τ · z · p · N
   - *Figure* — Relationship: scatter plot (optionally on ranks — τ measures monotonic, not linear, association)
-  - *APA template* — "Kendall's τ={tau}, p {p}, N={n}."
+  - *APA template* — "A Kendall's tau correlation gave τ={tau}, p {p}, N={n}."
   - *R map* — cor.test(method="kendall") → table · ggplot2 → figure
 
 ### Chi-square independence
@@ -515,7 +527,7 @@ flowchart TD
     - **Column variable** — `nominal / ordinal` · *exactly 1*
   - Options:
     - α — number input (default 0.05)
-    - tails — fixed display: `two`
+    - tails — select: two-tailed / one-tailed (greater) / one-tailed (less) (default two-tailed)
 - **Outputs**
   - **Table 1 — Contingency**: Row \ Column · Col 1 · Col 2 · Total
   - **Table 2 — Fisher's exact test**: p (exact) · Odds ratio · 95% CI
@@ -605,9 +617,223 @@ flowchart TD
   - *APA template* — "Predictor X was associated with the count, IRR={irr}, 95% CI [{ciLow}, {ciHigh}], p {p}."
   - *R map* — glm(family=poisson, offset=log(exposure)) / MASS::glm.nb() → B/SE/z/p · exp(cbind(IRR=coef(m), confint(m))) → IRR + 95% CI · performance::check_overdispersion() → dispersion
 
+## Econometrics
+
+### ARIMA / SARIMA
+*Econometrics › Time series* — model & forecast one series
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Time variable** — `datetime / ordered` · *exactly 1* — _e.g. the date / time-order column — month, year_
+    - **Series (value)** — `interval / ratio` · *exactly 1* — _e.g. the numeric value over time — monthly sales_
+  - Options:
+    - order — arima-order
+    - seasonal period — number input (default 12)
+    - forecast horizon — number input (default 12)
+- **Outputs**
+  - **Table 1 — Model summary**: Term · Estimate · SE · 95% CI
+  - **Table 2 — Fit & residual diagnostics**: AIC · BIC · Log-lik · σ² · Ljung–Box p
+  - **Table 3 — Forecast**: Period · Forecast · 80% PI · 95% PI
+  - *Figure* — Forecast: forecast plot (history + forecast with prediction intervals)
+  - *Figure* — Residual diagnostics: residual ACF + Normal Q–Q
+  - *Assumption / note* — arima()/auto.arima() return each coefficient with its SE (CI via confint()); they do not produce per-coefficient z/p — add lmtest::coeftest() if those are wanted.
+  - *APA template* — "An ARIMA({pdq})({PDQ}) model was fit (AIC={aic}); the Ljung–Box test of residual autocorrelation gave p {ljungbox_p}."
+  - *R map* — forecast::auto.arima() / arima() → Tables · forecast() + autoplot() → figure
+
+### Stationarity tests (ADF, KPSS)
+*Econometrics › Time series* — is the series stationary?
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Time** — `datetime / ordered` · *exactly 1* — _e.g. the date / time-order column — month, year_
+    - **Series** — `interval / ratio` · *exactly 1* — _e.g. numeric series over time — sales, visitors_
+  - Options:
+    - test — select: both · ADF + KPSS / ADF only / KPSS only (default true)
+    - lags — select: auto (default auto)
+    - α — number input (default 0.05)
+- **Outputs**
+  - **Table — Stationarity tests**: Test · Statistic · Lag · p · Conclusion
+  - *Figure* — Series & structure: series plot + ACF / PACF (and differenced series) (2 exported panels: series, acf)
+  - *Assumption / note* — ADF and KPSS have opposite null hypotheses — the conclusion column reconciles them. The Statistic column holds two different metrics (ADF: Dickey–Fuller τ; KPSS: LM statistic); KPSS p-values are interpolated and shown bounded (e.g. “> .10” / “< .01”) rather than exact.
+  - *APA template* — "ADF gave τ={adf}, p {adfp}; KPSS gave LM={kpss}, p {kpssp} (α={alpha})."
+  - *R map* — tseries::adf.test() / tseries::kpss.test() → table · forecast::ggAcf() → figures
+
+### Granger causality
+*Econometrics › Time series* — does X predict future Y?
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Time** — `datetime / ordered` · *exactly 1* — _e.g. the date / time-order column — month, year_
+    - **Series X** — `interval / ratio` · *exactly 1* — _e.g. the predictor series — ad spend over time_
+    - **Series Y** — `interval / ratio` · *exactly 1* — _e.g. the outcome series — sales over time_
+  - Options:
+    - max lag — number input (default 4)
+    - α — number input (default 0.05)
+- **Outputs**
+  - **Table — Granger tests (both directions)**: Direction · F · df · p
+  - *Figure* — Series together: cross-series time plot
+  - *Assumption / note* — tests predictive precedence, not true causation; both series should be stationary first.
+  - *APA template* — "Granger test X→Y: F({df1xy},{df2xy})={fxy}, p {pxy}; Y→X: F({df1yx},{df2yx})={fyx}, p {pyx} (lag={lag})."
+  - *R map* — lmtest::grangertest() run once per direction (or vars::causality()) → the two table rows · ggplot2 → figure
+
+### VAR
+*Econometrics › Time series* — several interrelated series
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Time** — `datetime / ordered` · *exactly 1* — _e.g. the date / time-order column — month, year_
+    - **Series** — `interval / ratio` · *two or more* — _e.g. numeric series over time — sales, visitors_
+  - Options:
+    - lag order — select: auto (default auto)
+    - IRF horizon — number input (default 10)
+- **Outputs**
+  - **Table 1 — Lag selection**: Lag · AIC · BIC · HQ
+  - **Table 2 — VAR coefficients (per equation)**: Equation / lagged term · Estimate · SE · t · p
+  - **Table 3 — Forecast-error variance decomposition**: Variable · Impulse · Share
+  - *Figure* — Dynamic response: impulse-response function plots
+  - *Assumption / note* — orthogonalised (Cholesky) IRFs depend on the ordering of the series; a level VAR assumes stationarity. stability check: max companion-eigenvalue modulus < 1 indicates a stable VAR.
+  - *APA template* — "A VAR({p}) model was selected by AIC; impulse-response functions are shown (Figure)."
+  - *R map* — vars::VARselect() → Table 1 · vars::VAR() → Table 2 · vars::irf() → figure
+
+### Fixed effects
+*Econometrics › Panel data* — panel regression, entity effects
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Entity** — `nominal / ordinal` · *exactly 1* — _e.g. the unit observed repeatedly — firm, country, student_
+    - **Time** — `datetime / ordered` · *exactly 1* — _e.g. the date / time-order column — month, year_
+    - **Outcome (DV)** — `interval / ratio` · *exactly 1* — _e.g. the numeric result you measured — test score, income_
+    - **Regressors** — `any level` · *one or more* — _e.g. explanatory variables — R&D spend, leverage_
+  - Options:
+    - effects — select: entity / time / two-way (default entity)
+    - std. errors — select: clustered by entity / classical (default clustered by entity)
+    - α — number input (default 0.05)
+- **Outputs**
+  - **Table 1 — Coefficients (within estimator)**: Term · B · Clustered SE · t · p · 95% CI
+  - **Table 2 — Model fit**: Within R² · F · N obs · N entities
+  - *Figure* — Coefficients: coefficient plot (estimate ± CI)
+  - *APA template* — "In a fixed-effects model, predictor X gave B={b}, p {p} (clustered SE)."
+  - *R map* — plm(model="within") / fixest::feols() → Tables · ggplot2 → figure
+
+### Random effects
+*Econometrics › Panel data* — panel regression, random entity effects
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Entity** — `nominal / ordinal` · *exactly 1* — _e.g. the unit observed repeatedly — firm, country, student_
+    - **Time** — `datetime / ordered` · *exactly 1* — _e.g. the date / time-order column — month, year_
+    - **Outcome (DV)** — `interval / ratio` · *exactly 1* — _e.g. the numeric result you measured — test score, income_
+    - **Regressors** — `any level` · *one or more* — _e.g. explanatory variables — R&D spend, leverage_
+  - Options:
+    - α — number input (default 0.05)
+    - std. errors — select: clustered by entity / classical (default clustered by entity)
+- **Outputs**
+  - **Table 1 — Coefficients**: Term · B · Clustered SE · t · p · 95% CI
+  - **Table 2 — Model fit**: R² · Adj. R² · N obs · N entities
+  - *Figure* — Coefficients: coefficient plot
+  - *Assumption / note* — unlike fixed effects, time-invariant predictors can be retained. summary(plm) returns a single R² / adj. R² (not a within/between/overall split).
+  - *APA template* — "In a random-effects model, predictor X gave B={b}, p {p}."
+  - *R map* — plm(model="random") → Tables · ggplot2 → figure
+
+### Hausman test
+*Econometrics › Panel data* — fixed vs. random effects?
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Entity** — `nominal / ordinal` · *exactly 1* — _e.g. the unit observed repeatedly — firm, country, student_
+    - **Time** — `datetime / ordered` · *exactly 1* — _e.g. the date / time-order column — month, year_
+    - **Outcome (DV)** — `interval / ratio` · *exactly 1* — _e.g. the numeric result you measured — test score, income_
+    - **Regressors** — `any level` · *one or more* — _e.g. explanatory variables — R&D spend, leverage_
+  - Options:
+    - α — number input (default 0.05)
+- **Outputs**
+  - **Table 1 — Hausman test**: χ² · df · p · Decision
+  - **Table 2 — FE vs. RE coefficients**: Term · FE B · RE B · Difference
+  - *Figure* — FE vs. RE: side-by-side coefficient plot
+  - *APA template* — "A Hausman test comparing the fixed- and random-effects estimates gave χ²({df})={chisq}, p {p}."
+  - *R map* — plm::phtest() → Table 1 · compare plm fits → Table 2
+
+### Difference-in-differences (DiD)
+*Econometrics › Causal inference* — policy effect, before/after × treated/control
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Outcome (DV)** — `interval / ratio` · *exactly 1* — _e.g. the numeric result you measured — test score, income_
+    - **Treatment group** — `binary nominal` · *exactly 1* — _e.g. who got the treatment — treated = 1 / 0_
+    - **Period (pre / post)** — `binary nominal` · *exactly 1* — _e.g. before vs after — post = 1 / 0_
+    - **Entity / cluster unit (for clustered SEs)** — `nominal / ordinal` · *exactly 1* — _e.g. the unit observed repeatedly — state, firm_
+    - **Time (for parallel-trends plot)** — `datetime / ordered` · *exactly 1* — _e.g. the date / time-order column — month, year_
+  - Options:
+    - α — number input (default 0.05)
+    - std. errors — select: clustered / classical (default clustered)
+    - covariates — fixed display: `none`
+- **Outputs**
+  - **Table — DiD model**: Term · B · Clustered SE · t · p · 95% CI
+  - *Figure* — Parallel trends: parallel-trends plot (group means over time, treatment marked)
+  - *Assumption / note* — the Treated×Post interaction is the DiD effect; valid only if pre-treatment trends are parallel. Under entity fixed effects the time-invariant Treated main effect is absorbed (only Post and Treated×Post are estimated).
+  - *APA template* — "The DiD estimate was B={b}, 95% CI [{lo}, {hi}], p {p} (clustered SE)."
+  - *R map* — fixest::feols() / lm() with clustered SE → table · ggplot2 → trends plot
+
+### Regression discontinuity (RDD)
+*Econometrics › Causal inference* — effect at a cutoff
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Outcome (DV)** — `interval / ratio` · *exactly 1* — _e.g. the numeric result you measured — test score, income_
+    - **Running variable** — `interval / ratio` · *exactly 1* — _e.g. the score that decides the cutoff — exam mark_
+  - Options:
+    - cutoff value — number input (default 50)
+    - bandwidth — fixed display: `auto`
+    - polynomial order — select: 1 · linear / 2 · quadratic (default 1 · linear)
+- **Outputs**
+  - **Table — RD estimate**: Bandwidth · Estimate · SE · z · p · 95% CI · N (left/right)
+  - *Figure* — Discontinuity: RD plot (binned scatter + fitted lines either side of the cutoff)
+  - *APA template* — "At the cutoff, the treatment effect was {b}, 95% CI [{lo}, {hi}], p {p}."
+  - *R map* — rdrobust::rdrobust() → table · rdrobust::rdplot() → figure
+
+### Instrumental variables (IV / 2SLS)
+*Econometrics › Causal inference* — effect with an endogenous predictor
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Outcome (DV)** — `interval / ratio` · *exactly 1* — _e.g. the numeric result you measured — test score, income_
+    - **Endogenous regressor** — `any level` · *one or more* — _e.g. the predictor you suspect is biased — years of schooling_
+    - **Instrument(s)** — `any level` · *one or more* — _e.g. shifts the predictor but not the outcome directly — distance to school_
+    - **Controls (optional)** — `any level` · *zero or more* — _e.g. other variables to hold constant — age, region_
+  - Options:
+    - α — number input (default 0.05)
+    - std. errors — select: robust / classical (default robust)
+    - weak-instrument test — fixed display: `on`
+- **Outputs**
+  - **Table 1 — First stage (instrument strength)**: Instrument · Coef. · SE · Partial F · p
+  - **Table 2 — 2SLS coefficients**: Term · B · SE · t · p · 95% CI
+  - *Figure* — Coefficients: coefficient plot (OLS vs. 2SLS)
+  - *Assumption / note* — diagnostics: weak-instrument (first-stage F), Wu-Hausman endogeneity, and Sargan over-identification (when applicable).
+  - *APA template* — "The 2SLS estimate for X was B={b}, p {p} (first-stage F={f})."
+  - *R map* — lm(endog ~ instruments + covariates) → Table 1 (first-stage coef./SE/partial F) · summary(AER::ivreg(...), diagnostics=TRUE) → Table 2 (2SLS) + weak-IV F, Wu-Hausman, Sargan
+
+### Propensity score matching
+*Econometrics › Causal inference* — treatment effect via matching
+
+- **Configure**
+  - Roles (drag columns in):
+    - **Outcome (DV)** — `interval / ratio` · *exactly 1* — _e.g. the numeric result you measured — test score, income_
+    - **Treatment** — `binary nominal` · *exactly 1 · 2 categories* — _e.g. who got the treatment — treated = 1 / 0_
+    - **Covariates** — `any level` · *one or more* — _e.g. variables to match / control on — age, baseline score_
+  - Options:
+    - matching method — fixed display: `nearest`
+    - caliper — number input (default 0)
+    - ratio — select: 1:1 / 2:1 / 3:1 (default 1:1)
+- **Outputs**
+  - **Table 1 — Covariate balance (before / after)**: Covariate · Std. mean diff (pre) · Std. mean diff (post) · Variance ratio
+  - **Table 2 — Treatment effect (ATT)**: Estimate · SE · t · p · 95% CI
+  - *Figure* — Balance: love plot (standardized differences before vs. after matching)
+  - *Assumption / note* — good matching drives post-matching standardized mean differences toward 0 (commonly < 0.1).
+  - *APA template* — "After propensity-score matching, the ATT was {b}, 95% CI [{lo}, {hi}], p {p}."
+  - *R map* — MatchIt::matchit() → balance + matched data · lm()/marginaleffects on matched data → ATT · cobalt::love.plot()
+
 ---
 
 ## Not yet live (drawn in the picker, greyed)
 
-- **Econometrics** — ARIMA / SARIMA, Stationarity tests (ADF, KPSS), Granger causality, VAR, Fixed effects, Random effects, Hausman test, Difference-in-differences (DiD), Regression discontinuity (RDD), Instrumental variables (IV / 2SLS), Propensity score matching
 - **Latent variable models** — Cronbach's alpha, Average variance extracted (AVE), Composite reliability (CR), Exploratory factor analysis (EFA), Principal component analysis (PCA), CB-SEM, PLS-SEM

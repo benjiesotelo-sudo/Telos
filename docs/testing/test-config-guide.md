@@ -265,8 +265,66 @@ role and *excluded* from numeric Series roles, so it can't be mis-dropped.)
 - **Options:** lag order = auto · IRF horizon = 10
 - **Expect:** lag-selection table (AIC/BIC/HQ), per-equation coefficients, a **FEVD** (forecast-error variance decomposition) table + a stability note; impulse-response plots.
 
-## Coming with sub-slice 2 (panel + causal)
+## Panel — `panel.csv`
 
-Still greyed in the picker; built next:
-- **Panel** — Fixed effects, Random effects, Hausman, Difference-in-differences → an entity × period panel file.
-- **Cross-sectional causal** — Instrumental variables (2SLS), Regression discontinuity, Propensity score matching → added to `wage1-extended.csv` (synthetic instrument + running variable).
+Panel econometrics needs **entity × period long format**, which cross-sectional `wage1-extended.csv` cannot
+represent, so the four panel tests use a **separate** file: `panel.csv` (this folder + copied to `~/Documents/`)
+— **12 firms × 8 years = 96 rows**, columns `firm` (entity), `year` (2017–2024), `roa` (outcome),
+`leverage` · `rd_spend` · `size` (regressors), `treated` (1 for firms 1–6) and `post` (1 for year ≥ 2021, for DiD).
+The firm intercept correlates with the `rd_spend` baseline (so fixed- and random-effects estimates diverge and
+Hausman is non-trivial); `treated×post` carries a clean +1.5 effect.
+
+**Configure-data flips (required):** set **`year` → ordinal** (so the Time role accepts it — a plain integer
+defaults to numeric), and **`treated` → nominal** and **`post` → nominal** (DiD's treatment/period are
+2-category). `firm` auto-detects nominal.
+
+### 34. Fixed effects
+- **Question:** Within firms over time, how do leverage, R&D spend and size move return-on-assets?
+- **Roles:** Entity = `firm` · Time = `year` · Outcome (DV) = `roa` · Regressors = `leverage`, `rd_spend`, `size`
+- **Options:** effects = entity · std. errors = clustered by entity · α = 0.05
+- **Expect:** within-estimator coefficients with **clustered SE** (leverage B≈−5.57 sig, rd_spend≈1.89 sig, size≈0.14 ns), 95% CI; model fit (within R²≈.914, F≈288.8, N obs 96, N entities 12); a poolability F-test note (F≈1.29, p≈.244); coefficient plot.
+
+### 35. Random effects
+- **Question:** Same predictors, but treating firm differences as random (so they need not be removed).
+- **Roles:** Entity = `firm` · Time = `year` · Outcome (DV) = `roa` · Regressors = `leverage`, `rd_spend`, `size`
+- **Options:** α = 0.05 · std. errors = clustered by entity
+- **Expect:** Swamy–Arora coefficients (leverage≈−4.05, rd_spend≈0.55, size≈0.96 — note these differ from FE), R²≈.98; coefficient plot. The estimates differing from FE is why you run Hausman next.
+
+### 36. Hausman test
+- **Question:** For this panel, should we prefer fixed or random effects?
+- **Roles:** Entity = `firm` · Time = `year` · Outcome (DV) = `roa` · Regressors = `leverage`, `rd_spend`, `size`
+- **Options:** α = 0.05
+- **Expect:** Hausman χ²≈3.07, df 3, p≈.381 → **Decision = RE** (computed from p vs α — random effects acceptable here); an FE-vs-RE coefficient comparison table; side-by-side coefficient plot. The APA reports the statistic only (no "favoured" verdict).
+
+### 37. Difference-in-differences (DiD)
+- **Question:** Did the treatment (firms 1–6, from 2021) shift ROA relative to controls?
+- **Roles:** Outcome (DV) = `roa` · Treatment group = `treated` · Period (pre/post) = `post` · Entity / cluster = `firm` · Time = `year`
+- **Options:** α = 0.05 · std. errors = clustered
+- **Expect:** the model table with **Treated × Post ≈ 1.53** (clustered SE≈0.12, sig), 95% CI [1.28, 1.77]; a parallel-trends plot (group means over time, treatment onset marked). The Treated×Post coefficient is the DiD effect *only under parallel trends* (the plot is supportive, not confirmatory).
+
+## Cross-sectional causal — `causal.csv`
+
+The three causal-inference tests use **`causal.csv`** (this folder + copied to `~/Documents/`) — **200 rows**, a
+clean cross-section with a **separate outcome per method**: columns `wage`, `educ`, `educ_iv` (IV);
+`score`, `running_var` (RDD); `health`, `enroll` (PSM); shared covariates `exper`, `age`, `ability`; plus `id`.
+
+**Configure-data flip (required):** set **`enroll` → nominal** (PSM's treatment is 2-category). `id` auto-detects
+as an identifier and stays Unused — that's fine; no causal test uses it.
+
+### 38. Instrumental variables (IV / 2SLS)
+- **Question:** What is the causal return to education on wage, instrumenting education?
+- **Roles:** Outcome (DV) = `wage` · Endogenous regressor = `educ` · Instrument(s) = `educ_iv` · Controls = `exper`
+- **Options:** α = 0.05 · std. errors = robust · weak-instrument test = on
+- **Expect:** a first-stage table (instrument `educ_iv` **partial F≈438.5** — strong); 2SLS coefficients (educ B≈7.82, robust SE, sig, 95% CI); a diagnostics note (weak-IV F, Wu–Hausman endogeneity highly significant, Sargan — *unavailable, just-identified*); OLS-vs-2SLS coefficient plot.
+
+### 39. Regression discontinuity (RDD)
+- **Question:** Is there a jump in the outcome at the cutoff of the running variable?
+- **Roles:** Outcome (DV) = `score` · Running variable = `running_var`
+- **Options:** cutoff value = 50 · bandwidth = auto · polynomial order = 1 · linear
+- **Expect:** the RD-estimate row — bandwidth≈8.66, **estimate≈9.90** (the jump), robust SE/z/p, 95% CI [9.48, 10.28], N (left/right) 18/16; an RD plot (binned scatter + fitted lines either side of 50).
+
+### 40. Propensity score matching
+- **Question:** What is the effect of the program (`enroll`) on health, controlling for selection?
+- **Roles:** Outcome (DV) = `health` · Treatment = `enroll` · Covariates = `exper`, `age`, `ability`
+- **Options:** matching method = nearest · caliper = off · ratio = 1:1
+- **Expect:** a balance table — ability standardized mean difference drops **1.36 → 0.37** (matching reduces the confound); ATT≈**5.87** (vs a biased naive gap of ≈9.35), 95% CI [5.42, 6.32]; a love plot. (Balance still imperfect on the default nearest match — enabling a caliper, e.g. 0.1, tightens it further; a good lesson in *checking* balance.)
