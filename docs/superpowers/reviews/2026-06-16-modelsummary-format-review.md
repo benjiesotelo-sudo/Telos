@@ -30,7 +30,8 @@ Logistic **Classification** + ROC · Poisson fit/residual figure · ARIMA **Fore
 ## Verification
 - Every coef block + new GOF value **native-R 4.6.0 verified** (per-test, on the committed fixtures).
 - Per-test builder + WebR stats tests green; all 13 **consistency tests** pass (registry ↔ redrawn card verbatim).
-- tsc 0 · fast suite 682 · **full WebR vitest suite 810/810 (136 files)** · **e2e 4/4 affected journeys green** · fresh-clone: <pending final ×2 gate>.
+- tsc 0 · **full WebR vitest 810/810 (136 files), run ×2** · **FULL e2e 14/14 (every journey: flow, anova, association, regression, all 3 econometrics)** · build green · **fresh-clone (committed HEAD): install + build + test:fast 682 green** (the 128 WebR stats also proven green on a clean clone at the prior gate). Final gate `/tmp/telos-gate3` = GREEN.
+- *(Integrity note: the fresh-clone gate caught 2 new builder-test files — `buildArimaSarima.test.ts`, `buildVar.test.ts` — that `git add -u` had skipped; now committed, so the committed set is the full 810.)*
 - Catalog regenerated (`docs/TEST_CATALOG.md`) showing the coef structure for the external completeness review.
 - **Combined visual + correctness review: CLEAN.** All 12 coef-table shapes rendered + screenshotted (`.superpowers/screens/ms-format/`): no stars, estimate/(SE)/[CI] stacking, GOF footer rule, side-by-side columns aligned, Hausman χ² span row, kept-separate tables classic — no rendering bugs. 3 independent native-R spot-checks matched (DiD Treated×Post 1.5256 CI [1.29,1.76]; logistic OR 1.08 [1.01,1.18]; VAR per-eq R² .9952/.9909). One cosmetic note (not a bug): the sticky nav can overlap a GOF row *in a full-page scroll screenshot*; the zip export captures the table node directly so exported PNGs are unaffected.
 
