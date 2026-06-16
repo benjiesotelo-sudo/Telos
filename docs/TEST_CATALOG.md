@@ -549,8 +549,7 @@ flowchart TD
     - α — number input (default 0.05)
     - CI — select: 90% / 95% / 99% (default 95%)
 - **Outputs**
-  - **Table 1 — Model fit**: R² · Adj. R² · F · df1 · df2 · p · SE
-  - **Table 2 — Coefficients**: Term · B · SE · β · t · p · 95% CI
+  - **Table — Regression coefficients** (coefficients · estimate / (SE) / [CI]): (1) · β — _GOF footer:_ Num.Obs. · R² · R² Adj. · F · RMSE · AIC · BIC · Log.Lik.
   - *Figure* — Fit & residuals: fitted-line scatter + residual diagnostic plots (2 exported panels: fit, residuals)
   - *Assumption / note* — assumption checks: linearity, normality of residuals, homoscedasticity.
   - *APA template* — "A simple linear regression gave B={b}, t({df})={t}, p {p}, R²={r2}."
@@ -568,8 +567,7 @@ flowchart TD
     - CI — select: 90% / 95% / 99% (default 95%)
     - standardize — toggle (default off)
 - **Outputs**
-  - **Table 1 — Model fit**: R² · Adj. R² · F · df1 · df2 · p
-  - **Table 2 — Coefficients**: Term · B · SE · β · t · p · 95% CI · VIF
+  - **Table — Regression coefficients** (coefficients · estimate / (SE) / [CI]): (1) · β · VIF — _GOF footer:_ Num.Obs. · R² · R² Adj. · F · RMSE · AIC · BIC · Log.Lik.
   - *Figure* — Residual diagnostics: residual / diagnostic plots
   - *Figure* — Coefficient plot: coefficient plot, standardized β with 95% CI
   - *Assumption / note* — assumption checks: linearity, normality, homoscedasticity, and multicollinearity (VIF).
@@ -589,12 +587,11 @@ flowchart TD
     - report odds ratios — toggle (default on)
     - event category — select a category of the assigned `outcome` column (default: 2nd level)
 - **Outputs**
-  - **Table 1 — Model fit**: −2LL · AIC · Nagelkerke R² · Omnibus χ² · p
-  - **Table 2 — Coefficients**: Term · B · SE · z · p · OR · 95% CI (OR)
-  - **Table 3 — Classification**: Predicted \ Observed · 0 · 1 · % correct
+  - **Table 1 — Coefficients** (coefficients · estimate / (SE) / [CI]): Log-odds (B) · Odds ratio (OR) — _GOF footer:_ Num.Obs. · Nagelkerke R² · Omnibus χ² · Log.Lik. · AIC · BIC
+  - **Table 2 — Classification**: Predicted \ Observed · 0 · 1 · % correct
   - *Figure* — Classifier performance: ROC curve (with AUC)
   - *APA template* — "Predictor X was associated with the outcome, OR={or}, 95% CI [{ciLow}, {ciHigh}], p {p} (AUC={auc})."
-  - *R map* — glm(family=binomial) → B/SE/z/p · exp(cbind(OR=coef(m), confint(m))) → OR + 95% CI · performance::r2_nagelkerke(m) → Nagelkerke R² · AIC(m) → AIC · anova(m, test="Chisq") → omnibus χ² / −2LL · table(predicted, observed) → Table 3 (classification) · pROC → ROC/AUC
+  - *R map* — glm(family=binomial) → B/SE/z/p · exp(cbind(OR=coef(m), confint(m))) → OR + 95% CI · performance::r2_nagelkerke(m) → Nagelkerke R² · anova(m, test="Chisq") → omnibus χ² · logLik(m)/AIC(m)/BIC(m) → Log.Lik./AIC/BIC · table(predicted, observed) → Table 2 (classification) · pROC → ROC/AUC
 
 ### Poisson / negative binomial
 *Regression & prediction* — predict a count outcome
@@ -610,8 +607,7 @@ flowchart TD
     - CI — select: 90% / 95% / 99% (default 95%)
     - offset — fixed display: `from Exposure`
 - **Outputs**
-  - **Table 1 — Model fit**: AIC · Residual deviance · df · Dispersion
-  - **Table 2 — Coefficients**: Term · B · SE · z · p · IRR · 95% CI (IRR)
+  - **Table — Coefficients** (coefficients · estimate / (SE) / [CI]): Log-count (B) · IRR — _GOF footer:_ Num.Obs. · Dispersion · Residual deviance · df · Log.Lik. · AIC · BIC
   - *Figure* — Fit / residuals: fitted vs. residual plot
   - *Assumption / note* — dispersion check (Poisson): if variance >> mean (over-dispersion), switch to negative binomial, which instead reports theta (its overdispersion parameter) rather than this ratio.
   - *APA template* — "Predictor X was associated with the count, IRR={irr}, 95% CI [{ciLow}, {ciHigh}], p {p}."
@@ -631,9 +627,8 @@ flowchart TD
     - seasonal period — number input (default 12)
     - forecast horizon — number input (default 12)
 - **Outputs**
-  - **Table 1 — Model summary**: Term · Estimate · SE · 95% CI
-  - **Table 2 — Fit & residual diagnostics**: AIC · BIC · Log-lik · σ² · Ljung–Box p
-  - **Table 3 — Forecast**: Period · Forecast · 80% PI · 95% PI
+  - **Table 1 — Model summary** (coefficients · estimate / (SE) / [CI]): (1) — _GOF footer:_ Num.Obs. · σ² · Ljung–Box p · AIC · BIC · Log.Lik.
+  - **Table 2 — Forecast**: Period · Forecast · 80% PI · 95% PI
   - *Figure* — Forecast: forecast plot (history + forecast with prediction intervals)
   - *Figure* — Residual diagnostics: residual ACF + Normal Q–Q
   - *Assumption / note* — arima()/auto.arima() return each coefficient with its SE (CI via confint()); they do not produce per-coefficient z/p — add lmtest::coeftest() if those are wanted.
@@ -688,10 +683,10 @@ flowchart TD
     - IRF horizon — number input (default 10)
 - **Outputs**
   - **Table 1 — Lag selection**: Lag · AIC · BIC · HQ
-  - **Table 2 — VAR coefficients (per equation)**: Equation / lagged term · Estimate · SE · t · p
+  - **Table 2 — VAR coefficients (per equation)** (coefficients · estimate / (SE) / [CI]): Series 1 — _GOF footer:_ Num.Obs. · R² · R² Adj. · RMSE · Log.Lik.
   - **Table 3 — Forecast-error variance decomposition**: Variable · Impulse · Share
   - *Figure* — Dynamic response: impulse-response function plots
-  - *Assumption / note* — orthogonalised (Cholesky) IRFs depend on the ordering of the series; a level VAR assumes stationarity. stability check: max companion-eigenvalue modulus < 1 indicates a stable VAR.
+  - *Assumption / note* — one column per equation (response series); each cell stacks the estimate, its (SE), and the [95% CI] — the per-coefficient t/p are dropped. orthogonalised (Cholesky) IRFs depend on the ordering of the series; a level VAR assumes stationarity. stability check: max companion-eigenvalue modulus < 1 indicates a stable VAR.
   - *APA template* — "A VAR({p}) model was selected by AIC; impulse-response functions are shown (Figure)."
   - *R map* — vars::VARselect() → Table 1 · vars::VAR() → Table 2 · vars::irf() → figure
 
@@ -709,11 +704,11 @@ flowchart TD
     - std. errors — select: clustered by entity / classical (default clustered by entity)
     - α — number input (default 0.05)
 - **Outputs**
-  - **Table 1 — Coefficients (within estimator)**: Term · B · Clustered SE · t · p · 95% CI
-  - **Table 2 — Model fit**: Within R² · F · N obs · N entities
+  - **Table — Coefficients (within estimator)** (coefficients · estimate / (SE) / [CI]): (1) — _GOF footer:_ Num.Obs. · N entities · Within R² · Adj. within R² · F
   - *Figure* — Coefficients: coefficient plot (estimate ± CI)
+  - *Assumption / note* — time-invariant predictors are absorbed by the entity effects and drop out; a predictor must also change within entities over time to be estimable — predictors with little within-entity variation give large standard errors and unreliable estimates.
   - *APA template* — "In a fixed-effects model, predictor X gave B={b}, p {p} (clustered SE)."
-  - *R map* — plm(model="within") / fixest::feols() → Tables · ggplot2 → figure
+  - *R map* — plm(model="within") / fixest::feols() → Table · ggplot2 → figure
 
 ### Random effects
 *Econometrics › Panel data* — panel regression, random entity effects
@@ -728,12 +723,11 @@ flowchart TD
     - α — number input (default 0.05)
     - std. errors — select: clustered by entity / classical (default clustered by entity)
 - **Outputs**
-  - **Table 1 — Coefficients**: Term · B · Clustered SE · t · p · 95% CI
-  - **Table 2 — Model fit**: R² · Adj. R² · N obs · N entities
+  - **Table — Coefficients** (coefficients · estimate / (SE) / [CI]): (1) — _GOF footer:_ Num.Obs. · N entities · R² · R² Adj.
   - *Figure* — Coefficients: coefficient plot
-  - *Assumption / note* — unlike fixed effects, time-invariant predictors can be retained. summary(plm) returns a single R² / adj. R² (not a within/between/overall split).
+  - *Assumption / note* — standard errors are clustered by entity. unlike fixed effects, time-invariant predictors can be retained. summary(plm) returns a single R² / adj. R² (not a within/between/overall split).
   - *APA template* — "In a random-effects model, predictor X gave B={b}, p {p}."
-  - *R map* — plm(model="random") → Tables · ggplot2 → figure
+  - *R map* — plm(model="random") → Table · ggplot2 → figure
 
 ### Hausman test
 *Econometrics › Panel data* — fixed vs. random effects?
@@ -747,11 +741,10 @@ flowchart TD
   - Options:
     - α — number input (default 0.05)
 - **Outputs**
-  - **Table 1 — Hausman test**: χ² · df · p · Decision
-  - **Table 2 — FE vs. RE coefficients**: Term · FE B · RE B · Difference
+  - **Table — Hausman test** (coefficients · estimate / (SE) / [CI]): Fixed effects · Random effects · Difference — _GOF footer:_ Num.Obs. · N entities · R²
   - *Figure* — FE vs. RE: side-by-side coefficient plot
   - *APA template* — "A Hausman test comparing the fixed- and random-effects estimates gave χ²({df})={chisq}, p {p}."
-  - *R map* — plm::phtest() → Table 1 · compare plm fits → Table 2
+  - *R map* — plm::phtest() + compare within / random fits → Table · ggplot2 → figure
 
 ### Difference-in-differences (DiD)
 *Econometrics › Causal inference* — policy effect, before/after × treated/control
@@ -768,11 +761,11 @@ flowchart TD
     - std. errors — select: clustered / classical (default clustered)
     - covariates — fixed display: `none`
 - **Outputs**
-  - **Table — DiD model**: Term · B · Clustered SE · t · p · 95% CI
+  - **Table — DiD model** (coefficients · estimate / (SE) / [CI]): (1) — _GOF footer:_ Num.Obs. · N entities · Within R² · F
   - *Figure* — Parallel trends: parallel-trends plot (group means over time, treatment marked)
   - *Assumption / note* — the Treated×Post interaction is the DiD effect; valid only if pre-treatment trends are parallel. Under entity fixed effects the time-invariant Treated main effect is absorbed (only Post and Treated×Post are estimated).
   - *APA template* — "The DiD estimate was B={b}, 95% CI [{lo}, {hi}], p {p} (clustered SE)."
-  - *R map* — fixest::feols() / lm() with clustered SE → table · ggplot2 → trends plot
+  - *R map* — plm(model="within") with clustered SE → table · ggplot2 → trends plot
 
 ### Regression discontinuity (RDD)
 *Econometrics › Causal inference* — effect at a cutoff
@@ -786,8 +779,9 @@ flowchart TD
     - bandwidth — fixed display: `auto`
     - polynomial order — select: 1 · linear / 2 · quadratic (default 1 · linear)
 - **Outputs**
-  - **Table — RD estimate**: Bandwidth · Estimate · SE · z · p · 95% CI · N (left/right)
+  - **Table — RD estimate** (coefficients · estimate / (SE) / [CI]): (1) — _GOF footer:_ Bandwidth · N (left) · N (right)
   - *Figure* — Discontinuity: RD plot (binned scatter + fitted lines either side of the cutoff)
+  - *Assumption / note* — inference is robust (bias-corrected): the SE / CI use rdrobust robust standard errors.
   - *APA template* — "At the cutoff, the treatment effect was {b}, 95% CI [{lo}, {hi}], p {p}."
   - *R map* — rdrobust::rdrobust() → table · rdrobust::rdplot() → figure
 
@@ -806,7 +800,7 @@ flowchart TD
     - weak-instrument test — fixed display: `on`
 - **Outputs**
   - **Table 1 — First stage (instrument strength)**: Instrument · Coef. · SE · Partial F · p
-  - **Table 2 — 2SLS coefficients**: Term · B · SE · t · p · 95% CI
+  - **Table 2 — 2SLS coefficients** (coefficients · estimate / (SE) / [CI]): OLS · 2SLS — _GOF footer:_ Num.Obs. · RMSE · F
   - *Figure* — Coefficients: coefficient plot (OLS vs. 2SLS)
   - *Assumption / note* — diagnostics: weak-instrument (first-stage F), Wu-Hausman endogeneity, and Sargan over-identification (when applicable).
   - *APA template* — "The 2SLS estimate for X was B={b}, p {p} (first-stage F={f})."
@@ -826,7 +820,7 @@ flowchart TD
     - ratio — select: 1:1 / 2:1 / 3:1 (default 1:1)
 - **Outputs**
   - **Table 1 — Covariate balance (before / after)**: Covariate · Std. mean diff (pre) · Std. mean diff (post) · Variance ratio
-  - **Table 2 — Treatment effect (ATT)**: Estimate · SE · t · p · 95% CI
+  - **Table 2 — Treatment effect (ATT)** (coefficients · estimate / (SE) / [CI]): (1) — _GOF footer:_ Num.Obs. · Treated (matched) · Control (matched)
   - *Figure* — Balance: love plot (standardized differences before vs. after matching)
   - *Assumption / note* — good matching drives post-matching standardized mean differences toward 0 (commonly < 0.1).
   - *APA template* — "After propensity-score matching, the ATT was {b}, 95% CI [{lo}, {hi}], p {p}."

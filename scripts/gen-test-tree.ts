@@ -44,7 +44,14 @@ function treeFor(id: string): string {
   L.push('- **Outputs**')
   s.tables.forEach((t, i) => {
     const num = s.tables.length > 1 ? ` ${i + 1}` : ''
-    L.push(`  - **Table${num} — ${t.title}**: ${t.columns.map(col).join(' · ')}`)
+    if (t.kind === 'coef') {
+      // modelsummary coef table: stacked estimate/(SE)/[CI] per term across model column(s) + a GOF footer
+      const cols = [...(t.models ?? []), ...(t.extraCols ?? [])].map((c) => c.label).join(' · ')
+      const gof = (t.gof ?? []).map((g) => g.label).join(' · ')
+      L.push(`  - **Table${num} — ${t.title}** (coefficients · estimate / (SE) / [CI]): ${cols}${gof ? ` — _GOF footer:_ ${gof}` : ''}`)
+    } else {
+      L.push(`  - **Table${num} — ${t.title}**: ${t.columns.map(col).join(' · ')}`)
+    }
   })
   const figs = figuresOf(s)
   const seenCap = new Set<string>()
