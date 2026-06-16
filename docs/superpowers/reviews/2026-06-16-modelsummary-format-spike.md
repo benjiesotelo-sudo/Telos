@@ -37,7 +37,7 @@ Generic (likelihood models): `Num.Obs = nobs(m)`; `RMSE = sqrt(mean(residuals(m,
 | **rdrobust** (RDD) | effective N within bw (`N_h` L/R = 22/22), total N L/R (101/99), bandwidth `h` | R²/AIC/BIC/Log.Lik./RMSE — no method (local nonparametric) |
 | **MatchIt** (PSM) | matched N (134 = 67+67), treated/control matched (67/67) | R²/AIC/BIC/Log.Lik./RMSE — matching is preprocessing, not a fit |
 
-Verified values (regression.csv lm): N=40, RMSE=5.437965, AIC=256.9875, BIC=263.743, logLik=−124.4937. IV diagnostics (causal.csv, just-identified): weak-IV F=438.50, Wu-Hausman=1022.75, Sargan NA. **IV gotcha:** `summary(.,diagnostics=TRUE)$waldtest` is `c(stat, p, df1, df2)` → structural **F = waldtest[1]** (not [2]).
+Example values (regression.csv, `lm(post_score ~ pre_score + age)`, 2 predictors): N=40, RMSE=5.437965, AIC=256.9875, BIC=263.743, logLik=−124.4937. **NB: these are model-specific** — the actual simple-linear test is `lm(post_score ~ pre_score)` (1 predictor) → RMSE 5.46, AIC 255.36, BIC 260.43, logLik −124.68 (native-R verified, shipped in the reference). **Each test MUST recompute its own GOF in native R on its own fixture+model.** IV diagnostics (causal.csv, just-identified): weak-IV F=438.50, Wu-Hausman=1022.75, Sargan NA. **IV gotcha:** `summary(.,diagnostics=TRUE)$waldtest` is `c(stat, p, df1, df2)` → structural **F = waldtest[1]** (not [2]).
 
 ## 3. Canonical exported-script `modelsummary()` call
 
