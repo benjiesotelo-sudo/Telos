@@ -1,0 +1,19 @@
+/* Browser print-to-PDF. The `printing` class on <body> mirrors @media print so the
+   page-setup screenshot path and an actual print share one ruleset. Task 10 wires the
+   PDF download to body.printing + window.print(). */
+@media print {
+  [data-noprint], .stepper, .theme-select { display: none !important; }
+  .card { break-inside: avoid; }
+  /* one result per page: break before every card after the first */
+  .results-cards > * + * { page-break-before: always; }
+  .screen, .card, .results-cards > * { width: 100%; max-width: none; }
+}
+
+body.printing [data-noprint],
+body.printing .stepper,
+body.printing .theme-select { display: none !important; }
+body.printing .card { break-inside: avoid; }
+body.printing .results-cards > * + * { page-break-before: always; }
+body.printing .screen,
+body.printing .card,
+body.printing .results-cards > * { width: 100%; max-width: none; }

@@ -13,6 +13,17 @@ const saveBlob = (blob: Blob, name: string) => {
   const a = document.createElement('a'); a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url)
 }
 
+// Browser print-to-PDF: print.css's @media print + body.printing rules do the layout
+// (hide [data-noprint], full-width avoid-break cards, page-break between results).
+// doc/win are injectable so this is testable in the node environment (no jsdom). Dormant —
+// Task 10 wires it to the PDF download path.
+export function printReport(doc: Document = document, win: Window = window) {
+  doc.body.classList.add('printing')
+  const done = () => { doc.body.classList.remove('printing'); win.removeEventListener('afterprint', done) }
+  win.addEventListener('afterprint', done)
+  win.print()
+}
+
 export function ResultsScreen() {
   const s = useSession()
   const [formats, setFormats] = useState({ tables: false, figures: true })
@@ -44,9 +55,9 @@ export function ResultsScreen() {
       <div className="eyebrow">Results</div>
       <h1 className="title">Results</h1>
 
-      <div className="card">
+      <div className="card" data-noprint>
         <div className="eyebrow">Export &amp; download · tick one or more</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginTop: 8 }}>
+        <div data-noprint style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginTop: 8 }}>
           {[['PDF report', 'APA-7 tables, figures, how-to-read text — in selection order'], ['LaTeX file (.tex)', 'the same report as a LaTeX source'], ['R script (.R)', 'reproduces every computation & figure, same sequence · ships with the cleaned dataset']].map(([lbl, why]) => (
             <label key={lbl} className="hint" title={why} style={{ opacity: 0.5 }}>
               <input type="checkbox" disabled /> {lbl} <em>(coming in a later slice)</em>
@@ -54,7 +65,7 @@ export function ResultsScreen() {
           ))}
           <label title="each test's tables as standalone images"><input type="checkbox" checked={formats.tables} onChange={(e) => setFormats({ ...formats, tables: e.target.checked })} /> Table images (.png)</label>
           <label title="each test's graphs / diagrams as standalone images"><input type="checkbox" checked={formats.figures} onChange={(e) => setFormats({ ...formats, figures: e.target.checked })} /> Figure images (.png)</label>
-          <button className="btn" style={{ marginLeft: 'auto' }} disabled={running || downloading || !fresh.length || (!formats.tables && !formats.figures)}
+          <button className="btn" data-noprint style={{ marginLeft: 'auto' }} disabled={running || downloading || !fresh.length || (!formats.tables && !formats.figures)}
             onClick={() => { void download() }}>{downloading ? 'Preparing…' : 'Download'}</button>
         </div>
         {exportError && <div className="error-box" role="alert">Export failed: {exportError}</div>}
@@ -66,7 +77,7 @@ export function ResultsScreen() {
           <button type="button" disabled={running} onClick={() => { void s.runAll() }}>Try again</button></div>
       )}
 
-      {s.selection.map((id, i) => {
+      <div className="results-cards">{s.selection.map((id, i) => {
         const spec = SPECS[id]
         if (!spec) return null
         const nn = String(i + 1).padStart(2, '0')
@@ -84,7 +95,7 @@ export function ResultsScreen() {
         ) : null
         // builder runs inside the boundary (via BuiltCard) so one card's display error can't erase the others
         return <ResultBoundary key={id} label={`${nn} · ${spec.name}`}><BuiltCard id={id} index={i + 1} /></ResultBoundary>
-      })}
+      })}</div>
 
       <p className="hint" style={{ textAlign: 'center', marginTop: 18, marginBottom: 6 }}>
         After export · optional feedback — an anonymous, optional satisfaction survey — opens a short Google Form in a new tab
