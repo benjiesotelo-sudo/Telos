@@ -25,6 +25,10 @@ describe('fixed-effects registry stays faithful to the spec HTML (verbatim, card
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
     expect(caps).toEqual(spec.tables.map((t) => t.title))
   })
+  it('the GOF footer stub labels in the card equal spec.tables[0].gof labels in order', () => {
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(stubs).toEqual(spec.tables[0].gof!.map((g) => g.label))
+  })
   it('each table has a distinct domId', () => {
     const ids = spec.tables.map((t) => t.domId)
     expect(new Set(ids).size).toBe(ids.length)
