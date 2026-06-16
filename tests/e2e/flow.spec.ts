@@ -70,9 +70,9 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await page.getByRole('button', { name: 'Run analysis again' }).click()
   await expect(page.getByText(/Stale — the configuration changed/)).toHaveCount(0, { timeout: 120_000 })
 
-  // Disabled export formats asserted (spec Testing §3)
+  // Export formats are now live (R script / PDF / LaTeX export slice)
   for (const name of [/PDF report/, /LaTeX file/, /R script/])
-    await expect(page.getByRole('checkbox', { name })).toBeDisabled()
+    await expect(page.getByRole('checkbox', { name })).toBeEnabled()
 
   // Zip download with foldered paths (spec Testing §3)
   await page.getByRole('checkbox', { name: /Table images/ }).check()
