@@ -75,11 +75,11 @@ test('Panel journey: Fixed effects, Hausman, Difference-in-differences', async (
     page.getByRole('button', { name: 'Download' }).click(),
   ])
   const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!)))).sort()
+  // FE "Model fit" table is GONE — merged into the coef table's GOF footer (no table_model-fit.png).
   expect(entries).toContain('01_fixed-effects/table_coefficients.png')
-  expect(entries).toContain('01_fixed-effects/table_model-fit.png')
   expect(entries).toContain('01_fixed-effects/figure_coefficients.png')
+  // Hausman is now ONE side-by-side FE|RE coef table (the separate FE-vs-RE table is gone — no table_fe-vs-re.png).
   expect(entries).toContain('02_hausman-test/table_hausman.png')
-  expect(entries).toContain('02_hausman-test/table_fe-vs-re.png')
   expect(entries).toContain('02_hausman-test/figure_coefficients.png')
   expect(entries).toContain('03_did/table_did.png')
   expect(entries).toContain('03_did/figure_parallel-trends.png')

@@ -100,13 +100,12 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
 
   // ── 6. Run-1 assertions (spike numbers, house 2dp) ──
 
-  // Simple linear: fit R²=0.66, F=73.57, p<.001, SE(sigma)=5.61; coefficients B=0.64, β=0.81 (always filled — no standardize pill)
-  const slFit = page.locator('#table-simple-linear-model-fit')
-  await expect(slFit).toContainText('0.66')
-  await expect(slFit).toContainText('73.57')
-  await expect(slFit).toContainText('<.001')
-  await expect(slFit).toContainText('5.61')
+  // Simple linear: coef table now carries the GOF footer (Model fit merged in) — R²=0.66, F=73.57, RMSE=5.46
+  // (the old separate sigma=5.61 + F-p row are gone); coefficients B=0.64, β=0.81 (always filled — no standardize pill)
   const slCoef = page.locator('#table-simple-linear-coefficients')
+  await expect(slCoef).toContainText('0.66')   // GOF R²
+  await expect(slCoef).toContainText('73.57')  // GOF F
+  await expect(slCoef).toContainText('5.46')   // GOF RMSE (replaces the old sigma=5.61 model-fit cell)
   await expect(slCoef).toContainText('0.64')
   await expect(slCoef).toContainText('0.81')
   await expect(page.getByText('A simple linear regression gave B=0.64, t(38)=8.58, p < .001, R²=.66.')).toBeVisible()
@@ -119,17 +118,17 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   await expect(mlCoef).toContainText('5.35')     // B group: b
   await expect(mlCoef).toContainText('group: b') // dummy-row naming (convention 1)
   await expect(mlCoef).toContainText('−2.05')    // B method: online — U+2212 minus
-  await expect(page.locator('#table-multiple-linear-model-fit')).toContainText('20.42')
+  await expect(mlCoef).toContainText('20.42')     // GOF F now lives in the coef table footer (Model fit merged in)
   await expect(page.getByText('The model explained R²=.75 of the variance, F(5,34)=20.42, p < .001; predictor pre_score gave B=0.61, p < .001.')).toBeVisible()
 
-  // Logistic (event yes): fit −2LL=45.91, Nagelkerke=0.28, omnibus 9.54/.023; OR group: b = 3.46 [0.87, 15.44]; classification 65.0%; AUC in APA
-  const lgFit = page.locator('#table-logistic-model-fit')
-  await expect(lgFit).toContainText('45.91')
-  await expect(lgFit).toContainText('53.91')
-  await expect(lgFit).toContainText('0.28')
-  await expect(lgFit).toContainText('9.54')
-  await expect(lgFit).toContainText('.023')
+  // Logistic (event yes): coef table now carries the glm GOF footer (Model fit merged in) — Nagelkerke=0.28,
+  // omnibus χ²="9.54 (p .023)", AIC=53.91, Log.Lik=−22.95 (the old −2LL=45.91 row is gone). OR group: b = 3.46
+  // [0.87, 15.44]; classification 65.0%; AUC in APA.
   const lgCoef = page.locator('#table-logistic-coefficients')
+  await expect(lgCoef).toContainText('53.91')  // GOF AIC
+  await expect(lgCoef).toContainText('0.28')   // GOF Nagelkerke R²
+  await expect(lgCoef).toContainText('9.54')   // GOF omnibus χ²
+  await expect(lgCoef).toContainText('.023')   // omnibus p (inline in the χ² cell)
   await expect(lgCoef).toContainText('3.46')
   await expect(lgCoef).toContainText('[0.87, 15.44]')
   const lgClass = page.locator('#table-classification')
@@ -138,12 +137,13 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   await expect(lgClass).toContainText('65.0%')
   await expect(page.getByText('Predictor pre_score was associated with the outcome, OR=1.08, 95% CI [1.01, 1.18], p = .035 (AUC=.76).')).toBeVisible()
 
-  // Poisson (offset model): AIC=202.37, deviance=67.57, df=37, dispersion ratio=1.69; IRR age = 1.01
-  const poFit = page.locator('#table-poisson-nb-model-fit')
-  await expect(poFit).toContainText('202.37')
-  await expect(poFit).toContainText('67.57')
-  await expect(poFit).toContainText('37')
-  await expect(poFit).toContainText('1.69')
+  // Poisson (offset model): coef table now carries the glm GOF footer (Model fit merged in) — AIC=202.37,
+  // deviance=67.57, df=37, dispersion ratio=1.69; IRR age = 1.01
+  const poCoef = page.locator('#table-poisson-nb-coefficients')
+  await expect(poCoef).toContainText('202.37')  // GOF AIC
+  await expect(poCoef).toContainText('67.57')   // GOF Residual deviance
+  await expect(poCoef).toContainText('37')      // GOF df
+  await expect(poCoef).toContainText('1.69')    // GOF Dispersion ratio
   await expect(page.getByText('Predictor age was associated with the count, IRR=1.01, 95% CI [1.00, 1.02], p = .007.')).toBeVisible()
 
   // ── 7. Flip all three config switches (each edit stales ALL runs — journey-B rule), then re-run once ──
@@ -171,19 +171,21 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   await expect(page.locator('#table-multiple-linear-coefficients')).toContainText('0.78')   // β pre_score
   await expect(page.locator('#table-multiple-linear-coefficients')).toContainText('−0.22')  // β method: online
 
-  // Logistic (event no): OR group: b INVERTS to 0.29 [0.06, 1.15]; fit row AND AUC INVARIANT (spike surprise 4 — NOT 1−AUC)
+  // Logistic (event no): OR group: b INVERTS to 0.29 [0.06, 1.15]; GOF footer AND AUC INVARIANT (spike surprise 4 — NOT 1−AUC)
   await expect(page.locator('#table-logistic-coefficients')).toContainText('0.29')
   await expect(page.locator('#table-logistic-coefficients')).toContainText('[0.06, 1.15]')
-  await expect(page.locator('#table-logistic-model-fit')).toContainText('45.91')
+  await expect(page.locator('#table-logistic-coefficients')).toContainText('9.54')  // omnibus χ² GOF row invariant under the event flip
   await expect(page.getByText('Predictor pre_score was associated with the outcome, OR=0.92, 95% CI [0.85, 0.99], p = .035 (AUC=.76).')).toBeVisible()
 
-  // Negative binomial (offset): theta replaces the dispersion ratio in the SAME cell (convention 10)
-  const nbFit = page.locator('#table-poisson-nb-model-fit')
-  await expect(nbFit).toContainText('200.10')
-  await expect(nbFit).toContainText('45.81')
-  await expect(nbFit).toContainText('9.00')
+  // Negative binomial (offset): theta replaces the dispersion ratio in the SAME GOF cell (convention 10) — now in the coef footer
+  const nbCoef = page.locator('#table-poisson-nb-coefficients')
+  await expect(nbCoef).toContainText('200.10')  // GOF AIC
+  await expect(nbCoef).toContainText('45.81')   // GOF Residual deviance
+  await expect(nbCoef).toContainText('9.00')    // GOF Dispersion = theta
 
-  // ── 9. Download & unzip — assert the exact 15-file path set (NN = selection order; card-faithful names) ──
+  // ── 9. Download & unzip — assert the exact 11-file path set (NN = selection order; card-faithful names).
+  // The per-test "Model fit" table is GONE (merged into each coef table's GOF footer), so table_model-fit.png
+  // no longer exists for any test: 15 − 4 = 11.
   await page.getByRole('checkbox', { name: /Table images/ }).check()
   const [download] = await Promise.all([
     page.waitForEvent('download'),
@@ -192,27 +194,23 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   expect(download.suggestedFilename()).toBe('telos-results.zip')
   const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!)))).sort()
 
-  // 01_simple-linear-regression: 4 files (two figures from one drawn figbox)
-  expect(entries).toContain('01_simple-linear-regression/table_model-fit.png')
+  // 01_simple-linear-regression: 3 files (coef table + two figures from one drawn figbox)
   expect(entries).toContain('01_simple-linear-regression/table_coefficients.png')
   expect(entries).toContain('01_simple-linear-regression/figure_fit.png')
   expect(entries).toContain('01_simple-linear-regression/figure_residuals.png')
 
-  // 02_multiple-linear-regression: 4 files (#11 — residual diagnostics + coefficient plot)
-  expect(entries).toContain('02_multiple-linear-regression/table_model-fit.png')
+  // 02_multiple-linear-regression: 3 files (#11 — coef table + residual diagnostics + coefficient plot)
   expect(entries).toContain('02_multiple-linear-regression/table_coefficients.png')
   expect(entries).toContain('02_multiple-linear-regression/figure_residuals.png')
   expect(entries).toContain('02_multiple-linear-regression/figure_coefficient-plot.png')
 
-  // 03_logistic-regression: 4 files
-  expect(entries).toContain('03_logistic-regression/table_model-fit.png')
+  // 03_logistic-regression: 3 files (coef table + classification table + ROC figure)
   expect(entries).toContain('03_logistic-regression/table_coefficients.png')
   expect(entries).toContain('03_logistic-regression/table_classification.png')
   expect(entries).toContain('03_logistic-regression/figure_roc.png')
 
-  // 04_poisson-negative-binomial: 3 files
-  expect(entries).toContain('04_poisson-negative-binomial/table_model-fit.png')
+  // 04_poisson-negative-binomial: 2 files (coef table + residuals figure)
   expect(entries).toContain('04_poisson-negative-binomial/table_coefficients.png')
   expect(entries).toContain('04_poisson-negative-binomial/figure_residuals.png')
-  expect(entries.filter((e) => /^0[1-4]_/.test(e)).length).toBe(15)
+  expect(entries.filter((e) => /^0[1-4]_/.test(e)).length).toBe(11)
 })

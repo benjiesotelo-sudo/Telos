@@ -85,9 +85,9 @@ test('Time-series journey: ARIMA, Stationarity (ADF/KPSS/PP), Granger, VAR', asy
   expect(download.suggestedFilename()).toBe('telos-results.zip')
   const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!)))).sort()
 
-  // 01_arima-sarima — 3 tables + forecast figure + §2.5 residual-diagnostics figure
+  // 01_arima-sarima — the old separate "diagnostics" table is GONE (merged into the Model summary coef GOF footer);
+  // 2 tables (Model summary + Forecast) + forecast figure + §2.5 residual-diagnostics figure
   expect(entries).toContain('01_arima-sarima/table_model-summary.png')
-  expect(entries).toContain('01_arima-sarima/table_diagnostics.png')
   expect(entries).toContain('01_arima-sarima/table_forecast.png')
   expect(entries).toContain('01_arima-sarima/figure_forecast.png')
   expect(entries).toContain('01_arima-sarima/figure_residuals.png')      // §2.5
