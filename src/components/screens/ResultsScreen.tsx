@@ -1,8 +1,12 @@
 import { useState } from 'react'
-import { useSession } from '../../state/session'
+import { useSession, workingDataset, type SessionState } from '../../state/session'
 import { SPECS } from '../../lib/registry/catalog'
 import { buildBundle } from '../../lib/export/bundle'
 import { captureNode } from '../../lib/export/capture'
+import { emitRScript } from '../../lib/export/rScript/emit'
+import { toCsv } from '../../lib/export/cleanedCsv'
+import { emitLatex } from '../../lib/export/latex'
+import { licensesText } from '../../lib/export/licenses'
 import { FEEDBACK_URL } from '../../content/copy'
 import { ResultPreviewCard } from '../ResultPreviewCard'
 import { ResultBoundary } from '../ResultBoundary'
@@ -11,6 +15,34 @@ import { BUILDERS } from '../../lib/results/builders'
 const saveBlob = (blob: Blob, name: string) => {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a'); a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url)
+}
+
+export interface ExportFormats { tables: boolean; figures: boolean; pdf: boolean; latex: boolean; r: boolean }
+const enc = (str: string): Uint8Array => new TextEncoder().encode(str)
+
+// PURE file-map assembly for the export bundle (no DOM): the byte/string artifacts only.
+// Table PNGs need captureNode (async, DOM-bound) so the component layers those on top —
+// keeping this testable in the node env. Over the fresh tests (non-stale runs, in selection
+// order; folder NN = 1-based padded):
+//   figures → NN_id/figure_<file??type>.png · latex → ALSO figures/NN_id/...png (so report.tex
+//   resolves) + report.tex · r → analysis.R + cleaned.csv · r|latex → LICENSES.txt (scoped to the
+//   formats whose bundled R packages/fonts the licence credits — note for review).
+export function buildExportFiles(s: SessionState, formats: ExportFormats): Record<string, Uint8Array> {
+  const files: Record<string, Uint8Array> = {}
+  const fresh = s.selection.filter((id) => s.runs[id] && !s.runs[id].stale)
+  for (const id of fresh) {
+    const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
+    const content = BUILDERS[id](spec, s.runs[id].result)
+    for (const fig of content.figures) {
+      const name = `figure_${fig.file ?? fig.type}.png`
+      if (formats.figures) files[`${folder}${name}`] = fig.png
+      if (formats.latex) files[`figures/${folder}${name}`] = fig.png // emitLatex \includegraphics path
+    }
+  }
+  if (formats.latex) files['report.tex'] = enc(emitLatex(fresh, s.setups, SPECS, s.runs))
+  if (formats.r) { files['analysis.R'] = enc(emitRScript(fresh, s.setups, SPECS, workingDataset(s))); files['cleaned.csv'] = enc(toCsv(workingDataset(s))) }
+  if (formats.r || formats.latex) files['LICENSES.txt'] = enc(licensesText())
+  return files
 }
 
 // Browser print-to-PDF: print.css's @media print + body.printing rules do the layout
@@ -26,25 +58,25 @@ export function printReport(doc: Document = document, win: Window = window) {
 
 export function ResultsScreen() {
   const s = useSession()
-  const [formats, setFormats] = useState({ tables: false, figures: true })
+  const [formats, setFormats] = useState<ExportFormats>({ tables: false, figures: true, pdf: false, latex: false, r: false })
   const [downloading, setDownloading] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
   const fresh = s.selection.filter((id) => s.runs[id] && !s.runs[id].stale)
   const running = s.runStatus === 'running'
+  const anyFormat = formats.tables || formats.figures || formats.pdf || formats.latex || formats.r
 
   const download = async () => {
     setDownloading(true); setExportError(null)
     try {
-      const files: Record<string, Uint8Array> = {}
-      for (const id of fresh) {
+      const files = buildExportFiles(s, formats) // pure byte/string artifacts; table PNGs (DOM) layered on below
+      if (formats.tables) for (const id of fresh) {
         const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
-        const content = BUILDERS[id](spec, s.runs[id].result)
-        if (formats.tables) for (const t of content.tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.domId ?? t.spec.id}`)
-        if (formats.figures) for (const fig of content.figures) files[`${folder}figure_${fig.file ?? fig.type}.png`] = fig.png
+        for (const t of BUILDERS[id](spec, s.runs[id].result).tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.domId ?? t.spec.id}`)
       }
       const names = Object.keys(files)
-      if (names.length === 1) saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: 'image/png' }), names[0].split('/')[1])
-      else saveBlob(new Blob([buildBundle(files)], { type: 'application/zip' }), 'telos-results.zip')
+      if (names.length === 1) saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: 'image/png' }), names[0].split('/').pop()!)
+      else if (names.length) saveBlob(new Blob([buildBundle(files)], { type: 'application/zip' }), 'telos-export.zip')
+      if (formats.pdf) printReport() // browser print-to-PDF; the only artifact when PDF is the sole tick
     } catch (e) {
       setExportError(e instanceof Error ? e.message : String(e)) // a silent no-op Download is indistinguishable from a dead button
     } finally { setDownloading(false) }
@@ -58,14 +90,14 @@ export function ResultsScreen() {
       <div className="card" data-noprint>
         <div className="eyebrow">Export &amp; download · tick one or more</div>
         <div data-noprint style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginTop: 8 }}>
-          {[['PDF report', 'APA-7 tables, figures, how-to-read text — in selection order'], ['LaTeX file (.tex)', 'the same report as a LaTeX source'], ['R script (.R)', 'reproduces every computation & figure, same sequence · ships with the cleaned dataset']].map(([lbl, why]) => (
-            <label key={lbl} className="hint" title={why} style={{ opacity: 0.5 }}>
-              <input type="checkbox" disabled /> {lbl} <em>(coming in a later slice)</em>
+          {([['pdf', 'PDF report', 'APA-7 tables, figures, how-to-read text — in selection order'], ['latex', 'LaTeX file (.tex)', 'the same report as a LaTeX source'], ['r', 'R script (.R)', 'reproduces every computation & figure, same sequence · ships with the cleaned dataset']] as [keyof ExportFormats, string, string][]).map(([key, lbl, why]) => (
+            <label key={key} title={why}>
+              <input type="checkbox" checked={formats[key]} onChange={(e) => setFormats({ ...formats, [key]: e.target.checked })} /> {lbl}
             </label>
           ))}
           <label title="each test's tables as standalone images"><input type="checkbox" checked={formats.tables} onChange={(e) => setFormats({ ...formats, tables: e.target.checked })} /> Table images (.png)</label>
           <label title="each test's graphs / diagrams as standalone images"><input type="checkbox" checked={formats.figures} onChange={(e) => setFormats({ ...formats, figures: e.target.checked })} /> Figure images (.png)</label>
-          <button className="btn" data-noprint style={{ marginLeft: 'auto' }} disabled={running || downloading || !fresh.length || (!formats.tables && !formats.figures)}
+          <button className="btn" data-noprint style={{ marginLeft: 'auto' }} disabled={running || downloading || !fresh.length || !anyFormat}
             onClick={() => { void download() }}>{downloading ? 'Preparing…' : 'Download'}</button>
         </div>
         {exportError && <div className="error-box" role="alert">Export failed: {exportError}</div>}
