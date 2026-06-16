@@ -8,7 +8,7 @@
     "build": "tsc -b && node scripts/copy-webr.mjs && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:fast": "vitest run --exclude '**/node_modules/**' --exclude 'src/lib/stats/**/*.test.ts' --exclude 'src/lib/webr/**'",
+    "test:fast": "vitest run --exclude '**/node_modules/**' --exclude 'src/lib/stats/**/*.test.ts' --exclude 'src/lib/webr/**' --exclude 'src/lib/export/rScript/runs-in-r.test.ts'",
     "e2e": "playwright install chromium && playwright test",
     "postinstall": "node scripts/copy-webr.mjs"
   },
