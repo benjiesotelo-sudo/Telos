@@ -89,12 +89,9 @@ export interface CoefRow { term: string; cells: { est: string; se: string; ci: s
 
 ---
 
-## Task 4: Backbone — `modelsummary()` in exported R script
+## Task 4: ~~`modelsummary()` in exported R script~~ — DEFERRED (out of scope)
 
-**Files:** Modify the R-script export (grep `analysis.R`/`rScript` in `src/lib/export`); Test alongside.
-
-- [ ] **Step 1: Failing test:** for an affected test, the exported R script contains a `library(modelsummary)` + a `modelsummary(list(...), statistic=c("std.error","conf.int"), stars=FALSE)` call over the fitted model(s) (the canonical call from Task 1).
-- [ ] **Step 2–4:** Implement (emit the call only for the 13 coef tests; non-coef tests' scripts unchanged), run, pass. **Step 5:** Commit.
+**DEFERRED 2026-06-16 (ratify flag).** The exported R-script feature does not exist yet — the zip currently ships only table/figure PNGs; the "R script (.R)", "PDF report", and "LaTeX" export formats are the disabled "coming in a later slice" options (`ResultsScreen.tsx`). Building the R-script export is its own future slice; emitting a `modelsummary()` call belongs there. The **canonical call is captured in the spike doc** (`docs/superpowers/reviews/2026-06-16-modelsummary-format-spike.md` §3), ready to drop in when that slice is built. This slice = the **in-app table restyle** only (the substance of D3). No code for this task.
 
 ---
 
