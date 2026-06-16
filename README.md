@@ -11,7 +11,7 @@ Design language: dominantly white tool surfaces on a warm paper background, Work
 ```bash
 npm install          # install deps + postinstall copies WebR runtime to public/webr/
 npm run dev          # dev server at http://localhost:5173
-npm test             # vitest unit tests (132 files / 757 tests; engine suites run serialized, ~30 minutes)
+npm test             # vitest unit tests (136 files / 810 tests; engine suites run serialized, ~30 minutes)
 npm run test:fast    # everything except the WebR engine suites — the seconds-fast inner loop
 npm run e2e          # playwright test -- installs Chromium itself on first run
 npm run build        # tsc + copy-webr + vite build → dist/
