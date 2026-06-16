@@ -2,7 +2,7 @@
 
 Browser-based statistical analysis for thesis students. All computation runs client-side in WebR (R compiled to WebAssembly) — data never leaves the browser.
 
-The app is a seven-step guided flow: **Welcome → Upload** (CSV or Excel with a sheet picker) **→ Terms guide** (measurement levels, missingness, assumptions) **→ Configure data** (column types and levels, missing-data policy) **→ Pick a test** (47 tests drawn from the spec tree; 40 of the 47 run live: descriptives, frequencies, normality, the t-test family, the full ANOVA family (one-way, factorial, repeated-measures, mixed, nested, Welch's, ANCOVA, MANOVA, MANCOVA), Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, the Association family (Pearson, Spearman, Kendall's tau, χ² independence, χ² goodness-of-fit with custom expected proportions, Fisher's exact), the Regression family (simple linear, multiple linear, logistic, Poisson / negative binomial), and the Econometrics family (ARIMA/SARIMA, stationarity (ADF/KPSS), Granger causality, VAR, fixed effects, random effects, Hausman, difference-in-differences, instrumental variables (2SLS), regression discontinuity, propensity score matching); the rest remain greyed with honest reasons) **→ Configure test** (drag columns into role slots) **→ Results / export** (APA table, figures, how-to-read, zip download).
+The app is a seven-step guided flow: **Welcome → Upload** (CSV or Excel with a sheet picker) **→ Terms guide** (measurement levels, missingness, assumptions) **→ Configure data** (column types and levels, missing-data policy) **→ Pick a test** (47 tests drawn from the spec tree; 40 of the 47 run live: descriptives, frequencies, normality, the t-test family, the full ANOVA family (one-way, factorial, repeated-measures, mixed, nested, Welch's, ANCOVA, MANOVA, MANCOVA), Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, the Association family (Pearson, Spearman, Kendall's tau, χ² independence, χ² goodness-of-fit with custom expected proportions, Fisher's exact), the Regression family (simple linear, multiple linear, logistic, Poisson / negative binomial), and the Econometrics family (ARIMA/SARIMA, stationarity (ADF/KPSS), Granger causality, VAR, fixed effects, random effects, Hausman, difference-in-differences, instrumental variables (2SLS), regression discontinuity, propensity score matching); the rest remain greyed with honest reasons) **→ Configure test** (drag columns into role slots) **→ Results / export** (APA table, figures, how-to-read; export as PNGs, a reproducible R script + cleaned data, a native-booktabs LaTeX report, or print to PDF).
 
 Design language: dominantly white tool surfaces on a warm paper background, Workday-style numbered stepper (✓ done · blue-ring current · gray locked), blue `#185fa5` as the single accent, Crimson Pro in page titles only.
 
@@ -86,7 +86,14 @@ npm run build && npx wrangler pages deploy dist --project-name telos
 
 ## Export bundle
 
-The zip contains one `NN_<test-id>/` folder per test run (NN = the test's position on the results page), each holding that card's table and figure PNGs named from its spec bundle line. The PDF report, LaTeX file, and R script checkboxes are visible in the export panel but disabled — they are deferred to a later build slice, which will also add a `LICENSES` note to the bundle.
+The export panel offers five tick-able formats, bundled into one `telos-export.zip` (a single file downloads directly; PDF prints instead of zipping):
+
+- **Table images / Figure images** — each test's tables/figures as PNGs under an `NN_<test-id>/` folder (NN = the test's position on the results page).
+- **R script** — a clean, idiomatic `analysis.R` that reproduces every selected test by mirroring its model/test call (with `modelsummary()` coefficient tables and ggplot2 figures), plus the `cleaned.csv` it reads. The emitted R is verified to run under native R 4.6.0 and reproduce the app's numbers (gate: `src/lib/export/rScript/runs-in-r.test.ts`).
+- **LaTeX file** — a native booktabs `report.tex` (coefficient + classic tables, side-by-side models, figures under `figures/NN_<id>/`, how-to-read + APA prose), Unicode-escaped to compile under pdfLaTeX and XeTeX.
+- **PDF report** — a print-to-PDF of the results page (a print stylesheet hides the navigation/export chrome).
+
+Any R or LaTeX export also bundles a `LICENSES.txt` crediting the R packages the script uses, WebR, R, and the fonts (OFL).
 
 ## Licences
 
