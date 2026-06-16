@@ -11,7 +11,9 @@ describe('runLogisticRegression', () => {
   it('spike known answers — event = yes (passed ~ pre_score + age + group): fit, profile-OR CIs, classification, AUC', async () => {
     const r = await runLogisticRegression(engine, loadRegressionFixture(), 'passed', ['pre_score', 'age', 'group'], 'yes', true)
     expect(r.m2ll).toBeCloseTo(45.908685210, 5)
+    expect(r.logLik).toBeCloseTo(-22.954342605, 5)  // modelsummary Log.Lik. GOF (native-R verified)
     expect(r.aic).toBeCloseTo(53.908685210, 5)
+    expect(r.bic).toBeCloseTo(60.664203027, 4)       // modelsummary BIC GOF (native-R verified)
     expect(r.nagelkerke).toBeCloseTo(0.283002870, 6)
     expect(r.omnibusChisq).toBeCloseTo(9.543089235, 6)
     expect(r.omnibusDf).toBe(3)

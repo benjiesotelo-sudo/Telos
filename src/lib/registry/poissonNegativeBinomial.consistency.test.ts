@@ -2,37 +2,53 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { POISSON_NEGATIVE_BINOMIAL as spec } from './poissonNegativeBinomial'
 import { figuresOf } from './types'
-import { strip } from './specHtml'
+import { decode, strip } from './specHtml'
 
-// Scope each file to THIS card, so another card's content can never satisfy an assertion.
+// Card-scoped (slice to the NEXT card title — robust to document order) so another card can't satisfy an assertion.
+const sliceTo = (html: string, start: string, nextMarker: string) => {
+  const a = html.indexOf(start)
+  const b = html.indexOf(nextMarker, a + start.length)
+  return html.slice(a, b === -1 ? undefined : b)
+}
 const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
-const card = outputsHtml.slice(outputsHtml.indexOf('Poisson / negative binomial</span>'), outputsHtml.indexOf('5 · Econometrics'))
+const card = sliceTo(outputsHtml, '<span class="rt-name">Poisson / negative binomial</span>', '<span class="rt-name">')
 const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
-const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Poisson / negative binomial</div>'), inputsHtml.indexOf('<div class="ttl">ARIMA / SARIMA</div>'))
+const inCard = sliceTo(inputsHtml, '<div class="ttl">Poisson / negative binomial</div>', '<div class="ttl">')
 
 describe('poisson-negative-binomial registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences', () => {
+  it('table theads equal the card column sequences (single coef table: B | IRR)', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
   })
-  it('numbered table captions equal the card captions', () => {
-    const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => m[1])
+  it('the GOF footer stub labels in the card equal spec.tables[0].gof labels in order', () => {
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(stubs).toEqual(spec.tables[0].gof!.map((g) => g.label))
+  })
+  it('numbered table caption equals the card caption', () => {
+    const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
     expect(caps).toEqual(spec.tables.map((t) => t.title))
     expect(spec.tables.every((t) => t.captionStyle === undefined)).toBe(true)
+  })
+  it('coef table is kind:coef with two model columns (B | IRR) and a distinct domId', () => {
+    expect(spec.tables.length).toBe(1)
+    expect(spec.tables[0].kind).toBe('coef')
+    expect(spec.tables[0].models).toEqual([{ key: 'b', label: 'Log-count (B)' }, { key: 'irr', label: 'IRR' }])
+    expect(spec.tables[0].domId).toBe('poisson-nb-coefficients')
   })
   it('question, assume table note (the drawn dispersion note, card-literal), figure, how-to-read and R map match verbatim', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/s)![1])).toBe(spec.question)
     expect(spec.tableNote).toEqual({ kind: 'assume', text: strip(card.match(/<p class="tbl-note assume">(.*?)<\/p>/s)![1]) })
-    expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(spec.figures![0].caption)
-    expect(strip(card.match(/<div class="ftype">(.*?)<\/div>/s)![1])).toBe(`type: ${spec.figures![0].type}`)
+    expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(figuresOf(spec)[0].caption)
+    expect(strip(card.match(/<div class="ftype">(.*?)<\/div>/s)![1])).toBe(`type: ${figuresOf(spec)[0].type}`)
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)
     expect(strip(card.match(/<b>R map:<\/b>(.*?)<\/div>/s)![1])).toBe(spec.rMap)
   })
   it('APA line equals the template with every {placeholder} as __ (Predictor X stays literal on the card)', () => {
     const line = strip(card.match(/<b>APA template:<\/b>(.*?)<\/div>/s)![1])
-    expect(line).toBe(`“${spec.apaTemplate.replace(/\{\w+\}/g, '__')}”`)
+    const lq = decode('&ldquo;'); const rq = decode('&rdquo;')
+    expect(line).toBe(`${lq}${spec.apaTemplate.replace(/\{\w+\}/g, '__')}${rq}`)
   })
-  it('bundle line EQUALS bundleFiles, names derive from table ids + figure file slug', () => {
+  it('bundle line EQUALS bundleFiles, names derive from the table id + figure file slug (Model fit merged into the footer)', () => {
     expect(strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')).toEqual(spec.bundleFiles)
     expect([...spec.tables.map((t) => `table_${t.id}.png`), ...figuresOf(spec).map((g) => `figure_${g.file ?? g.type}.png`)]).toEqual(spec.bundleFiles)
   })

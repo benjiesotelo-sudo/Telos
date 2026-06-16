@@ -16,6 +16,8 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = sliceTo(inputsHtml, '<div class="ttl">Hausman test</div>', '<div class="ttl">')
 
 describe('hausman-test registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
+  // modelsummary coef table (design 2026-06-16): ONE side-by-side FE | RE coef table (+ Difference extraCol),
+  // a GOF footer below a rule, then the Hausman χ² span row. thead = [term '', FE col, RE col, Difference].
   it('table theads match the card column sequences', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) =>
       [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
@@ -24,6 +26,13 @@ describe('hausman-test registry stays faithful to the spec HTML (verbatim, card-
   it('numbered table captions match the card captions', () => {
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
     expect(caps).toEqual(spec.tables.map((t) => t.title))
+  })
+  it('the GOF footer stub labels in the card equal spec.tables[0].gof labels in order', () => {
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(stubs).toEqual(spec.tables[0].gof!.map((g) => g.label))
+  })
+  it('the Hausman χ² renders as a full-width span row (carries the spec χ² label text)', () => {
+    expect(card).toMatch(/<tr class="row-span"><td colspan="4">Hausman &chi;&sup2;\(/)
   })
   it('each table has a distinct domId', () => {
     const ids = spec.tables.map((t) => t.domId)

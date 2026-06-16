@@ -5,7 +5,7 @@ export interface PoissonNbTerm { term: string; b: number; se: number; z: number;
 export interface PoissonNbResult {
   outcome: string
   model: 'Poisson' | 'negative binomial'
-  aic: number; deviance: number; dfResid: number
+  aic: number; bic: number; logLik: number; deviance: number; dfResid: number
   dispersion: number // Poisson: check_overdispersion $dispersion_ratio (≡ hand Pearson χ²/df); NB: theta (convention 10)
   terms: PoissonNbTerm[]
   ciLevel: number
@@ -43,7 +43,8 @@ terms <- lapply(seq_along(labs), function(i) list(
   term = pretty[i], b = cf[i, 1], se = cf[i, 2], z = cf[i, 3], p = cf[i, 4],
   irr = exp(cf[i, 1]), irrLow = exp(ci[i, 1]), irrHigh = exp(ci[i, 2])))
 disp <- if (negbin) m$theta else as.numeric(performance::check_overdispersion(m)$dispersion_ratio)
-list(aic = AIC(m), deviance = m$deviance, dfResid = m$df.residual, dispersion = disp, terms = terms, n = nrow(d))`
+list(aic = AIC(m), bic = BIC(m), logLik = as.numeric(logLik(m)), deviance = m$deviance,
+  dfResid = m$df.residual, dispersion = disp, terms = terms, n = nrow(d))`
 
 // Card figure: fitted vs. Pearson residuals + dashed y = 0 (spike recipe, house styling).
 const R_FITRES = String.raw`
@@ -60,7 +61,7 @@ print(ggplot2::ggplot(pd, ggplot2::aes(fitted, resid)) +
   ggplot2::geom_point(colour = '#0c447c') +
   ggplot2::labs(x = 'Fitted values', y = 'Pearson residuals'))`
 
-interface RawStats { aic: number; deviance: number; dfResid: number; dispersion: number; terms: PoissonNbTerm[]; n: number }
+interface RawStats { aic: number; bic: number; logLik: number; deviance: number; dfResid: number; dispersion: number; terms: PoissonNbTerm[]; n: number }
 
 /** Storage-type classification (recorded decision 1): all-numeric non-missing values → linear term; else factor. */
 const isNumericColumn = (data: Dataset, col: string): boolean => {

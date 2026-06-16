@@ -748,11 +748,9 @@
     <div class="rt-h"><span class="rt-name">Logistic regression</span><span class="rt-q">predict a yes/no outcome</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
-      <div class="apa-cap"><b>Table 1.</b> Model fit</div>
-      <table class="apa"><thead><tr><th>&minus;2LL</th><th>AIC</th><th>Nagelkerke R&sup2;</th><th>Omnibus &chi;&sup2;</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 2.</b> Coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>z</th><th>p</th><th>OR</th><th>95% CI (OR)</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 3.</b> Classification</div>
+      <div class="apa-cap"><b>Table 1.</b> Coefficients</div>
+      <table class="apa coef"><thead><tr><th></th><th>Log-odds (B)</th><th>Odds ratio (OR)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Predictor</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="3"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>Nagelkerke R&sup2;</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>Omnibus &chi;&sup2;</td><td>&mdash; (p __)</td><td></td></tr><tr class="row-gof"><td>Log.Lik.</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>AIC</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>BIC</td><td>&mdash;</td><td></td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 2.</b> Classification</div>
       <table class="apa"><thead><tr><th>Predicted \ Observed</th><th>0</th><th>1</th><th>% correct</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Classifier performance</div><div class="ftype">type: <b>ROC curve</b> (with AUC)</div></div>
@@ -760,8 +758,8 @@
       <div class="howread"><p>Each predictor's <b>odds ratio</b> tells how the odds of the outcome change per unit (>1 increases, &lt;1 decreases); <b>p</b> tests significance (read it from the <b>z</b> column, z = B/SE). Model fit and the ROC/AUC show how well it classifies overall.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Predictor X was associated with the outcome, OR=__, 95% CI [__, __], <i>p</i>&nbsp;__ (AUC=__).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>glm(family=binomial)</code> &rarr; B/SE/z/p &middot; <code>exp(cbind(OR=coef(m), confint(m)))</code> &rarr; OR + 95% CI &middot; <code>performance::r2_nagelkerke(m)</code> &rarr; Nagelkerke R&sup2; &middot; <code>AIC(m)</code> &rarr; AIC &middot; <code>anova(m, test="Chisq")</code> &rarr; omnibus &chi;&sup2; / &minus;2LL &middot; <code>table(predicted, observed)</code> &rarr; Table 3 (classification) &middot; <code>pROC</code> &rarr; ROC/AUC</div>
-        <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; table_classification.png &middot; figure_roc.png</div>
+        <div class="m"><b>R map:</b> <code>glm(family=binomial)</code> &rarr; B/SE/z/p &middot; <code>exp(cbind(OR=coef(m), confint(m)))</code> &rarr; OR + 95% CI &middot; <code>performance::r2_nagelkerke(m)</code> &rarr; Nagelkerke R&sup2; &middot; <code>anova(m, test="Chisq")</code> &rarr; omnibus &chi;&sup2; &middot; <code>logLik(m)/AIC(m)/BIC(m)</code> &rarr; Log.Lik./AIC/BIC &middot; <code>table(predicted, observed)</code> &rarr; Table 2 (classification) &middot; <code>pROC</code> &rarr; ROC/AUC</div>
+        <div class="m bundle">table_coefficients.png &middot; table_classification.png &middot; figure_roc.png</div>
       </div>
     </div>
   </div>
@@ -770,10 +768,8 @@
     <div class="rt-h"><span class="rt-name">Poisson / negative binomial</span><span class="rt-q">predict a count outcome</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
-      <div class="apa-cap"><b>Table 1.</b> Model fit</div>
-      <table class="apa"><thead><tr><th>AIC</th><th>Residual deviance</th><th>df</th><th>Dispersion</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 2.</b> Coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>z</th><th>p</th><th>IRR</th><th>95% CI (IRR)</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 1.</b> Coefficients</div>
+      <table class="apa coef"><thead><tr><th></th><th>Log-count (B)</th><th>IRR</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>predictor</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="3"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>Dispersion</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>Residual deviance</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>df</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>Log.Lik.</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>AIC</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>BIC</td><td>&mdash;</td><td></td></tr></tbody></table>
       <p class="tbl-note assume">dispersion check (Poisson): if variance &gt;&gt; mean (over-dispersion), switch to negative binomial, which instead reports theta (its overdispersion parameter) rather than this ratio.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Fit / residuals</div><div class="ftype">type: <b>fitted vs. residual</b> plot</div></div>
@@ -782,7 +778,7 @@
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Predictor X was associated with the count, IRR=__, 95% CI [__, __], <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>glm(family=poisson, offset=log(exposure))</code> / <code>MASS::glm.nb()</code> &rarr; B/SE/z/p &middot; <code>exp(cbind(IRR=coef(m), confint(m)))</code> &rarr; IRR + 95% CI &middot; <code>performance::check_overdispersion()</code> &rarr; dispersion</div>
-        <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; figure_residuals.png</div>
+        <div class="m bundle">table_coefficients.png &middot; figure_residuals.png</div>
       </div>
     </div>
   </div>
@@ -858,7 +854,8 @@
       <div class="apa-cap"><b>Table 1.</b> Lag selection</div>
       <table class="apa"><thead><tr><th>Lag</th><th>AIC</th><th>BIC</th><th>HQ</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> VAR coefficients (per equation)</div>
-      <table class="apa"><thead><tr><th>Equation / lagged term</th><th>Estimate</th><th>SE</th><th>t</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>Series 1</th><th>Series 2</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Lagged term 1&hellip;k (+ const)</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="3"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-gof"><td>R&sup2;</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-gof"><td>R&sup2; Adj.</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-gof"><td>RMSE</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Log.Lik.</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-span"><td colspan="3">Selected lag (p) = &mdash;</td></tr><tr class="row-span"><td colspan="3">Max root modulus = &mdash; (stable / unstable)</td></tr></tbody></table>
+      <p class="tbl-note">one column per equation (response series); each cell stacks the estimate, its (SE), and the [95% CI] &mdash; the per-coefficient t/p are dropped. orthogonalised (Cholesky) IRFs depend on the ordering of the series; a level VAR assumes stationarity. stability check: max companion-eigenvalue modulus &lt; 1 indicates a stable VAR.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Dynamic response</div><div class="ftype">type: <b>impulse-response function</b> plots</div></div>
       <div class="zlabel">How to read this test</div>
@@ -914,17 +911,15 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Hausman test</div>
-      <table class="apa"><thead><tr><th>&chi;&sup2;</th><th>df</th><th>p</th><th>Decision</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>FE / RE</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 2.</b> FE vs. RE coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>FE B</th><th>RE B</th><th>Difference</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>Fixed effects</th><th>Random effects</th><th>Difference</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Regressor 1&hellip;k</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>(&mdash;)</td><td></td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td>[&mdash;, &mdash;]</td><td></td></tr><tr class="gofrule"><td colspan="4"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-gof"><td>R&sup2;</td><td>&mdash;</td><td>&mdash;</td><td></td></tr><tr class="row-span"><td colspan="4">Hausman &chi;&sup2;(__) = __, p __</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> FE vs. RE</div><div class="ftype">type: <b>side-by-side coefficient plot</b></div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Tests whether the random-effects assumption holds. A <b>p</b> below alpha means the estimates differ systematically &rarr; use <b>fixed effects</b>; a non-significant p means random effects is acceptable (and more efficient).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Hausman test comparing the fixed- and random-effects estimates gave &chi;&sup2;(__)=__, <i>p</i>&nbsp;__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>plm::phtest()</code> &rarr; Table 1 &middot; compare <code>plm</code> fits &rarr; Table 2</div>
-        <div class="m bundle">table_hausman.png &middot; table_fe-vs-re.png &middot; figure_coefficients.png</div>
+        <div class="m"><b>R map:</b> <code>plm::phtest()</code> + compare within / random fits &rarr; Table &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m bundle">table_hausman.png &middot; figure_coefficients.png</div>
       </div>
     </div>
   </div>
@@ -955,7 +950,7 @@
       <div class="apa-cap"><b>Table 1.</b> First stage (instrument strength)</div>
       <table class="apa"><thead><tr><th>Instrument</th><th>Coef.</th><th>SE</th><th>Partial F</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> 2SLS coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>OLS</th><th>2SLS</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Endogenous regressor</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Control 1&hellip;k</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="3"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td></td><td>&mdash;</td></tr><tr class="row-gof"><td>RMSE</td><td></td><td>&mdash;</td></tr><tr class="row-gof"><td>F</td><td></td><td>&mdash;</td></tr><tr class="row-span"><td colspan="3">Weak-instrument F = &mdash;, p&nbsp;__ (rule of thumb: F &gt; 10)</td></tr><tr class="row-span"><td colspan="3">Wu&ndash;Hausman = &mdash;, p&nbsp;__</td></tr><tr class="row-span"><td colspan="3">Sargan: &mdash; (just-identified)</td></tr></tbody></table>
       <p class="tbl-note">diagnostics: weak-instrument (first-stage F), Wu-Hausman endogeneity, and Sargan over-identification (when applicable).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b> (OLS vs. 2SLS)</div></div>
@@ -995,7 +990,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> DiD model</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>Clustered SE</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>Treated</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Post</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Treated &times; Post</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Post</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Treated &times; Post</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>Within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>F</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">the <b>Treated &times; Post</b> interaction is the DiD effect; valid only if pre-treatment trends are parallel. Under entity fixed effects the time-invariant <b>Treated</b> main effect is absorbed (only Post and Treated&times;Post are estimated).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Parallel trends</div><div class="ftype">type: <b>parallel-trends plot</b> (group means over time, treatment marked)</div></div>
@@ -1003,7 +998,7 @@
       <div class="howread"><p>The <b>Treated&times;Post</b> coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups <i>would have</i> moved together absent treatment. Similar <b>pre</b>-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it &mdash; a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The DiD estimate was <i>B</i>=__, 95% CI [__, __], <i>p</i>&nbsp;__ (clustered SE).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>fixest::feols()</code> / <code>lm()</code> with clustered SE &rarr; table &middot; <code>ggplot2</code> &rarr; trends plot</div>
+        <div class="m"><b>R map:</b> <code>plm(model="within")</code> with clustered SE &rarr; table &middot; <code>ggplot2</code> &rarr; trends plot</div>
         <div class="m bundle">table_did.png &middot; figure_parallel-trends.png</div>
       </div>
     </div>

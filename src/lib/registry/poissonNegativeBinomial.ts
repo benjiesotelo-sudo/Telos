@@ -30,12 +30,24 @@ export const POISSON_NEGATIVE_BINOMIAL: TestSpec = {
     ],
     minRule: { kind: 'complete-pairs', n: 3 }, // count outcome is numeric — complete-pairs works here (convention 14)
   },
+  // modelsummary coef table (design 2026-06-16): the old Model fit + Coefficients merge into ONE stacked table.
+  // SHAPE A (exponentiated two-column B | IRR): per term a coef row (B, IRR) then a muted row — (SE) under
+  // Log-count (B), the IRR confidence interval under IRR. z/p drop from the visible cell (report-only, D1: no stars).
+  // GOF footer (glm family): Num.Obs. → model-aware Dispersion (Poisson ratio / NB θ) → Residual deviance + df →
+  // Log.Lik. → AIC → BIC. The Dispersion label is static here; the model-aware NOTE explains the Poisson↔θ swap (convention 10).
   tables: [
-    { id: 'model-fit', title: 'Model fit', domId: 'poisson-nb-model-fit',
-      columns: [{ key: 'aic', label: 'AIC' }, { key: 'dev', label: 'Residual deviance' }, { key: 'df', label: 'df' }, { key: 'dispersion', label: 'Dispersion' }] },
-    { id: 'coefficients', title: 'Coefficients', domId: 'poisson-nb-coefficients',
-      columns: [{ key: 'term', label: 'Term' }, { key: 'b', label: 'B' }, { key: 'se', label: 'SE' }, { key: 'z', label: 'z' },
-        { key: 'p', label: 'p' }, { key: 'irr', label: 'IRR' }, { key: 'ci', label: '95% CI (IRR)' }] },
+    { id: 'coefficients', title: 'Coefficients', domId: 'poisson-nb-coefficients', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'b', label: 'Log-count (B)' }, { key: 'irr', label: 'IRR' }],
+      models: [{ key: 'b', label: 'Log-count (B)' }, { key: 'irr', label: 'IRR' }],
+      gof: [
+        { key: 'n', label: 'Num.Obs.' },
+        { key: 'dispersion', label: 'Dispersion' },
+        { key: 'dev', label: 'Residual deviance' },
+        { key: 'df', label: 'df' },
+        { key: 'll', label: 'Log.Lik.' },
+        { key: 'aic', label: 'AIC' },
+        { key: 'bic', label: 'BIC' },
+      ] },
   ],
   tableNote: { kind: 'assume', text:
     'dispersion check (Poisson): if variance >> mean (over-dispersion), switch to negative binomial, which instead reports theta (its overdispersion parameter) rather than this ratio.' },
@@ -47,5 +59,5 @@ export const POISSON_NEGATIVE_BINOMIAL: TestSpec = {
     'model predicts rates, not raw counts — omitting it biases the IRRs.',
   apaTemplate: 'Predictor X was associated with the count, IRR={irr}, 95% CI [{ciLow}, {ciHigh}], p {p}.',
   rMap: 'glm(family=poisson, offset=log(exposure)) / MASS::glm.nb() → B/SE/z/p · exp(cbind(IRR=coef(m), confint(m))) → IRR + 95% CI · performance::check_overdispersion() → dispersion',
-  bundleFiles: ['table_model-fit.png', 'table_coefficients.png', 'figure_residuals.png'],
+  bundleFiles: ['table_coefficients.png', 'figure_residuals.png'],
 }

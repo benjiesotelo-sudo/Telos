@@ -2,8 +2,9 @@ import type { TestSpec } from './types'
 
 // Encoded VERBATIM from telos_test_outputs.html + telos_test_inputs.html (Difference-in-differences card).
 // Report-only APA — literal "95% CI" (no {pct} token); {lo}/{hi} replaced by builder.
-// DiD = base lm(y ~ treated*post) with clustered-by-entity SE (sandwich::vcovCL); the `did` package is not
-// WebR-loadable and not needed for the 2×2 design.
+// DiD = Option-B entity fixed effects: plm::plm(y ~ post + post:treated, model='within') with clustered-by-entity
+// SE (plm::vcovHC, arellano/HC1). The within transform absorbs the time-invariant Treated main effect, so the
+// modelsummary coef table shows only Post + Treated×Post. plm has NO logLik → no AIC/BIC/Log.Lik gof rows.
 export const DID: TestSpec = {
   id: 'did',
   name: 'Difference-in-differences (DiD)',
@@ -30,12 +31,17 @@ export const DID: TestSpec = {
     ],
     minRule: { kind: 'values', n: 12 },
   },
+  // modelsummary coef table (design 2026-06-16): one stacked table merges coefficients + model fit.
+  // columns = [term, est]; the builder stacks B / (clustered SE) / [CI] per term, a rule, then the gof footer.
+  // plm within → NO AIC/BIC/Log.Lik (no logLik method); within R² + F + N entities are the panel gof rows.
   tables: [
     {
-      id: 'did', title: 'DiD model', domId: 'did-model', captionStyle: 'bare',
-      columns: [
-        { key: 'term', label: 'Term' }, { key: 'b', label: 'B' }, { key: 'se', label: 'Clustered SE' },
-        { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' },
+      id: 'did', title: 'DiD model', domId: 'did-model', captionStyle: 'bare', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'est', label: '(1)' }],
+      models: [{ key: 'est', label: '(1)' }],
+      gof: [
+        { key: 'n', label: 'Num.Obs.' }, { key: 'nentities', label: 'N entities' },
+        { key: 'r2within', label: 'Within R²' }, { key: 'f', label: 'F' },
       ],
     },
   ],
@@ -48,6 +54,6 @@ export const DID: TestSpec = {
   howToRead:
     'The Treated×Post coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups would have moved together absent treatment. Similar pre-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it — a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual.',
   apaTemplate: 'The DiD estimate was B={b}, 95% CI [{lo}, {hi}], p {p} (clustered SE).',
-  rMap: 'fixest::feols() / lm() with clustered SE → table · ggplot2 → trends plot',
+  rMap: 'plm(model="within") with clustered SE → table · ggplot2 → trends plot',
   bundleFiles: ['table_did.png', 'figure_parallel-trends.png'],
 }

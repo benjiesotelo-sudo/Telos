@@ -16,14 +16,28 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = sliceTo(inputsHtml, '<div class="ttl">Instrumental variables (IV / 2SLS)</div>', '<div class="ttl">')
 
 describe('iv-2sls registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
+  // modelsummary OLS|2SLS shape (design 2026-06-16): Table 2 is now a coef table (thead = ['', 'OLS', '2SLS'],
+  // a GOF footer below a rule, then diagnostic span rows). Table 1 (first stage) stays a classic table.
   it('table theads match the card column sequences', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) =>
       [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
   })
-  it('numbered table captions match the card captions', () => {
+  it('the 2SLS table is kind:coef with OLS|2SLS models; first stage stays classic; ivreg has NO aic/bic/logLik gof', () => {
+    expect(spec.tables[0].kind).toBeUndefined()
+    expect(spec.tables[1].kind).toBe('coef')
+    expect(spec.tables[1].models).toEqual([{ key: 'ols', label: 'OLS' }, { key: 'iv', label: '2SLS' }])
+    expect(spec.tables[1].gof!.map((g) => g.key)).toEqual(['n', 'rmse', 'structF'])
+    expect(spec.tables[1].gof!.some((g) => ['aic', 'bic', 'll'].includes(g.key))).toBe(false)
+  })
+  it('the GOF footer stub labels in the 2SLS table equal spec.tables[1].gof labels in order', () => {
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(stubs).toEqual(spec.tables[1].gof!.map((g) => g.label))
+  })
+  it('numbered table captions match the card captions (first-stage = Table 1, 2SLS = Table 2)', () => {
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
     expect(caps).toEqual(spec.tables.map((t) => t.title))
+    expect(spec.tables.every((t) => t.captionStyle === undefined)).toBe(true)
   })
   it('each table has a distinct domId', () => {
     const ids = spec.tables.map((t) => t.domId)

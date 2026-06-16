@@ -96,6 +96,19 @@ describe('runVar', () => {
     expect(prodShock_e!.share).toBeCloseTo(0.07046635, 5)
     expect(prodShock_prod!.share).toBeCloseTo(0.9295336, 5)
 
+    // modelsummary footer: per-equation GOF (each equation is an lm) + per-coef 95% CI via confint().
+    // Native R 4.6.0 (VAR(Canada[,1:2], p=1)): eq 'e' R²=0.996941 RMSE=0.498534 logLik=−59.997016 N=83.
+    const gofE = r.eqGof.find((g) => g.equation === 'e')
+    expect(gofE).toBeDefined()
+    expect(gofE!.r2).toBeCloseTo(0.996941, 5)
+    expect(gofE!.adjR2).toBeCloseTo(0.996865, 5)
+    expect(gofE!.rmse).toBeCloseTo(0.498534, 5)
+    expect(gofE!.logLik).toBeCloseTo(-59.997016, 4)
+    expect(gofE!.nobs).toBe(83)
+    expect(el1!.ciLow).toBeCloseTo(0.923112, 5)   // confint(eq e)[e.l1,]
+    expect(el1!.ciHigh).toBeCloseTo(0.972681, 5)
+    expect(r.ciLevel).toBe(0.95)
+
     // IRF figure: valid PNG bytes
     expect(Array.from(r.figIrfPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 900_000)

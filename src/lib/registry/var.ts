@@ -39,14 +39,24 @@ export const VAR: TestSpec = {
         { key: 'hq', label: 'HQ' },
       ],
     },
+    // modelsummary coef table (design 2026-06-16) — SIDE-BY-SIDE, ONE COLUMN PER EQUATION.
+    // This registry entry is a PLACEHOLDER: the column/model count is data-dependent (one per series),
+    // so buildVar OVERRIDES `columns` + `models` at runtime with the real response-series labels
+    // (same pattern as buildDid's runtime column override). The single placeholder model column below
+    // is a representative example for the static drawn card. Per term: estimate / (SE) / [CI] (t/p drop).
+    // Footer gof per equation: Num.Obs. / R² / R² Adj. / RMSE / Log.Lik. (each equation is an lm → all exist),
+    // then SYSTEM span rows (selected lag p, max-root modulus + stability) emitted by the builder.
     {
       id: 'var-coefficients', title: 'VAR coefficients (per equation)', domId: 'var-var-coefficients',
-      columns: [
-        { key: 'term', label: 'Equation / lagged term' },
-        { key: 'estimate', label: 'Estimate' },
-        { key: 'se', label: 'SE' },
-        { key: 't', label: 't' },
-        { key: 'p', label: 'p' },
+      kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'eq1', label: 'Series 1' }],
+      models: [{ key: 'eq1', label: 'Series 1' }],
+      gof: [
+        { key: 'nobs', label: 'Num.Obs.' },
+        { key: 'r2', label: 'R²' },
+        { key: 'adjr2', label: 'R² Adj.' },
+        { key: 'rmse', label: 'RMSE' },
+        { key: 'll', label: 'Log.Lik.' },
       ],
     },
     // §2.5 addition: Forecast-error variance decomposition (FEVD) — long format (Variable · Impulse · Share)
@@ -63,8 +73,9 @@ export const VAR: TestSpec = {
   // §2.5 addition: stability check as tableNote (vars::roots max modulus; < 1 → stable).
   tableNote: {
     kind: 'plain',
-    text: 'orthogonalised (Cholesky) IRFs depend on the ordering of the series; a level VAR assumes stationarity. ' +
-      'stability check: max companion-eigenvalue modulus < 1 indicates a stable VAR.',
+    text: 'one column per equation (response series); each cell stacks the estimate, its (SE), and the [95% CI] — ' +
+      'the per-coefficient t/p are dropped. orthogonalised (Cholesky) IRFs depend on the ordering of the series; ' +
+      'a level VAR assumes stationarity. stability check: max companion-eigenvalue modulus < 1 indicates a stable VAR.',
     afterTableId: 'var-coefficients',
   },
   figures: [

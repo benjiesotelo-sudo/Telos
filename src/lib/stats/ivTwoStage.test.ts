@@ -25,9 +25,16 @@ describe('runIvTwoStage', () => {
     expect(educ.se).toBeCloseTo(0.284340, 4)        // robust SE (sandwich::vcovHC) — verifies under WebR
     expect(educ.ciLow).toBeCloseTo(7.260675, 3)
     expect(educ.ciHigh).toBeCloseTo(8.382158, 3)
+    // OLS|2SLS shape: the matching OLS estimate/SE/CI are surfaced per term (lm(.y ~ educ + exper), HC1)
+    expect(educ.olsB).toBeCloseTo(9.568037, 4)
+    expect(educ.olsSe).toBeCloseTo(0.160186, 4)
+    expect(educ.olsCiLow).toBeCloseTo(9.252138, 3)
+    expect(educ.olsCiHigh).toBeCloseTo(9.883936, 3)
     expect(r.weakF).toBeCloseTo(438.5002, 1)
     expect(r.wuF).toBeCloseTo(1022.7501, 1)
     expect(r.sargan).toBeNull()                      // just-identified → Sargan NA → null
+    expect(r.structF).toBeCloseTo(373.4404, 1)       // structural Wald F = summary(.,diagnostics=T)$waldtest[1]
+    expect(r.rmse).toBeCloseTo(6.666408, 3)
     expect(Array.from(r.figCoefPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 900_000)
 

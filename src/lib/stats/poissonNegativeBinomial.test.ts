@@ -32,6 +32,8 @@ describe('runPoissonNegativeBinomial', () => {
   it('spike known answers — Poisson WITH exposure offset (offset(log(months_observed)) in-formula)', async () => {
     const r = await runPoissonNegativeBinomial(engine, loadRegressionFixture(), 'complaints', ['age', 'group'], 'months_observed', 'Poisson')
     expect(r.aic).toBeCloseTo(202.368510500, 5)
+    expect(r.bic).toBeCloseTo(207.435148800, 5)       // native-R BIC(glm) — modelsummary GOF row (3 params)
+    expect(r.logLik).toBeCloseTo(-98.184255230, 5)    // native-R as.numeric(logLik(m))
     expect(r.deviance).toBeCloseTo(67.565463040, 5)
     expect(r.dispersion).toBeCloseTo(1.686886555, 6)
     const age = r.terms[1]
@@ -53,6 +55,8 @@ describe('runPoissonNegativeBinomial', () => {
   it('spike known answers — negative binomial WITH exposure: theta + profile IRR CIs (glm.nb in-formula offset)', async () => {
     const r = await runPoissonNegativeBinomial(engine, loadRegressionFixture(), 'complaints', ['age', 'group'], 'months_observed', 'negative binomial')
     expect(r.aic).toBeCloseTo(200.096113400, 5)
+    expect(r.bic).toBeCloseTo(206.851631200, 5)       // native-R BIC(glm.nb) — counts theta as a 4th param
+    expect(r.logLik).toBeCloseTo(-96.048056710, 5)    // native-R as.numeric(logLik(m))
     expect(r.deviance).toBeCloseTo(45.810830490, 5)
     expect(r.dispersion).toBeCloseTo(9.000773027, 5) // theta
     const age = r.terms[1]

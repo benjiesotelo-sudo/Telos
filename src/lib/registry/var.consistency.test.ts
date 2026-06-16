@@ -17,16 +17,39 @@ const inCard = inputsHtml.slice(
 )
 
 describe('var registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads match the card column sequences (Tables 1 and 2 only — §2.5 FEVD not in HTML card)', () => {
+  it('Table 1 (lag selection) thead matches the spec; Table 2 is a coef placeholder (dynamic per-equation columns)', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) =>
       [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
-    // The HTML card has Tables 1 + 2 only (lag-selection, var-coefficients)
-    expect(theads).toEqual(spec.tables.slice(0, 2).map((t) => t.columns.map((c) => c.label)))
+    // The HTML card has Tables 1 + 2 only (lag-selection, var-coefficients). §2.5 FEVD is registry-only.
+    // Table 1 columns are STATIC → assert verbatim against the spec.
+    expect(theads[0]).toEqual(spec.tables[0].columns.map((c) => c.label))
+    // Table 2 is kind:'coef' with ONE COLUMN PER EQUATION — the count + labels are DATA-DEPENDENT, built at
+    // runtime by buildVar. So we do NOT assert the per-equation labels against the registry placeholder.
+    // We only pin the STATIC contract: the first header is the blank term stub, the rest are example series.
+    expect(spec.tables[1].kind).toBe('coef')
+    expect(theads[1][0]).toBe('') // blank term-stub column
+    expect(theads[1].length).toBeGreaterThanOrEqual(2) // term stub + ≥1 example equation column
+    expect(theads[1].slice(1)).toEqual(['Series 1', 'Series 2']) // drawn 2-equation EXAMPLE (not from spec)
   })
 
   it('numbered table captions match the card captions (Tables 1 and 2)', () => {
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
     expect(caps).toEqual(spec.tables.slice(0, 2).map((t) => t.title))
+  })
+
+  it('Table 2 GOF footer stub labels in the card equal spec.tables[1].gof labels in order (static)', () => {
+    // Copy of the reference GOF-label assertion: the footer row labels are STATIC (per-equation VALUES are dynamic).
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(stubs).toEqual(spec.tables[1].gof!.map((g) => g.label))
+    expect(stubs).toEqual(['Num.Obs.', 'R²', 'R² Adj.', 'RMSE', 'Log.Lik.'])
+  })
+
+  it('Table 2 carries the two SYSTEM span rows (selected lag + max-root-modulus stability)', () => {
+    const spans = [...card.matchAll(/<tr class="row-span"><td colspan="\d+">(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(spans).toHaveLength(2)
+    expect(spans[0]).toContain('Selected lag (p)')
+    expect(spans[1]).toContain('Max root modulus')
+    expect(spans[1]).toContain('stable')
   })
 
   it('each table has a distinct domId (no zip-filename collision)', () => {
@@ -44,13 +67,16 @@ describe('var registry stays faithful to the spec HTML (verbatim, card-scoped)',
     expect(fevdTable.columns.map((c) => c.label)).toEqual(['Variable', 'Impulse', 'Share'])
   })
 
-  it('§2.5: tableNote (stability check) is present after var-coefficients', () => {
-    // Not in the drawn HTML card; §2.5 addition — verified against the registry
+  it('tableNote (per-equation layout + stability check) matches the drawn card note after var-coefficients', () => {
     expect(spec.tableNote).toBeDefined()
     expect(spec.tableNote!.kind).toBe('plain')
     expect(spec.tableNote!.afterTableId).toBe('var-coefficients')
+    expect(spec.tableNote!.text).toContain('one column per equation')
     expect(spec.tableNote!.text).toContain('stability check')
     expect(spec.tableNote!.text).toContain('< 1')
+    // Faithful render: the registry note text equals the drawn <p class="tbl-note"> (modulo HTML entity < → "<").
+    const htmlNote = strip(card.match(/<p class="tbl-note">(.*?)<\/p>/s)![1])
+    expect(htmlNote).toBe(spec.tableNote!.text)
   })
 
   it('question, figure caption + type, how-to-read and R map match verbatim', () => {

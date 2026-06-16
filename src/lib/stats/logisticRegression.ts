@@ -5,7 +5,7 @@ export interface LogisticTerm { term: string; b: number; se: number; z: number; 
 export interface LogisticResult {
   outcome: string; event: string
   reportOR: boolean // R1 display toggle — ORs always computed; the builder masks
-  m2ll: number; aic: number; nagelkerke: number
+  m2ll: number; logLik: number; aic: number; bic: number; nagelkerke: number // modelsummary GOF: Log.Lik./AIC/BIC (−2LL kept)
   omnibusChisq: number; omnibusDf: number; omnibusP: number
   terms: LogisticTerm[]
   levels: string[]                 // factor order [other, event] — classification row/column order
@@ -54,7 +54,8 @@ pred <- factor(ifelse(p >= 0.5, event, oth), levels = levels(d$y))
 tab <- table(pred, d$y)
 pct <- ifelse(rowSums(tab) > 0, 100 * diag(tab) / rowSums(tab), NA_real_)
 auc <- as.numeric(pROC::auc(pROC::roc(d$y, p, quiet = TRUE)))
-list(m2ll = -2 * as.numeric(logLik(m)), aic = AIC(m), nagelkerke = as.numeric(performance::r2_nagelkerke(m)),
+list(m2ll = -2 * as.numeric(logLik(m)), logLik = as.numeric(logLik(m)), aic = AIC(m), bic = BIC(m),
+     nagelkerke = as.numeric(performance::r2_nagelkerke(m)),
      omnibusChisq = omni, omnibusDf = odf, omnibusP = pchisq(omni, odf, lower.tail = FALSE),
      terms = terms, levels = levels(d$y),
      classCounts = lapply(seq_len(nrow(tab)), function(i) as.numeric(tab[i, ])),
@@ -84,7 +85,8 @@ print(ggplot2::ggplot(data.frame(fpr = fpr[ord], tpr = tpr[ord]), ggplot2::aes(f
   ggplot2::labs(x = '1 - Specificity', y = 'Sensitivity'))`
 
 interface RawStats {
-  m2ll: number; aic: number; nagelkerke: number; omnibusChisq: number; omnibusDf: number; omnibusP: number
+  m2ll: number; logLik: number; aic: number; bic: number; nagelkerke: number
+  omnibusChisq: number; omnibusDf: number; omnibusP: number
   terms: LogisticTerm[]; levels: string[]; classCounts: number[][]; pctCorrect: (number | null)[]; auc: number; n: number
 }
 

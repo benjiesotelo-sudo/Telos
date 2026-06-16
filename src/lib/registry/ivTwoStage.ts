@@ -35,12 +35,14 @@ export const IV_TWO_STAGE: TestSpec = {
         { key: 'partialF', label: 'Partial F' }, { key: 'p', label: 'p' },
       ],
     },
+    // modelsummary OLS|2SLS shape (design 2026-06-16): side-by-side model columns; the builder stacks
+    // estimate / (SE) / [CI] per term, a rule, then the gof footer, then span rows for the §2.8 diagnostics.
+    // ivreg has NO logLik → no AIC/BIC/Log.Lik gof rows. Structural Wald F = summary(.,diagnostics=T)$waldtest[1].
     {
-      id: '2sls', title: '2SLS coefficients', domId: 'iv-2sls',
-      columns: [
-        { key: 'term', label: 'Term' }, { key: 'b', label: 'B' }, { key: 'se', label: 'SE' },
-        { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' },
-      ],
+      id: '2sls', title: '2SLS coefficients', domId: 'iv-2sls', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'ols', label: 'OLS' }, { key: 'iv', label: '2SLS' }],
+      models: [{ key: 'ols', label: 'OLS' }, { key: 'iv', label: '2SLS' }],
+      gof: [{ key: 'n', label: 'Num.Obs.' }, { key: 'rmse', label: 'RMSE' }, { key: 'structF', label: 'F' }],
     },
   ],
   figures: [{ caption: 'Coefficients', type: 'coefficient plot (OLS vs. 2SLS)', file: 'coefficients' }],

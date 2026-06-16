@@ -17,6 +17,18 @@ export interface VarCoefRow {
   se: number
   t: number
   p: number
+  ciLow: number     // CI lower bound (confint on the equation lm at ciLevel)
+  ciHigh: number    // CI upper bound
+}
+
+// Per-equation goodness-of-fit (each VAR equation is an lm, so these all exist — spike §2.5).
+export interface VarEqGof {
+  equation: string
+  r2: number
+  adjR2: number
+  rmse: number       // sqrt(mean(residuals^2)) on the equation lm
+  logLik: number
+  nobs: number       // n - p usable observations after lagging
 }
 
 export interface VarFevdRow {
@@ -30,9 +42,11 @@ export interface VarResult {
   selectedLag: number
   lagRows: VarLagRow[]
   coefRows: VarCoefRow[]
+  eqGof: VarEqGof[]       // per-equation R²/adjR²/RMSE/logLik/N (footer rows of the coef table)
   fevdRows: VarFevdRow[]
   maxRootModulus: number  // §2.5: stability — max companion-eigenvalue modulus
   stable: boolean         // maxRootModulus < 1
+  ciLevel: number         // CI level used for the bracketed line (default 0.95)
   irfHorizon: number
   n: number
   nExcluded: number
@@ -48,6 +62,7 @@ export interface VarResult {
 //   n_obs       — integer: number of rows
 //   lag_max     — integer: upper VARselect search bound
 //   irf_h       — integer: IRF horizon
+//   ci_level    — numeric: CI level for confint() on each equation lm (default 0.95)
 // The runner sorts rows by time and passes the matrix column-by-column.
 const R_VAR = String.raw`
 # Rebuild data frame from flat column-major vector
@@ -74,10 +89,15 @@ selected_lag <- as.integer(which.min(aic_vec))
 # Fit VAR
 fit <- vars::VAR(df, p = selected_lag, type = 'const')
 
-# Coefficient table: one row per lagged term (including const) per equation
+# Coefficient table: one row per lagged term (including const) per equation.
+# Each equation is an lm → CI via confint(); per-equation GOF (R²/adjR²/RMSE/logLik/N).
 coef_rows <- list()
+eq_gof    <- list()
 for (eq_name in names(fit$varresult)) {
-  cf <- summary(fit$varresult[[eq_name]])$coefficients
+  m  <- fit$varresult[[eq_name]]
+  s  <- summary(m)
+  cf <- s$coefficients
+  ci <- confint(m, level = ci_level)
   for (i in seq_len(nrow(cf))) {
     coef_rows[[length(coef_rows) + 1L]] <- list(
       term     = rownames(cf)[i],
@@ -85,9 +105,19 @@ for (eq_name in names(fit$varresult)) {
       estimate = cf[i, 1L],
       se       = cf[i, 2L],
       t        = cf[i, 3L],
-      p        = cf[i, 4L]
+      p        = cf[i, 4L],
+      ci_low   = ci[i, 1L],
+      ci_high  = ci[i, 2L]
     )
   }
+  eq_gof[[length(eq_gof) + 1L]] <- list(
+    equation = eq_name,
+    r2       = s$r.squared,
+    adj_r2   = s$adj.r.squared,
+    rmse     = sqrt(mean(residuals(m)^2)),
+    log_lik  = as.numeric(logLik(m)),
+    nobs     = as.integer(nobs(m))
+  )
 }
 
 # §2.5: FEVD at irfHorizon — long format
@@ -113,6 +143,7 @@ list(
   lag_table    = lag_table,
   selected_lag = selected_lag,
   coef_rows    = coef_rows,
+  eq_gof       = eq_gof,
   fevd_rows    = fevd_rows,
   max_root     = max_root,
   is_stable    = is_stable
@@ -137,7 +168,8 @@ plot(irf_obj)`
 interface RawVar {
   lag_table: { lag: number; aic: number; bic: number; hq: number }[]
   selected_lag: number
-  coef_rows: { term: string; equation: string; estimate: number; se: number; t: number; p: number }[]
+  coef_rows: { term: string; equation: string; estimate: number; se: number; t: number; p: number; ci_low: number; ci_high: number }[]
+  eq_gof: { equation: string; r2: number; adj_r2: number; rmse: number; log_lik: number; nobs: number }[]
   fevd_rows: { variable: string; impulse: string; share: number }[]
   max_root: number
   is_stable: boolean
@@ -150,9 +182,10 @@ export async function runVar(
   data: Dataset,
   timeCol: string,
   seriesCols: string[],
-  opts: { lagOrder?: 'auto' | number; irfHorizon?: number; lagMax?: number } = {},
+  opts: { lagOrder?: 'auto' | number; irfHorizon?: number; lagMax?: number; ciLevel?: number } = {},
 ): Promise<VarResult> {
   const irfHorizon = opts.irfHorizon ?? 10
+  const ciLevel = opts.ciLevel ?? 0.95
   // lagMax: VARselect search upper bound. Auto mode uses 10; manual passes the explicit lag directly.
   const lagMax = typeof opts.lagOrder === 'number' ? opts.lagOrder : (opts.lagMax ?? 10)
 
@@ -192,6 +225,7 @@ export async function runVar(
     n_obs: nObs,
     lag_max: lagMax,
     irf_h: irfHorizon,
+    ci_level: ciLevel,
     // selected_lag is populated from raw result for the figure call
     selected_lag: 0,
   }
@@ -206,10 +240,17 @@ export async function runVar(
     seriesNames: seriesCols,
     selectedLag: raw.selected_lag,
     lagRows: raw.lag_table,
-    coefRows: raw.coef_rows,
+    coefRows: raw.coef_rows.map((c) => ({
+      term: c.term, equation: c.equation, estimate: c.estimate, se: c.se, t: c.t, p: c.p,
+      ciLow: c.ci_low, ciHigh: c.ci_high,
+    })),
+    eqGof: raw.eq_gof.map((g) => ({
+      equation: g.equation, r2: g.r2, adjR2: g.adj_r2, rmse: g.rmse, logLik: g.log_lik, nobs: g.nobs,
+    })),
     fevdRows: raw.fevd_rows,
     maxRootModulus: raw.max_root,
     stable: raw.is_stable,
+    ciLevel,
     irfHorizon,
     n: nObs,
     nExcluded,

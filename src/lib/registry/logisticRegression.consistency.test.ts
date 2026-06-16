@@ -11,11 +11,21 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Logistic regression</div>'), inputsHtml.indexOf('<div class="ttl">Poisson / negative binomial</div>'))
 
 describe('logistic-regression registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences (decoded — −2LL, Nagelkerke R², Omnibus χ², Predicted \\ Observed)', () => {
+  // modelsummary coef table (design 2026-06-16): SHAPE A two-column B|OR merges the old Model fit + Coefficients.
+  // thead[0] = ['', 'Log-odds (B)', 'Odds ratio (OR)'] above a GOF footer; thead[1] = the classification table.
+  it('table theads equal the card column sequences (decoded — Log-odds (B) | Odds ratio (OR), Predicted \\ Observed)', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
   })
-  it('numbered table captions equal the card captions (three tables)', () => {
+  it('the GOF footer stub labels in the coef card equal spec.tables[0].gof labels in order (glm family)', () => {
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(stubs).toEqual(spec.tables[0].gof!.map((g) => g.label))
+  })
+  it('the coef table is the SHAPE A two-column modelsummary layout (kind coef, two model columns)', () => {
+    expect(spec.tables[0].kind).toBe('coef')
+    expect(spec.tables[0].models!.map((m) => m.label)).toEqual(['Log-odds (B)', 'Odds ratio (OR)'])
+  })
+  it('numbered table captions equal the card captions (coef = Table 1, classification = Table 2)', () => {
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => m[1])
     expect(caps).toEqual(spec.tables.map((t) => t.title))
     expect(spec.tables.every((t) => t.captionStyle === undefined)).toBe(true)

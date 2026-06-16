@@ -4,24 +4,31 @@ import { binaryCode, positiveLevel } from './binaryCoding'
 
 export interface DidCoefRow { term: string; b: number; se: number; t: number; p: number; ciLow: number; ciHigh: number }
 export interface DidResult {
-  coefRows: DidCoefRow[]   // (Intercept), tr, po, tr:po — builder relabels
+  coefRows: DidCoefRow[]   // po, po:tr — builder relabels (Treated main effect absorbed by the within transform)
   seType: 'clustered' | 'classical'
   ciLevel: number; alpha: number
-  nObs: number; nExcluded: number
+  withinR2: number; fStat: number
+  nObs: number; nEntities: number; nExcluded: number
   figTrendsPng: Uint8Array<ArrayBuffer>
 }
 
-// lm(.y ~ tr * po); clustered-by-entity SE via sandwich::vcovCL. tr/po are 0/1 (second level = 1).
+// Option-B entity fixed effects: plm within on (po + po:tr). The time-invariant Treated main effect (tr) is
+// absorbed by the within transform — only Post and Treated×Post are estimable. Clustered-by-entity SE via
+// plm::vcovHC(arellano/HC1) (same recipe as the FE/Hausman siblings); classical = stats::vcov. tr/po are 0/1.
 const R_DID = String.raw`
-d <- data.frame(.y = y, tr = tr, po = po, .cluster = cluster, stringsAsFactors = FALSE)
-fit <- lm(.y ~ tr * po, data = d)
-V  <- if (se_clustered) sandwich::vcovCL(fit, cluster = d$.cluster) else stats::vcov(fit)
+d <- data.frame(.entity = cluster, .timev = timev, .y = y, po = po, tr = tr, stringsAsFactors = FALSE)
+pd  <- plm::pdata.frame(d, index = c('.entity', '.timev'))
+fit <- plm::plm(.y ~ po + po:tr, data = pd, model = 'within')
+V  <- if (se_clustered) plm::vcovHC(fit, method = 'arellano', type = 'HC1', cluster = 'group') else stats::vcov(fit)
 ct <- lmtest::coeftest(fit, vcov. = V)
 ci <- lmtest::coefci(fit, vcov. = V, level = ci_level)
 labs <- rownames(ct)
 coef_rows <- lapply(seq_along(labs), function(i) list(
   term = labs[i], b = ct[i, 1], se = ct[i, 2], t = ct[i, 3], p = ct[i, 4], ciLow = ci[i, 1], ciHigh = ci[i, 2]))
-list(coef_rows = coef_rows, n_obs = nrow(d))`
+s <- summary(fit)
+fst <- s$fstatistic
+list(coef_rows = coef_rows, within_r2 = unname(s$r.squared['rsq']), f_stat = unname(fst$statistic),
+  n_obs = nrow(d), n_entities = plm::pdim(fit)$nT$n)`
 
 // Parallel-trends plot: mean outcome over time by treatment group, with treatment onset marked.
 const R_TRENDS = String.raw`
@@ -33,7 +40,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(x = tt, y = yy, colour = grp, group = gr
   ggplot2::scale_colour_manual(values = c(Control = '#0c447c', Treated = '#c8781e')) +
   ggplot2::labs(x = 'Time', y = 'Mean outcome', colour = NULL))`
 
-interface RawDid { coef_rows: DidCoefRow[]; n_obs: number }
+interface RawDid { coef_rows: DidCoefRow[]; within_r2: number; f_stat: number; n_obs: number; n_entities: number }
 
 const levelsOf = (data: Dataset, col: string): string[] =>
   [...new Set(data.rows.map((r) => r[col]).filter((v) => v !== null && v !== undefined && String(v).trim() !== '').map(String))].sort()
@@ -78,6 +85,7 @@ export async function runDid(
   const figTrendsPng = await engine.capturePlot(R_TRENDS, 600, 450, env)
   return {
     coefRows: raw.coef_rows, seType: seClustered ? 'clustered' : 'classical',
-    ciLevel: ciLvl, alpha, nObs: raw.n_obs, nExcluded, figTrendsPng,
+    ciLevel: ciLvl, alpha, withinR2: raw.within_r2, fStat: raw.f_stat,
+    nObs: raw.n_obs, nEntities: raw.n_entities, nExcluded, figTrendsPng,
   }
 }

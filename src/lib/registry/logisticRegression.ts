@@ -32,13 +32,17 @@ export const LOGISTIC_REGRESSION: TestSpec = {
     // check enforces the 2-category nominal candidate; the adequacy gate is the run itself.
     minRule: { kind: 'used-columns', n: 1 },
   },
+  // modelsummary coef table (design 2026-06-16): SHAPE A two-column B|OR. The old Model fit + Coefficients merge into one
+  // stacked table. columns = [term, ...models]; per term a 'coef' row (B in 'b', exp(B)=OR in 'or') then ONE muted row
+  // ('(SE)' under B, the exponentiated CI '[ORlo, ORhi]' under OR) — z/p drop from the visible cell (report-only, D1).
+  // Then a rule, then the gof footer (glm family — Nagelkerke R²/omnibus χ²/Log.Lik./AIC/BIC; the omnibus row carries its p).
+  // The Classification table + ROC figure stay SEPARATE classic outputs, unchanged (renumbered Table 2.).
   tables: [
-    { id: 'model-fit', title: 'Model fit', domId: 'logistic-model-fit',
-      columns: [{ key: 'm2ll', label: '−2LL' }, { key: 'aic', label: 'AIC' }, { key: 'nagelkerke', label: 'Nagelkerke R²' },
-        { key: 'chisq', label: 'Omnibus χ²' }, { key: 'p', label: 'p' }] },
-    { id: 'coefficients', title: 'Coefficients', domId: 'logistic-coefficients',
-      columns: [{ key: 'term', label: 'Term' }, { key: 'b', label: 'B' }, { key: 'se', label: 'SE' }, { key: 'z', label: 'z' },
-        { key: 'p', label: 'p' }, { key: 'or', label: 'OR' }, { key: 'ci', label: '95% CI (OR)' }] },
+    { id: 'coefficients', title: 'Coefficients', domId: 'logistic-coefficients', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'b', label: 'Log-odds (B)' }, { key: 'or', label: 'Odds ratio (OR)' }],
+      models: [{ key: 'b', label: 'Log-odds (B)' }, { key: 'or', label: 'Odds ratio (OR)' }],
+      gof: [{ key: 'n', label: 'Num.Obs.' }, { key: 'nagelkerke', label: 'Nagelkerke R²' }, { key: 'chi2', label: 'Omnibus χ²' },
+        { key: 'll', label: 'Log.Lik.' }, { key: 'aic', label: 'AIC' }, { key: 'bic', label: 'BIC' }] },
     { id: 'classification', title: 'Classification', // unique id across all shipped specs — no domId needed
       // Drawn placeholders; the builder replaces 0/1 with the REAL outcome level names (convention 7).
       columns: [{ key: 'pred', label: 'Predicted \\ Observed' }, { key: 'c0', label: '0' }, { key: 'c1', label: '1' }, { key: 'pct', label: '% correct' }] },
@@ -48,6 +52,6 @@ export const LOGISTIC_REGRESSION: TestSpec = {
     "Each predictor's odds ratio tells how the odds of the outcome change per unit (>1 increases, <1 decreases); " +
     'p tests significance (read it from the z column, z = B/SE). Model fit and the ROC/AUC show how well it classifies overall.',
   apaTemplate: 'Predictor X was associated with the outcome, OR={or}, 95% CI [{ciLow}, {ciHigh}], p {p} (AUC={auc}).',
-  rMap: 'glm(family=binomial) → B/SE/z/p · exp(cbind(OR=coef(m), confint(m))) → OR + 95% CI · performance::r2_nagelkerke(m) → Nagelkerke R² · AIC(m) → AIC · anova(m, test="Chisq") → omnibus χ² / −2LL · table(predicted, observed) → Table 3 (classification) · pROC → ROC/AUC',
-  bundleFiles: ['table_model-fit.png', 'table_coefficients.png', 'table_classification.png', 'figure_roc.png'],
+  rMap: 'glm(family=binomial) → B/SE/z/p · exp(cbind(OR=coef(m), confint(m))) → OR + 95% CI · performance::r2_nagelkerke(m) → Nagelkerke R² · anova(m, test="Chisq") → omnibus χ² · logLik(m)/AIC(m)/BIC(m) → Log.Lik./AIC/BIC · table(predicted, observed) → Table 2 (classification) · pROC → ROC/AUC',
+  bundleFiles: ['table_coefficients.png', 'table_classification.png', 'figure_roc.png'],
 }
