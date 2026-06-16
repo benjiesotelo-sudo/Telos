@@ -114,13 +114,12 @@ export const regressionEmitters: Record<string, Emitter> = {
     const fit = negbin
       ? `m <- MASS::glm.nb(${y} ~ ${rhs}, data = d)`
       : `m <- glm(${y} ~ ${rhs}, family = poisson, data = d)`
-    const disp = negbin
-      ? `m$theta  # negative-binomial dispersion (theta)`
-      : `performance::check_overdispersion(m)$dispersion_ratio  # Poisson dispersion ratio`
+    const disp = negbin ? `m$theta` : `performance::check_overdispersion(m)$dispersion_ratio`
+    const dispComment = negbin ? `# negative-binomial dispersion (theta)` : `# Poisson dispersion ratio (overdispersion)`
     return [
       fit,
       modelsummaryCall('m', { gof: 'glm', exponentiate: true }),
-      `# dispersion`,
+      dispComment,
       `print(${disp})`,
       `# Figure — fitted vs. Pearson residuals`,
       `pd <- data.frame(fitted = fitted(m), resid = residuals(m, type = "pearson"))`,
