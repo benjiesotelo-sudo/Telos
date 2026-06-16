@@ -1,7 +1,8 @@
 // LICENSES.txt body for the export bundle: credits every third-party work the exported
 // scripts/figures/fonts depend on, with a licence name + canonical URL each. The R-package set
-// mirrors engine.ts preload (the authoritative list) plus modelsummary, which the emitted
-// R scripts use for the coef tables but is installed by the script itself (not preloaded).
+// is the UNION of every package the emitters actually install/use (the `*Packages` records in
+// rScript/emitters/{regression,groups,assocDesc}.ts) — keep this list reconciled with that union:
+// add a package the moment an emitter references it, drop one the moment no emitter does.
 
 // CRAN package page per name (canonical, stable).
 const PKGS: [name: string, blurb: string][] = [
@@ -13,9 +14,9 @@ const PKGS: [name: string, blurb: string][] = [
   ['ivreg', 'two-stage least squares (2SLS / instrumental variables)'],
   ['rdrobust', 'regression discontinuity'],
   ['MatchIt', 'propensity-score matching'],
+  ['MASS', 'negative-binomial regression (glm.nb)'],
   ['forecast', 'ARIMA/SARIMA auto-fitting and forecasting'],
   ['tseries', 'stationarity tests (ADF, KPSS)'],
-  ['urca', 'unit-root and cointegration tests'],
   ['vars', 'vector autoregression, impulse-response'],
   ['emmeans', 'estimated marginal means / post-hoc contrasts'],
   ['car', 'companion regression diagnostics'],

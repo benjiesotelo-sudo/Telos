@@ -12,10 +12,15 @@ describe('licensesText', () => {
     expect(t).toMatch(/WebR|webr/)
     expect(t).toContain('GPL')
   })
-  it('credits the key emitted R packages (preloaded set + modelsummary/ggplot2)', () => {
-    for (const pkg of ['modelsummary', 'ggplot2', 'plm', 'sandwich', 'lmtest', 'ivreg', 'rdrobust', 'MatchIt', 'forecast', 'tseries', 'urca', 'vars']) {
+  it('credits the key emitted R packages (union of every emitter package record)', () => {
+    // sampled from the union of regression/group/assocDesc *Packages maps; MASS is the
+    // glm.nb dependency that was previously uncredited
+    for (const pkg of ['modelsummary', 'ggplot2', 'plm', 'sandwich', 'lmtest', 'ivreg', 'rdrobust', 'MatchIt', 'MASS', 'forecast', 'tseries', 'vars']) {
       expect(t).toContain(pkg)
     }
+  })
+  it('does not credit urca — no emitter installs or references it', () => {
+    expect(t).not.toContain('urca')
   })
   it('gives a URL for each credited item', () => {
     expect(t).toMatch(/https?:\/\//)

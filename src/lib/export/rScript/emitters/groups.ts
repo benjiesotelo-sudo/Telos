@@ -258,19 +258,24 @@ export const groupEmitters: Record<string, Emitter> = {
   'mancova': (_spec, setup) => {
     const dvs = setup.roles['outcomes'], factors = setup.roles['factors'], covs = setup.roles['covariates']
     const statistic = String(setup.options['statistic'] ?? 'Pillai') === 'Wilks' ? 'Wilks' : 'Pillai'
+    // Positional cov_i/fac_i identifiers (like ancova) so non-syntactic column names can't break the
+    // per-DV lm() data.frame; values come in via col() = d[["name"]], which survives any name.
+    const fv = (i: number) => `fac_${i + 1}`, cv = (i: number) => `cov_${i + 1}`
     const cbind = `cbind(${dvs.map(col).join(', ')})`
     const covRhs = covs.map(col).join(' + ')
     const facRhs = factors.map((f) => `factor(${col(f)})`).join(' * ')
+    const lmCovRhs = covs.map((_c, i) => cv(i)).join(' + ')
+    const lmFacRhs = factors.map((_f, i) => fv(i)).join(' * ')
     return [
       `# covariates FIRST, factor(s) LAST -> factor row matches car::Manova Type II (spike-proven)`,
       `m <- manova(${cbind} ~ ${covRhs} + ${facRhs})`,
       `print(summary(m, test = "${statistic}"))`,
       dvs.map((dv) => `print(summary(aov(${col(dv)} ~ ${covRhs} + ${facRhs})))`).join('\n'),
       `agg <- do.call(rbind, lapply(list(${dvs.map((dv) => `c(${col(dv)})`).join(', ')}), function(v) {`,
-      `  d2 <- data.frame(y = v, ${covs.map((c2) => `${'cov_' + c2} = ${col(c2)}`).join(', ')}, ${factors.map((f) => `${'fac_' + f} = factor(${col(f)})`).join(', ')})`,
-      `  lm_fit <- lm(y ~ ${covs.map((c2) => 'cov_' + c2).join(' + ')} + ${factors.map((f) => 'fac_' + f).join(' * ')}, data = d2)`,
-      `  em <- as.data.frame(emmeans::emmeans(lm_fit, ~ ${'fac_' + factors[0]}))`,
-      `  data.frame(g = as.character(em[["${'fac_' + factors[0]}"]]), m = em$emmean, lo = em$lower.CL, hi = em$upper.CL) }))`,
+      `  d2 <- data.frame(y = v, ${covs.map((c2, i) => `${cv(i)} = ${col(c2)}`).join(', ')}, ${factors.map((f, i) => `${fv(i)} = factor(${col(f)})`).join(', ')})`,
+      `  lm_fit <- lm(y ~ ${lmCovRhs} + ${lmFacRhs}, data = d2)`,
+      `  em <- as.data.frame(emmeans::emmeans(lm_fit, ~ ${fv(0)}))`,
+      `  data.frame(g = as.character(em[["${fv(0)}"]]), m = em$emmean, lo = em$lower.CL, hi = em$upper.CL) }))`,
       `agg$dv <- rep(c(${dvs.map((dv) => `"${dv}"`).join(', ')}), each = nlevels(factor(${col(factors[0])})))`,
       `print(ggplot(agg, aes(g, m)) + geom_pointrange(aes(ymin = lo, ymax = hi), colour = "#0c447c") +`,
       `  facet_wrap(~dv, scales = "free_y") + labs(x = NULL, y = NULL))`,

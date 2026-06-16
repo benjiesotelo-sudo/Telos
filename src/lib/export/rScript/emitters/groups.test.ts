@@ -223,6 +223,16 @@ describe('group-comparison emitters', () => {
       expect(r).toContain('aov(')
       expect(r).toContain('facet_wrap')
     })
+    it('builds the per-DV lm() data.frame with positional cov_i/fac_i (name-safe) identifiers, not raw column names', () => {
+      // values still thread the real column via col() = d[["name"]]; the data.frame ARG names are positional
+      expect(r).toContain('cov_1 = d[["cov"]]')
+      expect(r).toContain('fac_1 = factor(d[["g"]])')
+      expect(r).toContain('lm(y ~ cov_1 + fac_1')
+      expect(r).toContain('emmeans::emmeans(lm_fit, ~ fac_1)')
+      // no raw-name identifiers like `cov_cov` / `fac_g` leak into the script
+      expect(r).not.toContain('cov_cov')
+      expect(r).not.toContain('fac_g')
+    })
   })
 
   describe('mann-whitney-u', () => {
