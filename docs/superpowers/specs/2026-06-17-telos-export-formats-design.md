@@ -86,7 +86,7 @@ LaTeX special chars escaped (`_ % & # $ ~ ^ \`). Delivered in the export zip as 
 ## 7. Download UX (combining formats)
 
 The Download button already takes ticked checkboxes (PNG tables/figures). Add R / LaTeX / PDF. On Download:
-- **File formats** (R, LaTeX, table PNGs, figure PNGs) assemble into ONE `telos-export.zip`: `analysis.R`, `cleaned.csv`, `report.tex`, `figures/…`, and the existing per-test `NN_<id>/table_*.png` + `figure_*.png`. (A single zip avoids multiple download prompts.)
+- **File formats** (R, LaTeX, table PNGs, figure PNGs) assemble into ONE `telos-export.zip`: `analysis.R`, `cleaned.csv`, `report.tex`, `figures/…`, the existing per-test `NN_<id>/table_*.png` + `figure_*.png`, and a **`LICENSES.txt`** (the open-source licences for the bundled R packages, the Crimson Pro / Atkinson Hyperlegible fonts (OFL), and WebR — the spec-completeness review flagged these as missing). (A single zip avoids multiple download prompts.)
 - **PDF** is handled separately: if ticked, after the zip downloads, toggle the printing class + `window.print()`. (Print can't go in a zip.) If PDF is the *only* tick, skip the zip and just print.
 - Errors surface in the existing `exportError` box.
 

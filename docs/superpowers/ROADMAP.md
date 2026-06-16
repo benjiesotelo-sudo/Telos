@@ -23,8 +23,8 @@ Each slice gets its own design spec + implementation plan here when it starts. S
 
 | # | Slice | Tests / scope | Est. sessions | Risk notes |
 |---|---|---|---|---|
-| 1 | Latent variables & SEM | ~7: alpha, AVE/CR, EFA, PCA, CB-SEM, PLS-SEM, mediation (R1) | ~2–3 | AMOS-style canvas = new UI surface; full review gauntlet per owner ruling |
-| 2 | Report & export | PDF report, LaTeX, R script, LICENSES in bundle | ~1–2 | client-side APA-7 PDF generation |
+| 1 | Report & export (**moved ahead of SEM, owner 2026-06-17**) | R script (all 40, clean idiomatic + cleaned.csv) · PDF (browser print) · LaTeX (native booktabs) · LICENSES in bundle | ~2–3 | **large**: R + LaTeX emitters touch every test type; client-side PDF via print. Specced `2026-06-17-telos-export-formats-design.md` |
+| 2 | Latent variables & SEM | ~7: alpha, AVE/CR, EFA, PCA, CB-SEM, PLS-SEM, mediation (R1) | ~2–3 | AMOS-style canvas = new UI surface; full review gauntlet per owner ruling |
 | 3 | Polish & launch | design pass, DRAFT copy confirmations, B-list, feedback URL, analytics, licence, a11y, deploy | ~1 | mostly owner decisions |
 
 ## Process per slice (owner-ruled 2026-06-12, replaces the full gauntlet)
