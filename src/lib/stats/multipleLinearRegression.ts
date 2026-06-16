@@ -6,6 +6,7 @@ export interface MultipleLinearResult {
   outcome: string
   standardize: boolean // R1 display toggle — β is always computed; the builder masks
   r2: number; adjR2: number; f: number; df1: number; df2: number; p: number
+  rmse: number; aic: number; bic: number; logLik: number // modelsummary GOF footer rows (design 2026-06-16) — native-R verified
   terms: MultipleLinearTerm[]
   ciLevel: number
   alpha: number
@@ -57,7 +58,9 @@ terms <- lapply(seq_along(labs), function(i) list(
   vif = if (is.null(vift) || labs[i] == '(Intercept)') NA_real_ else unname(vift[parent[i]])))
 fst <- s$fstatistic
 list(r2 = s$r.squared, adjR2 = s$adj.r.squared, f = unname(fst[1]), df1 = unname(fst[2]), df2 = unname(fst[3]),
-     p = pf(fst[1], fst[2], fst[3], lower.tail = FALSE), terms = terms, n = nrow(d))`
+     p = pf(fst[1], fst[2], fst[3], lower.tail = FALSE),
+     rmse = sqrt(mean(residuals(m)^2)), aic = AIC(m), bic = BIC(m), ll = as.numeric(logLik(m)),
+     terms = terms, n = nrow(d))`
 
 // Residual diagnostics — ONE file, one ggplot, facet_wrap over a stacked long frame (spike-pinned composition).
 const R_RESID = String.raw`
@@ -113,7 +116,7 @@ print(ggplot2::ggplot(df, ggplot2::aes(x = beta, y = term)) +
   ggplot2::geom_pointrange(ggplot2::aes(xmin = lo, xmax = hi), colour = '#0c447c') +
   ggplot2::labs(x = paste0('Standardized β (', round(level * 100), '% CI)'), y = NULL))`
 
-interface RawStats { r2: number; adjR2: number; f: number; df1: number; df2: number; p: number; terms: MultipleLinearTerm[]; n: number }
+interface RawStats { r2: number; adjR2: number; f: number; df1: number; df2: number; p: number; rmse: number; aic: number; bic: number; ll: number; terms: MultipleLinearTerm[]; n: number }
 
 /** Storage-type classification (recorded decision 1): all-numeric non-missing values → linear term; else factor. */
 const isNumericColumn = (data: Dataset, col: string): boolean => {
@@ -145,8 +148,8 @@ export async function runMultipleLinearRegression(engine: Engine, data: Dataset,
     n,
     level,
   }
-  const s = await engine.runJson<RawStats>(R_STATS, env)
+  const { ll, ...s } = await engine.runJson<RawStats>(R_STATS, env)
   const figResidualsPng = await engine.capturePlot(R_RESID, 800, 420, env)
   const figCoefPlotPng = await engine.capturePlot(R_COEFPLOT, 600, 450, env)
-  return { outcome, standardize, ...s, ciLevel: level, alpha, nExcluded, figResidualsPng, figCoefPlotPng }
+  return { outcome, standardize, ...s, logLik: ll, ciLevel: level, alpha, nExcluded, figResidualsPng, figCoefPlotPng }
 }

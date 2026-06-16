@@ -28,31 +28,30 @@ export const FIXED_EFFECTS: TestSpec = {
     ],
     minRule: { kind: 'panel', n: 12 },
   },
+  // modelsummary coef table (design 2026-06-16): one stacked table merges the old Coefficients + Model fit.
+  // columns = [term, est]; the builder stacks B / (clustered SE) / [CI] per term, a rule, then the gof footer.
+  // plm within → NO AIC/BIC/Log.Lik (no logLik method); adj within R² is surfaced here (audit fix).
   tables: [
     {
-      id: 'coefficients', title: 'Coefficients (within estimator)', domId: 'fe-coefficients',
-      columns: [
-        { key: 'term', label: 'Term' }, { key: 'b', label: 'B' }, { key: 'se', label: 'Clustered SE' },
-        { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' },
-      ],
-    },
-    {
-      id: 'model-fit', title: 'Model fit', domId: 'fe-model-fit',
-      columns: [
-        { key: 'withinR2', label: 'Within R²' }, { key: 'f', label: 'F' },
-        { key: 'nObs', label: 'N obs' }, { key: 'nEntities', label: 'N entities' },
+      id: 'coefficients', title: 'Coefficients (within estimator)', domId: 'fe-coefficients', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'est', label: '(1)' }],
+      models: [{ key: 'est', label: '(1)' }],
+      gof: [
+        { key: 'n', label: 'Num.Obs.' }, { key: 'nentities', label: 'N entities' },
+        { key: 'r2within', label: 'Within R²' }, { key: 'adjr2within', label: 'Adj. within R²' },
+        { key: 'f', label: 'F' },
       ],
     },
   ],
   tableNote: {
     kind: 'plain',
     text: 'time-invariant predictors are absorbed by the entity effects and drop out; a predictor must also change within entities over time to be estimable — predictors with little within-entity variation give large standard errors and unreliable estimates.',
-    afterTableId: 'fe-model-fit',
+    afterTableId: 'fe-coefficients',
   },
   figures: [{ caption: 'Coefficients', type: 'coefficient plot (estimate ± CI)', file: 'coefficients' }],
   howToRead:
     'Each B is the within-entity effect of a predictor, controlling for everything stable about each entity. p and the clustered CI assess it; within R² is the variance explained by the time-varying predictors.',
   apaTemplate: 'In a fixed-effects model, predictor X gave B={b}, p {p} (clustered SE).',
-  rMap: 'plm(model="within") / fixest::feols() → Tables · ggplot2 → figure',
-  bundleFiles: ['table_coefficients.png', 'table_model-fit.png', 'figure_coefficients.png'],
+  rMap: 'plm(model="within") / fixest::feols() → Table · ggplot2 → figure',
+  bundleFiles: ['table_coefficients.png', 'figure_coefficients.png'],
 }

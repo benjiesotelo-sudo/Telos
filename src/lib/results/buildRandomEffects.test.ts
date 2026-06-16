@@ -17,16 +17,36 @@ const mock = (over: Partial<RandomEffectsResult> = {}): RandomEffectsResult => (
 })
 
 describe('buildRandomEffects', () => {
-  it('renders coefficients (incl. intercept) + R²/Adj.R² model fit', () => {
-    const c = buildRandomEffects(RANDOM_EFFECTS, mock())
-    expect(c.tables[0].rows[0]).toEqual({ term: '(Intercept)', b: '−0.77', se: '0.28', t: '−2.77', p: '.007', ci: '[−1.31, −0.22]' })
-    expect(c.tables[1].rows[0]).toEqual({ r2: '.98', adjR2: '.98', nObs: '96', nEntities: '12' })
+  it('stacks B / (clustered SE) / [CI] per term, drops t/p from the cell (D1)', () => {
+    const rows = buildRandomEffects(RANDOM_EFFECTS, mock()).tables[0].rows
+    // intercept block
+    expect(rows[0]).toEqual({ _kind: 'coef', term: '(Intercept)', est: '−0.77' })
+    expect(rows[1]).toEqual({ _kind: 'se', term: '', est: '(0.28)' })
+    expect(rows[2]).toEqual({ _kind: 'ci', term: '', est: '[−1.31, −0.22]' })
+    // last slope block (size)
+    expect(rows[9]).toEqual({ _kind: 'coef', term: 'size', est: '0.96' })
+    expect(rows[10]).toEqual({ _kind: 'se', term: '', est: '(0.05)' })
+    expect(rows[11]).toEqual({ _kind: 'ci', term: '', est: '[0.86, 1.05]' })
+  })
+  it('rule then a GOF footer merging Num.Obs./N entities/R²/R² Adj. (no F, no AIC/BIC/Log.Lik.)', () => {
+    const rows = buildRandomEffects(RANDOM_EFFECTS, mock()).tables[0].rows
+    expect(rows[12]).toEqual({ _kind: 'rule' })
+    expect(rows.slice(13)).toEqual([
+      { _kind: 'gof', term: 'Num.Obs.', est: '96' },
+      { _kind: 'gof', term: 'N entities', est: '12' },
+      { _kind: 'gof', term: 'R²', est: '0.98' },
+      { _kind: 'gof', term: 'R² Adj.', est: '0.98' },
+    ])
+  })
+  it('single coef table — the separate model-fit table is merged in', () => {
+    expect(buildRandomEffects(RANDOM_EFFECTS, mock()).tables).toHaveLength(1)
   })
   it('APA names the first SLOPE (not the intercept), report-only', () => {
     expect(buildRandomEffects(RANDOM_EFFECTS, mock()).apa)
       .toBe('In a random-effects model, predictor leverage gave B=−4.05, p = .002.')
   })
-  it('threads CI level into the coefficient header', () => {
-    expect(buildRandomEffects(RANDOM_EFFECTS, mock({ ciLevel: 0.99 })).tables[0].spec.columns.find((c) => c.key === 'ci')!.label).toBe('99% CI')
+  it('how-to-read appends the α line, unchanged from the spec wording', () => {
+    expect(buildRandomEffects(RANDOM_EFFECTS, mock({ alpha: 0.05 })).howToRead)
+      .toBe(RANDOM_EFFECTS.howToRead + ' Your significance threshold (α) is 0.05.')
   })
 })

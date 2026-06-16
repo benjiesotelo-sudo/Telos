@@ -12,16 +12,32 @@ const mock = (over: Partial<RddResult> = {}): RddResult => ({
 })
 
 describe('buildRdd', () => {
-  it('single RD-estimate row with bandwidth, estimate, robust inference, N(left/right)', () => {
-    expect(buildRdd(RDD, mock()).tables[0].rows[0]).toEqual({
-      bandwidth: '8.66', estimate: '9.90', se: '0.21', z: '47.99', p: '<.001', ci: '[9.48, 10.28]', n: '18 / 16',
-    })
+  // modelsummary coef table: one term row → estimate / (SE) / [CI] stacked; z/p drop from the visible cell.
+  it('stacks the single RD treatment effect as estimate / (SE) / [CI] (no z/p in the cell)', () => {
+    const rows = buildRdd(RDD, mock()).tables[0].rows
+    expect(rows.slice(0, 3)).toEqual([
+      { _kind: 'coef', term: 'RD treatment effect', est: '9.90' },
+      { _kind: 'se', term: '', est: '(0.21)' },
+      { _kind: 'ci', term: '', est: '[9.48, 10.28]' },
+    ])
+    const cells = JSON.stringify(rows)
+    expect(cells).not.toContain('47.99') // z dropped from the visible table
+  })
+  it('a rule then the GOF footer = Bandwidth + N (left) + N (right) (no R²/AIC/etc — rdrobust has no method)', () => {
+    const rows = buildRdd(RDD, mock()).tables[0].rows
+    expect(rows.slice(3)).toEqual([
+      { _kind: 'rule' },
+      { _kind: 'gof', term: 'Bandwidth', est: '8.66' },
+      { _kind: 'gof', term: 'N (left)', est: '18' },
+      { _kind: 'gof', term: 'N (right)', est: '16' },
+    ])
   })
   it('APA reports the estimate at the cutoff with literal 95% CI (report-only)', () => {
     expect(buildRdd(RDD, mock()).apa).toBe('At the cutoff, the treatment effect was 9.90, 95% CI [9.48, 10.28], p < .001.')
   })
-  it('note is null (no drawn table note)', () => {
-    expect(buildRdd(RDD, mock()).note).toBeNull()
+  it('note carries the robust bias-corrected inference labeling', () => {
+    expect(buildRdd(RDD, mock()).note).toEqual(RDD.tableNote)
+    expect(RDD.tableNote!.text).toContain('robust')
   })
   it('howToRead is taken verbatim from the spec (no α threading)', () => {
     const c = buildRdd(RDD, mock())

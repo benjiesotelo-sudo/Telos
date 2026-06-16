@@ -18,7 +18,9 @@ const inCard = inputsHtml.slice(
 )
 
 describe('arima-sarima registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences (decode HTML entities — σ², Ljung–Box)', () => {
+  // modelsummary coef table (design 2026-06-16): Table 1 = stacked coef table (thead = ['', '(1)']
+  // + GOF footer merging the old diagnostics), Table 2 = the classic Forecast table.
+  it('table theads equal the card column sequences (coef thead [\'\', (1)] then Forecast columns)', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) =>
       [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => decode(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
@@ -28,6 +30,11 @@ describe('arima-sarima registry stays faithful to the spec HTML (verbatim, card-
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => decode(m[1]))
     expect(caps).toEqual(spec.tables.map((t) => t.title))
     expect(spec.tables.every((t) => t.captionStyle === undefined)).toBe(true)
+  })
+
+  it('the GOF footer stub labels merge diagnostics into Table 1 (Num.Obs., σ², Ljung–Box p, AIC, BIC, Log.Lik.)', () => {
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => decode(m[1]))
+    expect(stubs).toEqual(spec.tables[0].gof!.map((g) => g.label))
   })
 
   it('each table has a distinct domId (no zip-filename collision)', () => {
@@ -65,10 +72,10 @@ describe('arima-sarima registry stays faithful to the spec HTML (verbatim, card-
     expect(line).toBe(`“${spec.apaTemplate.replace(/\{\w+\}/g, '__')}”`)
   })
 
-  it('HTML bundle line equals the first 4 bundleFiles; §2.5 figure_residuals.png is the 5th entry', () => {
+  it('HTML bundle line equals the first 3 bundleFiles; §2.5 figure_residuals.png is the 4th entry', () => {
     const htmlBundle = strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')
-    expect(htmlBundle).toEqual(spec.bundleFiles.slice(0, 4))
-    expect(spec.bundleFiles[4]).toBe('figure_residuals.png')
+    expect(htmlBundle).toEqual(spec.bundleFiles.slice(0, 3))
+    expect(spec.bundleFiles[3]).toBe('figure_residuals.png')
   })
 
   it('bundleFiles derive from table ids + figure file slugs', () => {

@@ -6,7 +6,7 @@ export interface PsmBalanceRow { covariate: string; smdPre: number; smdPost: num
 export interface PsmResult {
   balance: PsmBalanceRow[]
   attB: number; attSe: number; attT: number; attP: number; attLo: number; attHi: number
-  matchedN: number
+  matchedN: number; nT: number; nC: number
   ciLevel: number; alpha: number
   nExcluded: number
   figLovePng: Uint8Array<ArrayBuffer>
@@ -31,7 +31,8 @@ V  <- sandwich::vcovCL(att, cluster = md$subclass)
 ct <- lmtest::coeftest(att, vcov. = V); ci <- lmtest::coefci(att, vcov. = V, level = ci_level)
 list(balance_rows = balance_rows,
   att_b = unname(ct['.treat', 1]), att_se = unname(ct['.treat', 2]), att_t = unname(ct['.treat', 3]), att_p = unname(ct['.treat', 4]),
-  att_lo = unname(ci['.treat', 1]), att_hi = unname(ci['.treat', 2]), matched_n = nrow(md))`
+  att_lo = unname(ci['.treat', 1]), att_hi = unname(ci['.treat', 2]),
+  matched_n = nrow(md), n_t = sum(md$.treat == 1), n_c = sum(md$.treat == 0))`
 
 // Hand-rolled love plot (cobalt unavailable under WebR): |SMD| per covariate, unmatched vs matched, ref line at 0.1.
 const R_LOVE_PLOT = String.raw`
@@ -46,7 +47,8 @@ print(ggplot2::ggplot(df, ggplot2::aes(x = smd, y = cov, colour = sample)) +
 
 interface RawPsm {
   balance_rows: PsmBalanceRow[]
-  att_b: number; att_se: number; att_t: number; att_p: number; att_lo: number; att_hi: number; matched_n: number
+  att_b: number; att_se: number; att_t: number; att_p: number; att_lo: number; att_hi: number
+  matched_n: number; n_t: number; n_c: number
 }
 
 const levelsOf = (data: Dataset, col: string): string[] =>
@@ -84,6 +86,6 @@ export async function runPropensityScoreMatching(
   return {
     balance: raw.balance_rows,
     attB: raw.att_b, attSe: raw.att_se, attT: raw.att_t, attP: raw.att_p, attLo: raw.att_lo, attHi: raw.att_hi,
-    matchedN: raw.matched_n, ciLevel: ciLvl, alpha, nExcluded, figLovePng,
+    matchedN: raw.matched_n, nT: raw.n_t, nC: raw.n_c, ciLevel: ciLvl, alpha, nExcluded, figLovePng,
   }
 }

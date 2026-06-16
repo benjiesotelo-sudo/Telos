@@ -26,31 +26,29 @@ export const RANDOM_EFFECTS: TestSpec = {
     ],
     minRule: { kind: 'panel', n: 12 },
   },
+  // modelsummary coef table (design 2026-06-16): one stacked table merges the old Coefficients + Model fit.
+  // Single model column. Per term: B / (clustered SE) / [CI]. plm has no logLik → NO AIC/BIC/Log.Lik. in the GOF.
+  // No F row: the stats result does not return one (the FE sibling does; RE does not). Clustered SE conveyed in the note.
   tables: [
     {
-      id: 'coefficients', title: 'Coefficients', domId: 're-coefficients',
-      columns: [
-        { key: 'term', label: 'Term' }, { key: 'b', label: 'B' }, { key: 'se', label: 'Clustered SE' },
-        { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' },
-      ],
-    },
-    {
-      id: 'model-fit', title: 'Model fit', domId: 're-model-fit',
-      columns: [
-        { key: 'r2', label: 'R²' }, { key: 'adjR2', label: 'Adj. R²' },
-        { key: 'nObs', label: 'N obs' }, { key: 'nEntities', label: 'N entities' },
+      id: 'coefficients', title: 'Coefficients', domId: 're-coefficients', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'est', label: '(1)' }],
+      models: [{ key: 'est', label: '(1)' }],
+      gof: [
+        { key: 'n', label: 'Num.Obs.' }, { key: 'nentities', label: 'N entities' },
+        { key: 'r2', label: 'R²' }, { key: 'adjr2', label: 'R² Adj.' },
       ],
     },
   ],
   tableNote: {
     kind: 'plain',
-    text: 'unlike fixed effects, time-invariant predictors can be retained. summary(plm) returns a single R² / adj. R² (not a within/between/overall split).',
-    afterTableId: 're-model-fit',
+    text: 'standard errors are clustered by entity. unlike fixed effects, time-invariant predictors can be retained. summary(plm) returns a single R² / adj. R² (not a within/between/overall split).',
+    afterTableId: 're-coefficients',
   },
   figures: [{ caption: 'Coefficients', type: 'coefficient plot', file: 'coefficients' }],
   howToRead:
     'Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each B/p as usual — but only trust this model if the Hausman test favours random over fixed effects.',
   apaTemplate: 'In a random-effects model, predictor X gave B={b}, p {p}.',
-  rMap: 'plm(model="random") → Tables · ggplot2 → figure',
-  bundleFiles: ['table_coefficients.png', 'table_model-fit.png', 'figure_coefficients.png'],
+  rMap: 'plm(model="random") → Table · ggplot2 → figure',
+  bundleFiles: ['table_coefficients.png', 'figure_coefficients.png'],
 }

@@ -12,17 +12,23 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Multiple linear regression</div>'), inputsHtml.indexOf('<div class="ttl">Simple linear regression</div>'))
 
 describe('multiple-linear-regression registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences (decoded — R², β)', () => {
+  // modelsummary coef table (design 2026-06-16): one stacked table merges the old Model fit + Coefficients.
+  // thead = [term '', model col (1), β, VIF]; a GOF footer below a rule (the old Model fit lives here).
+  it('the single coef thead equals the spec column labels (term, model (1), β, VIF)', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
-    expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
+    expect(theads).toEqual([spec.tables[0].columns.map((c) => c.label)])
   })
-  it('numbered table captions equal the card captions', () => {
+  it('the single numbered caption equals the spec table title', () => {
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => m[1])
-    expect(caps).toEqual(spec.tables.map((t) => t.title))
+    expect(caps).toEqual([spec.tables[0].title])
     expect(spec.tables.every((t) => t.captionStyle === undefined)).toBe(true)
   })
-  it('the ghost intercept row pins convention 1 + decision 8: β AND VIF cells EMPTY on the intercept', () => {
-    expect(card.includes('<tr><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td><td></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td></td></tr>')).toBe(true)
+  it('the GOF footer stub labels in the card equal spec.tables[0].gof labels in order', () => {
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(stubs).toEqual(spec.tables[0].gof!.map((g) => g.label))
+  })
+  it('the ghost intercept row pins convention 1 + decision 8: β AND VIF cells EMPTY (not em-dash) on the intercept', () => {
+    expect(card.includes('<tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td><td></td><td></td></tr>')).toBe(true)
   })
   it('question, assume table note, BOTH figure captions + types, how-to-read and R map match verbatim', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/s)![1])).toBe(spec.question)

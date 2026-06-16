@@ -10,7 +10,7 @@ const mock = (over: Partial<PsmResult> = {}): PsmResult => ({
     { covariate: 'ability', smdPre: 1.358679, smdPost: 0.373121, varRatio: 1.298281 },
   ],
   attB: 5.868657, attSe: 0.2277397, attT: 25.76915, attP: 2.37e-53, attLo: 5.418165, attHi: 6.319148,
-  matchedN: 134, ciLevel: 0.95, alpha: 0.05, nExcluded: 0,
+  matchedN: 134, nT: 67, nC: 67, ciLevel: 0.95, alpha: 0.05, nExcluded: 0,
   figLovePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
   ...over,
 })
@@ -20,9 +20,17 @@ describe('buildPropensityScoreMatching', () => {
     expect(buildPropensityScoreMatching(PROPENSITY_SCORE_MATCHING, mock()).tables[0].rows[2])
       .toEqual({ covariate: 'ability', smdPre: '1.36', smdPost: '0.37', varRatio: '1.30' })
   })
-  it('ATT table with threaded CI', () => {
-    const c = buildPropensityScoreMatching(PROPENSITY_SCORE_MATCHING, mock())
-    expect(c.tables[1].rows[0]).toEqual({ estimate: '5.87', se: '0.23', t: '25.77', p: '<.001', ci: '[5.42, 6.32]' })
+  it('ATT coef table: one stacked term (est/(SE)/[CI], z/p drop) + matched-N footer (no R²/AIC)', () => {
+    const rows = buildPropensityScoreMatching(PROPENSITY_SCORE_MATCHING, mock()).tables[1].rows
+    expect(rows).toEqual([
+      { _kind: 'coef', term: 'Treatment (ATT)', est: '5.87' },
+      { _kind: 'se', term: '', est: '(0.23)' },
+      { _kind: 'ci', term: '', est: '[5.42, 6.32]' },
+      { _kind: 'rule' },
+      { _kind: 'gof', term: 'Num.Obs.', est: '134' },
+      { _kind: 'gof', term: 'Treated (matched)', est: '67' },
+      { _kind: 'gof', term: 'Control (matched)', est: '67' },
+    ])
   })
   it('APA is neutralised — no hardcoded "all SMDs < .1" balance claim', () => {
     const apa = buildPropensityScoreMatching(PROPENSITY_SCORE_MATCHING, mock()).apa

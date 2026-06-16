@@ -34,12 +34,13 @@ export const PROPENSITY_SCORE_MATCHING: TestSpec = {
         { key: 'smdPost', label: 'Std. mean diff (post)' }, { key: 'varRatio', label: 'Variance ratio' },
       ],
     },
+    // modelsummary coef table (design 2026-06-16): ATT as one stacked term — est / (SE) / [CI] (z/p drop).
+    // matched-N footer merges in (matching is preprocessing, not a fit → no R²/AIC/BIC/Log.Lik., spike 2026-06-16).
     {
-      id: 'att', title: 'Treatment effect (ATT)', domId: 'psm-att',
-      columns: [
-        { key: 'estimate', label: 'Estimate' }, { key: 'se', label: 'SE' },
-        { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' },
-      ],
+      id: 'att', title: 'Treatment effect (ATT)', domId: 'psm-att', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'est', label: '(1)' }],
+      models: [{ key: 'est', label: '(1)' }],
+      gof: [{ key: 'matchedN', label: 'Num.Obs.' }, { key: 'treatedN', label: 'Treated (matched)' }, { key: 'controlN', label: 'Control (matched)' }],
     },
   ],
   tableNote: {

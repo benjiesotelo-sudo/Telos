@@ -28,24 +28,21 @@ export const ARIMA_SARIMA: TestSpec = {
     ],
     minRule: { kind: 'values', n: 20 },
   },
+  // modelsummary coef table (design 2026-06-16): Table 1 (Model summary) + Table 2 (diagnostics)
+  // merge into ONE stacked coef table — per ARIMA term estimate / (SE) / [CI], then the GOF footer
+  // (Num.Obs. + σ² + Ljung–Box p + AIC/BIC/Log.Lik.). Table 2 (Forecast) stays a classic table.
   tables: [
     {
-      id: 'model-summary', title: 'Model summary', domId: 'arima-sarima-model-summary',
-      columns: [
-        { key: 'term', label: 'Term' },
-        { key: 'estimate', label: 'Estimate' },
-        { key: 'se', label: 'SE' },
-        { key: 'ci', label: '95% CI' },
-      ],
-    },
-    {
-      id: 'diagnostics', title: 'Fit & residual diagnostics', domId: 'arima-sarima-diagnostics',
-      columns: [
+      id: 'model-summary', title: 'Model summary', domId: 'arima-sarima-model-summary', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'est', label: '(1)' }],
+      models: [{ key: 'est', label: '(1)' }],
+      gof: [
+        { key: 'n', label: 'Num.Obs.' },
+        { key: 'sigma2', label: 'σ²' },
+        { key: 'ljungbox', label: 'Ljung–Box p' },
         { key: 'aic', label: 'AIC' },
         { key: 'bic', label: 'BIC' },
-        { key: 'loglik', label: 'Log-lik' },
-        { key: 'sigma2', label: 'σ²' },
-        { key: 'ljungbox_p', label: 'Ljung–Box p' },
+        { key: 'll', label: 'Log.Lik.' },
       ],
     },
     {
@@ -77,5 +74,5 @@ export const ARIMA_SARIMA: TestSpec = {
   // {pdq} → (p,d,q); {PDQ} → (P,D,Q)[s], filled at build time. Replacing /\{\w+\}/g → __ matches the HTML card line.
   apaTemplate: 'An ARIMA({pdq})({PDQ}) model was fit (AIC={aic}); the Ljung–Box test of residual autocorrelation gave p {ljungbox_p}.',
   rMap: 'forecast::auto.arima() / arima() → Tables · forecast() + autoplot() → figure',
-  bundleFiles: ['table_model-summary.png', 'table_diagnostics.png', 'table_forecast.png', 'figure_forecast.png', 'figure_residuals.png'],
+  bundleFiles: ['table_model-summary.png', 'table_forecast.png', 'figure_forecast.png', 'figure_residuals.png'],
 }

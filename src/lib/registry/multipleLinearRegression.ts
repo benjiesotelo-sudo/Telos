@@ -27,13 +27,16 @@ export const MULTIPLE_LINEAR_REGRESSION: TestSpec = {
     ],
     minRule: { kind: 'complete-pairs', n: 3 }, // design convention 14 — the real adequacy gate is the run itself
   },
+  // modelsummary coef table (design 2026-06-16): one stacked table merges the old Model fit + Coefficients.
+  // columns = [term, ...models, ...extraCols]; per term estimate / (SE) / [CI], a rule, then the gof footer (Model fit lives here).
+  // extraCols β + VIF are kept per-term columns (blank on intercept + the muted se/ci rows; β masked by the standardize toggle, R1).
   tables: [
-    { id: 'model-fit', title: 'Model fit', domId: 'multiple-linear-model-fit',
-      columns: [{ key: 'r2', label: 'R²' }, { key: 'adjR2', label: 'Adj. R²' }, { key: 'f', label: 'F' },
-        { key: 'df1', label: 'df1' }, { key: 'df2', label: 'df2' }, { key: 'p', label: 'p' }] },
-    { id: 'coefficients', title: 'Coefficients', domId: 'multiple-linear-coefficients',
-      columns: [{ key: 'term', label: 'Term' }, { key: 'b', label: 'B' }, { key: 'se', label: 'SE' }, { key: 'beta', label: 'β' },
-        { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' }, { key: 'vif', label: 'VIF' }] },
+    { id: 'coefficients', title: 'Regression coefficients', domId: 'multiple-linear-coefficients', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'est', label: '(1)' }, { key: 'beta', label: 'β' }, { key: 'vif', label: 'VIF' }],
+      models: [{ key: 'est', label: '(1)' }],
+      extraCols: [{ key: 'beta', label: 'β' }, { key: 'vif', label: 'VIF' }],
+      gof: [{ key: 'n', label: 'Num.Obs.' }, { key: 'r2', label: 'R²' }, { key: 'adjr2', label: 'R² Adj.' }, { key: 'f', label: 'F' },
+        { key: 'rmse', label: 'RMSE' }, { key: 'aic', label: 'AIC' }, { key: 'bic', label: 'BIC' }, { key: 'll', label: 'Log.Lik.' }] },
   ],
   tableNote: { kind: 'assume', text: 'assumption checks: linearity, normality, homoscedasticity, and multicollinearity (VIF).' },
   // Two drawn figboxes (owner-ruled #11 → build the coefficient plot): residual diagnostics + a standardized-β
@@ -48,5 +51,5 @@ export const MULTIPLE_LINEAR_REGRESSION: TestSpec = {
     'so to compare which predictors matter most use the standardized coefficient (β), not B.',
   apaTemplate: 'The model explained R²={r2} of the variance, F({df1},{df2})={f}, p {p}; predictor X gave B={b}, p {p2}.',
   rMap: 'lm() → Tables 1–2 · parameters::standardise_parameters() → β · car::vif() → VIF · ggplot2/performance::check_model() → figures',
-  bundleFiles: ['table_model-fit.png', 'table_coefficients.png', 'figure_residuals.png', 'figure_coefficient-plot.png'],
+  bundleFiles: ['table_coefficients.png', 'figure_residuals.png', 'figure_coefficient-plot.png'],
 }

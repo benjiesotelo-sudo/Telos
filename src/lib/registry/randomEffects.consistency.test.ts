@@ -16,14 +16,20 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = sliceTo(inputsHtml, '<div class="ttl">Random effects</div>', '<div class="ttl">')
 
 describe('random-effects registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads match the card column sequences', () => {
+  // modelsummary coef table (design 2026-06-16): ONE stacked table merges the old Coefficients + Model fit.
+  // thead = [term '', model col (1)]; a GOF footer below a rule.
+  it('the single coef thead equals the spec column labels (term, model (1))', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) =>
       [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
-    expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
+    expect(theads).toEqual([spec.tables[0].columns.map((c) => c.label)])
   })
-  it('numbered table captions match the card captions', () => {
+  it('the single numbered caption equals the spec table title', () => {
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
-    expect(caps).toEqual(spec.tables.map((t) => t.title))
+    expect(caps).toEqual([spec.tables[0].title])
+  })
+  it('the GOF footer stub labels in the card equal spec.tables[0].gof labels in order', () => {
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(stubs).toEqual(spec.tables[0].gof!.map((g) => g.label))
   })
   it('each table has a distinct domId', () => {
     const ids = spec.tables.map((t) => t.domId)
@@ -46,12 +52,12 @@ describe('random-effects registry stays faithful to the spec HTML (verbatim, car
     const htmlBundle = strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')
     expect(htmlBundle).toEqual(spec.bundleFiles)
   })
-  it('tableNote text matches the drawn card note (verbatim, plain, after re-model-fit)', () => {
+  it('tableNote text matches the drawn card note (verbatim, plain, after re-coefficients)', () => {
     const noteEl = card.match(/<p class="tbl-note">(.*?)<\/p>/s)
     expect(noteEl).not.toBeNull()
     expect(strip(noteEl![1])).toBe(spec.tableNote!.text)
     expect(spec.tableNote!.kind).toBe('plain')
-    expect(spec.tableNote!.afterTableId).toBe('re-model-fit')
+    expect(spec.tableNote!.afterTableId).toBe('re-coefficients')
   })
   it('roles equal the inputs card slot labels + hints + constraint lines', () => {
     const labels = [...inCard.matchAll(/<div class="sl-label">(.*?)<\/div>/g)].map((m) => strip(m[1]))

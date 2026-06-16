@@ -16,10 +16,12 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = sliceTo(inputsHtml, '<div class="ttl">Regression discontinuity (RDD)</div>', '<div class="ttl">')
 
 describe('rdd registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table thead matches the card column sequence', () => {
+  // modelsummary coef table (design 2026-06-16): single model column (1); one term row; a GOF footer below a rule.
+  it('the single coef thead equals the spec column labels (term, model (1))', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) =>
       [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
-    expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
+    expect(theads).toEqual([spec.tables[0].columns.map((c) => c.label)])
+    expect(spec.tables[0].kind).toBe('coef')
   })
 
   it('bare table caption equals the card caption (no Table N. numbering)', () => {
@@ -32,9 +34,15 @@ describe('rdd registry stays faithful to the spec HTML (verbatim, card-scoped)',
     expect(spec.tables[0].domId).toBe('rd-estimate')
   })
 
-  it('no drawn table note — tableNote is absent from the registry', () => {
-    expect(spec.tableNote).toBeUndefined()
-    expect(card.match(/<p class="tbl-note">/)).toBeNull()
+  it('the GOF footer stub labels in the card equal spec.tables[0].gof labels in order (no R²/AIC — rdrobust has no method)', () => {
+    const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+    expect(stubs).toEqual(spec.tables[0].gof!.map((g) => g.label))
+    expect(stubs).toEqual(['Bandwidth', 'N (left)', 'N (right)'])
+  })
+
+  it('drawn table note carries the robust bias-corrected inference labeling', () => {
+    expect(spec.tableNote).toEqual({ kind: 'plain', text: strip(card.match(/<p class="tbl-note">(.*?)<\/p>/s)![1]) })
+    expect(spec.tableNote!.text).toContain('robust')
   })
 
   it('question, figure caption + type, how-to-read and R map match verbatim', () => {

@@ -2,20 +2,30 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { ArimaSarimaResult } from '../stats/arimaSarima'
 import type { CardContent } from './builders'
-import { f, fpApa } from '../format/apa'
+import { f, fp, fpApa } from '../format/apa'
 
+// modelsummary coef table (design 2026-06-16): Table 1 (Model summary) + Table 2 (diagnostics)
+// merge into ONE stacked coef table. Per ARIMA term: estimate row → muted (SE) → muted [CI].
+// Then a rule, then one gof row per spec.tables[0].gof. No significance stars (D1) — ARIMA has
+// no per-coef z/p anyway. Forecast stays a classic table; the σ² + Ljung–Box p move to the footer.
 export function buildArimaSarima(spec: TestSpec, r: ArimaSarimaResult): CardContent {
+  const t = spec.tables[0]
   // {pdq} → p,d,q · {PDQ} → P,D,Q (with [s] suffix when a seasonal period > 1 is in play).
   const pdq = `${r.p},${r.d},${r.q}`
   const PDQ = `${r.P},${r.D},${r.Q}` + (r.s > 1 ? `[${r.s}]` : '')
-  const summaryRows = r.coefs.map((c) => ({
-    term: c.term, estimate: f(c.estimate), se: f(c.se),
-    ci: `[${f(c.ciLow)}, ${f(c.ciHigh)}]`,
-  }))
-  const diagnosticRows = [{
-    aic: f(r.aic), bic: f(r.bic), loglik: f(r.loglik), sigma2: f(r.sigma2),
-    ljungbox_p: fpApa(r.ljungboxP),
-  }]
+  const gofValue: Record<string, string> = {
+    n: String(r.n), sigma2: f(r.sigma2), ljungbox: fp(r.ljungboxP),
+    aic: f(r.aic), bic: f(r.bic), ll: f(r.loglik),
+  }
+  const summaryRows: Record<string, string | number>[] = [
+    ...r.coefs.flatMap((c) => [
+      { _kind: 'coef', term: c.term, est: f(c.estimate) },
+      { _kind: 'se', term: '', est: `(${f(c.se)})` },
+      { _kind: 'ci', term: '', est: `[${f(c.ciLow)}, ${f(c.ciHigh)}]` },
+    ]),
+    { _kind: 'rule' },
+    ...t.gof!.map((g) => ({ _kind: 'gof', term: g.label, est: gofValue[g.key] })),
+  ]
   const forecastRows = r.forecastRows.map((fr) => ({
     period: fr.period, forecast: f(fr.forecast),
     pi80: `[${f(fr.lo80)}, ${f(fr.hi80)}]`, pi95: `[${f(fr.lo95)}, ${f(fr.hi95)}]`,
@@ -27,8 +37,7 @@ export function buildArimaSarima(spec: TestSpec, r: ArimaSarimaResult): CardCont
   return {
     tables: [
       { spec: spec.tables[0], rows: summaryRows },
-      { spec: spec.tables[1], rows: diagnosticRows },
-      { spec: spec.tables[2], rows: forecastRows },
+      { spec: spec.tables[1], rows: forecastRows },
     ],
     note: spec.tableNote ?? null,
     figures: [

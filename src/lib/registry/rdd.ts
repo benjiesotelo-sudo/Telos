@@ -1,9 +1,10 @@
 import type { TestSpec } from './types'
 
-// Encoded VERBATIM from telos_test_outputs.html + telos_test_inputs.html (Regression discontinuity card).
+// modelsummary coef table (design 2026-06-16): ONE stacked coef table replaces the old wide RD-estimate row.
+// One estimand → one 'RD treatment effect' term row: estimate / (SE) / [CI] stacked (z/p drop from the visible cell).
+// GOF footer = Bandwidth + N (left) + N (right); rdrobust has NO R²/AIC/BIC/Log.Lik. method (local nonparametric).
 // Report-only APA (drawn "treatment effect was" wording neutral; templated, CI literal 95%).
-// rdrobust auto bandwidth; the single RD-estimate row = Conventional point estimate + Robust inference (SE/z/p/CI).
-// No drawn table note — McCrary caveat lives in howToRead only.
+// Drawn table note carries the robust bias-corrected inference labeling; McCrary caveat stays in howToRead.
 export const RDD: TestSpec = {
   id: 'rdd',
   name: 'Regression discontinuity (RDD)',
@@ -24,15 +25,16 @@ export const RDD: TestSpec = {
     ],
     minRule: { kind: 'values', n: 20 },
   },
+  // modelsummary coef table: single model column (1); one term row; GOF footer = bandwidth + effective N on each side.
   tables: [
     {
-      id: 'rd-estimate', title: 'RD estimate', domId: 'rd-estimate', captionStyle: 'bare',
-      columns: [
-        { key: 'bandwidth', label: 'Bandwidth' }, { key: 'estimate', label: 'Estimate' }, { key: 'se', label: 'SE' },
-        { key: 'z', label: 'z' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' }, { key: 'n', label: 'N (left/right)' },
-      ],
+      id: 'rd-estimate', title: 'RD estimate', domId: 'rd-estimate', captionStyle: 'bare', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'est', label: '(1)' }],
+      models: [{ key: 'est', label: '(1)' }],
+      gof: [{ key: 'bandwidth', label: 'Bandwidth' }, { key: 'nleft', label: 'N (left)' }, { key: 'nright', label: 'N (right)' }],
     },
   ],
+  tableNote: { kind: 'plain', text: 'inference is robust (bias-corrected): the SE / CI use rdrobust robust standard errors.' },
   figures: [{ caption: 'Discontinuity', type: 'RD plot (binned scatter + fitted lines either side of the cutoff)', file: 'rd-plot' }],
   howToRead:
     'Estimates the jump in the outcome right at the cutoff — the estimate is the treatment effect for cases near the threshold. p/CI assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold — check a density (McCrary) test for sorting and covariate-balance / placebo checks.',

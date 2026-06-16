@@ -728,10 +728,8 @@
     <div class="rt-h"><span class="rt-name">Multiple linear regression</span><span class="rt-q">one numeric outcome, several predictors</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
-      <div class="apa-cap"><b>Table 1.</b> Model fit</div>
-      <table class="apa"><thead><tr><th>R&sup2;</th><th>Adj. R&sup2;</th><th>F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 2.</b> Coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>&beta;</th><th>t</th><th>p</th><th>95% CI</th><th>VIF</th></tr></thead><tbody class="ghost"><tr><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td><td></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td></td></tr><tr><td>Predictor 1&hellip;k</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 1.</b> Regression coefficients</div>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th><th>&beta;</th><th>VIF</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td></td><td></td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td></td><td></td></tr><tr class="row-coef"><td>Predictor 1&hellip;k</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td></td><td></td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td></td><td></td></tr><tr class="gofrule"><td colspan="4"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-gof"><td>R&sup2;</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-gof"><td>R&sup2; Adj.</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-gof"><td>F</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-gof"><td>RMSE</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-gof"><td>AIC</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-gof"><td>BIC</td><td>&mdash;</td><td></td><td></td></tr><tr class="row-gof"><td>Log.Lik.</td><td>&mdash;</td><td></td><td></td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks: linearity, normality, homoscedasticity, and multicollinearity (VIF).</p>
       <div class="zlabel">Figures</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Residual diagnostics</div><div class="ftype">type: <b>residual / diagnostic plots</b></div></div>
@@ -741,7 +739,7 @@
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The model explained R&sup2;=__ of the variance, <i>F</i>(__,__)=__, <i>p</i>&nbsp;__; predictor X gave <i>B</i>=__, <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lm()</code> &rarr; Tables 1&ndash;2 &middot; <code>parameters::standardise_parameters()</code> &rarr; &beta; &middot; <code>car::vif()</code> &rarr; VIF &middot; <code>ggplot2</code>/<code>performance::check_model()</code> &rarr; figures</div>
-        <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; figure_residuals.png &middot; figure_coefficient-plot.png</div>
+        <div class="m bundle">table_coefficients.png &middot; figure_residuals.png &middot; figure_coefficient-plot.png</div>
       </div>
     </div>
   </div>
@@ -799,11 +797,9 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Model summary</div>
-      <table class="apa"><thead><tr><th>Term</th><th>Estimate</th><th>SE</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>AR/MA/seasonal terms</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>AR/MA/seasonal terms</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>&sigma;&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Ljung&ndash;Box p</td><td>&mdash;</td></tr><tr class="row-gof"><td>AIC</td><td>&mdash;</td></tr><tr class="row-gof"><td>BIC</td><td>&mdash;</td></tr><tr class="row-gof"><td>Log.Lik.</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">arima()/auto.arima() return each coefficient with its SE (CI via <code>confint()</code>); they do not produce per-coefficient z/p &mdash; add <code>lmtest::coeftest()</code> if those are wanted.</p>
-      <div class="apa-cap"><b>Table 2.</b> Fit &amp; residual diagnostics</div>
-      <table class="apa"><thead><tr><th>AIC</th><th>BIC</th><th>Log-lik</th><th>&sigma;&sup2;</th><th>Ljung&ndash;Box p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 3.</b> Forecast</div>
+      <div class="apa-cap"><b>Table 2.</b> Forecast</div>
       <table class="apa"><thead><tr><th>Period</th><th>Forecast</th><th>80% PI</th><th>95% PI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Forecast</div><div class="ftype">type: <b>forecast plot</b> (history + forecast with prediction intervals)</div></div>
@@ -812,7 +808,7 @@
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;An ARIMA(__)(__) model was fit (AIC=__); the Ljung&ndash;Box test of residual autocorrelation gave p __.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>forecast::auto.arima()</code> / <code>arima()</code> &rarr; Tables &middot; <code>forecast()</code> + <code>autoplot()</code> &rarr; figure</div>
-        <div class="m bundle">table_model-summary.png &middot; table_diagnostics.png &middot; table_forecast.png &middot; figure_forecast.png</div>
+        <div class="m bundle">table_model-summary.png &middot; table_forecast.png &middot; figure_forecast.png</div>
       </div>
     </div>
   </div>
@@ -880,9 +876,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Coefficients (within estimator)</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>Clustered SE</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 2.</b> Model fit</div>
-      <table class="apa"><thead><tr><th>Within R&sup2;</th><th>F</th><th>N obs</th><th>N entities</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Predictor 1&hellip;k</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>Within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Adj. within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>F</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">time-invariant predictors are absorbed by the entity effects and drop out; a predictor must also <b>change within entities over time</b> to be estimable &mdash; predictors with little within-entity variation give large standard errors and unreliable estimates.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b> (estimate &plusmn; CI)</div></div>
@@ -890,8 +884,8 @@
       <div class="howread"><p>Each <b>B</b> is the within-entity effect of a predictor, controlling for everything stable about each entity. <b>p</b> and the clustered <b>CI</b> assess it; within R&sup2; is the variance explained by the time-varying predictors.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;In a fixed-effects model, predictor X gave <i>B</i>=__, <i>p</i>&nbsp;__ (clustered SE).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>plm(model="within")</code> / <code>fixest::feols()</code> &rarr; Tables &middot; <code>ggplot2</code> &rarr; figure</div>
-        <div class="m bundle">table_coefficients.png &middot; table_model-fit.png &middot; figure_coefficients.png</div>
+        <div class="m"><b>R map:</b> <code>plm(model="within")</code> / <code>fixest::feols()</code> &rarr; Table &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m bundle">table_coefficients.png &middot; figure_coefficients.png</div>
       </div>
     </div>
   </div>
@@ -901,18 +895,16 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>Clustered SE</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 2.</b> Model fit</div>
-      <table class="apa"><thead><tr><th>R&sup2;</th><th>Adj. R&sup2;</th><th>N obs</th><th>N entities</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">unlike fixed effects, time-invariant predictors can be retained. <code>summary(plm)</code> returns a single R&sup2; / adj. R&sup2; (not a within/between/overall split).</p>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Regressor 1&hellip;k</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>R&sup2; Adj.</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">standard errors are clustered by entity. unlike fixed effects, time-invariant predictors can be retained. <code>summary(plm)</code> returns a single R&sup2; / adj. R&sup2; (not a within/between/overall split).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b></div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each <b>B</b>/<b>p</b> as usual &mdash; but only trust this model if the Hausman test favours random over fixed effects.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;In a random-effects model, predictor X gave <i>B</i>=__, <i>p</i>&nbsp;__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>plm(model="random")</code> &rarr; Tables &middot; <code>ggplot2</code> &rarr; figure</div>
-        <div class="m bundle">table_coefficients.png &middot; table_model-fit.png &middot; figure_coefficients.png</div>
+        <div class="m"><b>R map:</b> <code>plm(model="random")</code> &rarr; Table &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m bundle">table_coefficients.png &middot; figure_coefficients.png</div>
       </div>
     </div>
   </div>
@@ -942,7 +934,8 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> RD estimate</div>
-      <table class="apa"><thead><tr><th>Bandwidth</th><th>Estimate</th><th>SE</th><th>z</th><th>p</th><th>95% CI</th><th>N (left/right)</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>RD treatment effect</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Bandwidth</td><td>&mdash;</td></tr><tr class="row-gof"><td>N (left)</td><td>&mdash;</td></tr><tr class="row-gof"><td>N (right)</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">inference is robust (bias-corrected): the SE / CI use rdrobust robust standard errors.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Discontinuity</div><div class="ftype">type: <b>RD plot</b> (binned scatter + fitted lines either side of the cutoff)</div></div>
       <div class="zlabel">How to read this test</div>
@@ -983,7 +976,7 @@
       <div class="apa-cap"><b>Table 1.</b> Covariate balance (before / after)</div>
       <table class="apa"><thead><tr><th>Covariate</th><th>Std. mean diff (pre)</th><th>Std. mean diff (post)</th><th>Variance ratio</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Treatment effect (ATT)</div>
-      <table class="apa"><thead><tr><th>Estimate</th><th>SE</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Treatment (ATT)</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>Treated (matched)</td><td>&mdash;</td></tr><tr class="row-gof"><td>Control (matched)</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">good matching drives post-matching standardized mean differences toward 0 (commonly &lt; 0.1).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Balance</div><div class="ftype">type: <b>love plot</b> (standardized differences before vs. after matching)</div></div>

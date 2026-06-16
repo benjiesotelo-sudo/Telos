@@ -17,6 +17,8 @@ describe('runPropensityScoreMatching', () => {
   it('covariate balance + ATT vs native R 4.6.0', async () => {
     const r = await runPropensityScoreMatching(engine, loadCsvFixture(CAUSAL), 'health', 'enroll', ['exper', 'age', 'ability'])
     expect(r.matchedN).toBe(134)
+    expect(r.nT).toBe(67)   // summary(matchit)$nn matched → coef-table GOF footer
+    expect(r.nC).toBe(67)
     const ability = r.balance.find((b) => b.covariate === 'ability')!
     expect(ability.smdPre).toBeCloseTo(1.358679, 4)
     expect(ability.smdPost).toBeCloseTo(0.373121, 4)
