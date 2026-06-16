@@ -46,6 +46,9 @@ describe('fixed-effects registry stays faithful to the spec HTML (verbatim, card
     const htmlBundle = strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')
     expect(htmlBundle).toEqual(spec.bundleFiles)
   })
+  it('drawn table note (within-variation warning) renders verbatim', () => {
+    expect(strip(card.match(/<p class="tbl-note">(.*?)<\/p>/s)![1])).toBe(spec.tableNote!.text)
+  })
   it('roles equal the inputs card slot labels + hints + constraint lines', () => {
     const labels = [...inCard.matchAll(/<div class="sl-label">(.*?)<\/div>/g)].map((m) => strip(m[1]))
     const hints = [...inCard.matchAll(/<div class="sl-hint">(.*?)<\/div>/g)].map((m) => strip(m[1]))

@@ -1,5 +1,6 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
+import { binaryCode, positiveLevel } from './binaryCoding'
 
 export interface PsmBalanceRow { covariate: string; smdPre: number; smdPost: number; varRatio: number }
 export interface PsmResult {
@@ -65,7 +66,7 @@ export async function runPropensityScoreMatching(
   const present = (v: unknown) => v !== null && v !== undefined && String(v).trim() !== ''
   const rows = data.rows.filter((r) => num(outcome, r) && present(r[treatment]) && covariates.every((c) => num(c, r)))
   const nExcluded = data.rows.length - rows.length
-  const treat = rows.map((r) => trLevels.indexOf(String(r[treatment])))
+  const treat = rows.map((r) => binaryCode(r[treatment], positiveLevel(trLevels)))
   const nT = treat.filter((t) => t === 1).length
   const nC = treat.filter((t) => t === 0).length
   if (nT < 10 || nC < 10) throw new Error(`Propensity score matching needs ≥10 in each group (found ${nT} treated, ${nC} control).`)

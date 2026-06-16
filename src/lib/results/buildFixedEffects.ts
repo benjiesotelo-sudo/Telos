@@ -6,7 +6,11 @@ import { f, f01, fp, fpApa } from '../format/apa'
 
 export function buildFixedEffects(spec: TestSpec, r: FixedEffectsResult): CardContent {
   const pct = Math.round(r.ciLevel * 100)
-  const t1cols = spec.tables[0].columns.map((c) => (c.key === 'ci' ? { ...c, label: `${pct}% CI` } : c))
+  const classical = r.seType === 'classical'
+  const t1cols = spec.tables[0].columns.map((c) =>
+    c.key === 'ci' ? { ...c, label: `${pct}% CI` }
+      : c.key === 'se' && classical ? { ...c, label: 'SE' } // header says "Clustered SE" only when clustered
+        : c)
   const coefRows = r.coefRows.map((x) => ({
     term: x.term, b: f(x.b), se: f(x.se), t: f(x.t), p: fp(x.p), ci: `[${f(x.ciLow)}, ${f(x.ciHigh)}]`,
   }))
@@ -15,12 +19,11 @@ export function buildFixedEffects(spec: TestSpec, r: FixedEffectsResult): CardCo
     .replace('predictor X', `predictor ${first ? first.term : 'X'}`)
     .replace('{b}', first ? f(first.b) : '—')
     .replace('p {p}', `p ${first ? fpApa(first.p) : '—'}`)
-  // §2.8 poolability — builder-constructed note (the drawn card has none).
-  const note: CardContent['note'] = {
-    kind: 'plain',
-    text: `F-test for individual effects (poolability): F = ${f(r.poolF)}, p ${fpApa(r.poolP)} — a low p favours the entity effects over pooled OLS.`,
-    afterTableId: 'fe-model-fit',
-  }
+    .replace('(clustered SE)', classical ? '(classical SE)' : '(clustered SE)')
+  // Render the drawn within-variation note + APPEND the §2.8 poolability F (like buildIvTwoStage appends diagnostics).
+  const note: CardContent['note'] = spec.tableNote
+    ? { ...spec.tableNote, text: `${spec.tableNote.text} F-test for individual effects (poolability): F = ${f(r.poolF)}, p ${fpApa(r.poolP)} — a low p favours the entity effects over pooled OLS.` }
+    : null
   const figs = figuresOf(spec)
   return {
     tables: [

@@ -56,7 +56,7 @@ Carried from that slice (not yet explicitly ratified):
 7. **IV via `ivreg`**; weak-instrument test shipped **always-on** (display).
 8. **RDD:** `cutoff` interactive (default 50); **bandwidth = rdrobust auto** (display); polynomial 1·linear / 2·quadratic.
 9. **§2.8 econometrics-grade additions BUILT:** IV diagnostics **surfaced** (weak-IV F, Wu–Hausman, Sargan) +
-   **FE poolability F-test** (a builder-constructed note — the FE card has no drawn note).
+   **FE poolability F-test** (appended to the FE card's drawn within-variation note).
 10. **PSM:** matching method = **nearest only** (optimal/full need `optmatch`, not WebR-shipped → shipped as a
     display "nearest"); covariates **numeric-only** in v1 (card display reads "any level"); **hand-rolled
     ggplot love plot** (cobalt is unavailable under WebR).

@@ -32,9 +32,17 @@ describe('buildFixedEffects', () => {
     expect(buildFixedEffects(FIXED_EFFECTS, mock({ ciLevel: 0.9 })).tables[0].spec.columns.find((c) => c.key === 'ci')!.label).toBe('90% CI')
   })
 
-  it('appends the §2.8 poolability F to the within-variation note + the α to how-to-read', () => {
+  it('renders the drawn within-variation note + appends the §2.8 poolability F + the α to how-to-read', () => {
     const c = buildFixedEffects(FIXED_EFFECTS, mock())
+    expect(c.note!.text).toContain('time-invariant predictors are absorbed by the entity effects')
     expect(c.note!.text).toContain('poolability): F = 1.29, p = .244')
     expect(c.howToRead).toContain('Your significance threshold (α) is 0.05.')
+  })
+
+  it('reflects classical SEs in the header + APA when chosen (not hardcoded "clustered")', () => {
+    const c = buildFixedEffects(FIXED_EFFECTS, mock({ seType: 'classical' }))
+    expect(c.tables[0].spec.columns.find((col) => col.key === 'se')!.label).toBe('SE')
+    expect(c.apa).toContain('(classical SE)')
+    expect(c.apa).not.toContain('(clustered SE)')
   })
 })

@@ -56,9 +56,10 @@ The Treated×Post (DiD) estimate **1.5256** matches the fixture's designed +1.5 
 
 ### IV / 2SLS — `ivreg(wage ~ educ + exper | educ_iv + exper)`
 - **First stage** `lm(educ ~ educ_iv + exper)`: educ_iv coef **1.15696** (SE 0.05525, t 20.94); partial F (vs
-  `educ ~ exper`) = **438.5** (so the instrument is strong; the diagnostics' weak-IV F = **451**).
+  `educ ~ exper`) = **438.5** (so the instrument is strong; with one instrument the diagnostics' weak-IV F
+  coincides at **438.5**).
 - **2SLS:** (Intercept) 202.740 · **educ 7.82142** (SE 0.28220, t 27.716, p<2e-16) · exper −0.02055.
-- **Diagnostics:** Weak instruments F **451** (p<2e-16); Wu–Hausman F **1212** (p<2e-16, confirms endogeneity);
+- **Diagnostics:** Weak instruments F **438.5** (p<2e-16); Wu–Hausman F **1022.75** (p<2e-16, confirms endogeneity);
   Sargan **NA** (just-identified — 1 instrument, 1 endogenous — so over-id is untestable, per the card note).
 - Robust SE via `sandwich::vcovHC` (used for the 2SLS table SE/CI).
 

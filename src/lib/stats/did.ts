@@ -1,5 +1,6 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
+import { binaryCode, positiveLevel } from './binaryCoding'
 
 export interface DidCoefRow { term: string; b: number; se: number; t: number; p: number; ciLow: number; ciHigh: number }
 export interface DidResult {
@@ -53,16 +54,24 @@ export async function runDid(
     typeof r[outcomeCol] === 'number' && Number.isFinite(r[outcomeCol] as number)
     && present(r[treatmentCol]) && present(r[periodCol]) && present(r[entityCol]) && present(r[timeCol]))
   const nExcluded = data.rows.length - rows.length
-  const tr = rows.map((r) => trLevels.indexOf(String(r[treatmentCol])))
-  const po = rows.map((r) => poLevels.indexOf(String(r[periodCol])))
+  // Code treatment + period to 0/1 by the POSITIVE level (treated / post), not alphabetical order — "pre"/"post"
+  // sorts post<pre, which would flip the DiD sign. binaryCode handles 0/1, yes/no, pre/post, treated/control.
+  const trPos = positiveLevel(trLevels); const poPos = positiveLevel(poLevels)
+  const tr = rows.map((r) => binaryCode(r[treatmentCol], trPos))
+  const po = rows.map((r) => binaryCode(r[periodCol], poPos))
   // 2×2 structural guard: every treat×post cell populated
   const cells = new Set(rows.map((_, i) => `${tr[i]}-${po[i]}`))
   if (cells.size < 4) throw new Error('Difference-in-differences needs observations in all four treated×period cells.')
+  // Ordered numeric x-axis for the trends plot: the real value when every time is numeric (e.g. year), else the
+  // rank of each distinct value in sorted order — so ISO-date strings / ordinal labels plot in order, not as NaN.
+  const rawTime = rows.map((r) => r[timeCol])
+  const allNumericTime = rawTime.every((v) => typeof v === 'number' && Number.isFinite(v))
+  const timeOrder = allNumericTime ? null : [...new Set(rawTime.map(String))].sort()
   const env = {
     y: rows.map((r) => r[outcomeCol] as number),
     tr, po,
     cluster: rows.map((r) => String(r[entityCol])),
-    timev: rows.map((r) => Number(r[timeCol])), // numeric x for the trends plot (time role is ordered/datetime)
+    timev: allNumericTime ? (rawTime as number[]) : rawTime.map((v) => timeOrder!.indexOf(String(v)) + 1),
     se_clustered: seClustered, ci_level: ciLvl,
   }
   const raw = await engine.runJson<RawDid>(R_DID, env)

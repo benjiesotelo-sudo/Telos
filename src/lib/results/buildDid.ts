@@ -8,7 +8,11 @@ const LABEL: Record<string, string> = { '(Intercept)': 'Intercept', tr: 'Treated
 
 export function buildDid(spec: TestSpec, r: DidResult): CardContent {
   const pct = Math.round(r.ciLevel * 100)
-  const t1cols = spec.tables[0].columns.map((c) => (c.key === 'ci' ? { ...c, label: `${pct}% CI` } : c))
+  const classical = r.seType === 'classical'
+  const t1cols = spec.tables[0].columns.map((c) =>
+    c.key === 'ci' ? { ...c, label: `${pct}% CI` }
+      : c.key === 'se' && classical ? { ...c, label: 'SE' } // "Clustered SE" only when clustered
+        : c)
   const rows = r.coefRows.map((x) => ({
     term: LABEL[x.term] ?? x.term, b: f(x.b), se: f(x.se), t: f(x.t), p: fp(x.p), ci: `[${f(x.ciLow)}, ${f(x.ciHigh)}]`,
   }))
@@ -18,6 +22,7 @@ export function buildDid(spec: TestSpec, r: DidResult): CardContent {
     .replace('{lo}', did ? f(did.ciLow) : '—')
     .replace('{hi}', did ? f(did.ciHigh) : '—')
     .replace('p {p}', `p ${did ? fpApa(did.p) : '—'}`)
+    .replace('(clustered SE)', classical ? '(classical SE)' : '(clustered SE)')
   const figs = figuresOf(spec)
   return {
     tables: [{ spec: { ...spec.tables[0], columns: t1cols }, rows }],

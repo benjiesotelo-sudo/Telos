@@ -6,7 +6,11 @@ import { f, f01, fp, fpApa } from '../format/apa'
 
 export function buildRandomEffects(spec: TestSpec, r: RandomEffectsResult): CardContent {
   const pct = Math.round(r.ciLevel * 100)
-  const t1cols = spec.tables[0].columns.map((c) => (c.key === 'ci' ? { ...c, label: `${pct}% CI` } : c))
+  const classical = r.seType === 'classical'
+  const t1cols = spec.tables[0].columns.map((c) =>
+    c.key === 'ci' ? { ...c, label: `${pct}% CI` }
+      : c.key === 'se' && classical ? { ...c, label: 'SE' } // "Clustered SE" only when clustered
+        : c)
   const coefRows = r.coefRows.map((x) => ({
     term: x.term, b: f(x.b), se: f(x.se), t: f(x.t), p: fp(x.p), ci: `[${f(x.ciLow)}, ${f(x.ciHigh)}]`,
   }))
