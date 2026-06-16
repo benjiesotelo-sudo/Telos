@@ -60,6 +60,38 @@ describe('escapeLatex', () => {
   it('escapes tilde, caret and backslash with the math-safe forms', () => {
     expect(escapeLatex('~^\\')).toBe('\\textasciitilde{}\\textasciicircum{}\\textbackslash{}')
   })
+
+  // The app routes negatives through apa.ts minus() (U+2212) and builders emit Greek + math symbols.
+  // These must become ASCII-LaTeX so report.tex compiles AND renders on pdfLaTeX + XeTeX/tectonic.
+  it('maps the Unicode glyphs the app emits to ASCII-LaTeX, leaving NO raw non-ASCII bytes', () => {
+    const out = escapeLatex('−12 χ²(1) β η² a×b ≤ 5 < 6')
+    expect(out).toContain('$-$') // − minus
+    expect(out).toContain('$\\chi$') // χ
+    expect(out).toContain('\\textsuperscript{2}') // ²
+    expect(out).toContain('$\\beta$') // β
+    expect(out).toContain('$\\eta$') // η
+    expect(out).toContain('$\\times$') // ×
+    expect(out).toContain('$\\le$') // ≤
+    expect(out).toContain('$<$') // <  (avoids the pdfLaTeX ligature)
+    // No raw non-ASCII byte survives.
+    expect(/[^\x00-\x7F]/.test(out)).toBe(false)
+  })
+
+  it('covers the full emitted glyph set (dashes, relations, Greek, Λ, ·, §, é) with no non-ASCII left', () => {
+    const glyphs = '− – — × ÷ ± √ ≤ ≥ ≠ ≈ ≡ → ⇒ … ² ³ § · é α β γ δ ε η θ λ μ ρ σ τ χ ω Δ Λ Σ'
+    const out = escapeLatex(glyphs)
+    expect(/[^\x00-\x7F]/.test(out)).toBe(false)
+    expect(out).toContain('$\\Lambda$') // Wilks' Λ
+    expect(out).toContain('$\\rightarrow$') // →
+    expect(out).toContain('---') // em dash
+    expect(out).toContain("\\'{e}") // Scheffé
+  })
+
+  it('does not re-escape backslashes inserted by the escape itself', () => {
+    // χ → $\chi$ ; the inserted backslash must NOT become \textbackslash{}.
+    expect(escapeLatex('χ')).toBe('$\\chi$')
+    expect(escapeLatex('χ')).not.toContain('\\textbackslash')
+  })
 })
 
 describe('coefToLatex', () => {
@@ -73,8 +105,8 @@ describe('coefToLatex', () => {
   })
   it('puts the model column labels in the header', () => {
     const tex = coefToLatex(simpleCoef)
-    // header row carries the value-column labels (term label is blank)
-    expect(tex).toMatch(/&\s*\(1\)\s*&\s*β\s*\\\\/)
+    // header row carries the value-column labels (term label is blank); β is escaped to ASCII-LaTeX
+    expect(tex).toMatch(/&\s*\(1\)\s*&\s*\$\\beta\$\s*\\\\/)
   })
   it('stacks the estimate, then (SE), then [CI] as successive rows under the term', () => {
     const tex = coefToLatex(simpleCoef)

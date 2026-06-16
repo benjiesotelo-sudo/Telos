@@ -95,4 +95,25 @@ describe('buildExportFiles (Task 10)', () => {
     const files = buildExportFiles(session(), { tables: false, figures: false, pdf: false, latex: false, r: true })
     expect(Object.keys(files)).toContain('LICENSES.txt')
   })
+
+  // Gap case (BLOCKER regression): when a non-fresh test precedes a fresh one in the selection, the
+  // report.tex \includegraphics NN must equal the figure-PNG key NN (the FULL-selection index), so the
+  // figures resolve. Here A (simple-linear-regression) has NO run; B (one-way-anova) is fresh → B is 02.
+  it('report.tex figure NN matches the figure PNG NN when an earlier selected test is not fresh', () => {
+    const s = session()
+    // Self-contained runs (the shared fixture is mutated by sibling tests): A has NO run, B is fresh.
+    s.runs = { 'one-way-anova': { result: anova, stale: false } }
+    delete (s.runs as Record<string, TestRun>)['simple-linear-regression'] // A: no run → not fresh, no \section
+    const files = buildExportFiles(s, { tables: false, figures: true, pdf: false, latex: true, r: false })
+    const dec = new TextDecoder()
+    const tex = dec.decode(files['report.tex'])
+    // B keeps its full-selection index (02), NOT 01 (which it would get if numbered within `fresh`).
+    expect(tex).toContain('\\includegraphics{figures/02_one-way-anova/figure_means-plot.png}')
+    expect(tex).not.toContain('\\includegraphics{figures/01_one-way-anova/figure_means-plot.png}')
+    // ...and that exact path is the figure PNG key buildExportFiles writes.
+    expect(Object.keys(files)).toContain('figures/02_one-way-anova/figure_means-plot.png')
+    // A produced no run, so no \section / no figure for it.
+    expect(tex).not.toContain('\\section{Simple linear regression}')
+    expect(Object.keys(files).some((k) => k.includes('simple-linear-regression'))).toBe(false)
+  })
 })

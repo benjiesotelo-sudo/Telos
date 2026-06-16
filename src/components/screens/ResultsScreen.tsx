@@ -17,6 +17,10 @@ const saveBlob = (blob: Blob, name: string) => {
   const a = document.createElement('a'); a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url)
 }
 
+// MIME for a single saved file, derived from its extension (a future non-PNG single file isn't mislabeled).
+const MIME_BY_EXT: Record<string, string> = { png: 'image/png', tex: 'text/x-tex', csv: 'text/csv', r: 'text/plain', txt: 'text/plain' }
+const mimeFor = (name: string) => MIME_BY_EXT[name.split('.').pop()?.toLowerCase() ?? ''] ?? 'application/octet-stream'
+
 export interface ExportFormats { tables: boolean; figures: boolean; pdf: boolean; latex: boolean; r: boolean }
 const enc = (str: string): Uint8Array => new TextEncoder().encode(str)
 
@@ -39,7 +43,9 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
       if (formats.latex) files[`figures/${folder}${name}`] = fig.png // emitLatex \includegraphics path
     }
   }
-  if (formats.latex) files['report.tex'] = enc(emitLatex(fresh, s.setups, SPECS, s.runs))
+  // Pass the FULL selection (not `fresh`): emitLatex numbers figure folders by the full-selection index
+  // and skips non-fresh ids itself, so its \includegraphics NN matches the figure PNG keys written above.
+  if (formats.latex) files['report.tex'] = enc(emitLatex(s.selection, s.setups, SPECS, s.runs))
   if (formats.r) { files['analysis.R'] = enc(emitRScript(fresh, s.setups, SPECS, workingDataset(s))); files['cleaned.csv'] = enc(toCsv(workingDataset(s))) }
   if (formats.r || formats.latex) files['LICENSES.txt'] = enc(licensesText())
   return files
@@ -52,7 +58,7 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
 export function printReport(doc: Document = document, win: Window = window) {
   doc.body.classList.add('printing')
   const done = () => { doc.body.classList.remove('printing'); win.removeEventListener('afterprint', done) }
-  win.addEventListener('afterprint', done)
+  win.addEventListener('afterprint', done, { once: true }) // {once} so repeated Download clicks don't stack listeners
   win.print()
 }
 
@@ -74,7 +80,7 @@ export function ResultsScreen() {
         for (const t of BUILDERS[id](spec, s.runs[id].result).tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.domId ?? t.spec.id}`)
       }
       const names = Object.keys(files)
-      if (names.length === 1) saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: 'image/png' }), names[0].split('/').pop()!)
+      if (names.length === 1) { const fname = names[0].split('/').pop()!; saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: mimeFor(fname) }), fname) }
       else if (names.length) saveBlob(new Blob([buildBundle(files)], { type: 'application/zip' }), 'telos-export.zip')
       if (formats.pdf) printReport() // browser print-to-PDF; the only artifact when PDF is the sole tick
     } catch (e) {
