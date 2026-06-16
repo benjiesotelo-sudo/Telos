@@ -183,34 +183,54 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   await expect(nbCoef).toContainText('45.81')   // GOF Residual deviance
   await expect(nbCoef).toContainText('9.00')    // GOF Dispersion = theta
 
-  // ── 9. Download & unzip — assert the exact 11-file path set (NN = selection order; card-faithful names).
-  // The per-test "Model fit" table is GONE (merged into each coef table's GOF footer), so table_model-fit.png
-  // no longer exists for any test: 15 − 4 = 11.
-  await page.getByRole('checkbox', { name: /Table images/ }).check()
+  // ── 9. Download & unzip — tick the NEW formats (R script, LaTeX, Table images) on top of the
+  // default Figure images, then assert the full multi-format path set (NN = selection order;
+  // card-faithful names). The per-test "Model fit" table is GONE (merged into each coef table's
+  // GOF footer), so table_model-fit.png no longer exists for any test (the figure/table PNG count
+  // per test is 15 − 4 = 11 across the four tests).
+  await page.getByRole('checkbox', { name: 'R script (.R)' }).check()
+  await page.getByRole('checkbox', { name: 'LaTeX file (.tex)' }).check()
+  await page.getByRole('checkbox', { name: 'Table images (.png)' }).check()
+  // (Figure images is on by default; PDF report deliberately NOT ticked — it triggers window.print(), not a download.)
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Download' }).click(),
   ])
-  expect(download.suggestedFilename()).toBe('telos-results.zip')
+  expect(download.suggestedFilename()).toBe('telos-export.zip')
   const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!)))).sort()
 
-  // 01_simple-linear-regression: 3 files (coef table + two figures from one drawn figbox)
+  // R + LaTeX top-level artifacts
+  expect(entries).toContain('analysis.R')   // R script
+  expect(entries).toContain('cleaned.csv')  // R script's bundled dataset
+  expect(entries).toContain('report.tex')   // LaTeX source
+  expect(entries).toContain('LICENSES.txt') // shipped whenever R or LaTeX is ticked
+
+  // 01_simple-linear-regression: coef table + two figures from one drawn figbox
   expect(entries).toContain('01_simple-linear-regression/table_coefficients.png')
   expect(entries).toContain('01_simple-linear-regression/figure_fit.png')
   expect(entries).toContain('01_simple-linear-regression/figure_residuals.png')
 
-  // 02_multiple-linear-regression: 3 files (#11 — coef table + residual diagnostics + coefficient plot)
+  // 02_multiple-linear-regression: coef table + residual diagnostics + coefficient plot (#11)
   expect(entries).toContain('02_multiple-linear-regression/table_coefficients.png')
   expect(entries).toContain('02_multiple-linear-regression/figure_residuals.png')
   expect(entries).toContain('02_multiple-linear-regression/figure_coefficient-plot.png')
 
-  // 03_logistic-regression: 3 files (coef table + classification table + ROC figure)
+  // 03_logistic-regression: coef table + classification table + ROC figure
   expect(entries).toContain('03_logistic-regression/table_coefficients.png')
   expect(entries).toContain('03_logistic-regression/table_classification.png')
   expect(entries).toContain('03_logistic-regression/figure_roc.png')
 
-  // 04_poisson-negative-binomial: 2 files (coef table + residuals figure)
+  // 04_poisson-negative-binomial: coef table + residuals figure
   expect(entries).toContain('04_poisson-negative-binomial/table_coefficients.png')
   expect(entries).toContain('04_poisson-negative-binomial/figure_residuals.png')
+
+  // LaTeX duplicates every figure under figures/ so \includegraphics resolves — assert at least one.
+  expect(entries.some((e) => /^figures\/0[1-4]_[a-z-]+\/figure_.+\.png$/.test(e))).toBe(true)
+  // Figure images (default-on) live at the top of each test folder — at least one.
+  expect(entries.some((e) => /^0[1-4]_[a-z-]+\/figure_.+\.png$/.test(e))).toBe(true)
+  // Table images (newly ticked) — at least one.
+  expect(entries.some((e) => /^0[1-4]_[a-z-]+\/table_.+\.png$/.test(e))).toBe(true)
+
+  // The 11 per-test figure+table PNGs (the figures/ LaTeX copies are excluded by the leading-digit anchor).
   expect(entries.filter((e) => /^0[1-4]_/.test(e)).length).toBe(11)
 })

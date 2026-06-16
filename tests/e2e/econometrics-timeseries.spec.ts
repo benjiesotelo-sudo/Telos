@@ -82,7 +82,7 @@ test('Time-series journey: ARIMA, Stationarity (ADF/KPSS/PP), Granger, VAR', asy
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Download' }).click(),
   ])
-  expect(download.suggestedFilename()).toBe('telos-results.zip')
+  expect(download.suggestedFilename()).toBe('telos-export.zip')
   const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!)))).sort()
 
   // 01_arima-sarima — the old separate "diagnostics" table is GONE (merged into the Model summary coef GOF footer);

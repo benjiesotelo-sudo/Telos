@@ -120,7 +120,7 @@ test('Journey A: between-subjects — one-way ANOVA + factorial ANOVA + Kruskal-
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Download' }).click(),
   ])
-  expect(download.suggestedFilename()).toBe('telos-results.zip')
+  expect(download.suggestedFilename()).toBe('telos-export.zip')
   const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!)))).sort()
 
   // Figure filenames: `figure_${fig.file ?? fig.type}.png` — the card-faithful bundle names; tables: `table_${t.spec.id}.png`

@@ -81,7 +81,7 @@ test('full journey: welcome → upload → guide → configure → pick → drag
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Download' }).click(),
   ])
-  expect(download.suggestedFilename()).toBe('telos-results.zip')
+  expect(download.suggestedFilename()).toBe('telos-export.zip')
   const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!))))
   expect(entries.sort()).toEqual([
     '01_independent-t-test/figure_boxplot.png',

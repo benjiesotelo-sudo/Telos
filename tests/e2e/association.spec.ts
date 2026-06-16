@@ -165,7 +165,7 @@ test('Journey: association — Pearson, Spearman, Kendall, χ² independence, χ
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Download' }).click(),
   ])
-  expect(download.suggestedFilename()).toBe('telos-results.zip')
+  expect(download.suggestedFilename()).toBe('telos-export.zip')
   const entries = Object.keys(unzipSync(new Uint8Array(readFileSync((await download.path())!)))).sort()
 
   // 01_pearson: 2 files
