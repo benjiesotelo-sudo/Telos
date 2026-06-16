@@ -5,6 +5,7 @@ export interface SimpleLinearTerm { term: string; b: number; se: number; beta: n
 export interface SimpleLinearResult {
   outcome: string; predictor: string
   r2: number; adjR2: number; f: number; df1: number; df2: number; p: number; sigma: number // sigma = summary(m)$sigma — the Table 1 SE (convention 3)
+  rmse: number; aic: number; bic: number; logLik: number // modelsummary GOF footer rows (design 2026-06-16) — native-R verified
   terms: SimpleLinearTerm[]
   ciLevel: number
   alpha: number
@@ -41,7 +42,9 @@ terms <- lapply(seq_along(labs), function(i) list(
   t = cf[i, 3], p = cf[i, 4], ciLow = ci[i, 1], ciHigh = ci[i, 2]))
 fst <- s$fstatistic
 list(r2 = s$r.squared, adjR2 = s$adj.r.squared, f = unname(fst[1]), df1 = unname(fst[2]), df2 = unname(fst[3]),
-     p = pf(fst[1], fst[2], fst[3], lower.tail = FALSE), sigma = s$sigma, terms = terms, n = nrow(d))`
+     p = pf(fst[1], fst[2], fst[3], lower.tail = FALSE), sigma = s$sigma,
+     rmse = sqrt(mean(residuals(m)^2)), aic = AIC(m), bic = BIC(m), ll = as.numeric(logLik(m)),
+     terms = terms, n = nrow(d))`
 
 // Card figure 1: fitted-line scatter (house styling). Categorical predictor → points only (recorded decision 7:
 // geom_smooth(method='lm') is undefined on a discrete axis).
@@ -80,7 +83,7 @@ print(ggplot2::ggplot(panels, ggplot2::aes(x, y)) +
   ggplot2::facet_wrap(~panel, scales = 'free') +
   ggplot2::labs(x = NULL, y = NULL))`
 
-interface RawStats { r2: number; adjR2: number; f: number; df1: number; df2: number; p: number; sigma: number; terms: SimpleLinearTerm[]; n: number }
+interface RawStats { r2: number; adjR2: number; f: number; df1: number; df2: number; p: number; sigma: number; rmse: number; aic: number; bic: number; ll: number; terms: SimpleLinearTerm[]; n: number }
 
 /** Storage-type classification (recorded decision 1): all-numeric non-missing values → linear term; else factor. */
 const isNumericColumn = (data: Dataset, col: string): boolean => {
@@ -102,8 +105,8 @@ export async function runSimpleLinearRegression(engine: Engine, data: Dataset, o
     x: xNumeric ? rows.map((r) => r[predictor] as number) : rows.map((r) => String(r[predictor])),
     yname: outcome, xname: predictor, x_is_factor: !xNumeric, xlab: predictor, ylab: outcome, level,
   }
-  const s = await engine.runJson<RawStats>(R_STATS, env)
+  const { ll, ...s } = await engine.runJson<RawStats>(R_STATS, env)
   const figFitPng = await engine.capturePlot(R_FIT, 600, 450, env)
   const figResidualsPng = await engine.capturePlot(R_RESID, 800, 420, env)
-  return { outcome, predictor, ...s, ciLevel: level, alpha, nExcluded, figFitPng, figResidualsPng }
+  return { outcome, predictor, ...s, logLik: ll, ciLevel: level, alpha, nExcluded, figFitPng, figResidualsPng }
 }

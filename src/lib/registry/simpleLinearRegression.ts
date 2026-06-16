@@ -24,13 +24,15 @@ export const SIMPLE_LINEAR_REGRESSION: TestSpec = {
     ],
     minRule: { kind: 'complete-pairs', n: 3 }, // design convention 14 — the real adequacy gate is the run itself
   },
+  // modelsummary coef table (design 2026-06-16): one stacked table merges the old Model fit + Coefficients.
+  // columns = [term, ...models, ...extraCols]; the builder stacks estimate / (SE) / [CI] per term, a rule, then the gof footer.
   tables: [
-    { id: 'model-fit', title: 'Model fit', domId: 'simple-linear-model-fit', // all four regression cards draw 'model-fit' (zip keeps it; DOM must not collide)
-      columns: [{ key: 'r2', label: 'R²' }, { key: 'adjR2', label: 'Adj. R²' }, { key: 'f', label: 'F' },
-        { key: 'df1', label: 'df1' }, { key: 'df2', label: 'df2' }, { key: 'p', label: 'p' }, { key: 'se', label: 'SE' }] },
-    { id: 'coefficients', title: 'Coefficients', domId: 'simple-linear-coefficients',
-      columns: [{ key: 'term', label: 'Term' }, { key: 'b', label: 'B' }, { key: 'se', label: 'SE' }, { key: 'beta', label: 'β' },
-        { key: 't', label: 't' }, { key: 'p', label: 'p' }, { key: 'ci', label: '95% CI' }] },
+    { id: 'coefficients', title: 'Regression coefficients', domId: 'simple-linear-coefficients', kind: 'coef',
+      columns: [{ key: 'term', label: '' }, { key: 'est', label: '(1)' }, { key: 'beta', label: 'β' }],
+      models: [{ key: 'est', label: '(1)' }],
+      extraCols: [{ key: 'beta', label: 'β' }],
+      gof: [{ key: 'n', label: 'Num.Obs.' }, { key: 'r2', label: 'R²' }, { key: 'adjr2', label: 'R² Adj.' }, { key: 'f', label: 'F' },
+        { key: 'rmse', label: 'RMSE' }, { key: 'aic', label: 'AIC' }, { key: 'bic', label: 'BIC' }, { key: 'll', label: 'Log.Lik.' }] },
   ],
   tableNote: { kind: 'assume', text: 'assumption checks: linearity, normality of residuals, homoscedasticity.' },
   figures: [ // one drawn figbox, two exported files (bundle line) → two specs sharing caption + type (distribution-normality precedent)
@@ -43,5 +45,5 @@ export const SIMPLE_LINEAR_REGRESSION: TestSpec = {
     '(change in outcome in SDs per 1 SD change in the predictor), useful for comparing effect sizes on a common scale.',
   apaTemplate: 'A simple linear regression gave B={b}, t({df})={t}, p {p}, R²={r2}.',
   rMap: 'lm() → Tables 1–2 · parameters::standardise_parameters() → β · ggplot2 → figures',
-  bundleFiles: ['table_model-fit.png', 'table_coefficients.png', 'figure_fit.png', 'figure_residuals.png'],
+  bundleFiles: ['table_coefficients.png', 'figure_fit.png', 'figure_residuals.png'],
 }

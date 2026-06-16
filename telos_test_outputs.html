@@ -72,6 +72,12 @@
   table.apa tbody tr:last-child td{border-bottom:1.5px solid var(--text);}
   table.apa.exemplar tbody td{color:var(--muted);}
   table.apa.exemplar tbody td:first-child{color:var(--text);}
+  /* coef (modelsummary) tables: stacked estimate / (SE) / [CI] + GOF footer (design 2026-06-16) — mirrors src/styles/tokens.css */
+  table.apa.coef .row-coef td{padding-bottom:0;}
+  table.apa.coef .row-se td,table.apa.coef .row-ci td{color:var(--muted);padding-top:0;padding-bottom:0;}
+  table.apa.coef .row-ci td{padding-bottom:7px;}
+  table.apa.coef .gofrule td{border-top:1.25px solid var(--text);padding:0;height:0;}
+  table.apa.coef .row-span td{color:var(--muted);font-size:11px;text-align:left;padding-top:7px;}
   .ghost td{color:var(--faint)!important;font-style:italic;}
   .tbl-note{font-size:10.5px;color:var(--faint);font-style:italic;margin:2px 0 0;}
   .tbl-note.assume{color:var(--amber-sub);}
@@ -703,10 +709,8 @@
     <div class="rt-h"><span class="rt-name">Simple linear regression</span><span class="rt-q">one numeric outcome, one predictor</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
-      <div class="apa-cap"><b>Table 1.</b> Model fit</div>
-      <table class="apa"><thead><tr><th>R&sup2;</th><th>Adj. R&sup2;</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>SE</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 2.</b> Coefficients</div>
-      <table class="apa"><thead><tr><th>Term</th><th>B</th><th>SE</th><th>&beta;</th><th>t</th><th>p</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td><td></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Predictor</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 1.</b> Regression coefficients</div>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th><th>&beta;</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td><td></td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td></td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td></td></tr><tr class="row-coef"><td>Predictor</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td></td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td></td></tr><tr class="gofrule"><td colspan="3"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>R&sup2;</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>R&sup2; Adj.</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>F</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>RMSE</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>AIC</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>BIC</td><td>&mdash;</td><td></td></tr><tr class="row-gof"><td>Log.Lik.</td><td>&mdash;</td><td></td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks: linearity, normality of residuals, homoscedasticity.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Fit &amp; residuals</div><div class="ftype">type: <b>fitted-line scatter</b> + residual diagnostic plots</div></div>
@@ -715,7 +719,7 @@
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A simple linear regression gave <i>B</i>=__, <i>t</i>(__)=__, <i>p</i>&nbsp;__, R&sup2;=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lm()</code> &rarr; Tables 1&ndash;2 &middot; <code>parameters::standardise_parameters()</code> &rarr; &beta; &middot; <code>ggplot2</code> &rarr; figures</div>
-        <div class="m bundle">table_model-fit.png &middot; table_coefficients.png &middot; figure_fit.png &middot; figure_residuals.png</div>
+        <div class="m bundle">table_coefficients.png &middot; figure_fit.png &middot; figure_residuals.png</div>
       </div>
     </div>
   </div>

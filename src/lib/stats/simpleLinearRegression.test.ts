@@ -18,6 +18,11 @@ describe('runSimpleLinearRegression', () => {
     expect(r.df2).toBe(38)
     expect(r.p).toBeCloseTo(2.024931906e-10, 9)
     expect(r.sigma).toBeCloseTo(5.605309647, 6)
+    // modelsummary GOF footer rows (design 2026-06-16) — native-R 4.6.0 verified on regression.csv
+    expect(r.rmse).toBeCloseTo(5.463380, 5)
+    expect(r.aic).toBeCloseTo(255.360495, 4)
+    expect(r.bic).toBeCloseTo(260.427133, 4)
+    expect(r.logLik).toBeCloseTo(-124.680247, 4)
     expect(r.terms.map((t) => t.term)).toEqual(['(Intercept)', 'pre_score'])
     const [int, pre] = r.terms
     expect(int.b).toBeCloseTo(20.070279220, 5)
