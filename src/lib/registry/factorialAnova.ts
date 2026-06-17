@@ -26,7 +26,7 @@ export const FACTORIAL_ANOVA: TestSpec = {
   },
   tables: [
     { id: 'cell-descriptives', domId: 'factorial-anova-cell-descriptives', title: 'Cell descriptives',
-      columns: [{ key: 'cell', label: 'Factor A × B' }, { key: 'n', label: 'N' }, { key: 'm', label: 'M' }, { key: 'sd', label: 'SD' }] },
+      columns: [{ key: 'cell', label: 'Factor A × B' }, { key: 'n', label: 'N' }, { key: 'm', label: 'Mean' }, { key: 'sd', label: 'Std. Dev.' }] },
     { id: 'anova', domId: 'factorial-anova-anova', title: 'ANOVA (main effects + interaction)',
       columns: [{ key: 'source', label: 'Source' }, { key: 'ss', label: 'SS' }, { key: 'df', label: 'df' },
         { key: 'ms', label: 'MS' }, { key: 'f', label: 'F' }, { key: 'p', label: 'p' }, { key: 'pes', label: 'partial η² [95% CI]' }] },

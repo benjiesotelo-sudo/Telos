@@ -24,7 +24,7 @@ export const WELCH_ANOVA: TestSpec = {
   },
   tables: [
     { id: 'descriptives', domId: 'welch-anova-descriptives', title: 'Descriptives by group',
-      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'm', label: 'M' }, { key: 'sd', label: 'SD' }] },
+      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'm', label: 'Mean' }, { key: 'sd', label: 'Std. Dev.' }] },
     { id: 'welch-anova', domId: 'welch-anova-welch-anova', title: "Welch's ANOVA",
       columns: [{ key: 'f', label: 'F' }, { key: 'df1', label: 'df1' }, { key: 'df2', label: 'df2' }, { key: 'p', label: 'p' }] },
     { id: 'posthoc', domId: 'welch-anova-posthoc', title: 'Games-Howell post-hoc',

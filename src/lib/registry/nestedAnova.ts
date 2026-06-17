@@ -27,7 +27,7 @@ export const NESTED_ANOVA: TestSpec = {
   },
   tables: [
     { id: 'descriptives', domId: 'nested-anova-descriptives', title: 'Descriptives by top-level group',
-      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'm', label: 'M' }, { key: 'sd', label: 'SD' }] },
+      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'm', label: 'Mean' }, { key: 'sd', label: 'Std. Dev.' }] },
     { id: 'nested-anova', domId: 'nested-anova-nested-anova', title: 'Nested ANOVA', captionStyle: 'bare',
       columns: [
         { key: 'source', label: 'Source' }, { key: 'ss', label: 'SS' }, { key: 'df', label: 'df' },

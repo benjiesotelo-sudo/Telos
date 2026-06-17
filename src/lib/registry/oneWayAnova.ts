@@ -27,7 +27,7 @@ export const ONE_WAY_ANOVA: TestSpec = {
   },
   tables: [
     { id: 'descriptives', domId: 'one-way-anova-descriptives', title: 'Descriptives by group',
-      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'm', label: 'M' }, { key: 'sd', label: 'SD' }] },
+      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'm', label: 'Mean' }, { key: 'sd', label: 'Std. Dev.' }] },
     { id: 'anova', domId: 'one-way-anova-anova', title: 'ANOVA',
       columns: [{ key: 'source', label: 'Source' }, { key: 'ss', label: 'SS' }, { key: 'df', label: 'df' },
         { key: 'ms', label: 'MS' }, { key: 'f', label: 'F' }, { key: 'p', label: 'p' }, { key: 'eta2', label: 'η² [95% CI]' }] },

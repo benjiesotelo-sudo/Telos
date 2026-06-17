@@ -26,7 +26,7 @@ export const INDEPENDENT_T_TEST: TestSpec = {
   },
   tables: [
     { id: 'group-statistics', title: 'Group statistics',
-      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'mean', label: 'M' }, { key: 'sd', label: 'SD' }, { key: 'se', label: 'SE' }] },
+      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'mean', label: 'Mean' }, { key: 'sd', label: 'Std. Dev.' }, { key: 'se', label: 'SE' }] },
     { id: 't-test', title: 'Independent-samples t-test',
       columns: [{ key: 'contrast', label: 'Contrast' }, { key: 't', label: 't' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: "Cohen's d [95% CI]" }] },
   ],

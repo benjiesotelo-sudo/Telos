@@ -66,7 +66,16 @@ const REPS: Rep[] = [
   mk('one-way-anova', 'anova.csv',
     { outcome: ['outcome'], factor: ['group'] },
     { alpha: 0.05, posthoc: 'Tukey HSD', ci: '95%' },
-    ['2.80']), // F ≈ 2.805
+    ['2.80', 'Std. Dev.']), // F ≈ 2.805; Table 1 = datasummary_balance (Task 16b)
+  // Task 16b: group "Table 1" descriptives emit datasummary_balance — assert the balance table reaches stdout.
+  mk('independent-t-test', 'study.csv',
+    { outcome: ['score'], group: ['group'] },
+    { alpha: 0.05, tails: 'two-tailed', equalVariance: false, ci: '95%' },
+    ['Std. Dev.']),
+  mk('factorial-anova', 'anova.csv', // novel ~cell interaction-balance shape
+    { outcome: ['outcome'], factors: ['group', 'gender'] },
+    { alpha: 0.05 },
+    ['Std. Dev.']),
   mk('mann-whitney-u', 'study.csv',
     { outcome: ['score'], group: ['group'] },
     { alpha: 0.05, tails: 'two-tailed', continuity: true }),

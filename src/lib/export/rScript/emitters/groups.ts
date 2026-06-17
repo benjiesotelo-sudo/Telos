@@ -41,6 +41,7 @@ export const groupEmitters: Record<string, Emitter> = {
     const eq = setup.options['equalVariance'] === true ? 'TRUE' : 'FALSE'
     return [
       `itt <- data.frame(score = ${col(y)}, g = factor(${col(g)}))`,
+      `print(datasummary_balance(~g, data = itt, dinm = FALSE))  # Table 1 (Arel-Bundock datasummary)`,
       `res <- t.test(${col(y)} ~ factor(${col(g)}), var.equal = ${eq}, conf.level = ${conf(setup)}, alternative = "${alt(setup)}")`,
       `print(res)`,
       `print(car::leveneTest(score ~ g, data = itt, center = median))`,
@@ -75,6 +76,7 @@ export const groupEmitters: Record<string, Emitter> = {
     const level = conf(setup)
     return [
       `owa <- data.frame(y = ${col(y)}, g = factor(${col(g)}))`,
+      `print(datasummary_balance(~g, data = owa, dinm = FALSE))  # Table 1 (Arel-Bundock datasummary)`,
       `m <- aov(${col(y)} ~ factor(${col(g)}), data = owa)`,
       `print(summary(m))`,
       `print(effectsize::eta_squared(m, partial = FALSE))`,
@@ -98,6 +100,8 @@ export const groupEmitters: Record<string, Emitter> = {
     const f1 = fv(0), f2 = factors.length > 1 ? fv(1) : fv(0)
     return [
       `fad <- data.frame(.sid = factor(seq_along(${col(y)})), y = ${col(y)}, ${factors.map((f, i) => `${fv(i)} = factor(${col(f)})`).join(', ')})`,
+      `bal <- data.frame(y = fad$y, cell = interaction(${factors.map((_f, i) => `fad$${fv(i)}`).join(', ')}, sep = " x "))`,
+      `print(datasummary_balance(~cell, data = bal, dinm = FALSE))  # Table 1 cell descriptives (Arel-Bundock datasummary)`,
       `m <- afex::aov_car(y ~ ${rhs} + Error(.sid), data = fad, anova_table = list(es = "pes"))`,
       `print(m$anova_table)`,
       `print(effectsize::eta_squared(m$lm, partial = TRUE))`,
@@ -170,6 +174,7 @@ export const groupEmitters: Record<string, Emitter> = {
     const random = String(setup.options['nesting'] ?? 'random') === 'random'
     return [
       `af <- factor(${col(factor)}); bf <- factor(${col(nested)})  # named factors keep clean summary row names af / af:bf`,
+      `print(datasummary_balance(~af, data = data.frame(y = ${col(y)}, af = af), dinm = FALSE))  # Table 1 by top-level group (Arel-Bundock datasummary)`,
       `m <- aov(${col(y)} ~ af / bf)`,
       `s <- summary(m)[[1]]; rownames(s) <- trimws(rownames(s))`,
       `msA <- s["af", "Mean Sq"]; msB <- s["af:bf", "Mean Sq"]; msR <- s["Residuals", "Mean Sq"]`,
@@ -194,6 +199,8 @@ export const groupEmitters: Record<string, Emitter> = {
   'welch-anova': (_spec, setup) => {
     const y = setup.roles['outcome'][0], g = setup.roles['factor'][0]
     return [
+      `wdf <- data.frame(y = ${col(y)}, g = factor(${col(g)}))`,
+      `print(datasummary_balance(~g, data = wdf, dinm = FALSE))  # Table 1 (Arel-Bundock datasummary)`,
       `res <- oneway.test(${col(y)} ~ factor(${col(g)}), var.equal = FALSE)`,
       `print(res)`,
       `print(rstatix::games_howell_test(data.frame(y = ${col(y)}, g = factor(${col(g)})), y ~ g))`,
@@ -352,14 +359,14 @@ export const groupEmitters: Record<string, Emitter> = {
 
 export const groupPackages: Record<string, string[]> = {
   'one-sample-t-test': ['effectsize', 'ggplot2'],
-  'independent-t-test': ['car', 'effectsize', 'ggplot2'],
+  'independent-t-test': ['modelsummary', 'car', 'effectsize', 'ggplot2'],
   'paired-t-test': ['psych', 'effectsize', 'ggplot2'],
-  'one-way-anova': ['effectsize', 'emmeans', 'ggplot2'],
-  'factorial-anova': ['afex', 'effectsize', 'emmeans', 'ggplot2'],
+  'one-way-anova': ['modelsummary', 'effectsize', 'emmeans', 'ggplot2'],
+  'factorial-anova': ['modelsummary', 'afex', 'effectsize', 'emmeans', 'ggplot2'],
   'repeated-measures-anova': ['afex', 'emmeans', 'ggplot2'],
   'mixed-anova': ['afex', 'emmeans', 'ggplot2'],
-  'nested-anova': ['effectsize', 'ggplot2'],
-  'welch-anova': ['rstatix', 'ggplot2'],
+  'nested-anova': ['modelsummary', 'effectsize', 'ggplot2'],
+  'welch-anova': ['modelsummary', 'rstatix', 'ggplot2'],
   'ancova': ['car', 'effectsize', 'emmeans', 'ggplot2'],
   'manova': ['ggplot2'],
   'mancova': ['emmeans', 'ggplot2'],
