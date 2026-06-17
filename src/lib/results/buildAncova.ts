@@ -22,6 +22,7 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
     .replace('{f}', f(firstFactorRow.f))
     .replace('{p}', fpApa(firstFactorRow.p))
     .replace('{pes}', f01(firstFactorRow.pes))
+    .replace('{plo}', f(firstFactorRow.pesLow)).replace('{phi}', f(firstFactorRow.pesHigh))
 
   // Note: card text + slopes per-term + Levene
   const slopesStr = r.slopes.map((s) => `slopes p(${s.term})=${fp(s.p)}`).join(' · ')
@@ -32,6 +33,8 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
 
   const t0cols = spec.tables[0].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
   const t2cols = spec.tables[2].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
+  // partial-η² header: registry holds the 95% default literal; swap in the adjustable level (mirrors the CI columns).
+  const t1cols = spec.tables[1].columns.map((c) => c.key === 'pes' ? { ...c, label: c.label.replace('95% CI', ciLabel) } : c)
   return {
     tables: [
       {
@@ -44,7 +47,7 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
         })),
       },
       {
-        spec: spec.tables[1],
+        spec: { ...spec.tables[1], columns: t1cols },
         rows: r.rows.map((row) => ({
           source: row.source,
           ss: f(row.ss),
@@ -52,7 +55,7 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
           ms: f(row.ms),
           f: f(row.f),
           p: fp(row.p),
-          pes: f(row.pes),
+          pes: `${f(row.pes)} [${f(row.pesLow)}, ${f(row.pesHigh)}]`,
         })),
       },
       {

@@ -17,6 +17,9 @@ describe('runKruskalWallis', () => {
     expect(r.p).toBeCloseTo(0.0375351043416359, 6)
     // epsilon-squared
     expect(r.eps2).toBeCloseTo(0.111270463325828, 6)
+    // ε² CI — effectsize::rank_epsilon_squared(ci=0.95) with set.seed(42); one-sided, upper pinned at 1.00 (native R ≡ WebR)
+    expect(r.eps2Low).toBeCloseTo(0.0257699314, 3)
+    expect(r.eps2High).toBeCloseTo(1, 3)
     // rank summary
     expect(r.ranks).toHaveLength(3)
     const control = r.ranks.find((x) => x.group === 'control')!

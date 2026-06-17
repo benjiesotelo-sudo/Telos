@@ -17,6 +17,10 @@ describe('friedman stats engine (spike known answers)', () => {
     expect(res.df).toBe(2)
     expect(res.p).toBeCloseTo(2.57187224967219e-15, 6)
     expect(res.w).toBeCloseTo(0.559902370990237, 6)
+    // Kendall's W CI — effectsize::kendalls_w(ci=0.95) with set.seed(42); native R ≡ WebR.
+    // One-sided CI: upper bound pinned at 1.00 (APA convention for variance-explained sizes).
+    expect(res.wLow).toBeCloseTo(0.4786111, 3)
+    expect(res.wHigh).toBeCloseTo(1, 3)
 
     // Mean ranks — strictly increasing t1 < t2 < t3, sum per condition = n * k*(k+1)/2 / n = 6 / 3 ≈ 2
     // Actually mean rank per condition sums to (k+1)/2 * k / k = (k+1)/2 * ... let me just check ordering

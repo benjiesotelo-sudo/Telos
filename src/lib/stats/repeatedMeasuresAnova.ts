@@ -7,6 +7,7 @@ export interface RMConditionDesc { condition: string; n: number; m: number; sd: 
 export interface RMAnovaRow {
   source: string; ss: number; df1: number; df2: number
   ms: number; f: number; p: number; pes: number
+  pesLow: number; pesHigh: number   // partial-η² CI (APA-7: report η²p WITH its CI); one-sided (upper pinned at 1.00) per effectsize convention; honors `level`
 }
 export interface RepeatedMeasuresAnovaResult {
   anova: RMAnovaRow
@@ -35,8 +36,10 @@ m <- suppressWarnings(suppressMessages(afex::aov_ez(id = 'sid', dv = 'score', da
 at <- m$anova_table
 u <- summary(m$Anova, multivariate = FALSE)$univariate.tests
 ss <- u['condition', 'Sum Sq']
+es <- effectsize::eta_squared(m, ci = level)  # partial η² with its (one-sided) CI
 anova_row <- list(source = 'Condition', ss = ss, df1 = at['condition', 'num Df'], df2 = at['condition', 'den Df'],
-  ms = ss / at['condition', 'num Df'], f = at['condition', 'F'], p = at['condition', 'Pr(>F)'], pes = at['condition', 'pes'])
+  ms = ss / at['condition', 'num Df'], f = at['condition', 'F'], p = at['condition', 'Pr(>F)'], pes = at['condition', 'pes'],
+  pesLow = es[es$Parameter == 'condition', 'CI_low'], pesHigh = es[es$Parameter == 'condition', 'CI_high'])
 spher <- .telos_sphericity(m)
 desc <- lapply(conds, function(cn) { v <- long$score[long$condition == cn]; list(condition = cn, n = length(v), m = mean(v), sd = sd(v)) })
 ph <- if (posthocOn) .telos_posthoc(emmeans::emmeans(m, ~condition), 'bonferroni', level) else list()

@@ -14,6 +14,9 @@ describe('runSpearman', () => {
     expect(r.s).toBeCloseTo(1632.682586, 4)
     expect(r.p).toBeCloseTo(5.716192287e-12, 9)
     expect(r.n).toBe(40)
+    // ρ CI via seeded base-R percentile bootstrap (set.seed(20260617), R=2000) — native R ≡ WebR (spike-verified, same seed)
+    expect(r.rhoLow).toBeCloseTo(0.7571, 3)
+    expect(r.rhoHigh).toBeCloseTo(0.9011, 3)
   }, 900_000)
 
   it('spike known answers — continuous pair (hours_studied × exam_score)', async () => {

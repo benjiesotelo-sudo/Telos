@@ -30,7 +30,7 @@ export const ONE_WAY_ANOVA: TestSpec = {
       columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'm', label: 'M' }, { key: 'sd', label: 'SD' }] },
     { id: 'anova', domId: 'one-way-anova-anova', title: 'ANOVA',
       columns: [{ key: 'source', label: 'Source' }, { key: 'ss', label: 'SS' }, { key: 'df', label: 'df' },
-        { key: 'ms', label: 'MS' }, { key: 'f', label: 'F' }, { key: 'p', label: 'p' }, { key: 'eta2', label: 'η²' }] },
+        { key: 'ms', label: 'MS' }, { key: 'f', label: 'F' }, { key: 'p', label: 'p' }, { key: 'eta2', label: 'η² [95% CI]' }] },
     { id: 'posthoc', domId: 'one-way-anova-posthoc', title: 'Post-hoc comparisons',
       columns: [{ key: 'pair', label: 'Pair' }, { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'se', label: 'SE' },
         { key: 'padj', label: 'p', sub: 'adj' }, { key: 'ci', label: '95% CI' }] },
@@ -40,7 +40,7 @@ export const ONE_WAY_ANOVA: TestSpec = {
   howToRead:
     'The F and its p tell you whether the groups differ overall; η² (or ω²) is the effect size. ' +
     'If significant, the post-hoc table shows which specific pairs differ, with multiplicity-adjusted p-values.',
-  apaTemplate: 'A one-way ANOVA gave F({df1},{df2})={f}, p {p}, η²={eta2}. {posthoc} post-hoc tests showed…',
+  apaTemplate: 'A one-way ANOVA gave F({df1},{df2})={f}, p {p}, η²={eta2} [{eta2lo}, {eta2hi}]. {posthoc} post-hoc tests showed…',
   rMap: 'aov() → Table 2 · emmeans pairwise contrasts (Mdiff, SE, padj, CI) → Table 3 · effectsize::eta_squared() · ggplot2 → means plot',
   bundleFiles: ['table_descriptives.png', 'table_anova.png', 'table_posthoc.png', 'figure_means-plot.png'],
 }

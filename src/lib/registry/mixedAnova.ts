@@ -34,7 +34,7 @@ export const MIXED_ANOVA: TestSpec = {
     { id: 'mixed-anova', domId: 'mixed-anova-mixed-anova', title: 'Mixed ANOVA',
       columns: [{ key: 'source', label: 'Source' }, { key: 'ss', label: 'SS' }, { key: 'df', label: 'df' },
         { key: 'ms', label: 'MS' }, { key: 'f', label: 'F' }, { key: 'p', label: 'p' },
-        { key: 'pes', label: 'partial η²' }] },
+        { key: 'pes', label: 'partial η² [95% CI]' }] },
     { id: 'sphericity', domId: 'mixed-anova-sphericity', title: "Sphericity (Mauchly's test)",
       columns: [{ key: 'effect', label: 'Effect' }, { key: 'w', label: 'W' }, { key: 'p', label: 'p' },
         { key: 'gg', label: 'GG ε' }, { key: 'hf', label: 'HF ε' }] },
@@ -48,7 +48,7 @@ export const MIXED_ANOVA: TestSpec = {
     'Read the Group × Condition interaction first — a significant interaction means the groups changed differently across conditions; only then read the main effects. ' +
     'Check sphericity for the within and interaction terms — if violated, read the corrected F/p. ' +
     "When the group × condition interaction is significant, the overall condition comparisons in the post-hoc table can mislead — read each group's line on the profile plot instead.",
-  apaTemplate: 'A mixed ANOVA yielded a {between_name} × {within_name} interaction, F({df1},{df2})={f}, p {p}, partial η²={pes}.',
+  apaTemplate: 'A mixed ANOVA yielded a {between_name} × {within_name} interaction, F({df1},{df2})={f}, p {p}, partial η²={pes} [{lo}, {hi}].',
   rMap: 'dplyr::group_by()+summarise() → Table 1 (group × condition N/M/SD) · afex::aov_ez() → Tables 2–3 · emmeans → Table 4 (post-hoc) · ggplot2 → profile plot',
   bundleFiles: ['table_descriptives.png', 'table_mixed-anova.png', 'table_sphericity.png', 'table_posthoc.png', 'figure_profile.png'],
 }

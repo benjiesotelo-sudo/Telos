@@ -9,7 +9,9 @@ const overlap: MannWhitneyUResult = { // cross-verified overlap12 numbers
     { group: 'control', n: 6, meanRank: 4.5, sumRanks: 27 },
     { group: 'treatment', n: 6, meanRank: 8.5, sumRanks: 51 },
   ],
-  u: 6, z: -1.92153785, p: 0.0649350649, rankBiserial: -0.666666667, alpha: 0.05, tails: 'two.sided', nExcluded: 0, figurePng: png,
+  u: 6, z: -1.92153785, p: 0.0649350649, rankBiserial: -0.666666667,
+  rankBiserialLow: -0.9023481, rankBiserialHigh: -0.1240779, // effectsize::rank_biserial(ci=0.95) — native R ≡ WebR
+  alpha: 0.05, tails: 'two.sided', nExcluded: 0, figurePng: png,
 }
 
 describe('buildMannWhitneyU', () => {
@@ -21,8 +23,8 @@ describe('buildMannWhitneyU', () => {
       { group: 'treatment', n: 6, meanRank: '8.50', sumRanks: '51.00' },
     ])
   })
-  it('Table 2: U · Z · p · r with U+2212 minuses (no df, no CI)', () => {
-    expect(c.tables[1].rows).toEqual([{ u: '6', z: '−1.92', p: '.065', r: '−0.67' }])
+  it('Table 2: U · Z · p · r-with-CI with U+2212 minuses (no df)', () => {
+    expect(c.tables[1].rows).toEqual([{ u: '6', z: '−1.92', p: '.065', r: '−0.67 [−0.90, −0.12]' }])
     expect(c.tables[1].spec.columns.map((col) => col.key)).toEqual(['u', 'z', 'p', 'r'])
   })
   it('carries the plain rank-biserial note and the boxplot figure', () => {
@@ -30,8 +32,8 @@ describe('buildMannWhitneyU', () => {
     expect(c.figures).toEqual([{ caption: 'Distribution by group', type: 'boxplot', png }])
     expect(c.nExcluded).toBe(0)
   })
-  it('fills the APA exemplar (p ≥ .001 branch)', () => {
-    expect(c.apa).toBe('A Mann-Whitney U test gave U=6, Z=−1.92, p = .065, r=−.67.')
+  it('fills the APA exemplar (p ≥ .001 branch) with the rank-biserial CI', () => {
+    expect(c.apa).toBe('A Mann-Whitney U test gave U=6, Z=−1.92, p = .065, r=−.67 [−.90, −.12].')
   })
   it('p-clause flips to p < .001; a midrank U renders at 2 dp', () => {
     const c2 = buildMannWhitneyU(spec, { ...overlap, u: 6.5, p: 0.0004 })

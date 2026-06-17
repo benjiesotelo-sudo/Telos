@@ -8,8 +8,8 @@ const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 // Spike fixture result (outcome ~ school / classroom, random nesting)
 const spikeResult: NestedAnovaResult = {
   rows: [
-    { source: 'A', ss: 307.069, df: 2, ms: 153.5345, f: 1.4799504544885, p: 0.357127524540067, omega2: 0.0583618541479071, errDf: 3 },
-    { source: 'B', ss: 311.228999999999, df: 3, ms: 103.743, f: 1.99454911069684, p: 0.12570562659026, omega2: 0.0446070727986374, errDf: 54 },
+    { source: 'A', ss: 307.069, df: 2, ms: 153.5345, f: 1.4799504544885, p: 0.357127524540067, omega2: 0.0583618541479071, omega2Low: 0, omega2High: 1, errDf: 3 },
+    { source: 'B', ss: 311.228999999999, df: 3, ms: 103.743, f: 1.99454911069684, p: 0.12570562659026, omega2: 0.0446070727986374, omega2Low: 0, omega2High: 1, errDf: 54 },
   ],
   factor: 'school', nested: 'classroom',
   nesting: 'random',
@@ -40,7 +40,7 @@ describe('buildNestedAnova', () => {
     expect(rowA.ms).toBe('153.53')
     expect(rowA.f).toBe('1.48')
     expect(rowA.p).toBe('.357')
-    expect(rowA.omega2).toBe('0.06')
+    expect(rowA.omega2).toBe('0.06 [0.00, 1.00]')  // effectsize::omega_squared(ci=0.95): one-sided CI, upper pinned at 1.00
   })
 
   it('row B numeric formatting matches spike numbers', () => {
@@ -48,12 +48,12 @@ describe('buildNestedAnova', () => {
     expect(rowB.ss).toBe('311.23')
     expect(rowB.df).toBe('3')
     expect(rowB.f).toBe('1.99')
-    expect(rowB.omega2).toBe('0.04')
+    expect(rowB.omega2).toBe('0.04 [0.00, 1.00]')
   })
 
-  it('APA string uses random errDf=3 (df 2/3)', () => {
-    // F(2,3)=1.48, p = .357
-    expect(c.apa).toBe('A nested ANOVA for A gave F(2,3)=1.48, p = .357.')
+  it('APA string uses random errDf=3 (df 2/3) and reports ω² with its one-sided CI', () => {
+    // F(2,3)=1.48, p = .357, ω²=.06 [.00, 1.00] (row A; f01 drops the leading zero on bounded statistics)
+    expect(c.apa).toBe('A nested ANOVA for A gave F(2,3)=1.48, p = .357, ω²=.06 [.00, 1.00].')
   })
 
   it('note equals card plain text (no crossed warning when crossed is empty)', () => {
@@ -87,15 +87,19 @@ describe('buildNestedAnova — omega2 not estimable', () => {
   const resultNullOmega: NestedAnovaResult = {
     ...spikeResult,
     rows: [
-      { ...spikeResult.rows[0], omega2: null },
-      { ...spikeResult.rows[1], omega2: null },
+      { ...spikeResult.rows[0], omega2: null, omega2Low: null, omega2High: null },
+      { ...spikeResult.rows[1], omega2: null, omega2Low: null, omega2High: null },
     ],
   }
   const c = buildNestedAnova(spec, resultNullOmega)
 
-  it('renders em-dash when omega2 is null', () => {
+  it('renders em-dash (whole cell) when omega2 is not estimable', () => {
     expect(c.tables[0].rows[0].omega2).toBe('—')
     expect(c.tables[0].rows[1].omega2).toBe('—')
+  })
+
+  it('APA em-dashes the ω² clause when ω² is not estimable', () => {
+    expect(c.apa).toBe('A nested ANOVA for A gave F(2,3)=1.48, p = .357, ω²=— [—, —].')
   })
 })
 
@@ -111,7 +115,7 @@ describe('buildNestedAnova — fixed nesting APA and note', () => {
   const c = buildNestedAnova(spec, fixedResult)
 
   it('APA uses fixed errDf=54 (df 2/54)', () => {
-    expect(c.apa).toBe('A nested ANOVA for A gave F(2,54)=2.95, p = .061.')
+    expect(c.apa).toBe('A nested ANOVA for A gave F(2,54)=2.95, p = .061, ω²=.06 [.00, 1.00].')
   })
 
   it('note uses fixed-nesting text (not random-nesting denominator explanation)', () => {

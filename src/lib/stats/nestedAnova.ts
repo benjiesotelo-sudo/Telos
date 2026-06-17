@@ -6,6 +6,7 @@ export interface NestedAnovaRow {
   source: string   // 'A' or 'B' (display substituted in builder)
   ss: number; df: number; ms: number; f: number; p: number
   omega2: number | null
+  omega2Low: number | null; omega2High: number | null  // effectsize::omega_squared(ci=level) one-sided CI; null when not estimable
   errDf: number    // denominator df for this row's F ratio
 }
 
@@ -28,12 +29,19 @@ dfA <- s['af', 'Df']; dfB <- s['af:bf', 'Df']; dfR <- s['Residuals', 'Df']
 fA <- if (random) msA / msB else msA / msR
 pA <- pf(fA, dfA, if (random) dfB else dfR, lower.tail = FALSE)
 fB <- msB / msR; pB <- pf(fB, dfB, dfR, lower.tail = FALSE)
-o2 <- tryCatch(as.numeric(effectsize::omega_squared(m, partial = FALSE)$Omega2), error = function(e) c(NA, NA))
+os <- tryCatch(effectsize::omega_squared(m, partial = FALSE, ci = 0.95), error = function(e) NULL)
+o2 <- if (is.null(os)) c(NA, NA) else as.numeric(os$Omega2)
+o2lo <- if (is.null(os)) c(NA, NA) else as.numeric(os$CI_low)
+o2hi <- if (is.null(os)) c(NA, NA) else as.numeric(os$CI_high)
 list(rows = list(
   list(source = 'A', ss = s['af', 'Sum Sq'], df = dfA, ms = msA, f = fA, p = pA,
-    omega2 = if (is.na(o2[1])) NULL else o2[1], errDf = if (random) dfB else dfR),
+    omega2 = if (is.na(o2[1])) NULL else o2[1],
+    omega2Low = if (is.na(o2lo[1])) NULL else o2lo[1], omega2High = if (is.na(o2hi[1])) NULL else o2hi[1],
+    errDf = if (random) dfB else dfR),
   list(source = 'B', ss = s['af:bf', 'Sum Sq'], df = dfB, ms = msB, f = fB, p = pB,
-    omega2 = if (is.na(o2[2])) NULL else o2[2], errDf = dfR)))`
+    omega2 = if (is.na(o2[2])) NULL else o2[2],
+    omega2Low = if (is.na(o2lo[2])) NULL else o2lo[2], omega2High = if (is.na(o2hi[2])) NULL else o2hi[2],
+    errDf = dfR)))`
 
 const R_FIGURE = String.raw`
 cellm <- aggregate(list(m = y), by = list(a = af, b = bf), FUN = mean)

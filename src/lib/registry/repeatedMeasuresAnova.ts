@@ -29,7 +29,7 @@ export const REPEATED_MEASURES_ANOVA: TestSpec = {
       columns: [{ key: 'condition', label: 'Condition' }, { key: 'n', label: 'N' }, { key: 'm', label: 'M' }, { key: 'sd', label: 'SD' }] },
     { id: 'rm-anova', domId: 'repeated-measures-anova-rm-anova', title: 'Repeated-measures ANOVA',
       columns: [{ key: 'source', label: 'Source' }, { key: 'ss', label: 'SS' }, { key: 'df', label: 'df' },
-        { key: 'ms', label: 'MS' }, { key: 'f', label: 'F' }, { key: 'p', label: 'p' }, { key: 'pes', label: 'partial η²' }] },
+        { key: 'ms', label: 'MS' }, { key: 'f', label: 'F' }, { key: 'p', label: 'p' }, { key: 'pes', label: 'partial η² [95% CI]' }] },
     { id: 'sphericity', domId: 'repeated-measures-anova-sphericity', title: "Sphericity (Mauchly's test)",
       columns: [{ key: 'effect', label: 'Effect' }, { key: 'w', label: 'W' }, { key: 'p', label: 'p' },
         { key: 'gg', label: 'GG ε' }, { key: 'hf', label: 'HF ε' }] },
@@ -41,7 +41,7 @@ export const REPEATED_MEASURES_ANOVA: TestSpec = {
   figures: [{ caption: 'Means across conditions', type: 'profile plot (means ± CI across conditions)' , file: 'profile' }],
   howToRead:
     'Tests whether the average differs across conditions measured on the same people. Check sphericity first — if violated, read the corrected F/p. A significant result means conditions differ; post-hoc tests show which.',
-  apaTemplate: 'A repeated-measures ANOVA ({correction}) gave F({df1},{df2})={f}, p {p}, partial η²={pes}.',
+  apaTemplate: 'A repeated-measures ANOVA ({correction}) gave F({df1},{df2})={f}, p {p}, partial η²={pes} [{pes_lo}, {pes_hi}].',
   rMap: 'dplyr::group_by()+summarise() → Table 1 (per-condition N/M/SD) · afex::aov_ez() → Tables 2–3 · emmeans → Table 4 (post-hoc) · ggplot2 → profile plot',
   bundleFiles: ['table_descriptives.png', 'table_rm-anova.png', 'table_sphericity.png', 'table_posthoc.png', 'figure_profile.png'],
 }

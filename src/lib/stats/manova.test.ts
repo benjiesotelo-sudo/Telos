@@ -39,10 +39,16 @@ describe('runManova (spike known answers: outcome+outcome2 ~ group)', () => {
     expect(fu1.df2).toBe(57)
     expect(fu1.p).toBeCloseTo(0.0688787403297547, 6)
     expect(fu1.pes).toBeCloseTo(0.0896024935993843, 6)
+    // effectsize::eta_squared(partial=TRUE, ci=0.95) — native R ≡ WebR; one-sided (upper pinned at 1.00)
+    expect(fu1.pesLow).toBeCloseTo(0.0000, 3)
+    expect(fu1.pesHigh).toBeCloseTo(1.0000, 3)
 
     const fu2 = r.followups.find((x) => x.dv === 'outcome2')!
     expect(fu2.f).toBeCloseTo(7.71055236740481, 6)
     expect(fu2.p).toBeCloseTo(0.00108711814052799, 6)
+    expect(fu2.pes).toBeCloseTo(0.2129366128, 6)
+    expect(fu2.pesLow).toBeCloseTo(0.0638706439, 3)  // effectsize::eta_squared(ci=0.95)$CI_low
+    expect(fu2.pesHigh).toBeCloseTo(1.0000, 3)        // one-sided upper bound pinned at 1.00
 
     expect(r.nExcluded).toBe(0)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])

@@ -26,7 +26,7 @@ export const PAIRED_T_TEST: TestSpec = {
       columns: [{ key: 'condition', label: 'Condition' }, { key: 'n', label: 'N' }, { key: 'mean', label: 'M' }, { key: 'sd', label: 'SD' }] },
     { id: 't-test', domId: 'paired-t-test', title: 'Paired-samples t-test', // domId: '#table-t-test' would collide with the independent/one-sample Table 2 on a combined page; the zip keeps table_t-test.png
       columns: [{ key: 'pair', label: 'Pair' }, { key: 't', label: 't' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' },
-        { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: 'd', sub: 'z' }] },
+        { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: 'd [95% CI]', sub: 'z' }] },
   ],
   tableNote: { kind: 'assume', text: 'assumption check: normality of the difference scores.' },
   // type 'difference' derives the card's bundle name figure_difference.png; the drawn
@@ -36,7 +36,7 @@ export const PAIRED_T_TEST: TestSpec = {
     'Tests whether the average change between two related measurements (e.g. before vs. after) differs from zero. ' +
     'A p below alpha means a significant change; the mean difference, CI and dz describe its size (their sign depends on the subtraction order, A−B). ' +
     'A p at or above alpha does not prove there was no change — only that none was detected.',
-  apaTemplate: 'A paired-samples t-test gave M={mdiff}, t({df})={t}, p {p}, dz={dz}.',
+  apaTemplate: 'A paired-samples t-test gave M={mdiff}, t({df})={t}, p {p}, dz={dz} [{dlo}, {dhi}].',
   rMap: 'dplyr::summarise() / psych::describe() → Table 1 (per-condition N/M/SD) · t.test(paired=TRUE) → Table 2 · effectsize::cohens_d(paired=TRUE) → dz · ggplot2 → figure',
   bundleFiles: ['table_paired-descriptives.png', 'table_t-test.png', 'figure_difference.png'],
 }

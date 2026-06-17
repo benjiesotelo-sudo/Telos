@@ -3,7 +3,8 @@ import type { Dataset } from './types'
 import { POSTHOC_EMM_R, type PosthocRow } from './posthoc'
 
 export interface CellDescRow { cell: string; n: number; m: number; sd: number }
-export interface AnovaRow { source: string; ss: number; df: number; ms: number; f: number; p: number; pes: number }
+// pesLow/pesHigh: one-sided CI on partial η² (effectsize::eta_squared(partial=TRUE, ci=level)); per-term, APA-7 reports the ES WITH its CI.
+export interface AnovaRow { source: string; ss: number; df: number; ms: number; f: number; p: number; pes: number; pesLow: number; pesHigh: number }
 export interface FactorialAnovaResult {
   rows: AnovaRow[]
   desc: CellDescRow[]
@@ -25,9 +26,13 @@ m <- suppressWarnings(suppressMessages(afex::aov_car(
   as.formula(paste('y ~', rhs, '+ Error(.sid)')), data = d, anova_table = list(es = 'pes'))))
 at <- m$anova_table
 a3 <- m$Anova; ssr <- a3['Residuals', 'Sum Sq']
-rows <- lapply(rownames(at), function(t) list(
+# Partial η² CI per term (one-sided: lower floored at 0, upper pinned at 1.00 — APA convention).
+es <- effectsize::eta_squared(m, partial = TRUE, ci = level)
+esP <- as.character(es$Parameter)
+rows <- lapply(rownames(at), function(t) { ei <- match(t, esP); list(
   source = gsub(':', ' × ', t), ss = a3[t, 'Sum Sq'], df = at[t, 'num Df'],
-  ms = a3[t, 'Sum Sq'] / at[t, 'num Df'], f = at[t, 'F'], p = at[t, 'Pr(>F)'], pes = at[t, 'pes']))
+  ms = a3[t, 'Sum Sq'] / at[t, 'num Df'], f = at[t, 'F'], p = at[t, 'Pr(>F)'], pes = at[t, 'pes'],
+  pesLow = es$CI_low[ei], pesHigh = es$CI_high[ei]) })
 cell <- interaction(d[fnames], sep = ' × ')
 desc <- lapply(levels(cell), function(l) { v <- y[cell == l]; list(cell = l, n = length(v), m = mean(v), sd = sd(v)) })
 lev <- tryCatch({ ls <- summary(aov(abs(y - ave(y, cell, FUN = median)) ~ cell))[[1]]

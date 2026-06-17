@@ -10,6 +10,7 @@ const r: PairedTTestResult = {
   ],
   pair: 'pre − post',
   t: -10.39230, df: 5, p: 0.000142, meanDiff: -12, ci: [-14.96825, -9.03175], dz: -4.24264,
+  dzLow: -6.903444, dzHigh: -1.582139,
   ciLevel: 0.95, alpha: 0.05, tails: 'two.sided', nExcluded: 2, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
 }
 
@@ -24,7 +25,7 @@ describe('buildPairedTTest', () => {
   })
   it('Table 2: the pair row with M_diff, difference CI and d_z', () => {
     expect(c.tables[1].rows).toEqual([
-      { pair: 'pre − post', t: '−10.39', df: '5', p: '<.001', mdiff: '−12.00', ci: '[−14.97, −9.03]', d: '−4.24' },
+      { pair: 'pre − post', t: '−10.39', df: '5', p: '<.001', mdiff: '−12.00', ci: '[−14.97, −9.03]', d: '−4.24 [−6.90, −1.58]' },
     ])
   })
   it('carries the card note verbatim and the excluded-pairs count', () => {
@@ -32,7 +33,7 @@ describe('buildPairedTTest', () => {
     expect(c.nExcluded).toBe(2)
   })
   it('fills the APA sentence with the p-clause rule and 1-dp change', () => {
-    expect(c.apa).toBe('A paired-samples t-test gave M=−12.0, t(5)=−10.39, p < .001, dz=−4.24.')
+    expect(c.apa).toBe('A paired-samples t-test gave M=−12.0, t(5)=−10.39, p < .001, dz=−4.24 [−6.90, −1.58].')
   })
   it('p ≥ .001 renders as p = … (the other p-clause branch)', () => {
     expect(buildPairedTTest(spec, { ...r, p: 0.042 }).apa).toContain('p = .042')

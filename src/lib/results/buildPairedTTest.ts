@@ -13,12 +13,13 @@ export function buildPairedTTest(spec: TestSpec, r: PairedTTestResult): CardCont
     .replace('{mdiff}', f1(r.meanDiff))
     .replace('{df}', fdf(r.df)).replace('{t}', f(r.t))
     .replace('{p}', fpApa(r.p))
-    .replace('{dz}', f(r.dz))
-  const t2cols = spec.tables[1].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
+    .replace('{dz}', f(r.dz)).replace('{dlo}', f(r.dzLow)).replace('{dhi}', f(r.dzHigh))
+  // Both CI columns (mean-diff + effect-size) follow the same pattern: registry holds the 95% default literal, the builder swaps in the adjustable level.
+  const t2cols = spec.tables[1].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c.key === 'd' ? { ...c, label: c.label.replace('95% CI', ciLabel) } : c)
   return {
     tables: [
       { spec: spec.tables[0], rows: r.conditions.map((c) => ({ condition: c.condition, n: c.n, mean: f(c.mean), sd: f(c.sd) })) },
-      { spec: { ...spec.tables[1], columns: t2cols }, rows: [{ pair: r.pair, t: f(r.t), df: fdf(r.df), p: fp(r.p), mdiff: f(r.meanDiff), ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: f(r.dz) }] },
+      { spec: { ...spec.tables[1], columns: t2cols }, rows: [{ pair: r.pair, t: f(r.t), df: fdf(r.df), p: fp(r.p), mdiff: f(r.meanDiff), ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: `${f(r.dz)} [${f(r.dzLow)}, ${f(r.dzHigh)}]` }] },
     ],
     note: spec.tableNote ?? null, // the card's static text — no computed values (the card draws no blanks)
     figures: figuresOf(spec).map((fg) => ({ caption: fg.caption, type: fg.type, png: r.figurePng })),

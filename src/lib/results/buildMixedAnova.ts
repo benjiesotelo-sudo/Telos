@@ -16,6 +16,7 @@ export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardConten
     .replace('{df1}', fdf(inter.df1)).replace('{df2}', fdf(inter.df2)).replace('{f}', f(inter.f))
     .replace('p {p}', `p ${fpApa(inter.p)}`)
     .replace('{pes}', f01(inter.pes))
+    .replace('{lo}', f01(inter.pesLow)).replace('{hi}', f01(inter.pesHigh))
 
   // Note anchors after the sphericity table (before posthoc) when sphericity rows are present.
   // When sphericity is absent (2-level within factor), the note renders after the ANOVA table.
@@ -44,7 +45,7 @@ export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardConten
         ms: f(row.ms),
         f: f(row.f),
         p: fp(row.p),
-        pes: f(row.pes),
+        pes: `${f(row.pes)} [${f(row.pesLow)}, ${f(row.pesHigh)}]`,  // per-term one-sided η² CI
       })),
     },
   ]

@@ -13,7 +13,9 @@ describe('runChiSquareIndependence', () => {
     expect(r.chisq).toBeCloseTo(3.609022556, 6)
     expect(r.df).toBe(1)
     expect(r.p).toBeCloseTo(0.05746688583, 6)
-    expect(r.v).toBeCloseTo(0.350438322, 6) // hand V on the UNCORRECTED χ² ≡ rcompanion native default
+    expect(r.v).toBeCloseTo(0.350438322, 6) // effectsize::cramers_v(adjust=FALSE) ≡ hand V on UNCORRECTED χ² ≡ rcompanion native default
+    expect(r.vLow).toBeCloseTo(0.0858147466, 3)  // cramers_v(adjust=FALSE, ci=0.95)$CI_low — native R ≡ WebR
+    expect(r.vHigh).toBeCloseTo(1, 3)            // one-sided CI: upper bound pinned at 1.00
     expect(r.rowCats).toEqual(['no', 'yes'])
     expect(r.colCats).toEqual(['female', 'male'])
     expect(r.counts.at(-1)!.at(-1)).toBe(40) // grand total margin
@@ -32,6 +34,8 @@ describe('runChiSquareIndependence', () => {
     expect(r.df).toBe(2)
     expect(r.p).toBeCloseTo(0.08614194953, 6)
     expect(r.v).toBeCloseTo(0.3501256037, 6)
+    expect(r.vLow).toBeCloseTo(0, 3)    // cramers_v(adjust=FALSE, ci=0.95)$CI_low — native R ≡ WebR
+    expect(r.vHigh).toBeCloseTo(1, 3)   // one-sided CI: upper bound pinned at 1.00
     expect(r.minExpected).toBeCloseTo(5.225, 6)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 300_000)

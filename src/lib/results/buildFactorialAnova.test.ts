@@ -8,9 +8,10 @@ const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 // Spike numbers: outcome ~ group * gender on fixture (nothing significant at α=.05)
 const fixtureResult: FactorialAnovaResult = {
   rows: [
-    { source: 'group', ss: 131.605, df: 2, ms: 65.8025, f: 3.04188224848381, p: 0.0560001080368759, pes: 0.101254715777249 },
-    { source: 'gender', ss: 61.504, df: 1, ms: 61.504, f: 2.84368260584025, p: 0.097503832286258, pes: 0.050026361338315 },
-    { source: 'group × gender', ss: 107.476, df: 2, ms: 53.738, f: 2.48491031233834, p: 0.0928168303408816, pes: 0.0842773569943164 },
+    // pesLow/pesHigh: one-sided partial-η² CI (native-R floors low at 0, pins high at 1.00 — nothing significant here)
+    { source: 'group', ss: 131.605, df: 2, ms: 65.8025, f: 3.04188224848381, p: 0.0560001080368759, pes: 0.101254715777249, pesLow: 0, pesHigh: 1 },
+    { source: 'gender', ss: 61.504, df: 1, ms: 61.504, f: 2.84368260584025, p: 0.097503832286258, pes: 0.050026361338315, pesLow: 0, pesHigh: 1 },
+    { source: 'group × gender', ss: 107.476, df: 2, ms: 53.738, f: 2.48491031233834, p: 0.0928168303408816, pes: 0.0842773569943164, pesLow: 0, pesHigh: 1 },
   ],
   desc: [
     // 6 cells, n=10 each (totalN=60)
@@ -52,17 +53,22 @@ describe('buildFactorialAnova — fixture (nothing significant): Table 3 absent'
 
   it('Table 2 ANOVA rows: group, gender, interaction with correct formatting', () => {
     expect(c.tables[1].rows).toHaveLength(3)
-    // group row: f=3.04, p=.056, pes=0.10
-    expect(c.tables[1].rows[0]).toMatchObject({ source: 'group', df: '2', f: '3.04', p: '.056', pes: '0.10' })
+    // group row: f=3.04, p=.056, pes=0.10 with per-term one-sided CI [0.00, 1.00]
+    expect(c.tables[1].rows[0]).toMatchObject({ source: 'group', df: '2', f: '3.04', p: '.056', pes: '0.10 [0.00, 1.00]' })
     // gender row: f=2.84, p=.098
-    expect(c.tables[1].rows[1]).toMatchObject({ source: 'gender', df: '1', f: '2.84', p: '.098' })
+    expect(c.tables[1].rows[1]).toMatchObject({ source: 'gender', df: '1', f: '2.84', p: '.098', pes: '0.05 [0.00, 1.00]' })
     // interaction row: f=2.48, p=.093
-    expect(c.tables[1].rows[2]).toMatchObject({ source: 'group × gender', df: '2', f: '2.48', p: '.093', pes: '0.08' })
+    expect(c.tables[1].rows[2]).toMatchObject({ source: 'group × gender', df: '2', f: '2.48', p: '.093', pes: '0.08 [0.00, 1.00]' })
+  })
+
+  it('Table 2 partial-η² header carries the adjustable CI level (95% default)', () => {
+    const pesCol = c.tables[1].spec.columns.find((col) => col.key === 'pes')!
+    expect(pesCol.label).toBe('partial η² [95% CI]')
   })
 
   it('APA from interaction row: neutral phrasing, APA-7 p spacing, bounded η² drops leading zero', () => {
-    // dfRes = 60 - 1 - (2+1+2) = 54; fpApa(.093)='= .093'; f01(.084)='.08'
-    expect(c.apa).toBe('A two-way ANOVA gave A×B interaction F(2,54)=2.48, p = .093, partial η²=.08.')
+    // dfRes = 60 - 1 - (2+1+2) = 54; fpApa(.093)='= .093'; f01(.084)='.08'; one-sided CI [.00, 1.00]
+    expect(c.apa).toBe('A two-way ANOVA gave A×B interaction F(2,54)=2.48, p = .093, partial η²=.08 [.00, 1.00].')
   })
 
   it('note appends Levene + Shapiro values to card assume text', () => {
@@ -82,9 +88,9 @@ describe('buildFactorialAnova — doctored result (interaction p=.01): Table 3 p
   const doctoredResult: FactorialAnovaResult = {
     ...fixtureResult,
     rows: [
-      { source: 'group', ss: 131.605, df: 2, ms: 65.8025, f: 3.04, p: 0.056, pes: 0.10 },
-      { source: 'gender', ss: 61.504, df: 1, ms: 61.504, f: 2.84, p: 0.098, pes: 0.05 },
-      { source: 'group × gender', ss: 107.476, df: 2, ms: 53.738, f: 4.80, p: 0.012, pes: 0.15 },
+      { source: 'group', ss: 131.605, df: 2, ms: 65.8025, f: 3.04, p: 0.056, pes: 0.10, pesLow: 0, pesHigh: 1 },
+      { source: 'gender', ss: 61.504, df: 1, ms: 61.504, f: 2.84, p: 0.098, pes: 0.05, pesLow: 0, pesHigh: 1 },
+      { source: 'group × gender', ss: 107.476, df: 2, ms: 53.738, f: 4.80, p: 0.012, pes: 0.15, pesLow: 0.02, pesHigh: 1 },
     ],
   }
 
@@ -116,8 +122,8 @@ describe('buildFactorialAnova — interactions OFF: main-effects APA, title, no 
   const noInteractionsResult: FactorialAnovaResult = {
     ...fixtureResult,
     rows: [
-      { source: 'group', ss: 131.605, df: 2, ms: 65.8025, f: 3.04, p: 0.056, pes: 0.10 },
-      { source: 'gender', ss: 61.504, df: 1, ms: 61.504, f: 2.84, p: 0.098, pes: 0.05 },
+      { source: 'group', ss: 131.605, df: 2, ms: 65.8025, f: 3.04, p: 0.056, pes: 0.10, pesLow: 0, pesHigh: 1 },
+      { source: 'gender', ss: 61.504, df: 1, ms: 61.504, f: 2.84, p: 0.098, pes: 0.05, pesLow: 0, pesHigh: 1 },
     ],
     simpleEffects: [],
   }
@@ -127,7 +133,7 @@ describe('buildFactorialAnova — interactions OFF: main-effects APA, title, no 
 
   it('APA reports main effects only with neutral phrasing', () => {
     expect(c.apa).toBe(
-      'A two-way ANOVA gave main effects of group, F(2,56)=3.04, p = .056, partial η²=.10; gender, F(1,56)=2.84, p = .098, partial η²=.05.'
+      'A two-way ANOVA gave main effects of group, F(2,56)=3.04, p = .056, partial η²=.10 [.00, 1.00]; gender, F(1,56)=2.84, p = .098, partial η²=.05 [.00, 1.00].'
     )
   })
 
@@ -148,9 +154,9 @@ describe('buildFactorialAnova — all significant: Table 3 contains all rows', (
   const allSigResult: FactorialAnovaResult = {
     ...fixtureResult,
     rows: [
-      { source: 'group', ss: 400, df: 2, ms: 200, f: 9.0, p: 0.001, pes: 0.25 },
-      { source: 'gender', ss: 200, df: 1, ms: 200, f: 9.0, p: 0.004, pes: 0.14 },
-      { source: 'group × gender', ss: 300, df: 2, ms: 150, f: 6.8, p: 0.002, pes: 0.20 },
+      { source: 'group', ss: 400, df: 2, ms: 200, f: 9.0, p: 0.001, pes: 0.25, pesLow: 0.08, pesHigh: 1 },
+      { source: 'gender', ss: 200, df: 1, ms: 200, f: 9.0, p: 0.004, pes: 0.14, pesLow: 0.02, pesHigh: 1 },
+      { source: 'group × gender', ss: 300, df: 2, ms: 150, f: 6.8, p: 0.002, pes: 0.20, pesLow: 0.05, pesHigh: 1 },
     ],
   }
 

@@ -21,13 +21,15 @@ export function buildRepeatedMeasuresAnova(spec: TestSpec, r: RepeatedMeasuresAn
     .replace('{df1}', fdf(r.anova.df1)).replace('{df2}', fdf(r.anova.df2))
     .replace('{f}', f(r.anova.f))
     .replace('p {p}', `p ${fpApa(r.anova.p)}`)
-    .replace('{pes}', f01(r.anova.pes))
+    .replace('{pes}', f01(r.anova.pes)).replace('{pes_lo}', f01(r.anova.pesLow)).replace('{pes_hi}', f01(r.anova.pesHigh))
   const fig = figuresOf(spec)[0]
 
   // Table 2: single ANOVA row with corrected df (fdf renders '1.78'/'104.75' under GG).
+  // The partial-η² header carries the adjustable CI level (registry holds the 95% default literal; the builder swaps in pct).
+  const t2cols = spec.tables[1].columns.map((c) => c.key === 'pes' ? { ...c, label: c.label.replace('95% CI', ciLabel) } : c)
   const anovaTable = {
-    spec: spec.tables[1],
-    rows: [{ source: r.anova.source, ss: f(r.anova.ss), df: fdf(r.anova.df1), ms: f(r.anova.ms), f: f(r.anova.f), p: fp(r.anova.p), pes: f(r.anova.pes) }],
+    spec: { ...spec.tables[1], columns: t2cols },
+    rows: [{ source: r.anova.source, ss: f(r.anova.ss), df: fdf(r.anova.df1), ms: f(r.anova.ms), f: f(r.anova.f), p: fp(r.anova.p), pes: `${f(r.anova.pes)} [${f(r.anova.pesLow)}, ${f(r.anova.pesHigh)}]` }],
   }
 
   // Table 3 (sphericity): only when sphericity rows are non-empty (3+ levels) AND correction is not 'none'.

@@ -14,6 +14,8 @@ describe('runKendallsTau', () => {
     expect(r.z).toBeCloseTo(5.708916072, 6)
     expect(r.p).toBeCloseTo(1.136979369e-08, 9)
     expect(r.n).toBe(40)
+    expect(r.tauLow).toBeCloseTo(0.6639087530, 3)   // seeded percentile bootstrap (set.seed(20260617), R=2000): native R ≡ WebR
+    expect(r.tauHigh).toBeCloseTo(0.8220388862, 3)
   }, 900_000)
 
   it('spike known answers — continuous pair (hours_studied × exam_score)', async () => {

@@ -18,8 +18,10 @@ const spikeResult: MancovaResult = {
       pillaiDf1: 4, pillaiDf2: 112, pillaiP: 0.000130150921618041 },
   ],
   followups: [
-    { dv: 'outcome', f: 8.0678942699764, df1: 2, df2: 56, p: 0.000833763379568619, pes: 0.223686312530096 },
-    { dv: 'outcome2', f: 7.47387842662194, df1: 2, df2: 56, p: 0.00132733951909915, pes: 0.21 },
+    { dv: 'outcome', f: 8.0678942699764, df1: 2, df2: 56, p: 0.000833763379568619,
+      pes: 0.223686312530096, pesLow: 0.0704829854754854, pesHigh: 1 },
+    { dv: 'outcome2', f: 7.47387842662194, df1: 2, df2: 56, p: 0.00132733951909915,
+      pes: 0.210686814019553, pesLow: 0.0610394181580081, pesHigh: 1 },
   ],
   slopes: [{ term: 'baseline × group', p: 0.875021940147328 }],
   statistic: 'Pillai',
@@ -40,12 +42,14 @@ describe('buildMancova', () => {
     expect(c.tables[0].rows[0].effect).toBe('baseline')
   })
 
-  it('Table 2 follow-up rows: dv / f / df1 / df2 / p / pes formatted', () => {
+  it('Table 2 follow-up rows: dv / f / df1 / df2 / p / pes (with one-sided CI) formatted', () => {
     expect(c.tables[1].spec.id).toBe('univariate-followups')
     expect(c.tables[1].rows[0]).toEqual({
-      dv: 'outcome', f: '8.07', df1: '2', df2: '56', p: '<.001', pes: '0.22',
+      dv: 'outcome', f: '8.07', df1: '2', df2: '56', p: '<.001', pes: '0.22 [0.07, 1.00]',
     })
-    expect(c.tables[1].rows[1].dv).toBe('outcome2')
+    expect(c.tables[1].rows[1]).toEqual({
+      dv: 'outcome2', f: '7.47', df1: '2', df2: '56', p: '.001', pes: '0.21 [0.06, 1.00]',
+    })
   })
 
   it('APA from selected stat (Pillai): V=.37, F(4,112)=6.30, p < .001', () => {

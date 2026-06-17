@@ -26,7 +26,7 @@ export const WILCOXON_SIGNED_RANK: TestSpec = {
     { id: 'rank-summary', domId: 'wilcoxon-rank-summary', title: 'Rank summary', // domId: '#table-rank-summary' would collide with Mann-Whitney on a combined page
       columns: [{ key: 'sign', label: 'Sign' }, { key: 'n', label: 'N' }, { key: 'meanRank', label: 'Mean rank' }, { key: 'sumRanks', label: 'Sum of ranks' }] },
     { id: 'signed-rank', title: 'Signed-rank test',
-      columns: [{ key: 'v', label: 'V / W' }, { key: 'z', label: 'Z' }, { key: 'p', label: 'p' }, { key: 'r', label: 'r' }] },
+      columns: [{ key: 'v', label: 'V / W' }, { key: 'z', label: 'Z' }, { key: 'p', label: 'p' }, { key: 'r', label: 'r [95% CI]' }] },
   ],
   // NO tableNote: the drawn Wilcoxon card has no note under either table (design ruling; consistency test asserts the absence).
   figures: [{ caption: 'Change per case', type: 'difference' }],
@@ -35,7 +35,7 @@ export const WILCOXON_SIGNED_RANK: TestSpec = {
     'between the two conditions, with r as the effect size. The shift maps to the median difference only when the within-pair differences are ' +
     'roughly symmetric; the sign of the median difference (or Hodges–Lehmann estimate) gives the direction.',
   // Faithful to the drawn card: the APA line reports only Z, p, r — it omits the V/W its own Table 2 shows (flagged to Benjie, built as drawn).
-  apaTemplate: 'A Wilcoxon signed-rank test gave Z={z}, p {p}, r={r}.',
+  apaTemplate: 'A Wilcoxon signed-rank test gave Z={z}, p {p}, r={r} [{rlo}, {rhi}].',
   rMap: 'rank(abs(d)) split by sign(d) → Table 1 (per-sign N / mean rank / sum of ranks) · wilcox.test(paired=TRUE) → V, p · coin::wilcoxsign_test() → standardized Z · effectsize::rank_biserial(paired=TRUE) → r',
   bundleFiles: ['table_rank-summary.png', 'table_signed-rank.png', 'figure_difference.png'],
 }

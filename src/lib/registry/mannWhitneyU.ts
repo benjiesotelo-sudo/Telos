@@ -26,7 +26,7 @@ export const MANN_WHITNEY_U: TestSpec = {
     { id: 'rank-summary', title: 'Rank summary',
       columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'meanRank', label: 'Mean rank' }, { key: 'sumRanks', label: 'Sum of ranks' }] },
     { id: 'mann-whitney', title: 'Mann-Whitney test',
-      columns: [{ key: 'u', label: 'U' }, { key: 'z', label: 'Z' }, { key: 'p', label: 'p' }, { key: 'r', label: 'r' }] },
+      columns: [{ key: 'u', label: 'U' }, { key: 'z', label: 'Z' }, { key: 'p', label: 'p' }, { key: 'r', label: 'r [95% CI]' }] },
   ],
   tableNote: { kind: 'plain', text: 'r is the rank-biserial effect size.' },
   figures: [{ caption: 'Distribution by group', type: 'boxplot' }],
@@ -34,7 +34,7 @@ export const MANN_WHITNEY_U: TestSpec = {
     'The nonparametric counterpart to the independent t-test, comparing whole distributions via ranks rather than means. ' +
     "A p below alpha means one group's values tend to be systematically higher or lower (stochastic dominance) — " +
     'this equals a difference in medians only when the two groups have similar distribution shapes. r gives the effect size.',
-  apaTemplate: 'A Mann-Whitney U test gave U={u}, Z={z}, p {p}, r={r}.',
+  apaTemplate: 'A Mann-Whitney U test gave U={u}, Z={z}, p {p}, r={r} [{rlo}, {rhi}].',
   rMap: 'dplyr rank + group_by/summarise (N, mean rank, sum of ranks) → Table 1 · wilcox.test() → U, p · coin::wilcox_test() → standardized Z · effectsize::rank_biserial() → r · geom_boxplot() → figure',
   bundleFiles: ['table_rank-summary.png', 'table_mann-whitney.png', 'figure_boxplot.png'],
 }

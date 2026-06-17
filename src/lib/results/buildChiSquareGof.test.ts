@@ -10,16 +10,16 @@ const res: ChiSquareGofResult = { variable: 'method',
     { category: 'lecture', observed: 14, expected: 12, stdRes: 0.683 },
     { category: 'seminar', observed: 8, expected: 8, stdRes: 0 },
   ],
-  chisq: 0.5333, df: 2, p: 0.7659, w: 0.1155, n: 40, alpha: 0.05, nExcluded: 0, figurePng: png }
+  chisq: 0.5333, df: 2, p: 0.7659, w: 0.1155, wLow: 0, wHigh: 1.4142, n: 40, alpha: 0.05, nExcluded: 0, figurePng: png }
 
 describe('buildChiSquareGof', () => {
   it('Table 1 rows (expected 2 dp, stdres 2 dp with U+2212 minus) + Table 2', () => {
     const c = buildChiSquareGof(CHI_SQUARE_GOF, res)
     expect(c.tables[0].rows[0]).toEqual({ category: 'discussion', observed: 18, expected: '20.00', stdres: '−0.63' })
-    expect(c.tables[1].rows).toEqual([{ chisq: '0.53', df: '2', p: '.766', w: '0.12' }])
+    expect(c.tables[1].rows).toEqual([{ chisq: '0.53', df: '2', p: '.766', w: '0.12 [0.00, 1.41]' }]) // one-sided CI — upper pinned (~1.41 for k=3)
     expect(c.note).toEqual(CHI_SQUARE_GOF.tableNote)
   })
-  it('APA renders the real df in the drawn k−1 slot', () => {
-    expect(buildChiSquareGof(CHI_SQUARE_GOF, res).apa).toBe('A goodness-of-fit test, χ²(2, N=40)=0.53, p = .766, w=.12.')
+  it('APA renders the real df in the drawn k−1 slot, with w + its [95% CI]', () => {
+    expect(buildChiSquareGof(CHI_SQUARE_GOF, res).apa).toBe('A goodness-of-fit test, χ²(2, N=40)=0.53, p = .766, w=.12 [.00, 1.41].')
   })
 })

@@ -15,6 +15,7 @@ const spikeResult: KruskalWallisResult = {
   df: 2,
   p: 0.0375351043416359,
   eps2: 0.111270463325828,
+  eps2Low: 0.0257699314, eps2High: 1, // effectsize::rank_epsilon_squared(ci=0.95) set.seed(42) — one-sided, upper pinned at 1.00
   posthoc: [
     { pair: 'control - drug_a', z: 0.588572301903464, pAdj: 0.556148218919164 },
     { pair: 'control - drug_b', z: 2.4538937510129, pAdj: 0.0423956188352741 },
@@ -37,9 +38,9 @@ describe('buildKruskalWallis', () => {
     ])
   })
 
-  it('Table 2: Kruskal-Wallis row — H · df · p · eps2', () => {
+  it('Table 2: Kruskal-Wallis row — H · df · p · eps2 [95% CI]', () => {
     expect(c.tables[1].spec.id).toBe('kruskal-wallis')
-    expect(c.tables[1].rows).toEqual([{ h: '6.56', df: '2', p: '.038', eps2: '0.11' }])
+    expect(c.tables[1].rows).toEqual([{ h: '6.56', df: '2', p: '.038', eps2: '0.11 [0.03, 1.00]' }])
   })
 
   it('Table 3: Dunn post-hoc rows — pair · Z · padj', () => {
@@ -57,8 +58,8 @@ describe('buildKruskalWallis', () => {
     expect(c.figures).toEqual([{ caption: 'Distribution by group', type: 'boxplot', png }])
   })
 
-  it('APA string matches the spike numbers', () => {
-    expect(c.apa).toBe('A Kruskal-Wallis test gave H(2)=6.56, p = .038, ε²=.11.')
+  it('APA string matches the spike numbers — ε² reported with its [95% CI]', () => {
+    expect(c.apa).toBe('A Kruskal-Wallis test gave H(2)=6.56, p = .038, ε²=.11 [.03, 1.00].')
   })
 
   it('p<.001 branch flips correctly', () => {

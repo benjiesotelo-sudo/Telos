@@ -5,6 +5,7 @@ export interface RankSummaryRow { group: string; n: number; meanRank: number; su
 export interface MannWhitneyUResult {
   ranks: [RankSummaryRow, RankSummaryRow]
   u: number; z: number; p: number; rankBiserial: number
+  rankBiserialLow: number; rankBiserialHigh: number  // effect-size CI (APA-7: report r WITH its CI); complete separation pins both to ±1 (boundary)
   alpha: number
   tails: string
   nExcluded: number
@@ -23,8 +24,10 @@ res <- if (force_approx) wilcox.test(score ~ g, data = df, exact = FALSE, correc
        else wilcox.test(score ~ g, data = df, correct = continuity, alternative = alternative)
 # wilcox.test W IS the Mann-Whitney U for the FIRST factor level (alphabetical) — spike-verified.
 z <- as.numeric(coin::statistic(coin::wilcox_test(score ~ g, data = df)))  # asymptotic standardized Z (card R map)
-r <- as.numeric(effectsize::rank_biserial(score ~ g, data = df)$r_rank_biserial)
-list(ranks = ranks, u = unname(res$statistic), z = z, p = res$p.value, rankBiserial = r)`
+# effectsize::rank_biserial(ci=) reports r WITH its 95% CI (APA-7); complete separation pins r and both bounds to ±1 (boundary, spike-confirmed).
+rb <- effectsize::rank_biserial(score ~ g, data = df, ci = 0.95)
+list(ranks = ranks, u = unname(res$statistic), z = z, p = res$p.value,
+  rankBiserial = rb$r_rank_biserial, rankBiserialLow = rb$CI_low, rankBiserialHigh = rb$CI_high)`
 
 // Same boxplot as the t-test's (card figure type: boxplot); print() renders into the active png() device.
 const R_BOXPLOT = String.raw`
@@ -32,7 +35,7 @@ print(ggplot2::ggplot(data.frame(group = factor(group), score = score), ggplot2:
   ggplot2::geom_boxplot(fill = '#9cc2ec', colour = '#0c447c') +
   ggplot2::labs(x = NULL, y = NULL))`
 
-interface RawStats { ranks: RankSummaryRow[]; u: number; z: number; p: number; rankBiserial: number }
+interface RawStats { ranks: RankSummaryRow[]; u: number; z: number; p: number; rankBiserial: number; rankBiserialLow: number; rankBiserialHigh: number }
 
 /** forceApprox is test-only (and the implicit large-N path): exact=FALSE pins the branch where correct= matters. */
 export async function runMannWhitneyU(engine: Engine, data: Dataset, outcome: string, group: string,
@@ -44,5 +47,6 @@ export async function runMannWhitneyU(engine: Engine, data: Dataset, outcome: st
   const env = { score: rows.map((r) => r[outcome] as number), group: rows.map((r) => String(r[group])), continuity, force_approx: forceApprox, alternative }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_BOXPLOT, 600, 450, env)
-  return { ranks: [s.ranks[0], s.ranks[1]], u: s.u, z: s.z, p: s.p, rankBiserial: s.rankBiserial, alpha, tails: alternative, nExcluded, figurePng }
+  return { ranks: [s.ranks[0], s.ranks[1]], u: s.u, z: s.z, p: s.p, rankBiserial: s.rankBiserial,
+    rankBiserialLow: s.rankBiserialLow, rankBiserialHigh: s.rankBiserialHigh, alpha, tails: alternative, nExcluded, figurePng }
 }

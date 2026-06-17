@@ -32,6 +32,8 @@ describe('runPairedTTest', () => {
     expect(r.ci[0]).toBeCloseTo(-14.968, 3)
     expect(r.ci[1]).toBeCloseTo(-9.032, 3)
     expect(r.dz).toBeCloseTo(-4.243, 3)              // = mean(diff)/sd(diff), effectsize agrees to all digits
+    expect(r.dzLow).toBeCloseTo(-6.903, 3)           // two-sided dz CI — native R effectsize::cohens_d(paired=TRUE, ci=0.95)
+    expect(r.dzHigh).toBeCloseTo(-1.582, 3)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
 })

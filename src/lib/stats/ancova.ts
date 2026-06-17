@@ -5,6 +5,7 @@ import { ADJMEANS_R, type AdjustedMeanRow } from './adjustedMeans'
 
 export interface AncovaTableRow {
   source: string; ss: number; df: number; ms: number; f: number; p: number; pes: number
+  pesLow: number; pesHigh: number                 // partial η² CI (APA-7); one-sided (upper pinned at 1.00), honors `level`
 }
 export interface SlopeCheck { term: string; p: number }
 export interface AncovaResult {
@@ -30,13 +31,15 @@ ctr <- setNames(lapply(fnames, function(x) 'contr.sum'), fnames)
 frhs <- paste(fnames, collapse = ' * ')
 m <- lm(as.formula(paste('y ~', paste(covnames, collapse = ' + '), '+', frhs)), data = d, contrasts = ctr)
 a3 <- car::Anova(m, type = 3)
-pes <- effectsize::eta_squared(a3, partial = TRUE)
+pes <- effectsize::eta_squared(a3, partial = TRUE, ci = level)
 terms <- setdiff(rownames(a3), c('(Intercept)', 'Residuals'))
 ssr <- a3['Residuals', 'Sum Sq']; dfr <- a3['Residuals', 'Df']
 rows <- lapply(terms, function(t) list(source = gsub(':', ' × ', t),
   ss = a3[t, 'Sum Sq'], df = a3[t, 'Df'], ms = a3[t, 'Sum Sq'] / a3[t, 'Df'],
   f = a3[t, 'F value'], p = a3[t, 'Pr(>F)'],
-  pes = pes$Eta2_partial[match(t, pes$Parameter)]))
+  pes = pes$Eta2_partial[match(t, pes$Parameter)],
+  pesLow = pes$CI_low[match(t, pes$Parameter)],
+  pesHigh = pes$CI_high[match(t, pes$Parameter)]))
 dfres <- dfr
 emm <- emmeans::emmeans(m, as.formula(paste('~', frhs)), level = level)
 adj <- .telos_adjmeans(emm)

@@ -10,12 +10,12 @@ export function buildMannWhitneyU(spec: TestSpec, r: MannWhitneyUResult): CardCo
   const apa = spec.apaTemplate
     .replace('{u}', fdf(r.u)).replace('{z}', f(r.z))
     .replace('{p}', fpApa(r.p))
-    .replace('{r}', f01(r.rankBiserial))
+    .replace('{r}', f01(r.rankBiserial)).replace('{rlo}', f01(r.rankBiserialLow)).replace('{rhi}', f01(r.rankBiserialHigh))
   const fig = figuresOf(spec)[0]
   return {
     tables: [
       { spec: spec.tables[0], rows: r.ranks.map((g) => ({ group: g.group, n: g.n, meanRank: f(g.meanRank), sumRanks: f(g.sumRanks) })) },
-      { spec: spec.tables[1], rows: [{ u: fdf(r.u), z: f(r.z), p: fp(r.p), r: f(r.rankBiserial) }] },
+      { spec: spec.tables[1], rows: [{ u: fdf(r.u), z: f(r.z), p: fp(r.p), r: `${f(r.rankBiserial)} [${f(r.rankBiserialLow)}, ${f(r.rankBiserialHigh)}]` }] },
     ],
     note: spec.tableNote ?? null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],

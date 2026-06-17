@@ -27,12 +27,12 @@ export function buildChiSquareIndependence(spec: TestSpec, r: ChiSquareIndepende
   const apa = spec.apaTemplate
     .replace('{df}', fdf(r.df)).replace('{n}', String(r.n)).replace('{chisq}', f(r.chisq))
     .replace('{p}', fpApa(r.p))
-    .replace('{v}', f01(r.v))
+    .replace('{v}', f01(r.v)).replace('{vlo}', f01(r.vLow)).replace('{vhi}', f01(r.vHigh))
   const fig = figuresOf(spec)[0]
   return {
     tables: [
       { spec: { ...spec.tables[0], columns }, rows: [...bodyRows, totalRow] },
-      { spec: spec.tables[1], rows: [{ chisq: f(r.chisq), df: fdf(r.df), p: fp(r.p), v: f(r.v) }] },
+      { spec: spec.tables[1], rows: [{ chisq: f(r.chisq), df: fdf(r.df), p: fp(r.p), v: `${f(r.v)} [${f(r.vLow)}, ${f(r.vHigh)}]` }] },
     ],
     note: spec.tableNote ? { ...spec.tableNote, text: spec.tableNote.text + warn } : null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],

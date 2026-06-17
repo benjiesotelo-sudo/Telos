@@ -43,7 +43,7 @@ export const MANCOVA: TestSpec = {
         { key: 'df1', label: 'df1' },
         { key: 'df2', label: 'df2' },
         { key: 'p', label: 'p' },
-        { key: 'pes', label: 'partial η²' },
+        { key: 'pes', label: 'partial η² [95% CI]' },
       ] },
   ],
   tableNote: { kind: 'assume', text: 'assumption checks include homogeneity of regression slopes for each covariate.' },

@@ -8,28 +8,30 @@ export interface ContingencyData {
 }
 export interface ChiSquareIndependenceResult extends ContingencyData {
   rowVar: string; colVar: string
-  chisq: number; df: number; p: number; v: number; minExpected: number; n: number
+  chisq: number; df: number; p: number; v: number; vLow: number; vHigh: number; minExpected: number; n: number
   alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
 
 // Spike verdict (spec D1 fallback): rcompanion cannot load under webr (rootSolve lacks a wasm binary).
-// Hand V on the UNCORRECTED χ² reproduces rcompanion::cramerV's native default exactly (the Yates-corrected
-// value does NOT match) — V stays convention-stable while the test's own χ² follows the continuity toggle.
+// effectsize::cramers_v(adjust = FALSE) on the UNCORRECTED χ² reproduces the hand-V (≡ rcompanion::cramerV's
+// native default) point estimate EXACTLY, and adds a (one-sided, upper bound pinned at 1.00) APA CI — V stays
+// convention-stable while the test's own χ² follows the continuity toggle. ci = 0.95 (no CI-level option on this card).
 const R_STATS = String.raw`
 tab <- table(rv, cv)
 g <- suppressWarnings(chisq.test(tab, correct = continuity))
 rp <- prop.table(tab, 1) * 100; cp <- prop.table(tab, 2) * 100
 m <- addmargins(tab)
-v <- sqrt(unname(suppressWarnings(chisq.test(tab, correct = FALSE))$statistic) / (sum(tab) * (min(dim(tab)) - 1)))
+cv_es <- effectsize::cramers_v(tab, adjust = FALSE, ci = 0.95)
 list(rowCats = rownames(tab), colCats = colnames(tab),
      counts = lapply(seq_len(nrow(m)), function(i) as.numeric(m[i, ])),
      expected = lapply(seq_len(nrow(tab)), function(i) as.numeric(g$expected[i, ])),
      rowPct = lapply(seq_len(nrow(tab)), function(i) as.numeric(rp[i, ])),
      colPct = lapply(seq_len(nrow(tab)), function(i) as.numeric(cp[i, ])),
      chisq = unname(g$statistic), df = unname(g$parameter), p = g$p.value,
-     v = v, minExpected = min(g$expected), n = sum(tab))`
+     v = cv_es$Cramers_v, vLow = cv_es$CI_low, vHigh = cv_es$CI_high,
+     minExpected = min(g$expected), n = sum(tab))`
 
 // Grouped (dodged) bar — frequencies-crosstabs styling.
 const R_GROUPED_BAR = String.raw`
@@ -38,7 +40,7 @@ print(ggplot2::ggplot(d, ggplot2::aes(rv, fill = cv)) +
   ggplot2::geom_bar(position = 'dodge', colour = '#0c447c') +
   ggplot2::labs(x = NULL, y = NULL, fill = NULL))`
 
-interface RawStats extends ContingencyData { chisq: number; df: number; p: number; v: number; minExpected: number; n: number }
+interface RawStats extends ContingencyData { chisq: number; df: number; p: number; v: number; vLow: number; vHigh: number; minExpected: number; n: number }
 
 export async function runChiSquareIndependence(engine: Engine, data: Dataset, rowVar: string, colVar: string,
   continuity: boolean, alpha = 0.05): Promise<ChiSquareIndependenceResult> {

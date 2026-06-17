@@ -35,6 +35,8 @@ describe('runMannWhitneyU', () => {
     expect(r.p).toBeCloseTo(0.064935, 5)      // EXACT path (= 60/924), R 4.6.0 default at these N
     expect(r.z).toBeCloseTo(-1.92154, 4)      // coin asymptotic Z — card mixes exact p with asymptotic Z
     expect(r.rankBiserial).toBeCloseTo(-0.6667, 3)
+    expect(r.rankBiserialLow).toBeCloseTo(-0.9023, 3)  // effectsize::rank_biserial(ci=0.95)$CI_low  (native R ≡ WebR)
+    expect(r.rankBiserialHigh).toBeCloseTo(-0.1241, 3) // $CI_high
     expect(r.nExcluded).toBe(0)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
@@ -58,6 +60,9 @@ describe('runMannWhitneyU', () => {
     expect(r.p).toBeCloseTo(0.0021645, 6)
     expect(r.z).toBeCloseTo(-2.88231, 4)
     expect(r.rankBiserial).toBeCloseTo(-1, 6) // degenerate, complete separation
+    // effectsize::rank_biserial(ci=0.95): complete separation pins r and BOTH CI bounds to −1 (boundary, spike-confirmed — not a bug)
+    expect(r.rankBiserialLow).toBeCloseTo(-1, 3)
+    expect(r.rankBiserialHigh).toBeCloseTo(-1, 3)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
 

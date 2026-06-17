@@ -32,6 +32,8 @@ describe('runWilcoxonSignedRank', () => {
     expect(r.method).toContain('exact')
     expect(r.z).toBeCloseTo(-2.20140, 4)     // coin::wilcoxsign_test (asymptotic) — card-specified mix with the exact p
     expect(r.r).toBeCloseTo(-1, 6)           // rank_biserial: complete separation
+    expect(r.rLow).toBeCloseTo(-1, 3)        // effectsize::rank_biserial(paired=TRUE, ci=0.95)$CI_low — native R ≡ WebR (degenerate at full separation)
+    expect(r.rHigh).toBeCloseTo(-1, 3)       // $CI_high
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
 
@@ -56,6 +58,8 @@ describe('runWilcoxonSignedRank', () => {
     expect(r.method).toContain('exact')
     expect(r.z).toBeCloseTo(-1.89737, 4)
     expect(r.r).toBeCloseTo(-0.857143, 5)
+    expect(r.rLow).toBeCloseTo(-0.974404, 3)  // effectsize::rank_biserial(paired=TRUE, ci=0.95) — native R ≡ WebR (discriminating CI)
+    expect(r.rHigh).toBeCloseTo(-0.373210, 3)
     expect(r.nExcluded).toBe(0)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })

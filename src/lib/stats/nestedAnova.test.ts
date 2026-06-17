@@ -38,6 +38,12 @@ describe('runNestedAnova', () => {
     expect(r.rows[1].omega2).not.toBeNull()
     expect(r.rows[1].omega2!).toBeCloseTo(0.0446070727986374, 6)
 
+    // ω² one-sided CI — effectsize::omega_squared(ci=0.95): native R ≡ WebR, upper bound pinned at 1.00 (APA convention)
+    expect(r.rows[0].omega2Low!).toBeCloseTo(0, 3)
+    expect(r.rows[0].omega2High!).toBeCloseTo(1, 3)
+    expect(r.rows[1].omega2Low!).toBeCloseTo(0, 3)
+    expect(r.rows[1].omega2High!).toBeCloseTo(1, 3)
+
     // No crossed labels in the clean fixture
     expect(r.crossed).toEqual([])
     expect(r.nExcluded).toBe(0)

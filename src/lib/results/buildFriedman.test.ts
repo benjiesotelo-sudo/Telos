@@ -17,6 +17,7 @@ const result: FriedmanResult = {
   df: 2,
   p: 2.57187224967219e-15,
   w: 0.559902370990237,
+  wLow: 0.4786111, wHigh: 1, // effectsize::kendalls_w(ci=0.95, seed 42) — native R ≡ WebR; one-sided, upper pinned at 1.00
   posthoc: [
     { pair: 'score_t1 - score_t2', pAdj: 2.83863931227479e-05 },
     { pair: 'score_t1 - score_t3', pAdj: 1.0e-10 }, // placeholder finite value
@@ -41,7 +42,7 @@ describe('buildFriedman', () => {
   it('Table 2: friedman test row with χ², df, p, Kendall\'s W', () => {
     expect(c.tables[1].spec.id).toBe('friedman')
     expect(c.tables[1].rows).toHaveLength(1)
-    expect(c.tables[1].rows[0]).toEqual({ chi2: '67.19', df: '2', p: '<.001', w: '0.56' })
+    expect(c.tables[1].rows[0]).toEqual({ chi2: '67.19', df: '2', p: '<.001', w: '0.56 [0.48, 1.00]' })
   })
 
   it('Table 3: posthoc Nemenyi rows with pair + padj', () => {
@@ -59,10 +60,10 @@ describe('buildFriedman', () => {
     expect(c.figures).toEqual([{ caption: 'Across conditions', type: 'profile / box plot', file: 'profile', png }])
   })
 
-  it('APA string: χ²(2)=67.19, p < .001, W=.56', () => {
+  it('APA string: χ²(2)=67.19, p < .001, W=.56 with its [95% CI]', () => {
     expect(c.apa).toContain('χ²(2)=67.19')
     expect(c.apa).toContain('p < .001')
-    expect(c.apa).toContain('W=.56')
+    expect(c.apa).toContain('W=.56 [.48, 1.00]')
   })
 
   it('p ≥ .001 branch renders fpApa(p) instead of < .001', () => {

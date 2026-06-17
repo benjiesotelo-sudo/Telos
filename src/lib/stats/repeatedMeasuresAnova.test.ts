@@ -18,6 +18,9 @@ describe('runRepeatedMeasuresAnova (spike known answers)', () => {
     expect(r.anova.df2).toBeCloseTo(104.750691529579, 6) // corrected by GG
     expect(r.anova.p).toBeCloseTo(3.57330988681511e-20, 6)
     expect(r.anova.pes).toBeCloseTo(0.570944348865645, 6)
+    // partial-η² CI via effectsize::eta_squared(ci=0.95) — native R ≡ WebR; one-sided (upper pinned at 1.00)
+    expect(r.anova.pesLow).toBeCloseTo(0.4755064325, 3)
+    expect(r.anova.pesHigh).toBeCloseTo(1, 3)
 
     // Sphericity row (3 levels → present)
     expect(r.sphericity).toHaveLength(1)

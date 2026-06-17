@@ -14,6 +14,9 @@ describe('runChiSquareGof', () => {
     expect(r.df).toBe(2)
     expect(r.p).toBeCloseTo(0.6218850565, 6)
     expect(r.w).toBeCloseTo(0.1541103501, 6)
+    // Cohen's w effect-size CI vs native R effectsize::cohens_w(tab, p=pr, ci=0.95) — one-sided (upper pinned at √(k−1)=√2≈1.41 for k=3).
+    expect(r.wLow).toBeCloseTo(0, 3)
+    expect(r.wHigh).toBeCloseTo(1.4142135624, 3)
     expect(r.rows.map((x) => x.category)).toEqual(['discussion', 'lecture', 'seminar']) // alphabetical = R table() order
     expect(r.rows[0].stdRes).toBeCloseTo(0.894427191, 6)
     expect(r.rows[1].stdRes).toBeCloseTo(-0.1118033989, 6)
@@ -26,6 +29,9 @@ describe('runChiSquareGof', () => {
     expect(r.chisq).toBeCloseTo(2.008333333, 6)
     expect(r.p).toBeCloseTo(0.3663497991, 6)
     expect(r.w).toBeCloseTo(0.224072161, 6)
+    // effect-size CI vs native R cohens_w(tab, p=c(.5,.3,.2), ci=0.95) — one-sided, upper pinned at 2.00 for this split.
+    expect(r.wLow).toBeCloseTo(0, 3)
+    expect(r.wHigh).toBeCloseTo(2.0, 3)
     expect(r.rows[0].expected).toBeCloseTo(20, 6) // 0.5 × 40
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 300_000)

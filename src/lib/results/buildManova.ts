@@ -42,7 +42,7 @@ export function buildManova(spec: TestSpec, r: ManovaResult): CardContent {
         df1: fdf(row.df1),
         df2: fdf(row.df2),
         p: fp(row.p),
-        pes: f(row.pes),
+        pes: `${f(row.pes)} [${f(row.pesLow)}, ${f(row.pesHigh)}]`, // partial η² with one-sided CI (per follow-up DV)
       })),
     })
   }

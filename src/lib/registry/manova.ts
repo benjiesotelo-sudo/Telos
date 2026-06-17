@@ -41,7 +41,7 @@ export const MANOVA: TestSpec = {
         { key: 'df1', label: 'df1' },
         { key: 'df2', label: 'df2' },
         { key: 'p', label: 'p' },
-        { key: 'pes', label: 'partial η²' },
+        { key: 'pes', label: 'partial η² [95% CI]' },
       ] },
   ],
   figures: [{ caption: 'Group means per outcome', type: 'means plot faceted by DV' , file: 'means' }],

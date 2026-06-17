@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { NestedAnovaResult } from '../stats/nestedAnova'
 import type { CardContent } from './builders'
-import { f, fdf, fp, fpApa, fx } from '../format/apa'
+import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 
 export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardContent {
   const { factor, nested } = r
@@ -13,23 +13,30 @@ export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardCont
   const sourceA = factor
   const sourceB = `${nested} (nested in ${factor})`
 
+  // ω² cell: render as `ω² [lo, hi]` (effectsize one-sided CI); em-dash the whole cell when ω² is not estimable.
+  const omega2Cell = (row: typeof rowA) =>
+    row.omega2 == null ? '—' : `${f(row.omega2)} [${fx(row.omega2Low, f)}, ${fx(row.omega2High, f)}]`
+
   const tableRows = [
     {
       source: sourceA, ss: f(rowA.ss), df: fdf(rowA.df), ms: f(rowA.ms),
-      f: f(rowA.f), p: fp(rowA.p), omega2: fx(rowA.omega2, f),
+      f: f(rowA.f), p: fp(rowA.p), omega2: omega2Cell(rowA),
     },
     {
       source: sourceB, ss: f(rowB.ss), df: fdf(rowB.df), ms: f(rowB.ms),
-      f: f(rowB.f), p: fp(rowB.p), omega2: fx(rowB.omega2, f),
+      f: f(rowB.f), p: fp(rowB.p), omega2: omega2Cell(rowB),
     },
   ]
 
-  // APA from row A with its errDf
+  // APA from row A with its errDf; ω² + its one-sided CI use the leading-zero-drop f01 (bounded statistic) and em-dash when not estimable.
   const apa = spec.apaTemplate
     .replace('{df1}', fdf(rowA.df))
     .replace('{df2}', fdf(rowA.errDf))
     .replace('{f}', f(rowA.f))
     .replace('{p}', fpApa(rowA.p))
+    .replace('{o2}', fx(rowA.omega2, f01))
+    .replace('{lo}', fx(rowA.omega2Low, f01))
+    .replace('{hi}', fx(rowA.omega2High, f01))
 
   // Table note: conditional on nesting mode (audit finding)
   const randomNoteText = spec.tableNote!.text

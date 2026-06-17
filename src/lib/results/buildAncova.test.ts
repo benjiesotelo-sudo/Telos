@@ -8,8 +8,8 @@ const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 // Spike numbers from plan known answers (native R 4.6.0, outcome ~ baseline + group)
 const spikeResult: AncovaResult = {
   rows: [
-    { source: 'baseline', ss: 3012.5, df: 1, ms: 3012.5, f: 72.2282718865225, p: 1.17661542618733e-11, pes: 0.563278837216507 },
-    { source: 'group',    ss: 672.89,  df: 2, ms: 336.45, f: 8.0678942699764,  p: 0.000833763379568619, pes: 0.223686312530096 },
+    { source: 'baseline', ss: 3012.5, df: 1, ms: 3012.5, f: 72.2282718865225, p: 1.17661542618733e-11, pes: 0.563278837216507, pesLow: 0.419514961787953, pesHigh: 1 },
+    { source: 'group',    ss: 672.89,  df: 2, ms: 336.45, f: 8.0678942699764,  p: 0.000833763379568619, pes: 0.223686312530096, pesLow: 0.0704829854754854, pesHigh: 1 },
   ],
   dfRes: 56,
   adjusted: [
@@ -49,12 +49,12 @@ describe('buildAncova', () => {
     const factorRow = c.tables[1].rows[1]
     expect(covRow.source).toBe('baseline')
     expect(covRow.f).toBe('72.23')
-    expect(covRow.pes).toBe('0.56')
+    expect(covRow.pes).toBe('0.56 [0.42, 1.00]')
     expect(factorRow.source).toBe('group')
     expect(factorRow.df).toBe('2')
     expect(factorRow.f).toBe('8.07')
     expect(factorRow.p).toBe('<.001')
-    expect(factorRow.pes).toBe('0.22')
+    expect(factorRow.pes).toBe('0.22 [0.07, 1.00]')
   })
 
   it('Table 3 (posthoc): first row is control - drug_a with adjusted M_diff', () => {
@@ -66,9 +66,9 @@ describe('buildAncova', () => {
     })
   })
 
-  it('APA string: factor row F(2,56)=8.07, p < .001, partial η²=.22', () => {
+  it('APA string: factor row F(2,56)=8.07, p < .001, partial η²=.22 [.07, 1.00]', () => {
     expect(c.apa).toBe(
-      'Controlling for the covariate, an ANCOVA gave F(2,56)=8.07, p < .001, partial η²=.22.'
+      'Controlling for the covariate, an ANCOVA gave F(2,56)=8.07, p < .001, partial η²=.22 [0.07, 1.00].'
     )
   })
 

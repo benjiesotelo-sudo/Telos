@@ -23,7 +23,7 @@ export const CHI_SQUARE_GOF: TestSpec = {
     { id: 'observed-expected', title: 'Observed vs. expected',
       columns: [{ key: 'category', label: 'Category' }, { key: 'observed', label: 'Observed' }, { key: 'expected', label: 'Expected' }, { key: 'stdres', label: 'Std. residual' }] },
     { id: 'chi-square', title: 'Goodness-of-fit test', domId: 'gof-chi-square', // 'chi-square' also lives on the independence card
-      columns: [{ key: 'chisq', label: 'χ²' }, { key: 'df', label: 'df (k−1)' }, { key: 'p', label: 'p' }, { key: 'w', label: "Cohen's w" }] },
+      columns: [{ key: 'chisq', label: 'χ²' }, { key: 'df', label: 'df (k−1)' }, { key: 'p', label: 'p' }, { key: 'w', label: "Cohen's w [95% CI]" }] },
   ],
   tableNote: { kind: 'plain', text: 'here df = number of categories − 1 (not (r−1)(c−1) as in the independence test).' },
   figures: [{ caption: 'Observed vs. expected', type: 'bar chart (observed vs. expected)', file: 'bar' }],
@@ -32,7 +32,7 @@ export const CHI_SQUARE_GOF: TestSpec = {
     'A p below alpha means the observed split differs from expected; a standardized residual beyond about ±1.96 flags ' +
     'a category that significantly drives the result. Valid only when expected counts are mostly ≥ 5 (some texts allow ' +
     '≥ 1 if no more than 20% are below 5); for sparse categories use an exact / simulated test instead.',
-  apaTemplate: 'A goodness-of-fit test, χ²({df}, N={n})={chisq}, p {p}, w={w}.',
+  apaTemplate: 'A goodness-of-fit test, χ²({df}, N={n})={chisq}, p {p}, w={w} [{lo}, {hi}].',
   rMap: 'chisq.test(x, p=) → Table 2 · chisq.test(...)$stdres → Table 1 std. residuals · effectsize::cohens_w() → w · chisq.test(..., simulate.p.value=TRUE) for sparse data · ggplot2 → figure',
   bundleFiles: ['table_observed-expected.png', 'table_chi-square.png', 'figure_bar.png'],
 }

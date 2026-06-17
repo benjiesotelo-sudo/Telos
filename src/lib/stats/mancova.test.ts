@@ -35,10 +35,17 @@ describe('runMancova (spike known answers — sequential manova, covariates-firs
     expect(ouFu.p).toBeCloseTo(0.000833763379568619, 6)
     expect(ouFu.df1).toBe(2)
     expect(ouFu.df2).toBe(56)
+    // partial η² + one-sided CI (native R: effectsize::eta_squared(partial=TRUE, ci=0.95); upper pinned at 1.00)
+    expect(ouFu.pes).toBeCloseTo(0.223686312530096, 6)
+    expect(ouFu.pesLow).toBeCloseTo(0.0704829854754854, 3)
+    expect(ouFu.pesHigh).toBeCloseTo(1, 6)
     const ou2Fu = r.followups.find((u) => u.dv === 'outcome2')!
     expect(ou2Fu).toBeDefined()
     expect(ou2Fu.f).toBeCloseTo(7.47387842662194, 6)
     expect(ou2Fu.p).toBeCloseTo(0.00132733951909915, 6)
+    expect(ou2Fu.pes).toBeCloseTo(0.210686814019553, 6)
+    expect(ou2Fu.pesLow).toBeCloseTo(0.0610394181580081, 3)
+    expect(ou2Fu.pesHigh).toBeCloseTo(1, 6)
     // slopes
     expect(r.slopes.length).toBeGreaterThanOrEqual(1)
     expect(Number.isFinite(r.slopes[0].p)).toBe(true)

@@ -30,14 +30,14 @@ export const NESTED_ANOVA: TestSpec = {
       columns: [
         { key: 'source', label: 'Source' }, { key: 'ss', label: 'SS' }, { key: 'df', label: 'df' },
         { key: 'ms', label: 'MS' }, { key: 'f', label: 'F' }, { key: 'p', label: 'p' },
-        { key: 'omega2', label: 'ω²' },
+        { key: 'omega2', label: 'ω² [95% CI]' },
       ] },
   ],
   tableNote: { kind: 'plain', text: "Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual — so the two F rows do not share the same denominator. Variance components (or ω²) are reported as the effect size where estimable." },
   figures: [{ caption: 'Grouped means', type: 'grouped means plot (nested groups within each top-level group)' , file: 'grouped-means' }],
   howToRead:
     'Used when one factor sits inside another (e.g. classes within schools). The top factor is tested against variation among its nested units, not raw residuals — a significant F means the top-level groups differ beyond the nested-unit variability.',
-  apaTemplate: 'A nested ANOVA for A gave F({df1},{df2})={f}, p {p}.',
+  apaTemplate: 'A nested ANOVA for A gave F({df1},{df2})={f}, p {p}, ω²={o2} [{lo}, {hi}].',
   rMap: 'aov(y ~ A + Error(A:B)) (random) / aov(y ~ A/B) (fixed) → table · effectsize::omega_squared() → effect size · ggplot2 → figure',
   bundleFiles: ['table_nested-anova.png', 'figure_grouped-means.png'],
 }

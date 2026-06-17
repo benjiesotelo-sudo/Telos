@@ -23,7 +23,7 @@ const slr: SimpleLinearResult = {
 
 const anova: OneWayAnovaResult = {
   desc: [{ group: 'A', n: 10, m: 5, sd: 1 }, { group: 'B', n: 10, m: 7, sd: 1.2 }],
-  ssB: 20, dfB: 1, msB: 20, f: 14.3, p: 0.002, eta2: 0.43,
+  ssB: 20, dfB: 1, msB: 20, f: 14.3, p: 0.002, eta2: 0.43, eta2Low: 0.1, eta2High: 1,
   ssW: 25, dfW: 18, msW: 1.4,
   levene: { F: 0.4, p: 0.6 }, shapiro: { W: 0.97, p: 0.5 },
   posthoc: [{ pair: 'A-B', diff: -2, se: 0.5, pAdj: 0.002, ciLo: -3, ciHi: -1 }],

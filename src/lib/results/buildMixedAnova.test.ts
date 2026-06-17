@@ -19,9 +19,9 @@ const result: MixedAnovaResult = {
     { group: 'drug_b',   condition: 'score_t3', n: 20, m: 36.25, sd: 4.95 },
   ],
   anovaRows: [
-    { source: 'Group (between)',   ss: 14.22,  df1: 2,              df2: 57,              ms: 7.11,  f: 0.24690089648661,  p: 0.782049251682351,  pes: 0.00858878309615581 },
-    { source: 'Condition (within)', ss: 489.30, df1: 1.67166869889464, df2: 95.2851158369946, ms: 292.86, f: 82.5610819498742, p: 1.51705412973608e-19, pes: 0.591576683100862 },
-    { source: 'Group × Condition', ss: 29.80,  df1: 3.34333739778929, df2: 95.2851158369946, ms: 8.92,  f: 2.52167386781147,  p: 0.0561473099306867,  pes: 0.0812874855998016 },
+    { source: 'Group (between)',   ss: 14.22,  df1: 2,              df2: 57,              ms: 7.11,  f: 0.24690089648661,  p: 0.782049251682351,  pes: 0.00858878309615581, pesLow: 0,            pesHigh: 1 },
+    { source: 'Condition (within)', ss: 489.30, df1: 1.67166869889464, df2: 95.2851158369946, ms: 292.86, f: 82.5610819498742, p: 1.51705412973608e-19, pes: 0.591576683100862, pesLow: 0.4975677831, pesHigh: 1 },
+    { source: 'Group × Condition', ss: 29.80,  df1: 3.34333739778929, df2: 95.2851158369946, ms: 8.92,  f: 2.52167386781147,  p: 0.0561473099306867,  pes: 0.0812874855998016, pesLow: 0.0010147975, pesHigh: 1 },
   ],
   sphericity: [
     { effect: 'condition',    w: 0.803590686765588, p: 0.00219268908877968, ggEps: 0.835834349447321, hfEps: 0.86 },
@@ -67,7 +67,10 @@ describe('buildMixedAnova', () => {
     expect(inter.df).toBe('3.34')
     expect(inter.f).toBe('2.52')
     expect(inter.p).toBe('.056')
-    expect(inter.pes).toBe('0.08')
+    expect(inter.pes).toBe('0.08 [0.00, 1.00]')  // per-term one-sided η² CI (upper pinned at 1.00)
+    // between & within rows carry their own η² CI
+    expect(btwn.pes).toBe('0.01 [0.00, 1.00]')
+    expect(within.pes).toBe('0.59 [0.50, 1.00]')
   })
 
   it('Table 3: sphericity rows present when sphericity array non-empty', () => {
@@ -89,9 +92,9 @@ describe('buildMixedAnova', () => {
     expect(ph.ci).toMatch(/^\[−.*\]$/)
   })
 
-  it('APA string is built from the interaction row', () => {
-    // F(3.34,95.29)=2.52, p = .056, partial η²=.08 (f01 drops leading zero)
-    expect(c.apa).toBe('A mixed ANOVA yielded a Group × Condition interaction, F(3.34,95.29)=2.52, p = .056, partial η²=.08.')
+  it('APA string is built from the interaction row, with the η² CI appended', () => {
+    // F(3.34,95.29)=2.52, p = .056, partial η²=.08 [.00, 1.00] (f01 drops leading zero on lo, keeps 1.00)
+    expect(c.apa).toBe('A mixed ANOVA yielded a Group × Condition interaction, F(3.34,95.29)=2.52, p = .056, partial η²=.08 [.00, 1.00].')
   })
 
   it('note is assume kind with card text (no Levene parenthetical)', () => {

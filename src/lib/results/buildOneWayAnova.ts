@@ -11,15 +11,17 @@ export function buildOneWayAnova(spec: TestSpec, r: OneWayAnovaResult): CardCont
   const apa = spec.apaTemplate
     .replace('{df1}', fdf(r.dfB)).replace('{df2}', fdf(r.dfW)).replace('{f}', f(r.f))
     .replace('{p}', fpApa(r.p))
-    .replace('{eta2}', f01(r.eta2))
+    .replace('{eta2}', f01(r.eta2)).replace('{eta2lo}', f01(r.eta2Low)).replace('{eta2hi}', f01(r.eta2High))
     .replace('{posthoc}', r.posthocMethod)
   const fig = figuresOf(spec)[0]
   const t3cols = spec.tables[2].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
+  // η² header carries the adjustable CI level: registry holds the 95% default literal, the builder swaps in the runtime pct (mirrors the post-hoc ci column).
+  const t2cols = spec.tables[1].columns.map((c) => c.key === 'eta2' ? { ...c, label: c.label.replace('95% CI', ciLabel) } : c)
   return {
     tables: [
       { spec: spec.tables[0], rows: r.desc.map((g) => ({ group: g.group, n: g.n, m: f(g.m), sd: f(g.sd) })) },
-      { spec: spec.tables[1], rows: [
-        { source: 'Between', ss: f(r.ssB), df: fdf(r.dfB), ms: f(r.msB), f: f(r.f), p: fp(r.p), eta2: f(r.eta2) },
+      { spec: { ...spec.tables[1], columns: t2cols }, rows: [
+        { source: 'Between', ss: f(r.ssB), df: fdf(r.dfB), ms: f(r.msB), f: f(r.f), p: fp(r.p), eta2: `${f(r.eta2)} [${f(r.eta2Low)}, ${f(r.eta2High)}]` },
         { source: 'Within', ss: f(r.ssW), df: fdf(r.dfW), ms: f(r.msW), f: '', p: '', eta2: '' }, // card draws empty cells
       ] },
       { spec: { ...spec.tables[2], columns: t3cols }, rows: posthocTableRows(r.posthoc, { f, fp }) },

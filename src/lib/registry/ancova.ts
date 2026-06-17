@@ -42,7 +42,7 @@ export const ANCOVA: TestSpec = {
         { key: 'ms', label: 'MS' },
         { key: 'f', label: 'F' },
         { key: 'p', label: 'p' },
-        { key: 'pes', label: 'partial η²' },
+        { key: 'pes', label: 'partial η² [95% CI]' },
       ] },
     { id: 'posthoc', domId: 'ancova-posthoc', title: 'Post-hoc comparisons (adjusted means)',
       columns: [
@@ -60,7 +60,7 @@ export const ANCOVA: TestSpec = {
     'factor×covariate interaction is non-significant (homogeneity of slopes) — if it is significant, the ' +
     'adjusted-means interpretation is not valid and a different model is needed. Then read the Factor row\'s ' +
     'F/p for the adjusted group effect, and the adjusted means for the covariate-controlled group values.',
-  apaTemplate: 'Controlling for the covariate, an ANCOVA gave F({df1},{df2})={f}, p {p}, partial η²={pes}.',
+  apaTemplate: 'Controlling for the covariate, an ANCOVA gave F({df1},{df2})={f}, p {p}, partial η²={pes} [{plo}, {phi}].',
   rMap: 'car::Anova(type=3) → Table 2 (SS/df/F/p) · effectsize::eta_squared(partial=TRUE) → partial η² · emmeans → adjusted means & Table 3 (post-hoc) · ggplot2 → figure',
   bundleFiles: ['table_adjusted-means.png', 'table_ancova.png', 'table_posthoc.png', 'figure_adjusted-means.png'],
 }

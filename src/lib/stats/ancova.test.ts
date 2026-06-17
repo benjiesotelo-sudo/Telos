@@ -22,6 +22,9 @@ describe('runAncova — spike-known answers (outcome ~ baseline + group)', () =>
     expect(cov.f).toBeCloseTo(72.2282718865225, 6)
     expect(cov.p).toBeCloseTo(1.17661542618733e-11, 6)
     expect(cov.pes).toBeCloseTo(0.563278837216507, 6)
+    // partial η² CI (native R: effectsize::eta_squared(partial=TRUE, ci=0.95)); one-sided, upper pinned at 1.00
+    expect(cov.pesLow).toBeCloseTo(0.419514961787953, 3)
+    expect(cov.pesHigh).toBeCloseTo(1, 3)
 
     // Factor row (group)
     const grp = r.rows.find((x) => x.source === 'group')!
@@ -30,6 +33,8 @@ describe('runAncova — spike-known answers (outcome ~ baseline + group)', () =>
     expect(grp.f).toBeCloseTo(8.0678942699764, 6)
     expect(grp.p).toBeCloseTo(0.000833763379568619, 6)
     expect(grp.pes).toBeCloseTo(0.223686312530096, 6)
+    expect(grp.pesLow).toBeCloseTo(0.0704829854754854, 3)
+    expect(grp.pesHigh).toBeCloseTo(1, 3)
 
     // Adjusted means: control row
     const ctrl = r.adjusted.find((x) => x.group === 'control')!

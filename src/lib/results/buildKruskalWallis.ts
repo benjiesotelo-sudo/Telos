@@ -8,12 +8,12 @@ export function buildKruskalWallis(spec: TestSpec, r: KruskalWallisResult): Card
   const apa = spec.apaTemplate
     .replace('{df}', fdf(r.df)).replace('{h}', f(r.h))
     .replace('{p}', fpApa(r.p))
-    .replace('{eps2}', f01(r.eps2))
+    .replace('{eps2}', f01(r.eps2)).replace('{eps2lo}', f01(r.eps2Low)).replace('{eps2hi}', f01(r.eps2High))
   const fig = figuresOf(spec)[0]
   return {
     tables: [
       { spec: spec.tables[0], rows: r.ranks.map((g) => ({ group: g.group, n: g.n, meanRank: f(g.meanRank) })) },
-      { spec: spec.tables[1], rows: [{ h: f(r.h), df: fdf(r.df), p: fp(r.p), eps2: f(r.eps2) }] },
+      { spec: spec.tables[1], rows: [{ h: f(r.h), df: fdf(r.df), p: fp(r.p), eps2: `${f(r.eps2)} [${f(r.eps2Low)}, ${f(r.eps2High)}]` }] },
       { spec: spec.tables[2], rows: r.posthoc.map((d) => ({ pair: d.pair, z: f(d.z), padj: fp(d.pAdj) })) },
     ],
     note: null,

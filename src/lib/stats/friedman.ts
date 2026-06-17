@@ -6,6 +6,7 @@ export interface NemenyiRow { pair: string; pAdj: number }
 export interface FriedmanResult {
   ranks: RankSummaryRow[]
   chi2: number; df: number; p: number; w: number
+  wLow: number; wHigh: number                     // Kendall's W CI (APA-7: report W WITH its CI); one-sided, upper pinned at 1.00
   posthoc: NemenyiRow[]
   alpha: number
   nExcluded: number
@@ -23,13 +24,17 @@ rk <- t(apply(mat, 1, rank)); rbar <- colMeans(rk)
 ranks <- lapply(seq_len(k), function(i) list(condition = conds[i], meanRank = rbar[i]))
 chi2 <- unname(ft$statistic)
 w <- chi2 / (n2 * (k - 1))
+# Kendall's W CI is bootstrapped — seed for reproducibility (point estimate == chi2/(n*(k-1))).
+set.seed(42)
+kw <- effectsize::kendalls_w(mat, ci = level)
 ph <- list()
 for (i in 1:(k - 1)) for (j in (i + 1):k) {
   q <- (rbar[j] - rbar[i]) / sqrt(k * (k + 1) / (6 * n2))
   ph[[length(ph) + 1]] <- list(pair = paste(conds[i], '-', conds[j]),
     pAdj = ptukey(abs(q) * sqrt(2), k, Inf, lower.tail = FALSE))
 }
-list(ranks = ranks, chi2 = chi2, df = unname(ft$parameter), p = ft$p.value, w = w, posthoc = ph)`
+list(ranks = ranks, chi2 = chi2, df = unname(ft$parameter), p = ft$p.value, w = w,
+  wLow = kw$CI_low, wHigh = kw$CI_high, posthoc = ph)`
 
 // Profile plot: single line of condition means ± CI — Task 9 recipe adapted for Friedman.
 const R_FIGURE = String.raw`
@@ -39,7 +44,7 @@ agg <- data.frame(cond = factor(conds, levels = conds), m = mm, lo = mm - tq * s
 print(ggplot2::ggplot(agg, ggplot2::aes(cond, m, group = 1)) + ggplot2::geom_line(colour = '#0c447c') +
   ggplot2::geom_pointrange(ggplot2::aes(ymin = lo, ymax = hi), colour = '#0c447c') + ggplot2::labs(x = NULL, y = NULL))`
 
-interface RawStats { ranks: RankSummaryRow[]; chi2: number; df: number; p: number; w: number; posthoc: NemenyiRow[] }
+interface RawStats { ranks: RankSummaryRow[]; chi2: number; df: number; p: number; w: number; wLow: number; wHigh: number; posthoc: NemenyiRow[] }
 
 export async function runFriedman(engine: Engine, data: Dataset, subject: string, measures: string[], alpha = 0.05): Promise<FriedmanResult> {
   // Listwise: keep rows where subject is non-blank AND all chosen measure columns are numeric-finite.
@@ -51,8 +56,9 @@ export async function runFriedman(engine: Engine, data: Dataset, subject: string
   const n = rows.length
   // condition-major flat array: all rows for cond[0], then cond[1], ...
   const scoresFlat = measures.flatMap((m) => rows.map((r) => r[m] as number))
-  const env = { conds: measures, scores_flat: scoresFlat, n }
+  const level = 0.95 // Kendall's W CI level — this card has no adjustable CI option, so the APA-7 effect-size CI is fixed at 95%.
+  const env = { conds: measures, scores_flat: scoresFlat, n, level }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { ranks: s.ranks, chi2: s.chi2, df: s.df, p: s.p, w: s.w, posthoc: s.posthoc, alpha, nExcluded, figurePng }
+  return { ranks: s.ranks, chi2: s.chi2, df: s.df, p: s.p, w: s.w, wLow: s.wLow, wHigh: s.wHigh, posthoc: s.posthoc, alpha, nExcluded, figurePng }
 }

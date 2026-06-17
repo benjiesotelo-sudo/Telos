@@ -9,12 +9,13 @@ const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-taile
 export function buildSpearman(spec: TestSpec, r: SpearmanResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{rho}', f01(r.rho))
+    .replace('{lo}', f01(r.rhoLow)).replace('{hi}', f01(r.rhoHigh))
     .replace('{p}', fpApa(r.p))
     .replace('{n}', String(r.n))
   const fig = figuresOf(spec)[0]
   return {
     tables: [{ spec: spec.tables[0], rows: [{
-      pair: `${r.varA} – ${r.varB}`, rho: f(r.rho), s: fdf(r.s), p: fp(r.p), n: r.n,
+      pair: `${r.varA} – ${r.varB}`, rho: `${f(r.rho)} [${f(r.rhoLow)}, ${f(r.rhoHigh)}]`, s: fdf(r.s), p: fp(r.p), n: r.n,
     }] }],
     note: spec.tableNote ?? null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],

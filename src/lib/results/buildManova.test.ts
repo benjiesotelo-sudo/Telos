@@ -13,8 +13,8 @@ const pillaiResult: ManovaResult = {
     pillai: 0.285431562210818, pillaiF: 4.74451724627428, pillaiDf1: 4, pillaiDf2: 114, pillaiP: 0.00140868628003122,
   }],
   followups: [
-    { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843 },
-    { dv: 'outcome2', f: 7.71055236740481, df1: 2, df2: 57, p: 0.00108711814052799, pes: 0.213 },
+    { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843, pesLow: 0, pesHigh: 1 },
+    { dv: 'outcome2', f: 7.71055236740481, df1: 2, df2: 57, p: 0.00108711814052799, pes: 0.2129366128, pesLow: 0.0638706439, pesHigh: 1 },
   ],
   statistic: 'Pillai',
   alpha: 0.05,
@@ -30,8 +30,8 @@ const wilksResult: ManovaResult = {
     pillai: 0.285431562210818, pillaiF: 4.74451724627428, pillaiDf1: 4, pillaiDf2: 114, pillaiP: 0.00140868628003122,
   }],
   followups: [
-    { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843 },
-    { dv: 'outcome2', f: 7.71055236740481, df1: 2, df2: 57, p: 0.00108711814052799, pes: 0.213 },
+    { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843, pesLow: 0, pesHigh: 1 },
+    { dv: 'outcome2', f: 7.71055236740481, df1: 2, df2: 57, p: 0.00108711814052799, pes: 0.2129366128, pesLow: 0.0638706439, pesHigh: 1 },
   ],
   statistic: 'Wilks',
   alpha: 0.05,
@@ -71,7 +71,7 @@ describe('buildManova', () => {
         df1: '2',
         df2: '57',
         p: '.069',
-        pes: '0.09',
+        pes: '0.09 [0.00, 1.00]', // partial η² with its one-sided 95% CI (upper pinned at 1.00)
       })
     })
 

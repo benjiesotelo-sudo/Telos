@@ -15,6 +15,8 @@ describe('runOneWayAnova (spike known answers)', () => {
     expect(res.dfW).toBe(57)
     expect(res.p).toBeCloseTo(0.0688787403297547, 6)
     expect(res.eta2).toBeCloseTo(0.0896024935993843, 6)
+    expect(res.eta2Low).toBeCloseTo(0.0, 3)    // effectsize::eta_squared(partial=FALSE, ci=0.95)$CI_low  (native R ≡ WebR)
+    expect(res.eta2High).toBeCloseTo(1.0, 3)   // $CI_high — one-sided CI, upper bound pinned at 1.00 (APA convention)
     expect(res.levene.F!).toBeCloseTo(0.0224210736545674, 6)
     expect(res.levene.p!).toBeCloseTo(0.977837029926746, 6)
     expect(res.shapiro.W).not.toBeNull()

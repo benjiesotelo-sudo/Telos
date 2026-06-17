@@ -30,11 +30,12 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
       .replace('{f}', f(interactionRow.f))
       .replace('{p}', fpApa(interactionRow.p))
       .replace('{pes}', f01(interactionRow.pes))
+      .replace('{lo}', f01(interactionRow.pesLow)).replace('{hi}', f01(interactionRow.pesHigh))
   } else {
     // Interactions OFF: report main effects only (first factor row anchors the sentence).
     const rows = r.rows
     const apaRows = rows.map((row) =>
-      `${row.source}, F(${fdf(row.df)},${dfRes})=${f(row.f)}, p ${fpApa(row.p)}, partial η²=${f01(row.pes)}`
+      `${row.source}, F(${fdf(row.df)},${dfRes})=${f(row.f)}, p ${fpApa(row.p)}, partial η²=${f01(row.pes)} [${f01(row.pesLow)}, ${f01(row.pesHigh)}]`
     )
     apa = `A two-way ANOVA gave main effects of ${apaRows.join('; ')}.`
   }
@@ -51,9 +52,11 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
   const table1 = { spec: spec.tables[0], rows: r.desc.map((c) => ({ cell: c.cell, n: c.n, m: f(c.m), sd: f(c.sd) })) }
   // Table 2 title reflects whether interactions were modelled.
   const anovaTableTitle = hasInteractions ? spec.tables[1].title : 'ANOVA (main effects)'
-  const table2 = { spec: { ...spec.tables[1], title: anovaTableTitle }, rows: r.rows.map((row) => ({
+  // The partial-η² header carries the adjustable CI level (registry holds the 95% default literal; swap in the runtime pct).
+  const t2cols = spec.tables[1].columns.map((c) => c.key === 'pes' ? { ...c, label: c.label.replace('95% CI', ciLabel) } : c)
+  const table2 = { spec: { ...spec.tables[1], title: anovaTableTitle, columns: t2cols }, rows: r.rows.map((row) => ({
     source: row.source, ss: f(row.ss), df: fdf(row.df),
-    ms: f(row.ms), f: f(row.f), p: fp(row.p), pes: f(row.pes),
+    ms: f(row.ms), f: f(row.f), p: fp(row.p), pes: `${f(row.pes)} [${f(row.pesLow)}, ${f(row.pesHigh)}]`,
   })) }
   const fig = figuresOf(spec)[0]
 

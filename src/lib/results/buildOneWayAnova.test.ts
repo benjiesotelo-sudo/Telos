@@ -14,6 +14,7 @@ const spikeResult: OneWayAnovaResult = {
   ],
   ssB: 260.683333333333, dfB: 2, msB: 130.341666666667,
   f: 2.80500665877123, p: 0.0688787403297547, eta2: 0.0896024935993843,
+  eta2Low: 0.0, eta2High: 1.0, // effectsize::eta_squared(partial=FALSE, ci=0.95) — one-sided CI, upper pinned at 1.00 (native R ≡ WebR)
   ssW: 2648.49, dfW: 57, msW: 46.464736842105,
   levene: { F: 0.0224210736545674, p: 0.977837029926746 },
   shapiro: { W: 0.98765, p: 0.12345 },
@@ -46,7 +47,8 @@ describe('buildOneWayAnova (pure, no engine)', () => {
     expect(between.df).toBe('2')
     expect(between.f).toBe('2.81')
     expect(between.p).toBe('.069')
-    expect(between.eta2).toBe('0.09')
+    expect(between.eta2).toBe('0.09 [0.00, 1.00]') // ES cell now carries its one-sided CI
+    expect(c.tables[1].spec.columns.find((col) => col.key === 'eta2')!.label).toBe('η² [95% CI]') // 95% default; builder swaps in the adjustable pct
     const within = c.tables[1].rows[1]
     expect(within.source).toBe('Within')
     expect(within.f).toBe('')
@@ -62,7 +64,7 @@ describe('buildOneWayAnova (pure, no engine)', () => {
   })
 
   it('APA string has spike numbers: neutral verb, selection-aware posthoc, no leading zero on eta2', () => {
-    expect(c.apa).toBe('A one-way ANOVA gave F(2,57)=2.81, p = .069, η²=.09. Tukey HSD post-hoc tests showed…')
+    expect(c.apa).toBe('A one-way ANOVA gave F(2,57)=2.81, p = .069, η²=.09 [.00, 1.00]. Tukey HSD post-hoc tests showed…')
   })
 
   it('APA p-clause flips to p < .001 when p is tiny', () => {

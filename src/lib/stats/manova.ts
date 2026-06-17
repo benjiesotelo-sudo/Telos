@@ -10,6 +10,7 @@ export interface MultivarRow {
 
 export interface FollowupRow {
   dv: string; f: number; df1: number; df2: number; p: number; pes: number
+  pesLow: number; pesHigh: number                 // partial-η² CI (APA-7: report ES WITH its CI); one-sided (upper pinned ~1.00)
 }
 
 export interface ManovaResult {
@@ -40,10 +41,16 @@ if (followups) for (dv in dvnames) {
   a <- aov(as.formula(paste(dv, '~', frhs)), data = d)
   s <- summary(a)[[1]]; rownames(s) <- trimws(rownames(s))
   terms <- setdiff(rownames(s), 'Residuals')
-  for (t in terms) fu[[length(fu) + 1]] <- list(
-    dv = if (length(terms) > 1) paste0(dv, ' (', gsub(':', ' × ', t), ')') else dv,
-    f = s[t, 'F value'], df1 = s[t, 'Df'], df2 = s['Residuals', 'Df'], p = s[t, 'Pr(>F)'],
-    pes = s[t, 'Sum Sq'] / (s[t, 'Sum Sq'] + s['Residuals', 'Sum Sq']))
+  # effectsize::eta_squared(ci=level): one ES row per term, matched by Parameter (APA-7 ES-with-CI).
+  es <- effectsize::eta_squared(a, partial = TRUE, ci = level)
+  pcol <- if ('Eta2_partial' %in% colnames(es)) 'Eta2_partial' else 'Eta2'
+  for (t in terms) {
+    j <- match(t, trimws(es$Parameter))
+    fu[[length(fu) + 1]] <- list(
+      dv = if (length(terms) > 1) paste0(dv, ' (', gsub(':', ' × ', t), ')') else dv,
+      f = s[t, 'F value'], df1 = s[t, 'Df'], df2 = s['Residuals', 'Df'], p = s[t, 'Pr(>F)'],
+      pes = es[[pcol]][j], pesLow = es$CI_low[j], pesHigh = es$CI_high[j])
+  }
 }
 list(multivariate = mv, followups = fu)`
 
@@ -81,6 +88,7 @@ export async function runManova(
     n,
     statistic,
     followups,
+    level: 0.95, // partial-η² CI level; card has no adjustable CI option, so APA-fixed 0.95
   }
   const s = await engine.runJson<RawResult>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)

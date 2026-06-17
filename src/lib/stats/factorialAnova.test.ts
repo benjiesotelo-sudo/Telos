@@ -22,6 +22,9 @@ describe('runFactorialAnova (afex Type III, spike known answers)', () => {
     expect(groupRow.pes).toBeCloseTo(0.101254715777249, 6)
     expect(groupRow.ms).toBeCloseTo(groupRow.ss / groupRow.df, 6)
     expect(groupRow.ss).toBeGreaterThan(0)
+    // Partial-η² CI (one-sided) — native R: effectsize::eta_squared(m, partial=TRUE, ci=.95) → [0.00, 1.00]
+    expect(groupRow.pesLow).toBeCloseTo(0, 3)
+    expect(groupRow.pesHigh).toBeCloseTo(1, 3)
 
     const genderRow = res.rows.find((r) => r.source === 'gender')!
     expect(genderRow).toBeDefined()
@@ -29,6 +32,8 @@ describe('runFactorialAnova (afex Type III, spike known answers)', () => {
     expect(genderRow.df).toBe(1)
     expect(genderRow.p).toBeCloseTo(0.097503832286258, 6)
     expect(genderRow.pes).toBeCloseTo(0.050026361338315, 6)
+    expect(genderRow.pesLow).toBeCloseTo(0, 3)
+    expect(genderRow.pesHigh).toBeCloseTo(1, 3)
 
     const interactionRow = res.rows.find((r) => r.source === 'group × gender')!
     expect(interactionRow).toBeDefined()
@@ -36,6 +41,8 @@ describe('runFactorialAnova (afex Type III, spike known answers)', () => {
     expect(interactionRow.df).toBe(2)
     expect(interactionRow.p).toBeCloseTo(0.0928168303408816, 6)
     expect(interactionRow.pes).toBeCloseTo(0.0842773569943164, 6)
+    expect(interactionRow.pesLow).toBeCloseTo(0, 3)
+    expect(interactionRow.pesHigh).toBeCloseTo(1, 3)
     // All 3 rows share denominator df=54 (verify via pes ~ ss/(ss+ssr))
     expect(interactionRow.ms).toBeCloseTo(interactionRow.ss / interactionRow.df, 6)
     expect(interactionRow.ss).toBeGreaterThan(0)

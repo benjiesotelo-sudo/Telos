@@ -31,6 +31,9 @@ describe('runIndependentTTest', () => {
     expect(r.t).toBeCloseTo(-5.477, 2)
     expect(r.p).toBeLessThan(0.01)
     expect(r.cohensD).toBeCloseTo(-3.873, 2)
+    // effectsize::cohens_d(score ~ group, ci=0.95, pooled_sd=TRUE) — native R ≡ WebR (pooled CI when equal-variance ON)
+    expect(r.cohensDLow).toBeCloseTo(-6.3785, 3)
+    expect(r.cohensDHigh).toBeCloseTo(-1.2891, 3)
     expect(r.contrast).toBe('A − B')
     expect(r.levene.F).toBe(0) // equal SDs
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
@@ -43,7 +46,22 @@ describe('runIndependentTTest', () => {
     expect(r.df).toBeCloseTo(9.678, 2)   // Welch–Satterthwaite (pooled would be exactly 10)
     expect(r.ci[0]).toBeCloseTo(-16.489, 2)
     expect(r.ci[1]).toBeCloseTo(-7.511, 2)
+    // effectsize::cohens_d(score ~ group, ci=0.95, pooled_sd=FALSE) — Welch default → un-pooled/Hedges CI
+    expect(r.cohensDLow).toBeCloseTo(-5.3154, 3)
+    expect(r.cohensDHigh).toBeCloseTo(-1.5329, 3)
     expect(r.nExcluded).toBe(0)
+  })
+
+  it("Cohen's d point estimate is the prior pooled value regardless of the toggle; only its CI shifts pooled↔un-pooled", async () => {
+    // effectsize's cohens_d uses the pooled standardizer for the POINT estimate either way; the toggle only re-derives the CI.
+    const on  = await runIndependentTTest(engine, unequal, 'score', 'group', true)   // equal variance ON  → pooled CI
+    const off = await runIndependentTTest(engine, unequal, 'score', 'group', false)  // Welch default      → un-pooled CI
+    expect(on.cohensD).toBeCloseTo(-3.4545, 3)        // == the prior hand-rolled pooled d
+    expect(off.cohensD).toBeCloseTo(on.cohensD, 6)    // point estimate unchanged by the toggle
+    expect(on.cohensDLow).toBeCloseTo(-5.2966, 3)     // pooled_sd=TRUE  CI
+    expect(on.cohensDHigh).toBeCloseTo(-1.5521, 3)
+    expect(off.cohensDLow).toBeCloseTo(-5.3154, 3)    // pooled_sd=FALSE CI (un-pooled), strictly wider on the low side
+    expect(off.cohensDHigh).toBeCloseTo(-1.5329, 3)
   })
 
   it('alternative=greater yields ~half the two-tailed p when effect is in that direction (control<treatment)', async () => {

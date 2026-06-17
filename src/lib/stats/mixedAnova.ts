@@ -4,7 +4,8 @@ import { POSTHOC_EMM_R, type PosthocRow } from './posthoc'
 import { SPHERICITY_R, type SphericityInfo } from './sphericity'
 
 export interface MixedAnovaDescRow { group: string; condition: string; n: number; m: number; sd: number }
-export interface MixedAnovaTableRow { source: string; ss: number; df1: number; df2: number; ms: number; f: number; p: number; pes: number }
+// pesLow/pesHigh: one-sided CI on partial η² (effectsize::eta_squared(partial=TRUE, ci=level)); per-term, APA-7 reports the ES WITH its CI.
+export interface MixedAnovaTableRow { source: string; ss: number; df1: number; df2: number; ms: number; f: number; p: number; pes: number; pesLow: number; pesHigh: number }
 export interface MixedAnovaResult {
   desc: MixedAnovaDescRow[]
   anovaRows: MixedAnovaTableRow[]  // three rows: between, within, interaction
@@ -35,13 +36,17 @@ u <- summary(m$Anova, multivariate = FALSE)$univariate.tests
 ss_grp       <- u['grp', 'Sum Sq']
 ss_cond      <- u['condition', 'Sum Sq']
 ss_inter     <- u['grp:condition', 'Sum Sq']
-make_row <- function(key, label) list(
+# Partial η² CI per term (one-sided: lower floored at 0, upper pinned at 1.00 — APA convention).
+es <- effectsize::eta_squared(m, partial = TRUE, ci = level)
+esP <- as.character(es$Parameter)
+make_row <- function(key, label) { ei <- match(key, esP); list(
   source = label,
   ss = if (key == 'grp') ss_grp else if (key == 'condition') ss_cond else ss_inter,
   df1 = at[key, 'num Df'], df2 = at[key, 'den Df'],
   ms = (if (key == 'grp') ss_grp else if (key == 'condition') ss_cond else ss_inter) / at[key, 'num Df'],
-  f = at[key, 'F'], p = at[key, 'Pr(>F)'], pes = at[key, 'pes']
-)
+  f = at[key, 'F'], p = at[key, 'Pr(>F)'], pes = at[key, 'pes'],
+  pesLow = es$CI_low[ei], pesHigh = es$CI_high[ei]
+) }
 anova_rows <- list(
   make_row('grp',          '${betweenName} (between)'),
   make_row('condition',    'Condition (within)'),
@@ -84,7 +89,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(cond, m, group = grp, colour = grp)) +
 
 interface RawStats {
   desc: MixedAnovaDescRow[]
-  anova_rows: MixedAnovaTableRow[]
+  anova_rows: MixedAnovaTableRow[]  // each row carries pes + its one-sided η² CI (pesLow/pesHigh)
   sphericity: SphericityInfo[]
   posthoc: PosthocRow[]
   levene: { F: number | null; p: number | null }
@@ -114,6 +119,7 @@ export async function runMixedAnova(
     n: rows.length,
     correction,
     posthocOn,
+    level: 0.95,  // no adjustable CI level on this card; APA-7 default for the partial-η² CI
   }
 
   const betweenLabel = between.charAt(0).toUpperCase() + between.slice(1)

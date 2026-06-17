@@ -16,6 +16,8 @@ const result3: RepeatedMeasuresAnovaResult = {
     f: 78.5112991613406,
     p: 3.57330988681511e-20,
     pes: 0.570944348865645,
+    pesLow: 0.4755064325, // effectsize::eta_squared(ci=0.95)$CI_low — native R ≡ WebR
+    pesHigh: 1,           // one-sided CI: upper bound pinned at 1.00
   },
   sphericity: [
     { effect: 'condition', w: 0.873515789948938, p: 0.0198085203154266, ggEps: 0.88771772482694, hfEps: 0.913297705282412 },
@@ -48,6 +50,8 @@ const result2: RepeatedMeasuresAnovaResult = {
     f: 55.2,
     p: 0.000000001,
     pes: 0.48,
+    pesLow: 0.32,
+    pesHigh: 1,
   },
   sphericity: [], // 2 levels → empty
   desc: [
@@ -80,7 +84,7 @@ describe('buildRepeatedMeasuresAnova', () => {
       expect(row.df).toBe('1.78') // fdf(1.77543...) → '1.78'
       expect(row.f).toBe('78.51')
       expect(row.p).toBe('<.001')
-      expect(row.pes).toBe('0.57')
+      expect(row.pes).toBe('0.57 [0.48, 1.00]') // partial η² with its one-sided CI (upper pinned at 1.00)
     })
 
     it('Table 3: sphericity table present (3 levels)', () => {
@@ -103,7 +107,7 @@ describe('buildRepeatedMeasuresAnova', () => {
     })
 
     it('APA string: GG corrected df, F, p < .001, pes without leading zero', () => {
-      expect(c.apa).toBe('A repeated-measures ANOVA (GG-corrected) gave F(1.78,104.75)=78.51, p < .001, partial η²=.57.')
+      expect(c.apa).toBe('A repeated-measures ANOVA (GG-corrected) gave F(1.78,104.75)=78.51, p < .001, partial η²=.57 [.48, 1.00].')
     })
 
     it('note is the assume note with afterTableId=sphericity (note renders between Table 3 and Table 4)', () => {

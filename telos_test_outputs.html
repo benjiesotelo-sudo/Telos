@@ -248,8 +248,8 @@
       <table class="apa exemplar"><thead><tr><th>Group</th><th>N</th><th>M</th><th>SD</th><th>SE</th></tr></thead>
       <tbody><tr><td>Control</td><td>30</td><td>72.40</td><td>8.10</td><td>1.48</td></tr><tr><td>Treatment</td><td>30</td><td>78.90</td><td>7.55</td><td>1.38</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Independent-samples t-test</div>
-      <table class="apa exemplar"><thead><tr><th>Contrast</th><th>t</th><th>df</th><th>p</th><th>M<sub>diff</sub></th><th>95% CI</th><th>d</th></tr></thead>
-      <tbody><tr><td>Control &minus; Treatment</td><td>&minus;3.21</td><td>58</td><td>.002</td><td>&minus;6.50</td><td>[&minus;10.6, &minus;2.4]</td><td>&minus;0.83</td></tr></tbody></table>
+      <table class="apa exemplar"><thead><tr><th>Contrast</th><th>t</th><th>df</th><th>p</th><th>M<sub>diff</sub></th><th>95% CI</th><th>Cohen's d [95% CI]</th></tr></thead>
+      <tbody><tr><td>Control &minus; Treatment</td><td>&minus;3.21</td><td>58</td><td>.002</td><td>&minus;6.50</td><td>[&minus;10.6, &minus;2.4]</td><td>&minus;0.83 [&minus;1.36, &minus;0.30]</td></tr></tbody></table>
       <p class="tbl-note assume">assumption check: Levene's test for equal variances; a Welch row replaces the pooled row when equal-variance is off.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Distribution of the outcome by group</div>
@@ -262,7 +262,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Asks whether two groups' averages differ by more than chance. Look at <b>p</b>: below alpha (e.g. .05) means significant. The <b>mean difference</b> and <b>95% CI</b> show the size and precision of the gap; <b>Cohen's d</b> gives effect size (~0.2 small, 0.5 medium, 0.8 large). A large <b>p</b> means no significant difference was <i>detected</i> &mdash; not that the group means are equal.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;An independent-samples t-test found a difference between Control (<i>M</i>=72.4, <i>SD</i>=8.1) and Treatment (<i>M</i>=78.9, <i>SD</i>=7.6), <i>t</i>(58)=&minus;3.21, <i>p</i>=.002, <i>d</i>=&minus;0.83.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;An independent-samples t-test found a difference between Control (<i>M</i>=72.4, <i>SD</i>=8.1) and Treatment (<i>M</i>=78.9, <i>SD</i>=7.6), <i>t</i>(58)=&minus;3.21, <i>p</i>=.002, <i>d</i>=&minus;0.83 [&minus;1.36, &minus;0.30].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>t.test()</code> &rarr; Table 2 &middot; summary &rarr; Table 1 &middot; <code>effectsize::cohens_d()</code> &rarr; d &middot; <code>car::leveneTest()</code> &rarr; assumption &middot; <code>geom_boxplot()</code> &rarr; figure</div>
         <div class="m bundle">table_group-statistics.png &middot; table_t-test.png &middot; figure_boxplot.png</div>
       </div>
@@ -276,14 +276,14 @@
       <div class="apa-cap"><b>Table 1.</b> Paired descriptives</div>
       <table class="apa"><thead><tr><th>Condition</th><th>N</th><th>M</th><th>SD</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Paired-samples t-test</div>
-      <table class="apa"><thead><tr><th>Pair</th><th>t</th><th>df</th><th>p</th><th>M<sub>diff</sub></th><th>95% CI</th><th>d<sub>z</sub></th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Pair</th><th>t</th><th>df</th><th>p</th><th>M<sub>diff</sub></th><th>95% CI</th><th>d [95% CI]<sub>z</sub></th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption check: normality of the difference scores.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Change per case</div><div class="ftype">type: <b>paired-lines / difference plot</b></div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Tests whether the average <i>change</i> between two related measurements (e.g. before vs. after) differs from zero. A <b>p</b> below alpha means a significant change; the <b>mean difference</b>, <b>CI</b> and <b>d<sub>z</sub></b> describe its size (their sign depends on the subtraction order, A&minus;B). A <b>p</b> at or above alpha does not prove there was no change &mdash; only that none was detected.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A paired-samples t-test gave <i>M</i>=__, <i>t</i>(__)=__, <i>p</i>&nbsp;__, <i>d<sub>z</sub></i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A paired-samples t-test gave <i>M</i>=__, <i>t</i>(__)=__, <i>p</i>&nbsp;__, <i>d<sub>z</sub></i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>dplyr::summarise()</code> / <code>psych::describe()</code> &rarr; Table 1 (per-condition N/M/SD) &middot; <code>t.test(paired=TRUE)</code> &rarr; Table 2 &middot; <code>effectsize::cohens_d(paired=TRUE)</code> &rarr; d<sub>z</sub> &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_paired-descriptives.png &middot; table_t-test.png &middot; figure_difference.png</div>
       </div>
@@ -297,7 +297,7 @@
       <div class="apa-cap"><b>Table 1.</b> Descriptives by group</div>
       <table class="apa"><thead><tr><th>Group</th><th>N</th><th>M</th><th>SD</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> ANOVA</div>
-      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>&eta;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>Between</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Within</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td></td><td></td><td></td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>&eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>Between</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Within</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td></td><td></td><td></td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Post-hoc comparisons</div>
       <table class="apa"><thead><tr><th>Pair</th><th>M<sub>diff</sub></th><th>SE</th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks: Levene's (equal variances) &amp; normality of residuals.</p>
@@ -306,7 +306,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The <b>F</b> and its <b>p</b> tell you whether the groups differ <i>overall</i>; <b>&eta;&sup2;</b> (or &omega;&sup2;) is the effect size. If significant, the <b>post-hoc</b> table shows <i>which specific pairs</i> differ, with multiplicity-adjusted p-values.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A one-way ANOVA gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, &eta;&sup2;=__. __ post-hoc tests showed&hellip;&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A one-way ANOVA gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, &eta;&sup2;=__ [__, __]. __ post-hoc tests showed&hellip;&rdquo;</div>
         <div class="m"><b>R map:</b> <code>aov()</code> &rarr; Table 2 &middot; <code>emmeans</code> pairwise contrasts (M<sub>diff</sub>, SE, p<sub>adj</sub>, CI) &rarr; Table 3 &middot; <code>effectsize::eta_squared()</code> &middot; <code>ggplot2</code> &rarr; means plot</div>
         <div class="m bundle">table_descriptives.png &middot; table_anova.png &middot; table_posthoc.png &middot; figure_means-plot.png</div>
       </div>
@@ -320,7 +320,7 @@
       <div class="apa-cap"><b>Table 1.</b> Cell descriptives</div>
       <table class="apa"><thead><tr><th>Factor A &times; B</th><th>N</th><th>M</th><th>SD</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> ANOVA (main effects + interaction)</div>
-      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>Factor A</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Factor B</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>A &times; B</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>Factor A</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Factor B</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>A &times; B</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Simple effects / post-hoc</div>
       <table class="apa"><thead><tr><th>Contrast</th><th>M<sub>diff</sub></th><th>SE</th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks: Levene's &amp; normality of residuals; post-hoc / simple-effects table when an effect is significant.</p>
@@ -329,7 +329,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Each factor's <b>F</b>/<b>p</b> is its main effect; the <b>A&times;B</b> row tests whether the effect of one factor depends on the other. A significant interaction usually takes priority &mdash; read it from the interaction plot before the main effects. A significant effect for any factor with 3+ levels tells you the levels differ <i>somewhere</i>, not which ones &mdash; use the post-hoc / simple-effects (emmeans) table to find the specific pairs.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A two-way ANOVA gave A&times;B interaction <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial &eta;&sup2;=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A two-way ANOVA gave A&times;B interaction <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial &eta;&sup2;=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>aov()</code> / <code>afex::aov_car()</code> &rarr; Table 2 &middot; <code>emmeans</code> &rarr; Table 3 &middot; <code>ggplot2</code> &rarr; interaction plot</div>
         <div class="m bundle">table_cell-descriptives.png &middot; table_anova.png &middot; table_simple-effects.png &middot; figure_interaction.png</div>
       </div>
@@ -343,7 +343,7 @@
       <div class="apa-cap"><b>Table 1.</b> Condition descriptives</div>
       <table class="apa"><thead><tr><th>Condition</th><th>N</th><th>M</th><th>SD</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Repeated-measures ANOVA</div>
-      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Sphericity (Mauchly's test)</div>
       <table class="apa"><thead><tr><th>Effect</th><th>W</th><th>p</th><th>GG &epsilon;</th><th>HF &epsilon;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">when sphericity is violated the F-test uses the Greenhouse&ndash;Geisser / Huynh&ndash;Feldt correction; post-hoc table follows. Mauchly's test &amp; the GG/HF corrections apply only when the repeated factor has 3+ levels (with 2 levels sphericity is automatically met and this table is omitted).</p>
@@ -354,7 +354,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Tests whether the average differs across conditions measured on the same people. Check <b>sphericity</b> first &mdash; if violated, read the corrected <b>F</b>/<b>p</b>. A significant result means conditions differ; post-hoc tests show which.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A repeated-measures ANOVA (__) gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial &eta;&sup2;=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A repeated-measures ANOVA (__) gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial &eta;&sup2;=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>dplyr::group_by()+summarise()</code> &rarr; Table 1 (per-condition N/M/SD) &middot; <code>afex::aov_ez()</code> &rarr; Tables 2&ndash;3 &middot; <code>emmeans</code> &rarr; Table 4 (post-hoc) &middot; <code>ggplot2</code> &rarr; profile plot</div>
         <div class="m bundle">table_descriptives.png &middot; table_rm-anova.png &middot; table_sphericity.png &middot; table_posthoc.png &middot; figure_profile.png</div>
       </div>
@@ -368,7 +368,7 @@
       <div class="apa-cap"><b>Table 1.</b> Descriptives by group &times; condition</div>
       <table class="apa"><thead><tr><th>Group</th><th>Condition</th><th>N</th><th>M</th><th>SD</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Mixed ANOVA</div>
-      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>Group (between)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Condition (within)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Group &times; Condition</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>Group (between)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Condition (within)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Group &times; Condition</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Sphericity (Mauchly's test)</div>
       <table class="apa"><thead><tr><th>Effect</th><th>W</th><th>p</th><th>GG &epsilon;</th><th>HF &epsilon;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">between and within effects are tested against different error terms; when sphericity is violated the within and interaction F-tests use the Greenhouse&ndash;Geisser / Huynh&ndash;Feldt correction. Mauchly's test &amp; the GG/HF corrections apply only when the repeated factor has 3+ levels (with 2 levels sphericity is automatically met and this table is omitted).</p>
@@ -379,7 +379,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Read the <b>Group &times; Condition</b> interaction first &mdash; a significant interaction means the groups changed differently across conditions; only then read the main effects. Check <b>sphericity</b> for the within and interaction terms &mdash; if violated, read the corrected <b>F</b>/<b>p</b>. When the group &times; condition interaction is significant, the overall condition comparisons in the post-hoc table can mislead &mdash; read each group's line on the profile plot instead.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A mixed ANOVA yielded a __ &times; __ interaction, <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial &eta;&sup2;=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A mixed ANOVA yielded a __ &times; __ interaction, <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial &eta;&sup2;=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>dplyr::group_by()+summarise()</code> &rarr; Table 1 (group &times; condition N/M/SD) &middot; <code>afex::aov_ez()</code> &rarr; Tables 2&ndash;3 &middot; <code>emmeans</code> &rarr; Table 4 (post-hoc) &middot; <code>ggplot2</code> &rarr; profile plot</div>
         <div class="m bundle">table_descriptives.png &middot; table_mixed-anova.png &middot; table_sphericity.png &middot; table_posthoc.png &middot; figure_profile.png</div>
       </div>
@@ -391,14 +391,14 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> Nested ANOVA</div>
-      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>&omega;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>Factor A</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>B (nested in A)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>&omega;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>Factor A</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>B (nested in A)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual &mdash; so the two F rows do not share the same denominator. Variance components (or &omega;&sup2;) are reported as the effect size where estimable.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Grouped means</div><div class="ftype">type: <b>grouped means plot</b> (nested groups within each top-level group)</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Used when one factor sits inside another (e.g. classes within schools). The top factor is tested against variation among its nested units, not raw residuals &mdash; a significant F means the top-level groups differ beyond the nested-unit variability.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A nested ANOVA for A gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A nested ANOVA for A gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, <i>&omega;&sup2;</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>aov(y ~ A + Error(A:B))</code> (random) / <code>aov(y ~ A/B)</code> (fixed) &rarr; table &middot; <code>effectsize::omega_squared()</code> &rarr; effect size &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_nested-anova.png &middot; figure_grouped-means.png</div>
       </div>
@@ -435,7 +435,7 @@
       <div class="apa-cap"><b>Table 1.</b> Adjusted (estimated marginal) means</div>
       <table class="apa"><thead><tr><th>Group</th><th>Adj. M</th><th>SE</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> ANCOVA</div>
-      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>Covariate</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Factor</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>Covariate</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Factor</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks: homogeneity of regression slopes (factor&times;covariate interaction) &amp; Levene's; post-hoc on adjusted means.</p>
       <div class="apa-cap"><b>Table 3.</b> Post-hoc comparisons (adjusted means)</div>
       <table class="apa"><thead><tr><th>Pair</th><th>M<sub>diff</sub> (adj.)</th><th>SE</th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
@@ -444,7 +444,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Compares group means after statistically removing the influence of a numeric covariate. First confirm the <b>factor&times;covariate interaction is non-significant</b> (homogeneity of slopes) &mdash; if it is significant, the adjusted-means interpretation is not valid and a different model is needed. Then read the <b>Factor</b> row's <b>F</b>/<b>p</b> for the adjusted group effect, and the <b>adjusted means</b> for the covariate-controlled group values.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;Controlling for the covariate, an ANCOVA gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial &eta;&sup2;=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;Controlling for the covariate, an ANCOVA gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial &eta;&sup2;=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>car::Anova(type=3)</code> &rarr; Table 2 (SS/df/F/p) &middot; <code>effectsize::eta_squared(partial=TRUE)</code> &rarr; partial &eta;&sup2; &middot; <code>emmeans</code> &rarr; adjusted means &amp; Table 3 (post-hoc) &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_adjusted-means.png &middot; table_ancova.png &middot; table_posthoc.png &middot; figure_adjusted-means.png</div>
       </div>
@@ -458,7 +458,7 @@
       <div class="apa-cap"><b>Table 1.</b> Multivariate tests</div>
       <table class="apa"><thead><tr><th>Effect</th><th>Pillai / Wilks</th><th>approx F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Follow-up univariate ANOVAs (per DV)</div>
-      <table class="apa"><thead><tr><th>DV</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>DV</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Group means per outcome</div><div class="ftype">type: <b>means plot</b> faceted by DV</div></div>
       <div class="zlabel">How to read this test</div>
@@ -478,7 +478,7 @@
       <div class="apa-cap"><b>Table 1.</b> Multivariate tests (covariate-adjusted)</div>
       <table class="apa"><thead><tr><th>Effect</th><th>Pillai / Wilks</th><th>approx F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Adjusted univariate follow-ups</div>
-      <table class="apa"><thead><tr><th>DV</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>DV</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks include homogeneity of regression slopes for each covariate.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Adjusted means per outcome</div><div class="ftype">type: <b>adjusted means plot</b> faceted by DV</div></div>
@@ -499,14 +499,14 @@
       <div class="apa-cap"><b>Table 1.</b> Rank summary</div>
       <table class="apa"><thead><tr><th>Group</th><th>N</th><th>Mean rank</th><th>Sum of ranks</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Mann-Whitney test</div>
-      <table class="apa"><thead><tr><th>U</th><th>Z</th><th>p</th><th>r</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>U</th><th>Z</th><th>p</th><th>r [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">r is the rank-biserial effect size.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Distribution by group</div><div class="ftype">type: <b>boxplot</b></div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The nonparametric counterpart to the independent t-test, comparing whole distributions via ranks rather than means. A <b>p</b> below alpha means one group's values tend to be systematically higher or lower (stochastic dominance) &mdash; this equals a difference in medians only when the two groups have similar distribution shapes. <b>r</b> gives the effect size.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A Mann-Whitney U test gave <i>U</i>=__, <i>Z</i>=__, <i>p</i>&nbsp;__, <i>r</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Mann-Whitney U test gave <i>U</i>=__, <i>Z</i>=__, <i>p</i>&nbsp;__, <i>r</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>dplyr</code> rank + group_by/summarise (N, mean rank, sum of ranks) &rarr; Table 1 &middot; <code>wilcox.test()</code> &rarr; U, p &middot; <code>coin::wilcox_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial()</code> &rarr; r &middot; <code>geom_boxplot()</code> &rarr; figure</div>
         <div class="m bundle">table_rank-summary.png &middot; table_mann-whitney.png &middot; figure_boxplot.png</div>
       </div>
@@ -520,13 +520,13 @@
       <div class="apa-cap"><b>Table 1.</b> Rank summary</div>
       <table class="apa"><thead><tr><th>Sign</th><th>N</th><th>Mean rank</th><th>Sum of ranks</th></tr></thead><tbody class="ghost"><tr><td>Positive / negative / ties</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Signed-rank test</div>
-      <table class="apa"><thead><tr><th>V / W</th><th>Z</th><th>p</th><th>r</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>V / W</th><th>Z</th><th>p</th><th>r [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Change per case</div><div class="ftype">type: <b>difference plot</b> / paired box</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The nonparametric counterpart to the paired t-test. It ranks the size of each paired change; a <b>p</b> below alpha means a systematic shift between the two conditions, with <b>r</b> as the effect size. The shift maps to the median difference only when the within-pair differences are roughly symmetric; the sign of the median difference (or Hodges&ndash;Lehmann estimate) gives the direction.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A Wilcoxon signed-rank test gave <i>Z</i>=__, <i>p</i>&nbsp;__, <i>r</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Wilcoxon signed-rank test gave <i>Z</i>=__, <i>p</i>&nbsp;__, <i>r</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>rank(abs(d))</code> split by <code>sign(d)</code> &rarr; Table 1 (per-sign N / mean rank / sum of ranks) &middot; <code>wilcox.test(paired=TRUE)</code> &rarr; V, p &middot; <code>coin::wilcoxsign_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial(paired=TRUE)</code> &rarr; r</div>
         <div class="m bundle">table_rank-summary.png &middot; table_signed-rank.png &middot; figure_difference.png</div>
       </div>
@@ -540,7 +540,7 @@
       <div class="apa-cap"><b>Table 1.</b> Rank summary</div>
       <table class="apa"><thead><tr><th>Group</th><th>N</th><th>Mean rank</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Kruskal-Wallis test</div>
-      <table class="apa"><thead><tr><th>H</th><th>df</th><th>p</th><th>&epsilon;&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>H</th><th>df</th><th>p</th><th>&epsilon;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Dunn post-hoc</div>
       <table class="apa"><thead><tr><th>Pair</th><th>Z</th><th>p<sub>adj</sub></th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
@@ -548,7 +548,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The nonparametric counterpart to one-way ANOVA. The <b>H</b>/<b>p</b> tests whether any group tends to have systematically higher or lower values (stochastic dominance) &mdash; read it as a "median difference" only when the groups have similar distribution shapes. If significant, Dunn's post-hoc shows which pairs differ, with adjusted p-values. <b>&epsilon;&sup2;</b> is the effect size.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A Kruskal-Wallis test gave <i>H</i>(__)=__, <i>p</i>&nbsp;__, &epsilon;&sup2;=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Kruskal-Wallis test gave <i>H</i>(__)=__, <i>p</i>&nbsp;__, &epsilon;&sup2;=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>kruskal.test()</code> &rarr; H, df, p &middot; <code>rstatix::kruskal_effsize()</code> / <code>effectsize::rank_epsilon_squared()</code> &rarr; &epsilon;&sup2; &middot; <code>dunn.test</code>/<code>FSA::dunnTest()</code> &rarr; Table 3</div>
         <div class="m bundle">table_rank-summary.png &middot; table_kruskal-wallis.png &middot; table_posthoc.png &middot; figure_boxplot.png</div>
       </div>
@@ -562,7 +562,7 @@
       <div class="apa-cap"><b>Table 1.</b> Rank summary</div>
       <table class="apa"><thead><tr><th>Condition</th><th>Mean rank</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Friedman test</div>
-      <table class="apa"><thead><tr><th>&chi;&sup2;</th><th>df</th><th>p</th><th>Kendall's W</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>&chi;&sup2;</th><th>df</th><th>p</th><th>Kendall's W [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Post-hoc (Nemenyi)</div>
       <table class="apa"><thead><tr><th>Pair</th><th>p<sub>adj</sub></th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
@@ -570,7 +570,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The nonparametric counterpart to repeated-measures ANOVA. The <b>&chi;&sup2;</b>/<b>p</b> tests whether ranks differ across conditions; <b>Kendall's W</b> is the effect size (0&ndash;1 agreement). Post-hoc shows which conditions differ.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A Friedman test gave &chi;&sup2;(__)=__, <i>p</i>=__, <i>W</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Friedman test gave &chi;&sup2;(__)=__, <i>p</i>=__, <i>W</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>colMeans(apply(data, 1, rank))</code> &rarr; Table 1 (per-condition mean rank) &middot; <code>friedman.test()</code> &rarr; &chi;&sup2;, df, p &middot; <code>rstatix::friedman_effsize()</code> / <code>effectsize::kendalls_w()</code> &rarr; Kendall's W &middot; <code>PMCMRplus</code> (Nemenyi) &rarr; Table 3</div>
         <div class="m bundle">table_rank-summary.png &middot; table_friedman.png &middot; table_posthoc.png &middot; figure_profile.png</div>
       </div>
@@ -605,14 +605,14 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> Spearman correlation</div>
-      <table class="apa"><thead><tr><th>Pair</th><th>&rho;</th><th>S</th><th>p</th><th>N</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">no confidence interval &mdash; <code>cor.test</code> does not return one for rank correlation.</p>
+      <table class="apa"><thead><tr><th>Pair</th><th>&rho; [95% CI]</th><th>S</th><th>p</th><th>N</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">&rho; CI from a seeded percentile bootstrap (2000 resamples); <code>cor.test</code> does not return one for rank correlation.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Relationship</div><div class="ftype">type: <b>scatter plot</b> (optionally on ranks)</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p><b>&rho;</b> measures how well the relationship follows a consistent up-or-down trend (monotonic), using ranks. Read sign and magnitude like Pearson's r; <b>p</b> tests significance.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A Spearman correlation gave &rho;=__, <i>p</i>&nbsp;__, <i>N</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Spearman correlation gave &rho;=__ [__, __], <i>p</i>&nbsp;__, <i>N</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>cor.test(method="spearman")</code> &rarr; table &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_correlation.png &middot; figure_scatter.png</div>
       </div>
@@ -624,13 +624,13 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> Kendall's tau</div>
-      <table class="apa"><thead><tr><th>Pair</th><th>&tau;</th><th>z</th><th>p</th><th>N</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Pair</th><th>&tau; [95% CI]</th><th>z</th><th>p</th><th>N</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Relationship</div><div class="ftype">type: <b>scatter plot</b> (optionally on ranks &mdash; &tau; measures monotonic, not linear, association)</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p><b>&tau;</b> is a rank correlation based on concordant vs. discordant pairs &mdash; well suited to small samples and many ties. Sign = direction, magnitude = strength; <b>p</b> tests significance.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A Kendall's tau correlation gave &tau;=__, <i>p</i>&nbsp;__, <i>N</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Kendall's tau correlation gave &tau;=__ [__, __], <i>p</i>&nbsp;__, <i>N</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>cor.test(method="kendall")</code> &rarr; table &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_correlation.png &middot; figure_scatter.png</div>
       </div>
@@ -644,14 +644,14 @@
       <div class="apa-cap"><b>Table 1.</b> Contingency (observed [expected])</div>
       <table class="apa"><thead><tr><th>Row \ Column</th><th>Col 1</th><th>Col 2</th><th>&hellip;</th><th>Total</th></tr></thead><tbody class="ghost"><tr><td>Row 1</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Row 2</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Chi-square test</div>
-      <table class="apa"><thead><tr><th>&chi;&sup2;</th><th>df</th><th>p</th><th>Cram&eacute;r's V</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>&chi;&sup2;</th><th>df</th><th>p</th><th>Cram&eacute;r's V [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">the contingency table is r&times;c &mdash; columns expand to the number of categories in the column variable; expected counts and row/column percentages are shown, with a warning (suggesting Fisher's exact) if expected counts are too small. For 2&times;2 tables <code>chisq.test()</code> applies Yates' continuity correction by default (set <code>correct=FALSE</code> for the uncorrected &chi;&sup2;).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Cross-classification</div><div class="ftype">type: <b>mosaic</b> or grouped bar chart</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Tests whether two categorical variables are associated. A <b>p</b> below alpha means they are related; <b>Cram&eacute;r's V</b> gives the strength of association (0&ndash;1). Valid only when expected counts are mostly &ge; 5 (the app flags this and suggests Fisher's exact) and each case appears once (raw counts, not percentages).</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A chi-square test of independence gave &chi;&sup2;(__, <i>N</i>=__)=__, <i>p</i>&nbsp;__, <i>V</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A chi-square test of independence gave &chi;&sup2;(__, <i>N</i>=__)=__, <i>p</i>&nbsp;__, <i>V</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>chisq.test()</code> &rarr; Table 2 &middot; <code>sqrt(&chi;&sup2;/(N&middot;min(r&minus;1,c&minus;1)))</code> (matches <code>rcompanion::cramerV</code>) &rarr; V &middot; <code>ggplot2::geom_bar()</code> &rarr; figure</div>
         <div class="m bundle">table_contingency.png &middot; table_chi-square.png &middot; figure_bar.png</div>
       </div>
@@ -665,14 +665,14 @@
       <div class="apa-cap"><b>Table 1.</b> Observed vs. expected</div>
       <table class="apa"><thead><tr><th>Category</th><th>Observed</th><th>Expected</th><th>Std. residual</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Goodness-of-fit test</div>
-      <table class="apa"><thead><tr><th>&chi;&sup2;</th><th>df (k&minus;1)</th><th>p</th><th>Cohen's w</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>&chi;&sup2;</th><th>df (k&minus;1)</th><th>p</th><th>Cohen's w [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">here df = number of categories &minus; 1 (not (r&minus;1)(c&minus;1) as in the independence test).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Observed vs. expected</div><div class="ftype">type: <b>bar chart</b> (observed vs. expected)</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Tests whether one categorical variable's counts depart from an expected distribution (equal by default). A <b>p</b> below alpha means the observed split differs from expected; a <b>standardized residual</b> beyond about &plusmn;1.96 flags a category that significantly drives the result. Valid only when expected counts are mostly &ge; 5 (some texts allow &ge; 1 if no more than 20% are below 5); for sparse categories use an exact / simulated test instead.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A goodness-of-fit test, &chi;&sup2;(<i>k</i>&minus;1, <i>N</i>=__)=__, <i>p</i>&nbsp;__, <i>w</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A goodness-of-fit test, &chi;&sup2;(<i>k</i>&minus;1, <i>N</i>=__)=__, <i>p</i>&nbsp;__, <i>w</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>chisq.test(x, p=)</code> &rarr; Table 2 &middot; <code>chisq.test(...)$stdres</code> &rarr; Table 1 std. residuals &middot; <code>effectsize::cohens_w()</code> &rarr; w &middot; <code>chisq.test(..., simulate.p.value=TRUE)</code> for sparse data &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_observed-expected.png &middot; table_chi-square.png &middot; figure_bar.png</div>
       </div>

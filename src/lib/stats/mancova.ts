@@ -8,7 +8,7 @@ export interface MultivarRow {
   // Pillai fields always carried for APA (regardless of statistic choice — recorded decision 1)
   pillai: number; pillaiF: number; pillaiDf1: number; pillaiDf2: number; pillaiP: number
 }
-export interface UnivariateFollowupRow { dv: string; f: number; df1: number; df2: number; p: number; pes: number }
+export interface UnivariateFollowupRow { dv: string; f: number; df1: number; df2: number; p: number; pes: number; pesLow: number; pesHigh: number }
 export interface MancovaResult {
   multivariate: MultivarRow[]
   followups: UnivariateFollowupRow[]
@@ -43,18 +43,23 @@ mv <- lapply(rownames(sc), function(t) list(
   stat = sc[t, 2], f = sc[t, 'approx F'], df1 = sc[t, 'num Df'], df2 = sc[t, 'den Df'], p = sc[t, 'Pr(>F)'],
   pillai = sp[t, 2], pillaiF = sp[t, 'approx F'], pillaiDf1 = sp[t, 'num Df'], pillaiDf2 = sp[t, 'den Df'],
   pillaiP = sp[t, 'Pr(>F)']))
-# Follow-ups per DV: aov(dv ~ covs + factors), FACTOR rows only; pes = SS/(SS+SSres)
+# Follow-ups per DV: aov(dv ~ covs + factors), FACTOR rows only; pes = partial η² with one-sided CI (ci=level).
+# effectsize::eta_squared(partial=TRUE) matches SS/(SS+SSres); its CI_low/CI_high carry the [pct% CI] for the ES cell.
 fu <- list()
 for (dv in dvnames) {
   a <- aov(as.formula(paste(dv, '~', cov_rhs, '+', f_rhs)), data = d)
   s <- summary(a)[[1]]; rownames(s) <- trimws(rownames(s))
+  es <- effectsize::eta_squared(a, partial = TRUE, ci = level)
+  es$Parameter <- trimws(es$Parameter)
   f_terms <- fnames  # only factor terms (not covariates, not Residuals)
   for (t in f_terms) {
     if (t %in% rownames(s)) {
       ssr <- s['Residuals', 'Sum Sq']
+      er <- es[es$Parameter == t, , drop = FALSE]
       fu[[length(fu) + 1]] <- list(
         dv = dv, f = s[t, 'F value'], df1 = s[t, 'Df'], df2 = s['Residuals', 'Df'],
-        p = s[t, 'Pr(>F)'], pes = s[t, 'Sum Sq'] / (s[t, 'Sum Sq'] + ssr))
+        p = s[t, 'Pr(>F)'], pes = s[t, 'Sum Sq'] / (s[t, 'Sum Sq'] + ssr),
+        pesLow = er$CI_low[1], pesHigh = er$CI_high[1])
     }
   }
 }
@@ -108,7 +113,7 @@ interface RawStats {
 export async function runMancova(
   engine: Engine, data: Dataset,
   outcomes: string[], factors: string[], covariates: string[],
-  statisticChoice: string, alpha = 0.05,
+  statisticChoice: string, alpha = 0.05, level = 0.95,
 ): Promise<MancovaResult> {
   // Listwise: all DVs numeric + all covariates numeric + all factors non-blank
   const rows = data.rows.filter((r) => {
@@ -133,6 +138,7 @@ export async function runMancova(
     fnames: factors,
     n,
     statistic,
+    level,
   }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)

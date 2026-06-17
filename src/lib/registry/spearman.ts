@@ -22,14 +22,14 @@ export const SPEARMAN: TestSpec = {
   },
   tables: [
     { id: 'correlation', title: 'Spearman correlation', captionStyle: 'bare', domId: 'spearman-correlation',
-      columns: [{ key: 'pair', label: 'Pair' }, { key: 'rho', label: 'ρ' }, { key: 's', label: 'S' }, { key: 'p', label: 'p' }, { key: 'n', label: 'N' }] },
+      columns: [{ key: 'pair', label: 'Pair' }, { key: 'rho', label: 'ρ [95% CI]' }, { key: 's', label: 'S' }, { key: 'p', label: 'p' }, { key: 'n', label: 'N' }] },
   ],
-  tableNote: { kind: 'plain', text: 'no confidence interval — cor.test does not return one for rank correlation.' },
+  tableNote: { kind: 'plain', text: 'ρ CI from a seeded percentile bootstrap (2000 resamples); cor.test does not return one for rank correlation.' },
   figures: [{ caption: 'Relationship', type: 'scatter plot (optionally on ranks)', file: 'scatter' }],
   howToRead:
     'ρ measures how well the relationship follows a consistent up-or-down trend (monotonic), using ranks. ' +
     "Read sign and magnitude like Pearson's r; p tests significance.",
-  apaTemplate: 'A Spearman correlation gave ρ={rho}, p {p}, N={n}.',
+  apaTemplate: 'A Spearman correlation gave ρ={rho} [{lo}, {hi}], p {p}, N={n}.',
   rMap: 'cor.test(method="spearman") → table · ggplot2 → figure',
   bundleFiles: ['table_correlation.png', 'figure_scatter.png'],
 }

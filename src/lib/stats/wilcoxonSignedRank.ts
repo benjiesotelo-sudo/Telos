@@ -11,10 +11,10 @@ srow <- function(label, idx) list(sign=label, n=length(idx),
 wt <- if (force_approx) wilcox.test(a, b, paired=TRUE, exact=FALSE, correct=continuity, alternative=alternative)
       else wilcox.test(a, b, paired=TRUE, correct=continuity, alternative=alternative)
 zt <- coin::wilcoxsign_test(a ~ b)
-rb <- effectsize::rank_biserial(a, b, paired=TRUE)
+rb <- effectsize::rank_biserial(a, b, paired=TRUE, ci=level)
 list(ranks=list(srow('Positive', which(sg > 0)), srow('Negative', which(sg < 0)), srow('Ties', which(sg == 0))),
   v=unname(wt$statistic), z=as.numeric(coin::statistic(zt)), p=wt$p.value,
-  r=rb$r_rank_biserial, method=wt$method)`
+  r=rb$r_rank_biserial, rLow=rb$CI_low, rHigh=rb$CI_high, method=wt$method)`
 
 // Difference plot ("Change per case", type: difference) — ggplot2 per the architecture doc; print() renders into png().
 const R_DIFFPLOT = String.raw`
@@ -27,12 +27,13 @@ export interface SignedRankRow { sign: 'Positive' | 'Negative' | 'Ties'; n: numb
 export interface WilcoxonSignedRankResult {
   ranks: [SignedRankRow, SignedRankRow, SignedRankRow]   // Positive, Negative, Ties — card row order
   v: number; z: number; p: number; r: number; method: string
+  rLow: number; rHigh: number                            // rank-biserial r effect-size CI (APA-7: report r WITH its CI); fixed 95% (card has no CI-level option)
   alpha: number
   tails: string
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
-interface RawStats { ranks: SignedRankRow[]; v: number; z: number; p: number; r: number; method: string }
+interface RawStats { ranks: SignedRankRow[]; v: number; z: number; p: number; r: number; rLow: number; rHigh: number; method: string }
 
 export async function runWilcoxonSignedRank(
   engine: Engine, data: Dataset, conditionA: string, conditionB: string, continuity: boolean, forceApprox = false, alpha = 0.05, alternative = 'two.sided',
@@ -42,8 +43,8 @@ export async function runWilcoxonSignedRank(
     typeof r[conditionA] === 'number' && Number.isFinite(r[conditionA] as number) &&
     typeof r[conditionB] === 'number' && Number.isFinite(r[conditionB] as number))
   const nExcluded = data.rows.length - rows.length
-  const env = { a: rows.map((r) => r[conditionA] as number), b: rows.map((r) => r[conditionB] as number), continuity, force_approx: forceApprox, alternative }
+  const env = { a: rows.map((r) => r[conditionA] as number), b: rows.map((r) => r[conditionB] as number), continuity, force_approx: forceApprox, alternative, level: 0.95 }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_DIFFPLOT, 600, 450, env)
-  return { ranks: [s.ranks[0], s.ranks[1], s.ranks[2]], v: s.v, z: s.z, p: s.p, r: s.r, method: s.method, alpha, tails: alternative, nExcluded, figurePng }
+  return { ranks: [s.ranks[0], s.ranks[1], s.ranks[2]], v: s.v, z: s.z, p: s.p, r: s.r, rLow: s.rLow, rHigh: s.rHigh, method: s.method, alpha, tails: alternative, nExcluded, figurePng }
 }

@@ -6,6 +6,7 @@ export interface GroupDescRow { group: string; n: number; m: number; sd: number 
 export interface OneWayAnovaResult {
   desc: GroupDescRow[]
   ssB: number; dfB: number; msB: number; f: number; p: number; eta2: number
+  eta2Low: number; eta2High: number                // effect-size CI (APA-7: report η² WITH its CI); one-sided (upper pinned at 1.00), honors `level`
   ssW: number; dfW: number; msW: number
   levene: { F: number | null; p: number | null }
   shapiro: { W: number | null; p: number | null }
@@ -23,7 +24,8 @@ d <- data.frame(y = y, g = gf)
 m <- aov(y ~ g, data = d)
 s <- summary(m)[[1]]; rownames(s) <- trimws(rownames(s))
 desc <- lapply(levels(gf), function(l) { v <- y[gf == l]; list(group = l, n = length(v), m = mean(v), sd = sd(v)) })
-eta2 <- as.numeric(effectsize::eta_squared(m, partial = FALSE)$Eta2)
+es <- effectsize::eta_squared(m, partial = FALSE, ci = level)
+eta2 <- as.numeric(es$Eta2)
 lev <- tryCatch({ ls <- summary(aov(abs(y - ave(y, gf, FUN = median)) ~ gf))[[1]]
   list(F = ls[1, 'F value'], p = ls[1, 'Pr(>F)']) }, error = function(e) list(F = NULL, p = NULL))
 sh <- tryCatch({ t <- shapiro.test(residuals(m)); list(W = unname(t$statistic), p = t$p.value) },
@@ -31,6 +33,7 @@ sh <- tryCatch({ t <- shapiro.test(residuals(m)); list(W = unname(t$statistic), 
 ph <- .telos_posthoc(emmeans::emmeans(m, ~g), adjust, level)
 list(desc = desc, ssB = s['g', 'Sum Sq'], dfB = s['g', 'Df'], msB = s['g', 'Mean Sq'],
   f = s['g', 'F value'], p = s['g', 'Pr(>F)'], eta2 = eta2,
+  eta2Low = as.numeric(es$CI_low), eta2High = as.numeric(es$CI_high),
   ssW = s['Residuals', 'Sum Sq'], dfW = s['Residuals', 'Df'], msW = s['Residuals', 'Mean Sq'],
   levene = lev, shapiro = sh, posthoc = ph)`
 
