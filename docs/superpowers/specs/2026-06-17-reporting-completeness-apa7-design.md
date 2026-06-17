@@ -14,15 +14,13 @@ the existing 40.
 
 ## The standard (owner-ruled 2026-06-17)
 
-1. **Presentation / what we report → APA-7** (Publication Manual, 7th ed.) wherever it applies — the descriptive,
-   t-test, ANOVA/ANCOVA/MANOVA, correlation, categorical, and regression families. APA-7's own requirements
-   (exact *p*; **effect sizes with confidence intervals**; descriptives; assumptions checked/reported) are the
-   completeness yardstick.
-2. **Econometrics APA-7 doesn't define → the canonical method reference the computation already uses**, cited
-   from each R package's own `citation()` (authoritative, no guessing): e.g. `rdrobust` (Calonico–Cattaneo–Titiunik),
-   weak-instrument *F* (Stock–Yogo), PSM balance (Austin), DiD clustered SE (Bertrand–Duflo–Mullainathan),
-   ARIMA/`forecast` (Hyndman & Athanasopoulos), VAR (`vars`/Lütkepohl), `plm`, `tseries`.
-3. **Computational traceability** — everything runs in R via published packages and the app already exports a
+The suite already uses **two complementary, citable conventions**; this pass conforms each test to the right one and enforces the shared reporting principles across both. **It does not reformat any table** — it adds what each convention expects.
+
+1. **Coefficient tables (the 13 regression + econometrics tests) → `modelsummary` (Vincent Arel-Bundock).** The stacked estimate / (SE) / [CI] + GOF-footer publication format adopted in the table-format slice — its own citable convention (the `modelsummary` package + its documented format), and **UNCHANGED here.** These tables already carry a per-term CI, so the effect-size-CI work below does **not** touch them; they're affected only by the relevant assumption/diagnostic + render fixes (Themes 3–4) and the method-reference line (Task 18).
+2. **All other tables (the 27 descriptive / t-test / ANOVA-family / correlation / categorical / nonparametric tests) → APA-7** table format.
+3. **Cross-cutting reporting principles → APA-7 (Publication Manual, 7th ed.), across ALL families:** exact *p*; **effect sizes with confidence intervals**; descriptives; assumptions checked + reported. These are the completeness yardstick and what most of this pass enforces.
+4. **Econometrics *methods* APA-7 doesn't define → the canonical method reference the computation already uses**, cited from each R package's own `citation()` (authoritative, no guessing): e.g. `rdrobust` (Calonico–Cattaneo–Titiunik), weak-instrument *F* (Stock–Yogo), PSM balance (Austin), DiD clustered SE (Bertrand–Duflo–Mullainathan), ARIMA/`forecast` (Hyndman & Athanasopoulos), VAR (`vars`/Lütkepohl), `plm`, `tseries`. (For the coefficient-table family this sits alongside the `modelsummary` format — we cite both.)
+5. **Computational traceability** — everything runs in R via published packages and the app already exports a
    runnable `analysis.R`. Surface the provenance so any number traces to a named, peer-used implementation
    (see "Provenance" below).
 
