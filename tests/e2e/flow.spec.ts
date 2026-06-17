@@ -166,7 +166,7 @@ test('multi-test journey A: five tests, one dataset → combined results + 13-fi
   const t05 = page.locator('#table-rank-summary')
   await expect(t05).toContainText('3.50'); await expect(t05).toContainText('21.00')
   await expect(page.locator('#table-mann-whitney')).toContainText('−2.88')
-  await expect(page.getByText('A Mann-Whitney U test gave U=0, Z=−2.88, p = .002, r=−1.00.')).toBeVisible()
+  await expect(page.getByText('A Mann-Whitney U test gave U=0, Z=−2.88, p = .002, r=−1.00 [−1.00, −1.00].')).toBeVisible()
 
   // Combined zip: 13 files across five NN_ folders
   await page.getByRole('checkbox', { name: /Table images/ }).check()
@@ -290,13 +290,13 @@ test('multi-test journey B: paired fixture → one-sample (typed μ₀), paired 
   const o = page.locator('#table-one-sample-t-test')
   await expect(o).toContainText('70')      // Test value cell = the typed μ₀
   await expect(o).toContainText('8.00'); await expect(o).toContainText('[8.37, 16.30]'); await expect(o).toContainText('3.27')
-  await expect(page.getByText('A one-sample t-test gave M=82.3 vs. 70, t(5)=8.00, p < .001, d=3.27.')).toBeVisible()
+  await expect(page.getByText('A one-sample t-test gave M=82.3 vs. 70, t(5)=8.00, p < .001, d=3.27 [1.14, 5.37].')).toBeVisible()
   // 02 · Paired t — d_z and the A−B difference CI
-  await expect(page.getByText('A paired-samples t-test gave M=−12.0, t(5)=−10.39, p < .001, dz=−4.24.')).toBeVisible()
+  await expect(page.getByText('A paired-samples t-test gave M=−12.0, t(5)=−10.39, p < .001, dz=−4.24 [−6.90, −1.58].')).toBeVisible()
   const pt = page.locator('#table-paired-t-test')
   await expect(pt).toContainText('−10.39'); await expect(pt).toContainText('[−14.97, −9.03]'); await expect(pt).toContainText('−4.24')
   // 03 · Wilcoxon — exact p with the asymptotic Z (card-specified mix)
-  await expect(page.getByText('A Wilcoxon signed-rank test gave Z=−2.20, p = .031, r=−1.00.')).toBeVisible()
+  await expect(page.getByText('A Wilcoxon signed-rank test gave V=0.00, Z=−2.20, p = .031, r=−1.00 [−1.00, −1.00].')).toBeVisible()
   const w = page.locator('#table-signed-rank')
   await expect(w).toContainText('0.00'); await expect(w).toContainText('−2.20'); await expect(w).toContainText('−1.00')
 })
