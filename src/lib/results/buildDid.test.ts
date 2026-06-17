@@ -12,6 +12,7 @@ const mock = (over: Partial<DidResult> = {}): DidResult => ({
   ],
   seType: 'clustered', ciLevel: 0.95, alpha: 0.05,
   withinR2: 0.8406621, fStat: 216.3148, nObs: 96, nEntities: 12, nExcluded: 0,
+  preTrend: { F: 0.004068, df1: 3, df2: 40, p: 0.999636 },
   figTrendsPng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
   ...over,
 })
@@ -57,6 +58,17 @@ describe('buildDid', () => {
     expect(c.note!.text).toContain('the time-invariant Treated main effect is absorbed (only Post and Treated×Post are estimated)')
     expect(c.note!.text).toContain('Standard errors in parentheses are clustered by entity')
     expect(c.howToRead).toContain('Your significance threshold (α) is 0.05.')
+  })
+
+  it('appends the pre-trends leads-and-lags joint-F signal to the note (report-only, F/df/p)', () => {
+    const c = buildDid(DID, mock())
+    expect(c.note!.text).toContain('Pre-trends test (pre-period leads-and-lags joint F of treated×time): F(3, 40) = 0.00, p = 1.000')
+    expect(c.note!.text).toContain('a small p flags diverging pre-trends')
+  })
+
+  it('em-dashes the pre-trends signal when it cannot be computed (NA → null guarded)', () => {
+    const c = buildDid(DID, mock({ preTrend: null }))
+    expect(c.note!.text).toContain('Pre-trends test (pre-period leads-and-lags joint F of treated×time): F(—, —) = —, p = —')
   })
 
   it('reflects classical SEs in the note + APA when chosen (not hardcoded "clustered")', () => {

@@ -46,13 +46,13 @@ export const GRANGER_CAUSALITY: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'tests predictive precedence, not true causation; both series should be stationary first.',
+    text: 'tests predictive precedence, not true causation; both series should be stationary first. Tests use a max lag of 4; select the lag on theory or by AIC/BIC (vars::VARselect) and report it.',
   },
   figures: [
     { caption: 'Series together', type: 'cross-series time plot', file: 'cross-series' },
   ],
   howToRead:
-    "A significant X→Y p means past values of X help predict Y beyond Y's own past — this is predictive precedence, not proof that X causes Y. Check both directions. The result depends entirely on the lag order (default 1 in grangertest()): choose it on theory or by AIC/BIC and report it, since different lags can flip the conclusion. Make both series stationary first.",
+    "A significant X→Y p means past values of X help predict Y beyond Y's own past — this is predictive precedence, not proof that X causes Y. Check both directions. The result depends entirely on the lag order (this card uses a max lag of 4): choose it on theory or by an information criterion — vars::VARselect reports the AIC- and BIC-minimising lag — and report it, since different lags can flip the conclusion. Make both series stationary first.",
   // Report-only neutralisation: report both directions' F/p neutrally, no "caused / not the reverse" verdict.
   apaTemplate: 'Granger test X→Y: F({df1xy},{df2xy})={fxy}, p {pxy}; Y→X: F({df1yx},{df2yx})={fyx}, p {pyx} (lag={lag}).',
   rMap: 'lmtest::grangertest() run once per direction (or vars::causality()) → the two table rows · ggplot2 → figure',

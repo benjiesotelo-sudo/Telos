@@ -51,6 +51,30 @@ function makeCanada2Dataset(): Dataset {
   return { columns: ['t', 'e', 'prod'], rows }
 }
 
+// ── docs/testing/timeseries.csv (sales, visitors) — the test-documentation fixture (33_var) ───
+// n=72 monthly observations (2015-01 … 2020-12). Used for the serial-correlation ground truth.
+const TS_SALES = [
+  103, 115.7, 124.3, 130.6, 126.9, 126.6, 124, 114, 111.5, 111.4, 117.1, 123.5,
+  125.7, 135.3, 143.9, 143.5, 146.5, 146.2, 137, 142.5, 140.1, 133.4, 136.6, 136.5,
+  145.2, 154.8, 156.9, 163.1, 175, 168.1, 165.5, 162.1, 153, 153, 149.6, 156,
+  164.8, 176.8, 185.4, 191.6, 188, 187.7, 185.1, 175.1, 172.6, 165.9, 178.1, 184.6,
+  186.8, 196.3, 205, 204.6, 207.5, 207.3, 198, 203.6, 194.5, 194.5, 197.7, 197.5,
+  206.3, 215.9, 217.9, 224.2, 236.1, 229.2, 226.6, 216.6, 214.1, 214, 210.7, 217.1,
+]
+const TS_VISITORS = [
+  194, 203.5, 211.7, 217.5, 220.7, 208.5, 208, 207.5, 208.3, 198.5, 204.3, 212.5,
+  222, 218.5, 226.7, 232.5, 235.7, 236.5, 223, 222.5, 223.3, 226.5, 219.3, 227.5,
+  237, 246.5, 241.7, 247.5, 250.7, 251.5, 251, 237.5, 238.3, 241.5, 247.3, 242.5,
+  252, 261.5, 269.7, 262.5, 265.7, 266.5, 266, 265.5, 253.3, 256.5, 262.3, 270.5,
+  267, 276.5, 284.7, 290.5, 280.7, 281.5, 281, 280.5, 281.3, 271.5, 277.3, 285.5,
+  295, 291.5, 299.7, 305.5, 308.7, 296.5, 296, 295.5, 296.3, 299.5, 292.3, 300.5,
+]
+
+function makeTimeseriesDataset(): Dataset {
+  const rows = TS_SALES.map((sales, i) => ({ t: i + 1, sales, visitors: TS_VISITORS[i] }))
+  return { columns: ['t', 'sales', 'visitors'], rows }
+}
+
 // ── Test suite ────────────────────────────────────────────────────────────────
 
 describe('runVar', () => {
@@ -109,6 +133,13 @@ describe('runVar', () => {
     expect(el1!.ciHigh).toBeCloseTo(0.972681, 5)
     expect(r.ciLevel).toBe(0.95)
 
+    // Residual serial-correlation diagnostic — vars::serial.test(fit, type='PT.asymptotic').
+    // Native R 4.6.0 (VAR(Canada[,1:2], p=1)): Portmanteau χ²(60) = 94.05672, p = 0.003265.
+    expect(r.serialTest).not.toBeNull()
+    expect(r.serialTest!.df).toBe(60)
+    expect(r.serialTest!.stat).toBeCloseTo(94.05672, 3)
+    expect(r.serialTest!.p).toBeCloseTo(0.00326479, 6)
+
     // IRF figure: valid PNG bytes
     expect(Array.from(r.figIrfPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 900_000)
@@ -162,4 +193,16 @@ describe('runVar', () => {
     const el1 = r.coefRows.find((row) => row.equation === 'e' && row.term === 'e.l1')
     expect(el1!.estimate).toBeCloseTo(0.94789631, 5)
   }, 300_000)
+
+  it('serial-correlation diagnostic — timeseries.csv (sales, visitors), auto-lag 9, vs native R', async () => {
+    // Ground truth (33_var fixture, docs/testing/timeseries.csv): auto VARselect AIC → p=9.
+    // vars::serial.test(fit, type='PT.asymptotic') → Portmanteau χ²(28) = 112.3451796, p = 4.629741e-12.
+    const r = await runVar(engine, makeTimeseriesDataset(), 't', ['sales', 'visitors'])
+    expect(r.n).toBe(72)
+    expect(r.selectedLag).toBe(9)
+    expect(r.serialTest).not.toBeNull()
+    expect(r.serialTest!.stat).toBeCloseTo(112.3451796, 4)
+    expect(r.serialTest!.df).toBe(28)
+    expect(r.serialTest!.p).toBeCloseTo(4.629741e-12, 16)
+  }, 600_000)
 })

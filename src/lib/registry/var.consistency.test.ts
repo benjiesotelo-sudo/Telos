@@ -44,12 +44,15 @@ describe('var registry stays faithful to the spec HTML (verbatim, card-scoped)',
     expect(stubs).toEqual(['Num.Obs.', 'R²', 'R² Adj.', 'RMSE', 'Log.Lik.'])
   })
 
-  it('Table 2 carries the two SYSTEM span rows (selected lag + max-root-modulus stability)', () => {
+  it('Table 2 carries the three SYSTEM span rows (selected lag + max-root-modulus stability + Portmanteau serial test)', () => {
     const spans = [...card.matchAll(/<tr class="row-span"><td colspan="\d+">(.*?)<\/td>/g)].map((m) => strip(m[1]))
-    expect(spans).toHaveLength(2)
+    expect(spans).toHaveLength(3)
     expect(spans[0]).toContain('Selected lag (p)')
     expect(spans[1]).toContain('Max root modulus')
     expect(spans[1]).toContain('stable')
+    // §2.5 econometrics-grade addition: Portmanteau serial-correlation span row (buildVar emits it after the stability row).
+    expect(spans[2]).toContain('Portmanteau (serial)')
+    expect(spans[2]).toContain('χ²')
   })
 
   it('each table has a distinct domId (no zip-filename collision)', () => {

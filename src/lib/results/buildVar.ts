@@ -2,15 +2,16 @@ import type { TestSpec, ColumnDef, ModelCol } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { VarResult } from '../stats/var'
 import type { CardContent } from './builders'
-import { f, f01 } from '../format/apa'
+import { f, f01, fx, fpApa } from '../format/apa'
 
 // modelsummary coef table (design 2026-06-16) — SIDE-BY-SIDE, ONE COLUMN PER EQUATION.
 // The number of equation columns is data-dependent (one per series), so this builder OVERRIDES the
 // registry placeholder's `columns` + `models` at runtime (same pattern as buildDid). Per term (union of
 // lagged terms across equations, ordered by first appearance): estimate row → muted (SE) row → muted [CI]
 // row; t/p drop from the visible cell. Then a rule, then one gof row per spec.tables[1].gof with a value
-// PER equation column (each equation is an lm → R²/R² Adj./RMSE/Log.Lik./Num.Obs. all exist). Finally two
-// SYSTEM span rows (full-width): the selected lag p and the max companion-root modulus + stability flag.
+// PER equation column (each equation is an lm → R²/R² Adj./RMSE/Log.Lik./Num.Obs. all exist). Finally three
+// SYSTEM span rows (full-width): the selected lag p, the max companion-root modulus + stability flag, and the
+// Portmanteau residual serial-correlation diagnostic (vars::serial.test).
 // No significance stars (D1). Table 1 (lag selection) + Table 3 (FEVD) stay classic; the IRF figure and the
 // Cholesky/stability note are unchanged.
 export function buildVar(spec: TestSpec, r: VarResult): CardContent {
@@ -73,11 +74,17 @@ export function buildVar(spec: TestSpec, r: VarResult): CardContent {
     return row
   })
 
-  // ── SYSTEM span rows (full-width): selected lag + stability ──
+  // ── SYSTEM span rows (full-width): selected lag + stability + serial-correlation diagnostic ──
   const stab = r.stable ? 'stable' : 'unstable'
+  // Portmanteau (vars::serial.test) residual serial-correlation diagnostic — em-dash NA via fx.
+  const st = r.serialTest
+  const serialSpan = st
+    ? `Portmanteau (serial) χ²(${st.df}) = ${f(st.stat)}, p ${fpApa(st.p)}`
+    : `Portmanteau (serial) χ² = ${fx(null, f)}`
   const spanRows: Record<string, string | number>[] = [
     { _kind: 'span', term: `Selected lag (p) = ${r.selectedLag}` },
     { _kind: 'span', term: `Max root modulus = ${f01(r.maxRootModulus)} (${stab})` },
+    { _kind: 'span', term: serialSpan },
   ]
 
   const coefTableRows = [...termRows, { _kind: 'rule' }, ...gofRows, ...spanRows]

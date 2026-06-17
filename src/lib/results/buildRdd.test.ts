@@ -6,6 +6,8 @@ import type { RddResult } from '../stats/rdd'
 const mock = (over: Partial<RddResult> = {}): RddResult => ({
   estimate: 9.897029, se: 0.2058503, z: 47.9908, p: 1e-9, ciLow: 9.475461, ciHigh: 10.28238,
   bandwidth: 8.659617, nLeft: 18, nRight: 16, cutoff: 50, polyOrder: 1,
+  bwSelect: 'mserd', kernel: 'Triangular',
+  mccrary: { t: 0.07806802, p: 0.9377739 },
   ciLevel: 0.95, alpha: 0.05, nObs: 200, nExcluded: 0,
   figRdPng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
   ...over,
@@ -35,9 +37,26 @@ describe('buildRdd', () => {
   it('APA reports the estimate at the cutoff with literal 95% CI (report-only)', () => {
     expect(buildRdd(RDD, mock()).apa).toBe('At the cutoff, the treatment effect was 9.90, 95% CI [9.48, 10.28], p < .001.')
   })
-  it('note carries the robust bias-corrected inference labeling', () => {
-    expect(buildRdd(RDD, mock()).note).toEqual(RDD.tableNote)
+  it('note carries the robust inference + bandwidth-selector/kernel labels (static prefix from the spec)', () => {
+    const note = buildRdd(RDD, mock()).note!
+    expect(note.kind).toBe(RDD.tableNote!.kind)
+    expect(note.text).toContain(RDD.tableNote!.text)
     expect(RDD.tableNote!.text).toContain('robust')
+    expect(RDD.tableNote!.text).toContain('mserd')
+    expect(RDD.tableNote!.text).toContain('triangular')
+  })
+  it('note surfaces the live cutoff value', () => {
+    expect(buildRdd(RDD, mock()).note!.text).toContain('Cutoff = 50.00')
+    expect(buildRdd(RDD, mock({ cutoff: 0 })).note!.text).toContain('Cutoff = 0.00')
+  })
+  it('note adds the McCrary density manipulation test (jackknife-robust t/p) cited per McCrary', () => {
+    const text = buildRdd(RDD, mock()).note!.text
+    expect(text).toContain('McCrary density manipulation test: t = 0.08, p = .938')
+    expect(text).toContain('(McCrary, 2008)')
+  })
+  it('McCrary NA → em-dash (guarded null)', () => {
+    const text = buildRdd(RDD, mock({ mccrary: { t: null, p: null } })).note!.text
+    expect(text).toContain('McCrary density manipulation test: t = —, p = —')
   })
   it('howToRead is taken verbatim from the spec (no α threading)', () => {
     const c = buildRdd(RDD, mock())

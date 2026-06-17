@@ -34,6 +34,7 @@ const mock = (over: Partial<VarResult> = {}): VarResult => ({
   ],
   maxRootModulus: 1.0173108,
   stable: false,
+  serialTest: { stat: 112.3451796, df: 28, p: 4.629741e-12 },
   ciLevel: 0.95,
   irfHorizon: 10,
   n: 84,
@@ -104,6 +105,20 @@ describe('buildVar — modelsummary side-by-side per-equation coef table', () =>
     const rows = buildVar(VAR, mock({ maxRootModulus: 0.9961645, stable: true })).tables[1].rows
     const spans = rows.filter((r) => r['_kind'] === 'span')
     expect(spans[1].term).toBe('Max root modulus = 1.00 (stable)')
+  })
+
+  it('renders the Portmanteau serial-correlation diagnostic as a span row (cites the test, p < .001)', () => {
+    // Native-R ground truth (timeseries.csv sales/visitors, auto-lag 9):
+    //   vars::serial.test(fit, type='PT.asymptotic') → χ²(28) = 112.345, p = 4.63e-12
+    const rows = buildVar(VAR, mock({ serialTest: { stat: 112.3451796, df: 28, p: 4.629741e-12 } })).tables[1].rows
+    const spans = rows.filter((r) => r['_kind'] === 'span')
+    expect(spans[2].term).toBe('Portmanteau (serial) χ²(28) = 112.35, p < .001')
+  })
+
+  it('shows an em-dash when the serial test is not computable (NA → null)', () => {
+    const rows = buildVar(VAR, mock({ serialTest: null })).tables[1].rows
+    const spans = rows.filter((r) => r['_kind'] === 'span')
+    expect(spans[2].term).toBe('Portmanteau (serial) χ² = —')
   })
 
   it('keeps Table 1 (lag selection) + Table 3 (FEVD) as classic tables and APA reports the selected lag', () => {

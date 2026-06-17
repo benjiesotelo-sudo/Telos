@@ -57,7 +57,7 @@ export const ARIMA_SARIMA: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'arima()/auto.arima() return each coefficient with its SE (CI via confint()); they do not produce per-coefficient z/p — add lmtest::coeftest() if those are wanted.',
+    text: 'arima()/auto.arima() return each coefficient with its SE (CI via confint()); they do not produce per-coefficient z/p — add lmtest::coeftest() if those are wanted. The Ljung–Box row tests residual autocorrelation jointly to lag = max(10, 2 × seasonal period), with df adjusted for the number of fitted ARMA terms (p + q + P + Q).',
     afterTableId: 'model-summary',
   },
   figures: [
@@ -66,10 +66,11 @@ export const ARIMA_SARIMA: TestSpec = {
     { caption: 'Residual diagnostics', type: 'residual ACF + Normal Q–Q', file: 'residuals' },
   ],
   howToRead:
-    'The chosen (p,d,q)(P,D,Q) orders describe the model. Use the Ljung–Box p (large = residuals look like ' +
-    'white noise, good) and AIC/BIC to judge fit; the forecast table and plot give predictions with uncertainty ' +
-    'bands. AIC/BIC compare models only when fit to the same series with identical differencing (d, D) and ' +
-    'transformation; lower is better, but they are relative, not absolute, measures of fit.',
+    'The chosen (p,d,q)(P,D,Q) orders describe the model. The Ljung–Box Q(df) row tests whether the residuals ' +
+    'still carry autocorrelation up to the reported lag (a large p means none is detected); use it with AIC/BIC ' +
+    'to judge fit. The forecast table and plot give predictions with uncertainty bands. AIC/BIC compare models ' +
+    'only when fit to the same series with identical differencing (d, D) and transformation; lower is better, but ' +
+    'they are relative, not absolute, measures of fit.',
   // Report-only neutralisation: state the model + diagnostic p without a "white noise / good fit" verdict.
   // {pdq} → (p,d,q); {PDQ} → (P,D,Q)[s], filled at build time. Replacing /\{\w+\}/g → __ matches the HTML card line.
   apaTemplate: 'An ARIMA({pdq})({PDQ}) model was fit (AIC={aic}); the Ljung–Box test of residual autocorrelation gave p {ljungbox_p}.',

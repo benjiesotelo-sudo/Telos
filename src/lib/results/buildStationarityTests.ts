@@ -19,9 +19,11 @@ export function buildStationarityTests(spec: TestSpec, r: StationarityResult): C
   }))
   const adf = r.rows.find((x) => x.test === 'ADF')!
   const kpss = r.rows.find((x) => x.test === 'KPSS')!
+  const pp = r.rows.find((x) => x.test === 'PP')!
   const apa = spec.apaTemplate
     .replace('{adf}', f(adf.statistic)).replace('{adfp}', apaP(adf))
     .replace('{kpss}', f(kpss.statistic)).replace('{kpssp}', apaP(kpss))
+    .replace('{pp}', f(pp.statistic)).replace('{ppp}', apaP(pp))
     .replace('{alpha}', String(r.alpha))
   const figs = figuresOf(spec)
   return {

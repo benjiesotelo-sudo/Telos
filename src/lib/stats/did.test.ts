@@ -34,6 +34,14 @@ describe('runDid', () => {
     expect(post.ciLow).toBeCloseTo(1.843456, 4)
     expect(post.ciHigh).toBeCloseTo(2.186711, 4)
     expect(Array.from(r.figTrendsPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+    // Pre-trends signal: pre-period (post=0) leads-and-lags joint F of treated×factor(year) interactions —
+    // base lm(roa ~ treated*factor(year)) vs lm(roa ~ treated+factor(year)), anova(). Native R 4.6.0:
+    // F(3, 40) = 0.004068, p = 0.999636 → parallel pre-trends hold.
+    expect(r.preTrend).not.toBeNull()
+    expect(r.preTrend!.F).toBeCloseTo(0.004068, 5)
+    expect(r.preTrend!.df1).toBe(3)
+    expect(r.preTrend!.df2).toBe(40)
+    expect(r.preTrend!.p).toBeCloseTo(0.999636, 5)
   }, 900_000)
 
   it('guards: a treatment with ≠2 groups errors clearly', async () => {

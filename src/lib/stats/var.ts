@@ -37,6 +37,14 @@ export interface VarFevdRow {
   share: number     // share of forecast-error variance (0–1)
 }
 
+// Residual serial-correlation diagnostic — vars::serial.test (Portmanteau, asymptotic).
+// H0: no residual autocorrelation up to the test horizon. null if not computable.
+export interface VarSerialTest {
+  stat: number   // Portmanteau χ² statistic
+  df: number     // degrees of freedom
+  p: number      // p-value
+}
+
 export interface VarResult {
   seriesNames: string[]
   selectedLag: number
@@ -46,6 +54,7 @@ export interface VarResult {
   fevdRows: VarFevdRow[]
   maxRootModulus: number  // §2.5: stability — max companion-eigenvalue modulus
   stable: boolean         // maxRootModulus < 1
+  serialTest: VarSerialTest | null  // residual serial-correlation diagnostic (vars::serial.test, Portmanteau)
   ciLevel: number         // CI level used for the bracketed line (default 0.95)
   irfHorizon: number
   n: number
@@ -139,6 +148,16 @@ r_mod    <- vars::roots(fit)
 max_root <- max(r_mod)
 is_stable <- max_root < 1.0
 
+# Residual serial-correlation diagnostic — Portmanteau (asymptotic). H0: no autocorrelation.
+serial_test <- tryCatch({
+  st <- vars::serial.test(fit, type = 'PT.asymptotic')$serial
+  s  <- unname(st$statistic)
+  d  <- unname(st$parameter)
+  pv <- unname(st$p.value)
+  if (is.finite(s) && is.finite(d) && is.finite(pv))
+    list(stat = s, df = as.integer(d), p = pv) else NULL
+}, error = function(e) NULL)
+
 list(
   lag_table    = lag_table,
   selected_lag = selected_lag,
@@ -146,7 +165,8 @@ list(
   eq_gof       = eq_gof,
   fevd_rows    = fevd_rows,
   max_root     = max_root,
-  is_stable    = is_stable
+  is_stable    = is_stable,
+  serial_test  = serial_test
 )`
 
 // IRF figure — base graphics via vars plot method.
@@ -173,6 +193,7 @@ interface RawVar {
   fevd_rows: { variable: string; impulse: string; share: number }[]
   max_root: number
   is_stable: boolean
+  serial_test: { stat: number; df: number; p: number } | null
 }
 
 // ── Runner ────────────────────────────────────────────────────────────────────
@@ -250,6 +271,7 @@ export async function runVar(
     fevdRows: raw.fevd_rows,
     maxRootModulus: raw.max_root,
     stable: raw.is_stable,
+    serialTest: raw.serial_test ?? null,
     ciLevel,
     irfHorizon,
     n: nObs,

@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { DidResult } from '../stats/did'
 import type { CardContent } from './builders'
-import { f, f01, fpApa } from '../format/apa'
+import { f, f01, fp, fpApa, fx } from '../format/apa'
 
 // plm within term labels: 'po' (Post) and 'po:tr' (Treated × Post). The time-invariant 'tr' main effect is
 // absorbed by the within transform — never returned. Order may be (po, po:tr) per plm.
@@ -35,9 +35,13 @@ export function buildDid(spec: TestSpec, r: DidResult): CardContent {
     .replace('{hi}', did ? f(did.ciHigh) : '—')
     .replace('p {p}', `p ${did ? fpApa(did.p) : '—'}`)
     .replace('(clustered SE)', `(${seLabel})`)
-  // Render the drawn parallel-trends note + state which SE is in parentheses (no SE column header now).
+  // Render the drawn parallel-trends note + state which SE is in parentheses (no SE column header now), then the
+  // live pre-trends signal: a pre-period (post=0) leads-and-lags joint F of the treated×time interactions
+  // (em-dash NA via fx when the pre window is too short to fit it) — report-only, a small p flags diverging trends.
+  const pt = r.preTrend
+  const preTrendText = `Pre-trends test (pre-period leads-and-lags joint F of treated×time): F(${fx(pt?.df1 ?? null, String)}, ${fx(pt?.df2 ?? null, String)}) = ${fx(pt?.F ?? null, f)}, p = ${fx(pt?.p ?? null, fp)} — a small p flags diverging pre-trends.`
   const note: CardContent['note'] = spec.tableNote
-    ? { ...spec.tableNote, text: `${spec.tableNote.text} Standard errors in parentheses are ${seLabel === 'clustered SE' ? 'clustered by entity' : 'classical'}; the bracketed line is the ${Math.round(r.ciLevel * 100)}% CI.` }
+    ? { ...spec.tableNote, text: `${spec.tableNote.text} Standard errors in parentheses are ${seLabel === 'clustered SE' ? 'clustered by entity' : 'classical'}; the bracketed line is the ${Math.round(r.ciLevel * 100)}% CI. ${preTrendText}` }
     : null
   const figs = figuresOf(spec)
   return {

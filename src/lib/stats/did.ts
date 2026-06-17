@@ -8,6 +8,9 @@ export interface DidResult {
   seType: 'clustered' | 'classical'
   ciLevel: number; alpha: number
   withinR2: number; fStat: number
+  // Pre-trends signal: pre-period (post=0) leads-and-lags joint F of treated×time interactions — null when the
+  // pre window has too few periods/cells to fit the interaction (NA-guarded). A small p flags diverging pre-trends.
+  preTrend: { F: number; df1: number; df2: number; p: number } | null
   nObs: number; nEntities: number; nExcluded: number
   figTrendsPng: Uint8Array<ArrayBuffer>
 }
@@ -27,8 +30,23 @@ coef_rows <- lapply(seq_along(labs), function(i) list(
   term = labs[i], b = ct[i, 1], se = ct[i, 2], t = ct[i, 3], p = ct[i, 4], ciLow = ci[i, 1], ciHigh = ci[i, 2]))
 s <- summary(fit)
 fst <- s$fstatistic
+# Pre-trends signal: on the pre-treatment window (po == 0), a base-lm leads-and-lags joint F — does the treated
+# group's outcome diverge across pre-periods? Compare lm(y ~ tr * factor(time)) vs lm(y ~ tr + factor(time)) via
+# anova(): the F tests whether the treated×time interactions are jointly 0 (parallel pre-trends). NA → NULL when
+# the pre window has < 2 time levels or the cells can't support the interaction (then no signal is reported).
+pre <- d[d$po == 0, ]
+pt <- tryCatch({
+  if (length(unique(pre$.timev)) < 2 || length(unique(pre$tr)) < 2) NULL else {
+    pre$.tf <- factor(pre$.timev)
+    full <- stats::lm(.y ~ tr * .tf, data = pre)
+    red  <- stats::lm(.y ~ tr + .tf, data = pre)
+    an <- stats::anova(red, full)
+    fval <- an[['F']][2]
+    if (is.na(fval)) NULL else list(F = fval, df1 = an[['Df']][2], df2 = an[['Res.Df']][2], p = an[['Pr(>F)']][2])
+  }
+}, error = function(e) NULL)
 list(coef_rows = coef_rows, within_r2 = unname(s$r.squared['rsq']), f_stat = unname(fst$statistic),
-  n_obs = nrow(d), n_entities = plm::pdim(fit)$nT$n)`
+  pre_trend = pt, n_obs = nrow(d), n_entities = plm::pdim(fit)$nT$n)`
 
 // Parallel-trends plot: mean outcome over time by treatment group, with treatment onset marked.
 const R_TRENDS = String.raw`
@@ -40,7 +58,10 @@ print(ggplot2::ggplot(agg, ggplot2::aes(x = tt, y = yy, colour = grp, group = gr
   ggplot2::scale_colour_manual(values = c(Control = '#0c447c', Treated = '#c8781e')) +
   ggplot2::labs(x = 'Time', y = 'Mean outcome', colour = NULL))`
 
-interface RawDid { coef_rows: DidCoefRow[]; within_r2: number; f_stat: number; n_obs: number; n_entities: number }
+interface RawDid {
+  coef_rows: DidCoefRow[]; within_r2: number; f_stat: number; n_obs: number; n_entities: number
+  pre_trend: { F: number; df1: number; df2: number; p: number } | null
+}
 
 const levelsOf = (data: Dataset, col: string): string[] =>
   [...new Set(data.rows.map((r) => r[col]).filter((v) => v !== null && v !== undefined && String(v).trim() !== '').map(String))].sort()
@@ -86,6 +107,7 @@ export async function runDid(
   return {
     coefRows: raw.coef_rows, seType: seClustered ? 'clustered' : 'classical',
     ciLevel: ciLvl, alpha, withinR2: raw.within_r2, fStat: raw.f_stat,
+    preTrend: raw.pre_trend ?? null,
     nObs: raw.n_obs, nEntities: raw.n_entities, nExcluded, figTrendsPng,
   }
 }

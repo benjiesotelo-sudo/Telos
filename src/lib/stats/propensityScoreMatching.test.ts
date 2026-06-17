@@ -28,6 +28,14 @@ describe('runPropensityScoreMatching', () => {
     expect(r.attSe).toBeCloseTo(0.2277397, 4)   // subclass-clustered (sandwich::vcovCL)
     expect(r.attLo).toBeCloseTo(5.418165, 3)
     expect(r.attHi).toBeCloseTo(6.319148, 3)
+    // Common-support / overlap diagnostic (summary(matchit)$nn + m$distance) vs native R 4.6.0 / MatchIt 4.7.2:
+    // 1:1 nearest with 67 treated < 133 control → all 67 treated matched (0 dropped), 66 control unmatched.
+    expect(r.treatedDropped).toBe(0)
+    expect(r.controlDropped).toBe(66)
+    expect(r.psTreatedLo!).toBeCloseTo(0.107052, 4)
+    expect(r.psTreatedHi!).toBeCloseTo(0.798391, 4)
+    expect(r.psControlLo!).toBeCloseTo(0.033303, 4)
+    expect(r.psControlHi!).toBeCloseTo(0.776950, 4)
     expect(Array.from(r.figLovePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47]) // hand-rolled love plot
   }, 900_000)
 

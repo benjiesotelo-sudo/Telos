@@ -52,7 +52,7 @@ export const DID: TestSpec = {
   },
   figures: [{ caption: 'Parallel trends', type: 'parallel-trends plot (group means over time, treatment marked)', file: 'parallel-trends' }],
   howToRead:
-    'The Treated×Post coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups would have moved together absent treatment. Similar pre-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it — a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual.',
+    'The Treated×Post coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups would have moved together absent treatment. Similar pre-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it — a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated×time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends.',
   apaTemplate: 'The DiD estimate was B={b}, 95% CI [{lo}, {hi}], p {p} (clustered SE).',
   rMap: 'plm(model="within") with clustered SE → table · ggplot2 → trends plot',
   bundleFiles: ['table_did.png', 'figure_parallel-trends.png'],

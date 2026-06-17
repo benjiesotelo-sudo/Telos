@@ -24,7 +24,17 @@ describe('runRdd', () => {
     expect(r.bandwidth).toBeCloseTo(8.659617, 3)
     expect(r.nLeft).toBe(18)
     expect(r.nRight).toBe(16)
+    expect(r.bwSelect).toBe('mserd')
+    expect(r.kernel).toBe('Triangular')
     expect(Array.from(r.figRdPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+  }, 900_000)
+
+  // McCrary density manipulation test (rddensity::rddensity(running_var, c=50)$test, jackknife-robust):
+  // native R 4.6.0 (rddensity 3.0) → t_jk = 0.07806802, p_jk = 0.9377739 (no sorting at the cutoff).
+  it('McCrary density test (jackknife-robust t/p) vs native R 4.6.0', async () => {
+    const r = await runRdd(engine, loadCsvFixture(CAUSAL), 'score', 'running_var', { cutoff: 50 })
+    expect(r.mccrary.t).toBeCloseTo(0.07806802, 4)
+    expect(r.mccrary.p).toBeCloseTo(0.9377739, 4)
   }, 900_000)
 
   it('polynomial order 2 gives the native-R p=2 estimate', async () => {

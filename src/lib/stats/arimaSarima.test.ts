@@ -41,7 +41,12 @@ describe('runArimaSarima', () => {
     expect(r.bic).toBeCloseTo(70.37193, 4)
     expect(r.loglik).toBeCloseTo(-29.37916, 4)
     expect(r.sigma2).toBeCloseTo(0.206076, 5)
-    expect(r.ljungboxP).toBeCloseTo(0.3325718, 5)
+    // Ljung–Box: lag = max(10, 2*1) = 10, fitdf = p+q+P+Q = 1, df = 9.
+    // Native R 4.6.0: Q = 9.356388, df = 9, p = 0.4050478 (was 0.3325718 under the old default lag=1/no-fitdf).
+    expect(r.ljungboxQ).toBeCloseTo(9.356388, 5)
+    expect(r.ljungboxLag).toBe(10)
+    expect(r.ljungboxDf).toBe(9)
+    expect(r.ljungboxP).toBeCloseTo(0.4050478, 5)
 
     // Table 1 — coefficients: ar1 + intercept
     expect(r.coefs).toHaveLength(2)

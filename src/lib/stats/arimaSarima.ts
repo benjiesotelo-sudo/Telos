@@ -14,7 +14,9 @@ export interface ArimaSarimaResult {
   // Table 1 — model summary
   coefs: ArimaCoef[]
   // Table 2 — fit & residual diagnostics
-  aic: number; bic: number; loglik: number; sigma2: number; ljungboxP: number
+  aic: number; bic: number; loglik: number; sigma2: number
+  // Ljung–Box test of residual autocorrelation: Q(lag), df = lag − (p+q+P+Q), and its p.
+  ljungboxQ: number | null; ljungboxLag: number | null; ljungboxDf: number | null; ljungboxP: number
   // Table 3 — forecast
   forecastRows: ArimaForecastRow[]
   // metadata
@@ -53,7 +55,13 @@ terms <- lapply(seq_along(cf), function(i) list(
   ciLow = unname(ci[i, 1]),
   ciHigh = unname(ci[i, 2])
 ))
-ljp <- Box.test(residuals(fit), type = 'Ljung-Box')$p.value
+# Ljung–Box on residuals: lag = max(10, 2*period); fitdf = #fitted ARMA params (p+q+P+Q).
+lb_lag <- max(10, 2 * s_period)
+lb_fitdf <- p_val + q_val + P_val + Q_val
+lbt <- Box.test(residuals(fit), lag = lb_lag, fitdf = lb_fitdf, type = 'Ljung-Box')
+ljp <- unname(lbt$p.value)
+ljq <- unname(lbt$statistic)
+ljdf <- unname(lbt$parameter)
 fc  <- forecast::forecast(fit, h = horizon, level = c(80, 95))
 frows <- lapply(seq_len(horizon), function(i) list(
   period = i,
@@ -67,7 +75,8 @@ list(
   p = p_val, d = d_val, q = q_val, P = P_val, D = D_val, Q = Q_val, s = s_val,
   coefs = terms,
   aic = AIC(fit), bic = BIC(fit), loglik = as.numeric(logLik(fit)),
-  sigma2 = fit$sigma2, ljungboxP = ljp,
+  sigma2 = fit$sigma2,
+  ljungboxQ = ljq, ljungboxLag = lb_lag, ljungboxDf = ljdf, ljungboxP = ljp,
   forecastRows = frows,
   n = length(x)
 )`
@@ -128,9 +137,14 @@ print(ggplot2::ggplot(panels, ggplot2::aes(x, y)) +
 
 interface RawModel {
   p: number; d: number; q: number; P: number; D: number; Q: number; s: number
-  coefs: ArimaCoef[]; aic: number; bic: number; loglik: number; sigma2: number; ljungboxP: number
+  coefs: ArimaCoef[]; aic: number; bic: number; loglik: number; sigma2: number
+  ljungboxQ: number | null; ljungboxLag: number | null; ljungboxDf: number | null; ljungboxP: number
   forecastRows: ArimaForecastRow[]; n: number
 }
+
+// NA → null (WebR serialises R NA/NaN as null already; this guard also catches non-finite numbers).
+const nz = (x: number | null | undefined): number | null =>
+  x == null || !Number.isFinite(x) ? null : x
 
 // ── Runner ────────────────────────────────────────────────────────────────────
 
@@ -199,7 +213,9 @@ export async function runArimaSarima(
     p: raw.p, d: raw.d, q: raw.q, P: raw.P, D: raw.D, Q: raw.Q, s: raw.s,
     autoSelected: opts.auto,
     coefs: raw.coefs,
-    aic: raw.aic, bic: raw.bic, loglik: raw.loglik, sigma2: raw.sigma2, ljungboxP: raw.ljungboxP,
+    aic: raw.aic, bic: raw.bic, loglik: raw.loglik, sigma2: raw.sigma2,
+    ljungboxQ: nz(raw.ljungboxQ), ljungboxLag: nz(raw.ljungboxLag), ljungboxDf: nz(raw.ljungboxDf),
+    ljungboxP: raw.ljungboxP,
     forecastRows: raw.forecastRows,
     ciLevel,
     n: raw.n, nExcluded,
