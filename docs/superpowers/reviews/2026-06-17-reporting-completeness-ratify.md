@@ -24,11 +24,26 @@ under WebR (the Task-1 spike recorded ground truth; each card's stats test asser
 
 ## Decisions for you to ratify
 
-1. **Task 16b is DEFERRED (the headline).** The group "Table 1" descriptives → `datasummary_balance` across ~16
-   comparison cards was NOT done in this pass — it's a purely cosmetic restyle (those descriptives already display),
-   and you should **see the `datasummary` look on the simpler descriptive cards (Summary stats / Frequencies) at
-   your click-through and confirm it before we mass-apply it** to every comparison card. Ready to do as the next
-   slice on your word. (The plan explicitly permitted this split.)
+1. **Task 16b is DONE (Option B), committed `e08f82b` on local `main` — not pushed.** After you confirmed the
+   `datasummary` look on Summary stats / Frequencies, I surfaced a renderer constraint before building: a faithful
+   *transposed* `datasummary_balance` "Table 1" (group names as spanning headers over Mean/Std.Dev. sub-columns)
+   needs two-tier spanning column headers, which `ApaTable` doesn't have — that would be a **shared-renderer
+   feature** touching all 40 cards, not the cosmetic restyle 16b assumed; and for these single-outcome
+   between-group tables the transpose collapses to a thin 1-row table. You ruled **Option B**: emit the real R
+   call + relabel the on-screen columns, **NO renderer change, stats unchanged.**
+   - **Display:** on the 5 in-scope descriptives tables, `M → "Mean"`, `SD → "Std. Dev."` (datasummary's
+     vocabulary); N kept; the clean group-rows layout kept. Registry label + HTML thead mirror; consistency green.
+   - **Export:** `analysis.R` now emits the citable `datasummary_balance(~group, data, dinm = FALSE)` for these
+     cards (Arel-Bundock; `library(modelsummary)` added; rides the native-R `runs-in-r` gate — now 14/14, with
+     new independent-t + factorial reps asserting the balance table reaches stdout).
+   - **Scope = 5 cards:** independent-t, one-way / factorial / welch / nested ANOVA. **Excluded:** nonparametric
+     rank tests (report median/IQR, not M/SD), within-subject (paired-t, RM-ANOVA — no between-group split),
+     one-sample (no group).
+   - **SE sub-decision (your call):** independent-t's Table 1 also carries an **SE** column; `datasummary_balance`
+     shows only N/Mean/Std.Dev. I **kept SE** (useful, harmless). Say if you'd rather drop it for strict parity.
+   - **Borderline cards deferred (your call):** ancova, mixed-anova, manova/mancova are NOT in scope. manova/mancova
+     (multi-DV by group) are where a *full transposed* Table 1 with spanning headers would actually pay off — if
+     you ever want that, it's the renderer-feature path (Option A), a separate slice.
 2. **Descriptive `datasummary` display interpretation.** The descriptive tables adopt Arel-Bundock's house style +
    the completeness adds, but KEEP their rich columns (we did NOT regress Summary stats to `datasummary_skim`'s
    spare default, which would drop Skew/Kurtosis). The export emits the real `datasummary_*()` call. Confirm this
@@ -48,5 +63,5 @@ under WebR (the Task-1 spike recorded ground truth; each card's stats test asser
 
 ## Carryover (your calls, unchanged)
 - Push / deploy of this pass (and the export slice already pushed): your call.
-- **Task 16b** (group Table-1 datasummary) — next slice on your word.
+- **Task 16b** — DONE (Option B), `e08f82b` on local `main`, not pushed; awaiting your click-through + the SE / borderline-cards calls in decision 1 above.
 - Prior ratify lists (export-formats, econometrics, ms-format); design-theme menu.
