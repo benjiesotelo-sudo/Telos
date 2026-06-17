@@ -30,6 +30,18 @@ describe("Welch's ANOVA stats engine (spike known answers)", () => {
     expect(gh.ciHi).toBeCloseTo(4.1779984409316, 6)
     expect(gh.pAdj).toBeCloseTo(0.82, 2) // rstatix returns rounded p.adj
 
+    // Within-group normality: Shapiro-Wilk per group (native R 4.6.0 on anova.csv outcome ~ group)
+    expect(res.shapiro).toHaveLength(3)
+    const shControl = res.shapiro.find((s) => s.group === 'control')!
+    expect(shControl.W!).toBeCloseTo(0.9668813597, 6)
+    expect(shControl.p!).toBeCloseTo(0.6881436515, 6)
+    const shDrugA = res.shapiro.find((s) => s.group === 'drug_a')!
+    expect(shDrugA.W!).toBeCloseTo(0.9046305145, 6)
+    expect(shDrugA.p!).toBeCloseTo(0.0504050340, 6)
+    const shDrugB = res.shapiro.find((s) => s.group === 'drug_b')!
+    expect(shDrugB.W!).toBeCloseTo(0.9228936756, 6)
+    expect(shDrugB.p!).toBeCloseTo(0.1126539309, 6)
+
     // Listwise
     expect(res.nExcluded).toBe(0)
 

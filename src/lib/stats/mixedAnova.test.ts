@@ -88,7 +88,7 @@ describe('runMixedAnova (spike known answers, GG correction)', () => {
     expect(res.desc.every((d) => d.n === 20)).toBe(true)
   }, 900_000)
 
-  it('levene F/p are finite numbers', async () => {
+  it('levene (between-groups Brown-Forsythe) F/p match native R', async () => {
     const ds = loadAnovaFixture()
     const res = await runMixedAnova(engine, ds, 'subject_id', 'group', ['score_t1', 'score_t2', 'score_t3'], 'GG correction', true)
 
@@ -96,6 +96,9 @@ describe('runMixedAnova (spike known answers, GG correction)', () => {
     expect(Number.isFinite(res.levene.F!)).toBe(true)
     expect(res.levene.p).not.toBeNull()
     expect(Number.isFinite(res.levene.p!)).toBe(true)
+    // Native-R ground truth (Rscript 4.6.0) — hand-rolled Brown-Forsythe on per-subject means across measures, by group.
+    expect(res.levene.F!).toBeCloseTo(0.598532026988914, 6)
+    expect(res.levene.p!).toBeCloseTo(0.553035140129693, 6)
   }, 900_000)
 
   it('no rows excluded from the clean fixture', async () => {

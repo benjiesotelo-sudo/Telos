@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { MancovaResult } from '../stats/mancova'
 import type { CardContent } from './builders'
-import { f, f01, fdf, fp, fpApa } from '../format/apa'
+import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 
 export function buildMancova(spec: TestSpec, r: MancovaResult): CardContent {
   // APA from the SELECTED statistic's fields of the first FACTOR row (owner ruling: option b).
@@ -16,9 +16,11 @@ export function buildMancova(spec: TestSpec, r: MancovaResult): CardContent {
     .replace('{df2}', fdf(factorRow.df2))
     .replace('{f}', f(factorRow.f))
     .replace('{p}', fpApa(factorRow.p))
-  // Note: card's assume text + per-covariate slopes appended
+  // Note: card's assume text + Box's M (homogeneity of covariance matrices) + per-covariate slopes appended
   const slopesClause = r.slopes.map((s) => `slopes p(${s.term})=${fp(s.p)}`).join(' · ')
-  const noteText = `${spec.tableNote!.text}${slopesClause ? ` (${slopesClause})` : ''}`
+  const boxClause = `Box's M χ²(${fx(r.boxM.df, fdf)})=${fx(r.boxM.chisq, f)}, p=${fx(r.boxM.p, fp)}`
+  const inner = [boxClause, slopesClause].filter(Boolean).join(' · ')
+  const noteText = `${spec.tableNote!.text} (${inner})`
   const fig = figuresOf(spec)[0]
   return {
     tables: [

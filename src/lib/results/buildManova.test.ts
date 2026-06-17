@@ -16,6 +16,7 @@ const pillaiResult: ManovaResult = {
     { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843, pesLow: 0, pesHigh: 1 },
     { dv: 'outcome2', f: 7.71055236740481, df1: 2, df2: 57, p: 0.00108711814052799, pes: 0.2129366128, pesLow: 0.0638706439, pesHigh: 1 },
   ],
+  boxM: { chisq: 11.437527, df: 6, p: 0.075759 }, // heplots::boxM on the spike config (native-R ground truth)
   statistic: 'Pillai',
   alpha: 0.05,
   nExcluded: 0,
@@ -33,6 +34,7 @@ const wilksResult: ManovaResult = {
     { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843, pesLow: 0, pesHigh: 1 },
     { dv: 'outcome2', f: 7.71055236740481, df1: 2, df2: 57, p: 0.00108711814052799, pes: 0.2129366128, pesLow: 0.0638706439, pesHigh: 1 },
   ],
+  boxM: { chisq: 11.437527, df: 6, p: 0.075759 },
   statistic: 'Wilks',
   alpha: 0.05,
   nExcluded: 0,
@@ -75,8 +77,17 @@ describe('buildManova', () => {
       })
     })
 
-    it('NO table note (card has none)', () => {
-      expect(c.note).toBeNull()
+    it('assume-note: static text + runtime Box\'s M, rendered after the multivariate table', () => {
+      expect(c.note).toEqual({
+        kind: 'assume',
+        text: "assumption check: homogeneity of covariance matrices (Box's M). (Box's M χ²=11.44, df=6, p=.076)",
+        afterTableId: 'multivariate',
+      })
+    })
+
+    it('Box\'s M NA (not estimable) renders em-dashes', () => {
+      const c2 = buildManova(spec, { ...pillaiResult, boxM: { chisq: null, df: null, p: null } })
+      expect(c2.note!.text).toBe("assumption check: homogeneity of covariance matrices (Box's M). (Box's M χ²=—, df=—, p=—)")
     })
 
     it('figure caption and type', () => {

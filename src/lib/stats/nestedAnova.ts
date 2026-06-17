@@ -10,8 +10,12 @@ export interface NestedAnovaRow {
   errDf: number    // denominator df for this row's F ratio
 }
 
+export interface NestedDescRow { group: string; n: number; m: number; sd: number }  // per top-level (factor) group
 export interface NestedAnovaResult {
   rows: NestedAnovaRow[]
+  desc: NestedDescRow[]            // per top-level (factor) group: N / M / SD
+  levene: { F: number | null; p: number | null }   // Levene (median-centered) on the top-level factor
+  shapiro: { W: number | null; p: number | null }  // Shapiro-Wilk on the model residuals
   factor: string; nested: string  // role column names — the builder renders them as source labels
   nesting: 'random' | 'fixed'     // passed through from runNestedAnova for conditional note
   crossed: string[]   // child labels that appear under >1 parent (nestedLevelReuse)
@@ -33,7 +37,17 @@ os <- tryCatch(effectsize::omega_squared(m, partial = FALSE, ci = 0.95), error =
 o2 <- if (is.null(os)) c(NA, NA) else as.numeric(os$Omega2)
 o2lo <- if (is.null(os)) c(NA, NA) else as.numeric(os$CI_low)
 o2hi <- if (is.null(os)) c(NA, NA) else as.numeric(os$CI_high)
-list(rows = list(
+# Descriptives per top-level (factor) group: N / M / SD
+desc <- lapply(levels(af), function(l) { v <- y[af == l]; list(group = l, n = length(v), m = mean(v), sd = sd(v)) })
+# Levene (median-centered) on the top-level factor; Shapiro-Wilk on the nested-model residuals (guard small/large N).
+lev <- tryCatch({ lf <- summary(aov(abs(y - ave(y, af, FUN = median)) ~ af))[[1]]
+  list(F = lf[1, 'F value'], p = lf[1, 'Pr(>F)']) }, error = function(e) list(F = NULL, p = NULL))
+rsd <- residuals(m); nr <- length(rsd)
+sw <- if (nr >= 3 && nr <= 5000) tryCatch(shapiro.test(rsd), error = function(e) NULL) else NULL
+list(desc = desc,
+  levene = lev,
+  shapiro = list(W = if (is.null(sw)) NA_real_ else unname(sw$statistic), p = if (is.null(sw)) NA_real_ else sw$p.value),
+  rows = list(
   list(source = 'A', ss = s['af', 'Sum Sq'], df = dfA, ms = msA, f = fA, p = pA,
     omega2 = if (is.na(o2[1])) NULL else o2[1],
     omega2Low = if (is.na(o2lo[1])) NULL else o2lo[1], omega2High = if (is.na(o2hi[1])) NULL else o2hi[1],
@@ -53,7 +67,12 @@ print(ggplot2::ggplot(cellm, ggplot2::aes(a, m, colour = b)) +
   ggplot2::geom_pointrange(ggplot2::aes(ymin = lo, ymax = hi), position = ggplot2::position_dodge(width = 0.5)) +
   ggplot2::labs(x = NULL, y = NULL, colour = NULL))`
 
-interface RawStats { rows: NestedAnovaRow[] }
+interface RawStats {
+  rows: NestedAnovaRow[]
+  desc: NestedDescRow[]
+  levene: { F: number | null; p: number | null }
+  shapiro: { W: number | null; p: number | null }
+}
 
 export async function runNestedAnova(
   engine: Engine, data: Dataset,
@@ -76,5 +95,5 @@ export async function runNestedAnova(
   // Re-run R figure using the same factors (af/bf still in scope from R_STATS)
   const figureCode = `${R_STATS}\n${R_FIGURE}`
   const figurePng = await engine.capturePlot(figureCode, 600, 450, env)
-  return { rows: s.rows, factor, nested, nesting: random ? 'random' : 'fixed', crossed, alpha, nExcluded, figurePng }
+  return { rows: s.rows, desc: s.desc, levene: s.levene, shapiro: s.shapiro, factor, nested, nesting: random ? 'random' : 'fixed', crossed, alpha, nExcluded, figurePng }
 }

@@ -49,6 +49,10 @@ describe('runMancova (spike known answers — sequential manova, covariates-firs
     // slopes
     expect(r.slopes.length).toBeGreaterThanOrEqual(1)
     expect(Number.isFinite(r.slopes[0].p)).toBe(true)
+    // Box's M (heplots::boxM on cbind(outcome,outcome2) ~ group) — native R 4.6.0 ground truth
+    expect(r.boxM.chisq).toBeCloseTo(11.4375273234805, 6)
+    expect(r.boxM.df).toBe(6)
+    expect(r.boxM.p).toBeCloseTo(0.0757594643401961, 6)
     // listwise
     expect(r.nExcluded).toBe(0)
     expect(r.figurePng.length).toBeGreaterThan(1000)

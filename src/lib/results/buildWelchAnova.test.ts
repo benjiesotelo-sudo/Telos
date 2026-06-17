@@ -21,6 +21,11 @@ const spikeResult: WelchAnovaResult = {
     { pair: 'control - drug_b', diff: -3.70, pAdj: 0.15, ciLo: -7.9, ciHi: 0.5 },
     { pair: 'drug_a - drug_b', diff: -2.33, pAdj: 0.45, ciLo: -5.86, ciHi: 1.2 },
   ],
+  shapiro: [
+    { group: 'control', W: 0.9668813597, p: 0.6881436515 },
+    { group: 'drug_a', W: 0.9046305145, p: 0.0504050340 },
+    { group: 'drug_b', W: 0.9228936756, p: 0.1126539309 },
+  ],
   alpha: 0.05,
   nExcluded: 0,
   figurePng: png,
@@ -59,11 +64,16 @@ describe('buildWelchAnova', () => {
     expect(c2.apa).toContain('p < .001')
   })
 
-  it('note is the card plain text verbatim — no computed assumption append', () => {
+  it('note is an assume-note: static tableNote + per-group Shapiro-Wilk W/p (em-dash NA via fx)', () => {
     expect(c.note).toEqual({
-      kind: 'plain',
-      text: "Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional).",
+      kind: 'assume',
+      text: "Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional); within-group normality is still assumed and checked with Shapiro-Wilk per group. (Shapiro per group: control W=0.97, p=.688; drug_a W=0.90, p=.050; drug_b W=0.92, p=.113)",
     })
+  })
+
+  it('Shapiro per-group NA renders as em-dash via fx (W/p null → —)', () => {
+    const c2 = buildWelchAnova(spec, { ...spikeResult, shapiro: [{ group: 'tiny', W: null, p: null }] })
+    expect(c2.note!.text).toContain('tiny W=—, p=—')
   })
 
   it('figure carries caption, type, and png bytes', () => {

@@ -35,9 +35,10 @@ describe('manova registry stays faithful to the spec HTML (verbatim, card-scoped
   it('bundle line EQUALS bundleFiles (no derivation — figure_means.png does not derive from type)', () => {
     expect(strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')).toEqual(spec.bundleFiles)
   })
-  it('the drawn card has NO table note — and neither does the registry entry', () => {
-    expect(card).not.toMatch(/class="tbl-note/)
-    expect(spec.tableNote).toBeUndefined()
+  it('the drawn card carries the assume-note (Box\'s M) — registry static text mirrored verbatim', () => {
+    expect(strip(card.match(/<p class="tbl-note assume">(.*?)<\/p>/s)![1])).toBe(spec.tableNote!.text)
+    expect(spec.tableNote!.kind).toBe('assume')
+    expect(card.includes('tbl-note assume')).toBe(true)
   })
   it('roles equal the inputs card slot labels + constraint lines', () => {
     const labels = [...inCard.matchAll(/<div class="sl-label">(.*?)<\/div>/g)].map((m) => strip(m[1]))

@@ -7,6 +7,7 @@ export interface TTestResult {
   t: number; df: number; p: number; meanDiff: number; ci: [number, number]; cohensD: number
   cohensDLow: number; cohensDHigh: number         // effect-size CI (APA-7: report d WITH its CI), honors `level` + the equal-variance toggle's pooled_sd
   levene: { F: number | null; p: number | null } // null when degenerate (n < 3 per group) — rendered as em-dash
+  shapiroByGroup: { group: string; W: number | null; p: number | null }[] // within-group normality (Shapiro-Wilk per group); W/p null outside Shapiro's 3–5000 range — rendered as em-dash
   ciLevel: number
   alpha: number
   tails: string

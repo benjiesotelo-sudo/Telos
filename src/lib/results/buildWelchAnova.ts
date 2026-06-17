@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { WelchAnovaResult } from '../stats/welchAnova'
 import type { CardContent } from './builders'
-import { f, fdf, fp, fpApa } from '../format/apa'
+import { f, fdf, fp, fpApa, fx } from '../format/apa'
 
 export function buildWelchAnova(spec: TestSpec, r: WelchAnovaResult): CardContent {
   const apa = spec.apaTemplate
@@ -20,7 +20,7 @@ export function buildWelchAnova(spec: TestSpec, r: WelchAnovaResult): CardConten
           ci: `[${f(row.ciLo)}, ${f(row.ciHi)}]`,
         })) },
     ],
-    note: spec.tableNote ?? null, // card plain text verbatim — NO computed append for Welch's
+    note: { kind: 'assume', text: `${spec.tableNote!.text} (Shapiro per group: ${r.shapiro.map((s) => `${s.group} W=${fx(s.W, f)}, p=${fx(s.p, fp)}`).join('; ')})` }, // mirror buildOneWayAnova: static tableNote + computed per-group W/p, em-dash NA via fx()
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,

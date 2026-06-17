@@ -16,6 +16,8 @@ export interface FollowupRow {
 export interface ManovaResult {
   multivariate: MultivarRow[]
   followups: FollowupRow[]
+  /** Box's M test of homogeneity of covariance matrices (heplots::boxM). NA→null when not estimable (small/singular groups). */
+  boxM: { chisq: number | null; df: number | null; p: number | null }
   statistic: string
   alpha: number
   nExcluded: number
@@ -52,7 +54,16 @@ if (followups) for (dv in dvnames) {
       pes = es[[pcol]][j], pesLow = es$CI_low[j], pesHigh = es$CI_high[j])
   }
 }
-list(multivariate = mv, followups = fu)`
+# Box's M — homogeneity of covariance matrices across the cell grouping (heplots::boxM).
+# Guard: each cell needs > p observations for an estimable covariance (else singular); tryCatch → NA→null on failure (mirrors the Shapiro small-N guard).
+cell <- interaction(d[fnames], drop = TRUE)
+Ymat <- as.matrix(d[dvnames])
+na3 <- list(chisq = NA_real_, df = NA_real_, p = NA_real_)  # keep keys present so the JSON serializer emits null (NULL would drop the element)
+bm <- if (all(table(cell) > length(dvnames)) && nlevels(cell) >= 2) tryCatch({
+  b <- heplots::boxM(Ymat, cell)
+  list(chisq = unname(b$statistic), df = unname(b$parameter), p = unname(b$p.value))
+}, error = function(e) na3) else na3
+list(multivariate = mv, followups = fu, boxM = bm)`
 
 // Facet by DV — group means per DV with 95% CI error bars.
 const R_FIGURE = String.raw`
@@ -67,7 +78,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(g, m)) +
   ggplot2::geom_pointrange(ggplot2::aes(ymin = lo, ymax = hi), colour = '#0c447c') +
   ggplot2::facet_wrap(~dv, scales = 'free_y') + ggplot2::labs(x = NULL, y = NULL))`
 
-interface RawResult { multivariate: MultivarRow[]; followups: FollowupRow[] }
+interface RawResult { multivariate: MultivarRow[]; followups: FollowupRow[]; boxM: ManovaResult['boxM'] }
 
 export async function runManova(
   engine: Engine, data: Dataset,
@@ -92,5 +103,5 @@ export async function runManova(
   }
   const s = await engine.runJson<RawResult>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { multivariate: s.multivariate, followups: s.followups, statistic, alpha, nExcluded, figurePng }
+  return { multivariate: s.multivariate, followups: s.followups, boxM: s.boxM, statistic, alpha, nExcluded, figurePng }
 }

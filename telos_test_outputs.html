@@ -250,7 +250,7 @@
       <div class="apa-cap"><b>Table 2.</b> Independent-samples t-test</div>
       <table class="apa exemplar"><thead><tr><th>Contrast</th><th>t</th><th>df</th><th>p</th><th>M<sub>diff</sub></th><th>95% CI</th><th>Cohen's d [95% CI]</th></tr></thead>
       <tbody><tr><td>Control &minus; Treatment</td><td>&minus;3.21</td><td>58</td><td>.002</td><td>&minus;6.50</td><td>[&minus;10.6, &minus;2.4]</td><td>&minus;0.83 [&minus;1.36, &minus;0.30]</td></tr></tbody></table>
-      <p class="tbl-note assume">assumption check: Levene's test for equal variances; a Welch row replaces the pooled row when equal-variance is off.</p>
+      <p class="tbl-note assume">assumption checks: Levene's test for equal variances &amp; within-group normality (Shapiro-Wilk per group); a Welch row replaces the pooled row when equal-variance is off.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Distribution of the outcome by group</div>
         <div class="boxplot">
@@ -371,7 +371,7 @@
       <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>Group (between)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Condition (within)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Group &times; Condition</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Sphericity (Mauchly's test)</div>
       <table class="apa"><thead><tr><th>Effect</th><th>W</th><th>p</th><th>GG &epsilon;</th><th>HF &epsilon;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note assume">between and within effects are tested against different error terms; when sphericity is violated the within and interaction F-tests use the Greenhouse&ndash;Geisser / Huynh&ndash;Feldt correction. Mauchly's test &amp; the GG/HF corrections apply only when the repeated factor has 3+ levels (with 2 levels sphericity is automatically met and this table is omitted).</p>
+      <p class="tbl-note assume">assumption check: Levene's (equal variances between groups). between and within effects are tested against different error terms; when sphericity is violated the within and interaction F-tests use the Greenhouse&ndash;Geisser / Huynh&ndash;Feldt correction. Mauchly's test &amp; the GG/HF corrections apply only when the repeated factor has 3+ levels (with 2 levels sphericity is automatically met and this table is omitted).</p>
       <div class="apa-cap"><b>Table 4.</b> Post-hoc comparisons (condition pairs)</div>
       <table class="apa"><thead><tr><th>Pair</th><th>M<sub>diff</sub></th><th>SE</th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
@@ -390,9 +390,11 @@
     <div class="rt-h"><span class="rt-name">Nested ANOVA</span><span class="rt-q">one factor nested within another</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
+      <div class="apa-cap"><b>Table 1.</b> Descriptives by top-level group</div>
+      <table class="apa"><thead><tr><th>Group</th><th>N</th><th>M</th><th>SD</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table.</b> Nested ANOVA</div>
       <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>&omega;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>Factor A</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>B (nested in A)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual &mdash; so the two F rows do not share the same denominator. Variance components (or &omega;&sup2;) are reported as the effect size where estimable.</p>
+      <p class="tbl-note assume">Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual &mdash; so the two F rows do not share the same denominator. Variance components (or &omega;&sup2;) are reported as the effect size where estimable. Assumption checks: Levene's (equal variances across top-level groups) &amp; normality of residuals (Shapiro-Wilk).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Grouped means</div><div class="ftype">type: <b>grouped means plot</b> (nested groups within each top-level group)</div></div>
       <div class="zlabel">How to read this test</div>
@@ -400,7 +402,7 @@
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A nested ANOVA for A gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, <i>&omega;&sup2;</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>aov(y ~ A + Error(A:B))</code> (random) / <code>aov(y ~ A/B)</code> (fixed) &rarr; table &middot; <code>effectsize::omega_squared()</code> &rarr; effect size &middot; <code>ggplot2</code> &rarr; figure</div>
-        <div class="m bundle">table_nested-anova.png &middot; figure_grouped-means.png</div>
+        <div class="m bundle">table_descriptives.png &middot; table_nested-anova.png &middot; figure_grouped-means.png</div>
       </div>
     </div>
   </div>
@@ -415,7 +417,7 @@
       <table class="apa"><thead><tr><th>F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Games-Howell post-hoc</div>
       <table class="apa"><thead><tr><th>Pair</th><th>M<sub>diff</sub></th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional).</p>
+      <p class="tbl-note assume">Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional); within-group normality is still assumed and checked with Shapiro-Wilk per group.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Group means</div><div class="ftype">type: <b>means plot</b> with 95% CI error bars</div></div>
       <div class="zlabel">How to read this test</div>
@@ -457,6 +459,7 @@
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Multivariate tests</div>
       <table class="apa"><thead><tr><th>Effect</th><th>Pillai / Wilks</th><th>approx F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note assume">assumption check: homogeneity of covariance matrices (Box's M).</p>
       <div class="apa-cap"><b>Table 2.</b> Follow-up univariate ANOVAs (per DV)</div>
       <table class="apa"><thead><tr><th>DV</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
@@ -479,7 +482,7 @@
       <table class="apa"><thead><tr><th>Effect</th><th>Pillai / Wilks</th><th>approx F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Adjusted univariate follow-ups</div>
       <table class="apa"><thead><tr><th>DV</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note assume">assumption checks include homogeneity of regression slopes for each covariate.</p>
+      <p class="tbl-note assume">assumption checks include homogeneity of covariance matrices (Box's M) and homogeneity of regression slopes for each covariate.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Adjusted means per outcome</div><div class="ftype">type: <b>adjusted means plot</b> faceted by DV</div></div>
       <div class="zlabel">How to read this test</div>

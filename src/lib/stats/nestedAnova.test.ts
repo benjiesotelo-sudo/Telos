@@ -44,6 +44,24 @@ describe('runNestedAnova', () => {
     expect(r.rows[1].omega2Low!).toBeCloseTo(0, 3)
     expect(r.rows[1].omega2High!).toBeCloseTo(1, 3)
 
+    // Descriptives per top-level (school) group — native-R ground truth (Rscript on anova.csv)
+    expect(r.desc.map((d) => d.group)).toEqual(['north', 'south', 'west'])
+    expect(r.desc.map((d) => d.n)).toEqual([20, 20, 20])
+    expect(r.desc[0].m).toBeCloseTo(32.475, 4)
+    expect(r.desc[0].sd).toBeCloseTo(7.4660547603, 6)
+    expect(r.desc[1].m).toBeCloseTo(33.845, 4)
+    expect(r.desc[1].sd).toBeCloseTo(6.9070882737, 6)
+    expect(r.desc[2].m).toBeCloseTo(37.81, 4)
+    expect(r.desc[2].sd).toBeCloseTo(7.7947283130, 6)
+
+    // Levene (median-centered) on the top-level factor — native-R ground truth
+    expect(r.levene.F!).toBeCloseTo(0.0224210737, 6)
+    expect(r.levene.p!).toBeCloseTo(0.9778370299, 6)
+
+    // Shapiro-Wilk on the nested-model residuals — native-R ground truth
+    expect(r.shapiro.W!).toBeCloseTo(0.9764424580, 6)
+    expect(r.shapiro.p!).toBeCloseTo(0.2970228268, 6)
+
     // No crossed labels in the clean fixture
     expect(r.crossed).toEqual([])
     expect(r.nExcluded).toBe(0)

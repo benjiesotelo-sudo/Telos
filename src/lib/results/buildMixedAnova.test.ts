@@ -97,10 +97,16 @@ describe('buildMixedAnova', () => {
     expect(c.apa).toBe('A mixed ANOVA yielded a Group × Condition interaction, F(3.34,95.29)=2.52, p = .056, partial η²=.08 [.00, 1.00].')
   })
 
-  it('note is assume kind with card text (no Levene parenthetical)', () => {
+  it('note is assume kind with card text + between-groups Levene parenthetical (mirrors one-way)', () => {
     expect(c.note!.kind).toBe('assume')
-    expect(c.note!.text).toBe(spec.tableNote!.text)
-    expect(c.note!.text).not.toContain('Levene')
+    expect(c.note!.text).toBe(`${spec.tableNote!.text} (Levene F=0.35, p=.710)`)
+    expect(c.note!.text).toContain('Levene')
+  })
+
+  it('note renders em-dash NA when Levene is null (small-N / single-group guard)', () => {
+    const rNA = { ...result, levene: { F: null, p: null } }
+    const cNA = buildMixedAnova(spec, rNA)
+    expect(cNA.note!.text).toBe(`${spec.tableNote!.text} (Levene F=—, p=—)`)
   })
 
   it('figure has card caption and type', () => {

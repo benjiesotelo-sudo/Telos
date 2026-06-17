@@ -11,6 +11,7 @@ const r: PairedTTestResult = {
   pair: 'pre − post',
   t: -10.39230, df: 5, p: 0.000142, meanDiff: -12, ci: [-14.96825, -9.03175], dz: -4.24264,
   dzLow: -6.903444, dzHigh: -1.582139,
+  shapiro: { W: 0.92238542, p: 0.52270524 },
   ciLevel: 0.95, alpha: 0.05, tails: 'two.sided', nExcluded: 2, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
 }
 
@@ -28,9 +29,13 @@ describe('buildPairedTTest', () => {
       { pair: 'pre − post', t: '−10.39', df: '5', p: '<.001', mdiff: '−12.00', ci: '[−14.97, −9.03]', d: '−4.24 [−6.90, −1.58]' },
     ])
   })
-  it('carries the card note verbatim and the excluded-pairs count', () => {
-    expect(c.note).toEqual({ kind: 'assume', text: 'assumption check: normality of the difference scores.' })
+  it('renders the assume-note with the computed Shapiro-Wilk on the difference scores + excluded-pairs count', () => {
+    expect(c.note).toEqual({ kind: 'assume', text: 'assumption check: normality of the difference scores. (Shapiro-Wilk W=0.92, p=.523)' })
     expect(c.nExcluded).toBe(2)
+  })
+  it('renders an em-dash when Shapiro is null (N outside 3–5000)', () => {
+    const note = buildPairedTTest(spec, { ...r, shapiro: { W: null, p: null } }).note
+    expect(note).toEqual({ kind: 'assume', text: 'assumption check: normality of the difference scores. (Shapiro-Wilk W=—, p=—)' })
   })
   it('fills the APA sentence with the p-clause rule and 1-dp change', () => {
     expect(c.apa).toBe('A paired-samples t-test gave M=−12.0, t(5)=−10.39, p < .001, dz=−4.24 [−6.90, −1.58].')

@@ -24,6 +24,7 @@ const spikeResult: MancovaResult = {
       pes: 0.210686814019553, pesLow: 0.0610394181580081, pesHigh: 1 },
   ],
   slopes: [{ term: 'baseline × group', p: 0.875021940147328 }],
+  boxM: { chisq: 11.4375273234805, df: 6, p: 0.0757594643401961 },
   statistic: 'Pillai',
   alpha: 0.05,
   nExcluded: 0,
@@ -58,10 +59,17 @@ describe('buildMancova', () => {
     )
   })
 
-  it('note carries card assume text plus slopes p clause', () => {
+  it('note carries card assume text plus Box M and slopes p clause', () => {
     expect(c.note!.kind).toBe('assume')
-    expect(c.note!.text).toContain('assumption checks include homogeneity of regression slopes for each covariate.')
+    expect(c.note!.text).toContain("assumption checks include homogeneity of covariance matrices (Box's M) and homogeneity of regression slopes for each covariate.")
+    expect(c.note!.text).toContain("Box's M χ²(6)=11.44, p=.076")
     expect(c.note!.text).toContain('slopes p(baseline × group)=.875')
+  })
+
+  it('Box M NA (null fields) renders em-dashes in the assume note', () => {
+    const naResult: MancovaResult = { ...spikeResult, boxM: { chisq: null, df: null, p: null } }
+    const cNa = buildMancova(spec, naResult)
+    expect(cNa.note!.text).toContain("Box's M χ²(—)=—, p=—")
   })
 
   it('figure caption and type match spec', () => {

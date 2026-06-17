@@ -34,6 +34,9 @@ describe('runPairedTTest', () => {
     expect(r.dz).toBeCloseTo(-4.243, 3)              // = mean(diff)/sd(diff), effectsize agrees to all digits
     expect(r.dzLow).toBeCloseTo(-6.903, 3)           // two-sided dz CI — native R effectsize::cohens_d(paired=TRUE, ci=0.95)
     expect(r.dzHigh).toBeCloseTo(-1.582, 3)
+    // Shapiro-Wilk on the difference scores (pre − post): native R 4.6.0 shapiro.test(d$pre - d$post) on paired.csv
+    expect(r.shapiro.W).toBeCloseTo(0.9223854, 5)
+    expect(r.shapiro.p).toBeCloseTo(0.5227052, 5)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
 })

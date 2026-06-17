@@ -19,11 +19,11 @@ describe("welch-anova registry stays faithful to the spec HTML (verbatim, card-s
     expect(caps).toEqual(spec.tables.map((t) => t.title))
     expect(spec.tables.every((t) => t.captionStyle === undefined)).toBe(true)
   })
-  it('question, PLAIN table note, figure caption + type, how-to-read and R map match verbatim', () => {
+  it('question, assume table note, figure caption + type, how-to-read and R map match verbatim', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/s)![1])).toBe(spec.question)
-    // note is plain — NOT an assumption note
-    expect(spec.tableNote).toEqual({ kind: 'plain', text: strip(card.match(/<p class="tbl-note">(.*?)<\/p>/s)![1]) })
-    expect(card.includes('tbl-note assume')).toBe(false)
+    // note is an assumption note — Welch reports within-group normality (Shapiro per group)
+    expect(spec.tableNote).toEqual({ kind: 'assume', text: strip(card.match(/<p class="tbl-note assume">(.*?)<\/p>/s)![1]) })
+    expect(card.includes('tbl-note assume')).toBe(true) // assume note, NOT a plain note
     expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(figuresOf(spec)[0].caption)
     expect(strip(card.match(/<div class="ftype">(.*?)<\/div>/s)![1])).toBe(`type: ${figuresOf(spec)[0].type}`)
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)

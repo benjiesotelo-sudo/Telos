@@ -13,6 +13,7 @@ export interface MancovaResult {
   multivariate: MultivarRow[]
   followups: UnivariateFollowupRow[]
   slopes: { term: string; p: number }[]   // cov × factor interaction rows (per-covariate slope check)
+  boxM: { chisq: number | null; df: number | null; p: number | null }  // Box's M homogeneity of covariance matrices (heplots::boxM)
   statistic: string
   alpha: number
   nExcluded: number
@@ -81,7 +82,17 @@ if (!is.null(mi)) {
     }
   }
 }
-list(multivariate = mv, followups = fu, slopes = slopes)`
+# Box's M: homogeneity of the DV covariance matrices across the FIRST grouping factor (heplots::boxM).
+# Guarded like Shapiro (small/huge N → NULL→null); also NULL on a singular group cov (n <= #DVs) via tryCatch.
+boxM <- tryCatch({
+  if (n >= 3 && n <= 5000) {
+    Ymat <- matrix(dvs_flat, nrow = n, ncol = length(dvnames))
+    bg <- factor(fvals_flat[1:n])
+    bm <- heplots::boxM(Ymat, bg)
+    list(chisq = unname(bm$statistic), df = unname(bm$parameter), p = unname(bm$p.value))
+  } else list(chisq = NULL, df = NULL, p = NULL)
+}, error = function(e) list(chisq = NULL, df = NULL, p = NULL))
+list(multivariate = mv, followups = fu, slopes = slopes, boxM = boxM)`
 
 // Figure: per-DV emmeans adjusted means, faceted by DV.
 // Fit lm(dv ~ covs + factors) per DV; emmean/lower.CL/upper.CL from as.data.frame(emmeans(m, ~factors)).
@@ -108,6 +119,7 @@ interface RawStats {
   multivariate: MultivarRow[]
   followups: UnivariateFollowupRow[]
   slopes: { term: string; p: number }[]
+  boxM: { chisq: number | null; df: number | null; p: number | null }
 }
 
 export async function runMancova(

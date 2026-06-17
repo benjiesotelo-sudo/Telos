@@ -30,7 +30,7 @@ export const INDEPENDENT_T_TEST: TestSpec = {
     { id: 't-test', title: 'Independent-samples t-test',
       columns: [{ key: 'contrast', label: 'Contrast' }, { key: 't', label: 't' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: "Cohen's d [95% CI]" }] },
   ],
-  assumptionNote: "assumption check: Levene's test for equal variances; a Welch row replaces the pooled row when equal-variance is off.",
+  assumptionNote: "assumption checks: Levene's test for equal variances & within-group normality (Shapiro-Wilk per group); a Welch row replaces the pooled row when equal-variance is off.",
   figure: { caption: 'Distribution of the outcome by group', type: 'boxplot' },
   howToRead:
     "Asks whether two groups' averages differ by more than chance. Look at p: below alpha (e.g. .05) means significant. " +

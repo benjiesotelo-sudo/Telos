@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { ManovaResult } from '../stats/manova'
 import type { CardContent } from './builders'
-import { f, f01, fdf, fp, fpApa } from '../format/apa'
+import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 
 export function buildManova(spec: TestSpec, r: ManovaResult): CardContent {
   // APA from the SELECTED statistic's fields (owner ruling: option b).
@@ -47,9 +47,11 @@ export function buildManova(spec: TestSpec, r: ManovaResult): CardContent {
     })
   }
 
+  // Assume-note: registry static text + runtime Box's M (heplots::boxM). Mirrors buildOneWayAnova; em-dash NA via fx().
+  const bm = r.boxM
   return {
     tables,
-    note: null, // NO tableNote (plan: card has none)
+    note: { kind: 'assume', text: `${spec.tableNote!.text} (Box's M χ²=${fx(bm.chisq, f)}, df=${fx(bm.df, fdf)}, p=${fx(bm.p, fp)})`, afterTableId: spec.tableNote?.afterTableId },
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,

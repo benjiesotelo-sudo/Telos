@@ -3,10 +3,12 @@ import type { Dataset } from './types'
 
 export interface GroupDescRow { group: string; n: number; m: number; sd: number }
 export interface GamesHowellRow { pair: string; diff: number; pAdj: number; ciLo: number; ciHi: number }
+export interface ShapiroGroupRow { group: string; W: number | null; p: number | null }
 export interface WelchAnovaResult {
   desc: GroupDescRow[]
   f: number; df1: number; df2: number; p: number
   posthoc: GamesHowellRow[]
+  shapiro: ShapiroGroupRow[]  // within-group normality (Welch relaxes equal variance, still assumes normality per group)
   alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
@@ -19,8 +21,12 @@ desc <- lapply(levels(gf), function(l) { v <- y[gf == l]; list(group = l, n = le
 gh <- rstatix::games_howell_test(data.frame(y = y, g = gf), y ~ g)
 ph <- lapply(seq_len(nrow(gh)), function(i) list(pair = paste(gh$group1[i], '-', gh$group2[i]),
   diff = -gh$estimate[i], pAdj = gh$p.adj[i], ciLo = -gh$conf.high[i], ciHi = -gh$conf.low[i]))
+sh <- lapply(levels(gf), function(l) { v <- y[gf == l]; n <- length(v)
+  if (n >= 3 && n <= 5000) { t <- tryCatch(shapiro.test(v), error = function(e) NULL)
+    if (is.null(t)) list(group = l, W = NULL, p = NULL) else list(group = l, W = unname(t$statistic), p = t$p.value) }
+  else list(group = l, W = NULL, p = NULL) })
 list(desc = desc, f = unname(res$statistic), df1 = unname(res$parameter[1]), df2 = unname(res$parameter[2]),
-  p = res$p.value, posthoc = ph)`
+  p = res$p.value, posthoc = ph, shapiro = sh)`
 
 // Means plot with t-based 95% CI error bars (card figure; no Hmisc — computed in R).
 const R_FIGURE = String.raw`
@@ -33,7 +39,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(g, m)) +
   ggplot2::geom_pointrange(ggplot2::aes(ymin = lo, ymax = hi), colour = '#0c447c') +
   ggplot2::labs(x = NULL, y = NULL))`
 
-interface RawStats { desc: GroupDescRow[]; f: number; df1: number; df2: number; p: number; posthoc: GamesHowellRow[] }
+interface RawStats { desc: GroupDescRow[]; f: number; df1: number; df2: number; p: number; posthoc: GamesHowellRow[]; shapiro: ShapiroGroupRow[] }
 
 export async function runWelchAnova(engine: Engine, data: Dataset, outcome: string, factor: string, alpha = 0.05): Promise<WelchAnovaResult> {
   // Per-test listwise: drop rows missing/non-numeric in outcome or blank in factor.

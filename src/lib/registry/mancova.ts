@@ -46,7 +46,7 @@ export const MANCOVA: TestSpec = {
         { key: 'pes', label: 'partial η² [95% CI]' },
       ] },
   ],
-  tableNote: { kind: 'assume', text: 'assumption checks include homogeneity of regression slopes for each covariate.' },
+  tableNote: { kind: 'assume', text: "assumption checks include homogeneity of covariance matrices (Box's M) and homogeneity of regression slopes for each covariate." },
   figures: [{ caption: 'Adjusted means per outcome', type: 'adjusted means plot faceted by DV' , file: 'adjusted-means' }],
   howToRead:
     'Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. ' +

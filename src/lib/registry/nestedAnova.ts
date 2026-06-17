@@ -26,6 +26,8 @@ export const NESTED_ANOVA: TestSpec = {
     minRule: { kind: 'rows-per-group', n: 3 },
   },
   tables: [
+    { id: 'descriptives', domId: 'nested-anova-descriptives', title: 'Descriptives by top-level group',
+      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'm', label: 'M' }, { key: 'sd', label: 'SD' }] },
     { id: 'nested-anova', domId: 'nested-anova-nested-anova', title: 'Nested ANOVA', captionStyle: 'bare',
       columns: [
         { key: 'source', label: 'Source' }, { key: 'ss', label: 'SS' }, { key: 'df', label: 'df' },
@@ -33,11 +35,11 @@ export const NESTED_ANOVA: TestSpec = {
         { key: 'omega2', label: 'ω² [95% CI]' },
       ] },
   ],
-  tableNote: { kind: 'plain', text: "Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual — so the two F rows do not share the same denominator. Variance components (or ω²) are reported as the effect size where estimable." },
+  tableNote: { kind: 'assume', text: "Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual — so the two F rows do not share the same denominator. Variance components (or ω²) are reported as the effect size where estimable. Assumption checks: Levene's (equal variances across top-level groups) & normality of residuals (Shapiro-Wilk)." },
   figures: [{ caption: 'Grouped means', type: 'grouped means plot (nested groups within each top-level group)' , file: 'grouped-means' }],
   howToRead:
     'Used when one factor sits inside another (e.g. classes within schools). The top factor is tested against variation among its nested units, not raw residuals — a significant F means the top-level groups differ beyond the nested-unit variability.',
   apaTemplate: 'A nested ANOVA for A gave F({df1},{df2})={f}, p {p}, ω²={o2} [{lo}, {hi}].',
   rMap: 'aov(y ~ A + Error(A:B)) (random) / aov(y ~ A/B) (fixed) → table · effectsize::omega_squared() → effect size · ggplot2 → figure',
-  bundleFiles: ['table_nested-anova.png', 'figure_grouped-means.png'],
+  bundleFiles: ['table_descriptives.png', 'table_nested-anova.png', 'figure_grouped-means.png'],
 }

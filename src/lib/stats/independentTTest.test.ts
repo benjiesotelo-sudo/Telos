@@ -50,6 +50,13 @@ describe('runIndependentTTest', () => {
     expect(r.cohensDLow).toBeCloseTo(-5.3154, 3)
     expect(r.cohensDHigh).toBeCloseTo(-1.5329, 3)
     expect(r.nExcluded).toBe(0)
+    // Within-group normality: Shapiro-Wilk per group ≡ native R `shapiro.test(score[group==l])` on study.csv (the doc config)
+    // control: W=0.992631, p=0.994608 · treatment: W=0.963536, p=0.846537
+    expect(r.shapiroByGroup.map((s) => s.group)).toEqual(['control', 'treatment'])
+    expect(r.shapiroByGroup[0].W).toBeCloseTo(0.992631, 4)
+    expect(r.shapiroByGroup[0].p).toBeCloseTo(0.994608, 4)
+    expect(r.shapiroByGroup[1].W).toBeCloseTo(0.963536, 4)
+    expect(r.shapiroByGroup[1].p).toBeCloseTo(0.846537, 4)
   })
 
   it("Cohen's d point estimate is the prior pooled value regardless of the toggle; only its CI shifts pooled↔un-pooled", async () => {

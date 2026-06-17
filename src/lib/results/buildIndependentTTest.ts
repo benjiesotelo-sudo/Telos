@@ -22,7 +22,7 @@ export function buildIndependentTTest(spec: TestSpec, r: TTestResult): CardConte
       { spec: spec.tables[0], rows: r.groupStats.map((g) => ({ group: g.group, n: g.n, mean: f(g.mean), sd: f(g.sd), se: f(g.se) })) },
       { spec: { ...spec.tables[1], columns: t2cols }, rows: [{ contrast: r.contrast, t: f(r.t), df: fdf(r.df), p: fp(r.p), mdiff: f(r.meanDiff), ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: `${f(r.cohensD)} [${f(r.cohensDLow)}, ${f(r.cohensDHigh)}]` }] },
     ],
-    note: { kind: 'assume', text: `${spec.assumptionNote} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · ${r.test === 'welch' ? 'Welch' : 'pooled'} test)` },
+    note: { kind: 'assume', text: `${spec.assumptionNote} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · ${r.shapiroByGroup.map((s) => `Shapiro ${s.group} W=${fx(s.W, f)}, p=${fx(s.p, fp)}`).join('; ')} · ${r.test === 'welch' ? 'Welch' : 'pooled'} test)` },
     figures: [{ caption: spec.figure!.caption, type: spec.figure!.type, png: r.figurePng }],
     howToRead: spec.howToRead.replace('95% CI', ciLabel).replace('(e.g. .05)', `(e.g. ${r.alpha})`) + tailsNote(r.tails),
     apa,

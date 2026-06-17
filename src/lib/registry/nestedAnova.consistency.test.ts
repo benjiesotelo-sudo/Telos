@@ -16,16 +16,19 @@ describe('nested-anova registry stays faithful to the spec HTML (verbatim, card-
       [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => (c.sub ? `${c.label}<sub>${c.sub}</sub>` : c.label))))
   })
-  it('the caption is the bare "Table." style — no numbered caption in this card', () => {
-    expect([...card.matchAll(/<div class="apa-cap"><b>Table\.<\/b> (.*?)<\/div>/g)].map((m) => m[1])).toEqual(spec.tables.map((t) => t.title))
-    expect(spec.tables[0].captionStyle).toBe('bare')
-    expect(card).not.toMatch(/<b>Table \d\.<\/b>/)
+  it('captions: descriptives is numbered ("Table N."); the nested-anova table is the bare "Table." style', () => {
+    const numbered = spec.tables.filter((t) => t.captionStyle !== 'bare')
+    const bare = spec.tables.filter((t) => t.captionStyle === 'bare')
+    expect([...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => m[1])).toEqual(numbered.map((t) => t.title))
+    expect([...card.matchAll(/<div class="apa-cap"><b>Table\.<\/b> (.*?)<\/div>/g)].map((m) => m[1])).toEqual(bare.map((t) => t.title))
+    expect(spec.tables[0].captionStyle).toBeUndefined()   // descriptives = numbered
+    expect(spec.tables[1].captionStyle).toBe('bare')       // nested-anova = bare
   })
-  it('question, plain table note, figure caption + type, how-to-read and R map match verbatim', () => {
+  it('question, assume table note, figure caption + type, how-to-read and R map match verbatim', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/s)![1])).toBe(spec.question)
-    expect(strip(card.match(/<p class="tbl-note">(.*?)<\/p>/s)![1])).toBe(spec.tableNote!.text)
-    expect(card).not.toContain('tbl-note assume') // plain note, NOT an assumption note
-    expect(spec.tableNote!.kind).toBe('plain')
+    expect(strip(card.match(/<p class="tbl-note assume">(.*?)<\/p>/s)![1])).toBe(spec.tableNote!.text)
+    expect(card.includes('tbl-note assume')).toBe(true) // assume note, NOT a plain note
+    expect(spec.tableNote!.kind).toBe('assume')
     expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(spec.figures![0].caption)
     expect(strip(card.match(/<div class="ftype">(.*?)<\/div>/s)![1])).toBe(`type: ${spec.figures![0].type}`)
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)

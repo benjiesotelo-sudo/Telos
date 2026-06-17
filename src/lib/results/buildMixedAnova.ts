@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { MixedAnovaResult } from '../stats/mixedAnova'
 import type { CardContent } from './builders'
-import { f, f01, fdf, fp, fpApa } from '../format/apa'
+import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 import { posthocTableRows } from '../stats/posthoc'
 
 export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardContent {
@@ -21,9 +21,10 @@ export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardConten
   // Note anchors after the sphericity table (before posthoc) when sphericity rows are present.
   // When sphericity is absent (2-level within factor), the note renders after the ANOVA table.
   const showSphericity = r.sphericity.length > 0
+  // Render the between-groups homogeneity check (Brown-Forsythe Levene on per-subject means) into the assume-note — mirrors one-way's "(Levene F=…, p=…)". em-dash NA via fx().
   const note: CardContent['note'] = {
     kind: 'assume',
-    text: spec.tableNote!.text,
+    text: `${spec.tableNote!.text} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)})`,
     ...(showSphericity ? { afterTableId: 'sphericity' } : { afterTableId: 'mixed-anova' }),
   }
 

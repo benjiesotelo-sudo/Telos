@@ -50,6 +50,12 @@ describe('runManova (spike known answers: outcome+outcome2 ~ group)', () => {
     expect(fu2.pesLow).toBeCloseTo(0.0638706439, 3)  // effectsize::eta_squared(ci=0.95)$CI_low
     expect(fu2.pesHigh).toBeCloseTo(1.0000, 3)        // one-sided upper bound pinned at 1.00
 
+    // Box's M (heplots::boxM) — native-R ground truth: heplots::boxM(cbind(outcome,outcome2)~group)
+    // → chisq=11.437527, df=6, p=0.075759 (WebR ≡ native R)
+    expect(r.boxM.chisq).toBeCloseTo(11.437527, 4)
+    expect(r.boxM.df).toBe(6)
+    expect(r.boxM.p).toBeCloseTo(0.075759, 5)
+
     expect(r.nExcluded).toBe(0)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 900_000)

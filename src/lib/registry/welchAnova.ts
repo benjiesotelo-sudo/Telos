@@ -30,7 +30,7 @@ export const WELCH_ANOVA: TestSpec = {
     { id: 'posthoc', domId: 'welch-anova-posthoc', title: 'Games-Howell post-hoc',
       columns: [{ key: 'pair', label: 'Pair' }, { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'padj', label: 'p', sub: 'adj' }, { key: 'ci', label: '95% CI' }] },
   ],
-  tableNote: { kind: 'plain', text: "Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional)." },
+  tableNote: { kind: 'assume', text: "Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional); within-group normality is still assumed and checked with Shapiro-Wilk per group." },
   figures: [{ caption: 'Group means', type: 'means plot with 95% CI error bars' , file: 'means-plot' }],
   howToRead:
     'A one-way ANOVA that relaxes the equal-variance assumption but still assumes roughly normal data within each group. ' +

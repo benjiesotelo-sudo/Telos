@@ -4,6 +4,9 @@ import type { Dataset, GroupStat, TTestResult } from './types'
 const R_STATS = String.raw`
 g <- factor(group); lv <- levels(g)
 gs <- lapply(lv, function(l){ v <- score[g==l]; list(group=l, n=length(v), mean=mean(v), sd=sd(v), se=sd(v)/sqrt(length(v))) })
+# Within-group normality (Shapiro-Wilk per group): same 3-5000 guard as the one-sample card -> NA outside range, rendered as em-dash.
+sbg <- lapply(lv, function(l){ v <- score[g==l]; n <- length(v); sw <- if (n>=3 && n<=5000) shapiro.test(v) else NULL
+  list(group=l, W=if (is.null(sw)) NA_real_ else unname(sw$statistic), p=if (is.null(sw)) NA_real_ else sw$p.value) })
 med <- tapply(score, g, median); z <- abs(score - med[as.character(g)])
 lev <- anova(lm(z ~ g)); levF <- lev[["F value"]][1]; levP <- lev[["Pr(>F)"]][1]
 # Levene is degenerate below n=3 per group (F is floating-point residue) - report as null, render as em-dash
@@ -18,7 +21,7 @@ d <- effectsize::cohens_d(score ~ g, ci = level, pooled_sd = equal_variance)
 list(groupStats=gs, test=if (equal_variance) 'pooled' else 'welch',
   t=unname(res$statistic), df=unname(res$parameter), p=res$p.value,
   meanDiff=mean(a)-mean(b), ci=as.numeric(res$conf.int),
-  cohensD=d$Cohens_d, cohensDLow=d$CI_low, cohensDHigh=d$CI_high, levene=list(F=levF, p=levP))`
+  cohensD=d$Cohens_d, cohensDLow=d$CI_low, cohensDHigh=d$CI_high, levene=list(F=levF, p=levP), shapiroByGroup=sbg)`
 
 // ggplot2 (per the architecture doc / outputs spec / rMap); print() renders into the active png() device.
 const R_BOXPLOT = String.raw`
@@ -31,6 +34,7 @@ interface RawStats {
   t: number; df: number; p: number; meanDiff: number; ci: number[]; cohensD: number
   cohensDLow: number; cohensDHigh: number
   levene: { F: number | null; p: number | null }
+  shapiroByGroup: { group: string; W: number | null; p: number | null }[]
 }
 
 export async function runIndependentTTest(engine: Engine, data: Dataset, outcome: string, group: string, equalVariance: boolean, level = 0.95, alpha = 0.05, alternative = 'two.sided'): Promise<TTestResult> {
@@ -46,6 +50,6 @@ export async function runIndependentTTest(engine: Engine, data: Dataset, outcome
     contrast: `${s.groupStats[0].group} − ${s.groupStats[1].group}`, test: s.test,
     t: s.t, df: s.df, p: s.p, meanDiff: s.meanDiff, ci: [s.ci[0], s.ci[1]], cohensD: s.cohensD,
     cohensDLow: s.cohensDLow, cohensDHigh: s.cohensDHigh,
-    levene: s.levene, ciLevel: level, alpha, tails: alternative, nExcluded, figurePng,
+    levene: s.levene, shapiroByGroup: s.shapiroByGroup, ciLevel: level, alpha, tails: alternative, nExcluded, figurePng,
   }
 }

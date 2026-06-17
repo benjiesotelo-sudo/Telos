@@ -10,6 +10,7 @@ export interface PairedTTestResult {
   ci: [number, number]                  // CI of the mean difference at the requested level
   dz: number                            // effectsize::cohens_d(paired=TRUE)
   dzLow: number; dzHigh: number         // effect-size CI (APA-7: report dz WITH its CI), honors `level` — two-sided
+  shapiro: { W: number | null; p: number | null } // Shapiro-Wilk on the difference scores (a − b); null outside 3–5000 — em-dash
   ciLevel: number
   alpha: number
   tails: string
@@ -21,11 +22,14 @@ const R_STATS = String.raw`
 desc <- psych::describe(data.frame(a = a, b = b))
 res <- t.test(a, b, paired = TRUE, conf.level = level, alternative = alternative)
 dz <- effectsize::cohens_d(a, b, paired = TRUE, ci = level)
+diff <- a - b
+sw <- if (length(diff) >= 3 && length(diff) <= 5000) shapiro.test(diff) else NULL
 list(stats = list(list(n = desc$n[1], mean = desc$mean[1], sd = desc$sd[1]),
                   list(n = desc$n[2], mean = desc$mean[2], sd = desc$sd[2])),
   t = unname(res$statistic), df = unname(res$parameter), p = res$p.value,
   meanDiff = unname(res$estimate), ci = as.numeric(res$conf.int),
-  dz = dz$Cohens_d, dzLow = dz$CI_low, dzHigh = dz$CI_high)`
+  dz = dz$Cohens_d, dzLow = dz$CI_low, dzHigh = dz$CI_high,
+  shapiro = list(W = if (is.null(sw)) NA_real_ else unname(sw$statistic), p = if (is.null(sw)) NA_real_ else sw$p.value))`
 
 // The card's "paired-lines / difference plot": one line per case from Condition A to Condition B.
 const R_FIGURE = String.raw`
@@ -36,7 +40,7 @@ print(ggplot2::ggplot(df, ggplot2::aes(cond, value, group = case)) +
   ggplot2::geom_line(colour = '#9cc2ec') + ggplot2::geom_point(colour = '#0c447c') +
   ggplot2::labs(x = NULL, y = NULL))`
 
-interface RawStats { stats: { n: number; mean: number; sd: number }[]; t: number; df: number; p: number; meanDiff: number; ci: number[]; dz: number; dzLow: number; dzHigh: number }
+interface RawStats { stats: { n: number; mean: number; sd: number }[]; t: number; df: number; p: number; meanDiff: number; ci: number[]; dz: number; dzLow: number; dzHigh: number; shapiro: { W: number | null; p: number | null } }
 
 export async function runPairedTTest(engine: Engine, data: Dataset, conditionA: string, conditionB: string, level = 0.95, alpha = 0.05, alternative = 'two.sided'): Promise<PairedTTestResult> {
   // Complete-pairs listwise (the card's missing-data unit): keep rows where BOTH condition columns are numeric-finite.
@@ -55,6 +59,6 @@ export async function runPairedTTest(engine: Engine, data: Dataset, conditionA: 
     pair: `${conditionA} − ${conditionB}`,
     t: s.t, df: s.df, p: s.p, meanDiff: s.meanDiff, ci: [s.ci[0], s.ci[1]], dz: s.dz,
     dzLow: s.dzLow, dzHigh: s.dzHigh,
-    ciLevel: level, alpha, tails: alternative, nExcluded, figurePng,
+    shapiro: s.shapiro, ciLevel: level, alpha, tails: alternative, nExcluded, figurePng,
   }
 }

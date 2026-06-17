@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { PairedTTestResult } from '../stats/pairedTTest'
 import type { CardContent } from './builders'
-import { f, f1, fdf, fp, fpApa } from '../format/apa'
+import { f, f1, fdf, fp, fpApa, fx } from '../format/apa'
 
 const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
 
@@ -21,7 +21,7 @@ export function buildPairedTTest(spec: TestSpec, r: PairedTTestResult): CardCont
       { spec: spec.tables[0], rows: r.conditions.map((c) => ({ condition: c.condition, n: c.n, mean: f(c.mean), sd: f(c.sd) })) },
       { spec: { ...spec.tables[1], columns: t2cols }, rows: [{ pair: r.pair, t: f(r.t), df: fdf(r.df), p: fp(r.p), mdiff: f(r.meanDiff), ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: `${f(r.dz)} [${f(r.dzLow)}, ${f(r.dzHigh)}]` }] },
     ],
-    note: spec.tableNote ?? null, // the card's static text — no computed values (the card draws no blanks)
+    note: { kind: 'assume', text: `${spec.tableNote!.text} (Shapiro-Wilk W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})` },
     figures: figuresOf(spec).map((fg) => ({ caption: fg.caption, type: fg.type, png: r.figurePng })),
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
