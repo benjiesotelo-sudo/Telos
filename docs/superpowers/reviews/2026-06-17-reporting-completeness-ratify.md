@@ -44,7 +44,7 @@ under WebR (the Task-1 spike recorded ground truth; each card's stats test asser
 ## Gate evidence
 
 - tsc 0 · test:fast 873/873 (incremental, per theme).
-- _Final gate (to be filled): full vitest ×2, e2e, build, fresh-clone, native-R `runs-in-r` gate._
+- **Final gate GREEN (2026-06-17):** build · **full WebR vitest ×2 = 1021/1021** · **e2e 14/14** · **fresh-clone** (install → build → test:fast 873) · native-R `runs-in-r` gate 12/12. Pushed (no deploy).
 
 ## Carryover (your calls, unchanged)
 - Push / deploy of this pass (and the export slice already pushed): your call.
