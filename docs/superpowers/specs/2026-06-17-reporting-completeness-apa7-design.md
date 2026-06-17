@@ -14,13 +14,14 @@ the existing 40.
 
 ## The standard (owner-ruled 2026-06-17)
 
-The suite already uses **two complementary, citable conventions**; this pass conforms each test to the right one and enforces the shared reporting principles across both. **It does not reformat any table** — it adds what each convention expects.
+Complementary, citable conventions — this pass conforms each test to the right one and enforces the shared reporting principles across all. **Coefficient tables and descriptive tables follow Vincent Arel-Bundock's `modelsummary` package** (the convention the owner prefers); the inferential statistic tables keep their discipline-standard APA-7 structure; APA-7 principles + cited methods + provenance apply throughout. Both families are applied the same way the coef tables already are: the format is **replicated in the TS builders** and the **real R call emitted in the exported `analysis.R`** (it does not run live in WebR); computed values are unchanged.
 
-1. **Coefficient tables (the 13 regression + econometrics tests) → `modelsummary` (Vincent Arel-Bundock).** The stacked estimate / (SE) / [CI] + GOF-footer publication format adopted in the table-format slice — its own citable convention (the `modelsummary` package + its documented format), and **UNCHANGED here.** These tables already carry a per-term CI, so the effect-size-CI work below does **not** touch them; they're affected only by the relevant assumption/diagnostic + render fixes (Themes 3–4) and the method-reference line (Task 18).
-2. **All other tables (the 27 descriptive / t-test / ANOVA-family / correlation / categorical / nonparametric tests) → APA-7** table format.
-3. **Cross-cutting reporting principles → APA-7 (Publication Manual, 7th ed.), across ALL families:** exact *p*; **effect sizes with confidence intervals**; descriptives; assumptions checked + reported. These are the completeness yardstick and what most of this pass enforces.
-4. **Econometrics *methods* APA-7 doesn't define → the canonical method reference the computation already uses**, cited from each R package's own `citation()` (authoritative, no guessing): e.g. `rdrobust` (Calonico–Cattaneo–Titiunik), weak-instrument *F* (Stock–Yogo), PSM balance (Austin), DiD clustered SE (Bertrand–Duflo–Mullainathan), ARIMA/`forecast` (Hyndman & Athanasopoulos), VAR (`vars`/Lütkepohl), `plm`, `tseries`. (For the coefficient-table family this sits alongside the `modelsummary` format — we cite both.)
-5. **Computational traceability** — everything runs in R via published packages and the app already exports a
+1. **Coefficient tables (the 13 regression + econometrics tests) → `modelsummary()` (Arel-Bundock).** The stacked estimate / (SE) / [CI] + GOF-footer format from the table-format slice — **UNCHANGED.** They already carry a per-term CI, so the effect-size-CI work below does **not** touch them; affected only by the relevant diagnostics/render fixes (Themes 3–4) + the method-reference line (Task 18).
+2. **Descriptive tables → Arel-Bundock's `datasummary_*` family** (same package + house style): Summary statistics → `datasummary_skim`/`datasummary`; Frequencies & cross-tabs → `datasummary_crosstab`; the group "Table 1" descriptives that front the t-test / ANOVA / nonparametric comparisons → `datasummary_balance`. (Correlation matrices → `datasummary_correlation` only if/when correlations go multi-variable; the current single-pair cards are unaffected.) The Theme-4 descriptive completeness adds (mean CI, Valid%/Missing, excess-kurtosis, skew/kurtosis) are designed *into* these datasummary tables rather than patched onto the old format.
+3. **Inferential statistic tables → APA-7 conventions:** the ANOVA/ANCOVA/MANOVA source & multivariate-test tables, correlation *r*-lines, the χ² contingency + test tables, Fisher, and the rank-test tables keep their discipline-standard structure (a coefficient or datasummary format would be *wrong* for these).
+4. **Cross-cutting reporting principles → APA-7 (Publication Manual, 7th ed.), across ALL families:** exact *p*; **effect sizes with confidence intervals**; descriptives; assumptions checked + reported. The completeness yardstick — what most of this pass enforces.
+5. **Econometrics *methods* APA-7 doesn't define → the canonical method reference the computation already uses**, cited from each R package's own `citation()` (authoritative, no guessing): `rdrobust` (Calonico–Cattaneo–Titiunik), weak-instrument *F* (Stock–Yogo), PSM balance (Austin), DiD clustered SE (Bertrand–Duflo–Mullainathan), ARIMA/`forecast` (Hyndman & Athanasopoulos), VAR (`vars`/Lütkepohl), `plm`, `tseries`. For the coef-table family this sits alongside `modelsummary` — cite both.
+6. **Computational traceability** — everything runs in R via published packages and the app already exports a
    runnable `analysis.R`. Surface the provenance so any number traces to a named, peer-used implementation
    (see "Provenance" below).
 
@@ -63,9 +64,13 @@ Abadie–Imbens PSM SEs.
   (Mann-Whitney, Wilcoxon); random-effects Breusch-Pagan LM (RE vs pooled) + variance components/θ; label
   Kendall's tau-b; label Fisher's OR as conditional-MLE + add Cramér's V for >2×2; per-cell standardized
   residuals on χ² independence.
-- **Fuller descriptive cards:** Summary stats gains a mean 95% CI (or SE) + "excess kurtosis" label; Frequencies
-  gains Valid% vs Total% split + a Missing row; Distribution-normality surfaces skewness/kurtosis on-card.
-  (Quartiles/IQR + a grouped Total row are out of scope for this pass — owner-ruled.)
+- **Descriptive tables → Arel-Bundock `datasummary_*` (standard §2), with the completeness adds designed in:**
+  Summary statistics → `datasummary_skim`/`datasummary` + a mean 95% CI (or SE) + "excess kurtosis (type-3)" label;
+  Frequencies & cross-tabs → `datasummary_crosstab` + Valid% vs Total% split + a Missing row; the per-group
+  "Table 1" descriptives that front the t-test / ANOVA / nonparametric comparisons → `datasummary_balance`;
+  Distribution-normality keeps its normality-test structure but surfaces skewness/kurtosis. Replicate each
+  format in the TS builders + emit the real `datasummary_*()` in `analysis.R`; computed values unchanged.
+  (Quartiles/IQR + a grouped Total row are out of scope — owner-ruled.)
 
 ## Provenance (computational traceability)
 
