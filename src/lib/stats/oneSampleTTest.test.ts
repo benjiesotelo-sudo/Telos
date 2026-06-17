@@ -31,6 +31,8 @@ describe('runOneSampleTTest', () => {
     expect(r.ci[0]).toBeCloseTo(8.3695, 3)   // 78.3694847 − 70: the rendered CI is the DIFFERENCE CI
     expect(r.ci[1]).toBeCloseTo(16.2972, 3)  // 86.2971820 − 70
     expect(r.cohensD).toBeCloseTo(3.2653, 3)
+    expect(r.cohensDLow).toBeCloseTo(1.1437, 3)   // effectsize::cohens_d(ci=0.95)$CI_low  (Task-1 spike: native R ≡ WebR)
+    expect(r.cohensDHigh).toBeCloseTo(5.3681, 3)  // effectsize::cohens_d(ci=0.95)$CI_high
     expect(r.shapiro.W).toBeCloseTo(0.9635, 3)
     expect(r.shapiro.p).toBeCloseTo(0.8465, 3)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])

@@ -226,14 +226,14 @@
       <div class="apa-cap"><b>Table 1.</b> Descriptives</div>
       <table class="apa"><thead><tr><th>Variable</th><th>N</th><th>M</th><th>SD</th><th>SE</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> One-sample t-test</div>
-      <table class="apa"><thead><tr><th>Test value</th><th>t</th><th>df</th><th>p</th><th>M<sub>diff</sub></th><th>95% CI</th><th>d</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Test value</th><th>t</th><th>df</th><th>p</th><th>M<sub>diff</sub></th><th>95% CI</th><th>Cohen's d [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption check: normality (Shapiro-Wilk) reported under the descriptives.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Value vs. test value</div><div class="ftype">type: <b>distribution / boxplot</b> with a reference line at the test value</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Compares your sample mean to a fixed value. A <b>p</b> below alpha means the mean differs from that value; the <b>mean difference</b> and <b>95% CI</b> show by how much (its sign tells you whether the mean is above or below the test value), and <b>Cohen's d</b> gives the effect size. A <b>p</b> at or above alpha does not prove the mean equals the test value &mdash; only that you lack evidence it differs.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A one-sample t-test gave <i>M</i>&nbsp;=&nbsp;__ vs. __, <i>t</i>(__)&nbsp;=&nbsp;__, <i>p</i>&nbsp;__, <i>d</i>&nbsp;=&nbsp;__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A one-sample t-test gave <i>M</i>&nbsp;=&nbsp;__ vs. __, <i>t</i>(__)&nbsp;=&nbsp;__, <i>p</i>&nbsp;__, <i>d</i>&nbsp;=&nbsp;__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>t.test(x, mu=)</code> &rarr; Table 2 &middot; <code>effectsize::cohens_d()</code> &rarr; d &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_descriptives.png &middot; table_t-test.png &middot; figure_distribution.png</div>
       </div>

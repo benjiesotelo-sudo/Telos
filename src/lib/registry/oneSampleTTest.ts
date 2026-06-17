@@ -26,7 +26,7 @@ export const ONE_SAMPLE_T_TEST: TestSpec = {
     { id: 'descriptives', domId: 'one-sample-descriptives', title: 'Descriptives', // domId: '#table-descriptives' would collide with Summary statistics on a combined page
       columns: [{ key: 'variable', label: 'Variable' }, { key: 'n', label: 'N' }, { key: 'mean', label: 'M' }, { key: 'sd', label: 'SD' }, { key: 'se', label: 'SE' }] },
     { id: 't-test', domId: 'one-sample-t-test', title: 'One-sample t-test', // domId: '#table-t-test' would collide with the independent/paired Table 2 on a combined page; the zip keeps table_t-test.png
-      columns: [{ key: 'mu0', label: 'Test value' }, { key: 't', label: 't' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: 'd' }] },
+      columns: [{ key: 'mu0', label: 'Test value' }, { key: 't', label: 't' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: "Cohen's d [95% CI]" }] },
   ],
   tableNote: { kind: 'assume', text: 'assumption check: normality (Shapiro-Wilk) reported under the descriptives.' },
   figures: [{ caption: 'Value vs. test value', type: 'distribution' }],
@@ -34,7 +34,7 @@ export const ONE_SAMPLE_T_TEST: TestSpec = {
     'Compares your sample mean to a fixed value. A p below alpha means the mean differs from that value; ' +
     'the mean difference and 95% CI show by how much (its sign tells you whether the mean is above or below the test value), ' +
     "and Cohen's d gives the effect size. A p at or above alpha does not prove the mean equals the test value — only that you lack evidence it differs.",
-  apaTemplate: 'A one-sample t-test gave M={m} vs. {mu0}, t({df})={t}, p {p}, d={d}.',
+  apaTemplate: 'A one-sample t-test gave M={m} vs. {mu0}, t({df})={t}, p {p}, d={d} [{dlo}, {dhi}].',
   rMap: 't.test(x, mu=) → Table 2 · effectsize::cohens_d() → d · ggplot2 → figure',
   bundleFiles: ['table_descriptives.png', 'table_t-test.png', 'figure_distribution.png'],
 }

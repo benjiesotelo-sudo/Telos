@@ -9,6 +9,7 @@ export interface OneSampleTTestResult {
   meanDiff: number                                // M − μ0
   ci: [number, number]                            // DIFFERENCE CI — see the spike-fact comment below
   cohensD: number
+  cohensDLow: number; cohensDHigh: number         // effect-size CI (APA-7: report d WITH its CI), honors `level`
   shapiro: { W: number | null; p: number | null } // null outside Shapiro's 3–5000 range — rendered as em-dash
   ciLevel: number
   alpha: number
@@ -25,13 +26,13 @@ export interface OneSampleTTestResult {
 const R_STATS = String.raw`
 n <- length(x)
 res <- t.test(x, mu = mu0, conf.level = level, alternative = alternative)
-d <- effectsize::cohens_d(x, mu = mu0)
+d <- effectsize::cohens_d(x, mu = mu0, ci = level)
 sw <- if (n >= 3 && n <= 5000) shapiro.test(x) else NULL
 list(n = n, mean = mean(x), sd = sd(x), se = sd(x)/sqrt(n),
   t = unname(res$statistic), df = unname(res$parameter), p = res$p.value,
   meanDiff = mean(x) - mu0,
   ci = as.numeric(res$conf.int) - mu0,
-  cohensD = d$Cohens_d,
+  cohensD = d$Cohens_d, cohensDLow = d$CI_low, cohensDHigh = d$CI_high,
   shapiro = list(W = if (is.null(sw)) NA_real_ else unname(sw$statistic), p = if (is.null(sw)) NA_real_ else sw$p.value))`
 
 // Card figure: 'distribution / boxplot with a reference line at the test value' → histogram + dashed vline at μ0.
@@ -44,6 +45,7 @@ print(ggplot2::ggplot(data.frame(x = x), ggplot2::aes(x)) +
 interface RawStats {
   n: number; mean: number; sd: number; se: number
   t: number; df: number; p: number; meanDiff: number; ci: number[]; cohensD: number
+  cohensDLow: number; cohensDHigh: number
   shapiro: { W: number | null; p: number | null }
 }
 
@@ -57,6 +59,7 @@ export async function runOneSampleTTest(engine: Engine, data: Dataset, outcome: 
   return {
     variable: outcome, n: s.n, mean: s.mean, sd: s.sd, se: s.se, mu0,
     t: s.t, df: s.df, p: s.p, meanDiff: s.meanDiff, ci: [s.ci[0], s.ci[1]], cohensD: s.cohensD,
+    cohensDLow: s.cohensDLow, cohensDHigh: s.cohensDHigh,
     shapiro: s.shapiro, ciLevel: level, alpha, tails: alternative, nExcluded, figurePng,
   }
 }
