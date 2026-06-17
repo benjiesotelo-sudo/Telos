@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { KENDALLS_TAU as spec } from './kendallsTau'
-import { strip } from './specHtml'
+import { strip, decode } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
 const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
@@ -10,19 +10,21 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf("<div class=\"ttl\">Kendall's tau</div>"), inputsHtml.indexOf('<div class="ttl">Chi-square goodness-of-fit</div>'))
 
 describe("kendalls-tau registry stays faithful to the spec HTML (verbatim, card-scoped)", () => {
-  it('table thead equals the card column sequence', () => {
-    const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
-    expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label))) // τ arrives as &tau; — compare decoded
+  it('table thead equals the card column sequence — decode entities; suffix composes after sub (τ_b [95% CI])', () => {
+    const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) =>
+      [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => decode(t[1]))) // τ arrives as &tau; — compare decoded, keep <sub>
+    expect(theads).toEqual(spec.tables.map((t) =>
+      t.columns.map((c) => `${c.label}${c.sub ? `<sub>${c.sub}</sub>` : ''}${c.suffix ?? ''}`)))
   })
   it('bare table caption equals the card caption', () => {
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table\.<\/b> (.*?)<\/div>/g)].map((m) => m[1])
     expect(caps).toEqual(spec.tables.map((t) => t.title))
     expect(spec.tables[0].captionStyle).toBe('bare')
   })
-  it('question, figure caption + type, how-to-read and R map match verbatim (no table note on this card)', () => {
+  it('question, plain table note, figure caption + type, how-to-read and R map match verbatim', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/s)![1])).toBe(spec.question)
-    expect(card.includes('tbl-note')).toBe(false)
-    expect(spec.tableNote).toBeUndefined()
+    expect(spec.tableNote).toEqual({ kind: 'plain', text: strip(card.match(/<p class="tbl-note">(.*?)<\/p>/s)![1]), afterTableId: 'correlation' })
+    expect(card.includes('tbl-note assume')).toBe(false) // plain note, NOT an assumption note
     expect(strip(card.match(/<div class="fcap"><b>Figure\.<\/b>(.*?)<\/div>/s)![1])).toBe(spec.figures![0].caption)
     expect(strip(card.match(/<div class="ftype">(.*?)<\/div>/s)![1])).toBe(`type: ${spec.figures![0].type}`)
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)

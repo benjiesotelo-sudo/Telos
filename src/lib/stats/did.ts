@@ -7,7 +7,9 @@ export interface DidResult {
   coefRows: DidCoefRow[]   // po, po:tr — builder relabels (Treated main effect absorbed by the within transform)
   seType: 'clustered' | 'classical'
   ciLevel: number; alpha: number
-  withinR2: number; fStat: number
+  // Overall model F (within fit): statistic + its numerator/denominator df + p — rendered as F(df1, df2), p.
+  // df1/df2/p are NA-guarded (null) so a degenerate fit em-dashes instead of printing NaN.
+  withinR2: number; fStat: number; fDf1: number | null; fDf2: number | null; fP: number | null
   // Pre-trends signal: pre-period (post=0) leads-and-lags joint F of treated×time interactions — null when the
   // pre window has too few periods/cells to fit the interaction (NA-guarded). A small p flags diverging pre-trends.
   preTrend: { F: number; df1: number; df2: number; p: number } | null
@@ -30,6 +32,8 @@ coef_rows <- lapply(seq_along(labs), function(i) list(
   term = labs[i], b = ct[i, 1], se = ct[i, 2], t = ct[i, 3], p = ct[i, 4], ciLow = ci[i, 1], ciHigh = ci[i, 2]))
 s <- summary(fit)
 fst <- s$fstatistic
+# Overall within-F: statistic + numerator/denominator df + p, each NA→NULL so a degenerate fit em-dashes downstream.
+naNull <- function(v) { v <- unname(v); if (length(v) != 1 || is.na(v) || !is.finite(v)) NULL else v }
 # Pre-trends signal: on the pre-treatment window (po == 0), a base-lm leads-and-lags joint F — does the treated
 # group's outcome diverge across pre-periods? Compare lm(y ~ tr * factor(time)) vs lm(y ~ tr + factor(time)) via
 # anova(): the F tests whether the treated×time interactions are jointly 0 (parallel pre-trends). NA → NULL when
@@ -45,7 +49,8 @@ pt <- tryCatch({
     if (is.na(fval)) NULL else list(F = fval, df1 = an[['Df']][2], df2 = an[['Res.Df']][2], p = an[['Pr(>F)']][2])
   }
 }, error = function(e) NULL)
-list(coef_rows = coef_rows, within_r2 = unname(s$r.squared['rsq']), f_stat = unname(fst$statistic),
+list(coef_rows = coef_rows, within_r2 = unname(s$r.squared['rsq']),
+  f_stat = unname(fst$statistic), f_df1 = naNull(fst$parameter[1]), f_df2 = naNull(fst$parameter[2]), f_p = naNull(fst$p.value),
   pre_trend = pt, n_obs = nrow(d), n_entities = plm::pdim(fit)$nT$n)`
 
 // Parallel-trends plot: mean outcome over time by treatment group, with treatment onset marked.
@@ -60,6 +65,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(x = tt, y = yy, colour = grp, group = gr
 
 interface RawDid {
   coef_rows: DidCoefRow[]; within_r2: number; f_stat: number; n_obs: number; n_entities: number
+  f_df1: number | null; f_df2: number | null; f_p: number | null
   pre_trend: { F: number; df1: number; df2: number; p: number } | null
 }
 
@@ -107,6 +113,7 @@ export async function runDid(
   return {
     coefRows: raw.coef_rows, seType: seClustered ? 'clustered' : 'classical',
     ciLevel: ciLvl, alpha, withinR2: raw.within_r2, fStat: raw.f_stat,
+    fDf1: raw.f_df1 ?? null, fDf2: raw.f_df2 ?? null, fP: raw.f_p ?? null,
     preTrend: raw.pre_trend ?? null,
     nObs: raw.n_obs, nEntities: raw.n_entities, nExcluded, figTrendsPng,
   }

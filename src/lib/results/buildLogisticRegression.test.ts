@@ -60,4 +60,10 @@ describe('buildLogisticRegression', () => {
     expect(buildLogisticRegression(LOGISTIC_REGRESSION, res).apa)
       .toBe('Predictor pre_score was associated with the outcome, OR=1.08, 95% CI [1.01, 1.18], p = .035 (AUC=.76).')
   })
+  it('how-to-read points inference at the OR CI + inline omnibus χ², never the (non-existent) z column (D1 report-only)', () => {
+    const h = buildLogisticRegression(LOGISTIC_REGRESSION, res).howToRead
+    expect(h).toContain('OR confidence interval excludes 1')
+    expect(h).toContain('omnibus χ²')
+    expect(h).not.toMatch(/z column|z = B\/SE/)
+  })
 })

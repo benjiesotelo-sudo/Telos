@@ -25,10 +25,17 @@ describe('runKruskalWallis', () => {
     const control = r.ranks.find((x) => x.group === 'control')!
     expect(control.n).toBe(20)
     expect(control.meanRank).toBeCloseTo(24.9, 6)
+    // per-group median + IQR (base R median()/IQR(), type-7 quantile) — native R 4.6.0
+    expect(control.median).toBeCloseTo(33.55, 6)
+    expect(control.iqr).toBeCloseTo(9.625, 6)
     const drugA = r.ranks.find((x) => x.group === 'drug_a')!
     expect(drugA.meanRank).toBeCloseTo(28.15, 6)
+    expect(drugA.median).toBeCloseTo(36.5, 6)
+    expect(drugA.iqr).toBeCloseTo(11.975, 6)
     const drugB = r.ranks.find((x) => x.group === 'drug_b')!
     expect(drugB.meanRank).toBeCloseTo(38.45, 6)
+    expect(drugB.median).toBeCloseTo(38.7, 6)
+    expect(drugB.iqr).toBeCloseTo(6.6, 6)
     // Dunn post-hoc (holm)
     expect(r.posthoc).toHaveLength(3)
     const cd = r.posthoc.find((x) => x.pair === 'control - drug_a')!

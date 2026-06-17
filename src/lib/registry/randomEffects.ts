@@ -2,7 +2,10 @@ import type { TestSpec } from './types'
 
 // Encoded VERBATIM from telos_test_outputs.html + telos_test_inputs.html (Random effects card).
 // Report-only APA — drawn "gave" wording already neutral.
-// tableNote verbatim from the drawn card (kind 'plain', afterTableId 're-model-fit').
+// tableNote verbatim from the drawn card (kind 'plain', afterTableId 're-coefficients').
+// Theme-4 econometrics-grade addition: the builder APPENDS the Breusch–Pagan LM test (RE vs pooled OLS,
+// plm::plmtest(pooling, type='bp')) + the Swamy–Arora variance components / θ to this drawn note — the drawn
+// text below renders verbatim; the LM test + θ are the additive extras (cf. buildFixedEffects's poolability F).
 export const RANDOM_EFFECTS: TestSpec = {
   id: 'random-effects',
   name: 'Random effects',

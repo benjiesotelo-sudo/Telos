@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { FishersExactResult } from '../stats/fishersExact'
 import type { CardContent } from './builders'
-import { f, fp, fpApa } from '../format/apa'
+import { f, fp, fpApa, fx } from '../format/apa'
 
 const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
 
@@ -28,9 +28,10 @@ export function buildFishersExact(spec: TestSpec, r: FishersExactResult): CardCo
   return {
     tables: [
       { spec: { ...spec.tables[0], columns }, rows: [...bodyRows, totalRow] },
+      // 2×2: conditional-MLE OR + CI (V undefined → em-dash). Larger tables: OR/CI undefined → em-dash, Cramér's V is the effect size.
       { spec: spec.tables[1], rows: [r.is2x2
-        ? { p: fp(r.p), or: f(r.or!), ci: `[${f(r.ciLow!)}, ${f(r.ciHigh!)}]` }
-        : { p: fp(r.p), or: '—', ci: '—' }] },
+        ? { p: fp(r.p), or: f(r.or!), ci: `[${f(r.ciLow!)}, ${f(r.ciHigh!)}]`, v: '—' }
+        : { p: fp(r.p), or: '—', ci: '—', v: r.v == null ? '—' : `${f(r.v)} [${fx(r.vLow ?? null, f)}, ${fx(r.vHigh ?? null, f)}]` }] },
     ],
     note: spec.tableNote ?? null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],

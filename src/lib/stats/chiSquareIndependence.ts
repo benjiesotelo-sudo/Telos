@@ -4,7 +4,7 @@ import type { Dataset } from './types'
 export interface ContingencyData {
   rowCats: string[]; colCats: string[]
   counts: number[][]           // (R+1) × (C+1) — margins included (addmargins order)
-  expected: number[][]; rowPct: number[][]; colPct: number[][] // R × C
+  expected: number[][]; rowPct: number[][]; colPct: number[][]; stdRes: number[][] // R × C
 }
 export interface ChiSquareIndependenceResult extends ContingencyData {
   rowVar: string; colVar: string
@@ -29,6 +29,7 @@ list(rowCats = rownames(tab), colCats = colnames(tab),
      expected = lapply(seq_len(nrow(tab)), function(i) as.numeric(g$expected[i, ])),
      rowPct = lapply(seq_len(nrow(tab)), function(i) as.numeric(rp[i, ])),
      colPct = lapply(seq_len(nrow(tab)), function(i) as.numeric(cp[i, ])),
+     stdRes = lapply(seq_len(nrow(tab)), function(i) as.numeric(g$stdres[i, ])),
      chisq = unname(g$statistic), df = unname(g$parameter), p = g$p.value,
      v = cv_es$Cramers_v, vLow = cv_es$CI_low, vHigh = cv_es$CI_high,
      minExpected = min(g$expected), n = sum(tab))`

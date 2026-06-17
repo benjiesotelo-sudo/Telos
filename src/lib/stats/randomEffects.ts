@@ -6,6 +6,9 @@ export interface RandomEffectsResult {
   coefRows: ReCoefRow[]
   r2: number; adjR2: number
   nObs: number; nEntities: number
+  // Theme-4: Breusch–Pagan LM test (RE vs pooled OLS) + Swamy–Arora variance components / theta (guarded NA→null).
+  bpLm: number | null; bpDf: number | null; bpP: number | null
+  theta: number | null; varIdiosyncratic: number | null; varEntity: number | null
   seType: 'clustered' | 'classical'
   ciLevel: number; alpha: number
   nExcluded: number
@@ -28,10 +31,25 @@ labs <- rownames(ct)
 coef_rows <- lapply(seq_along(labs), function(i) list(
   term = labs[i], b = ct[i, 1], se = ct[i, 2], t = ct[i, 3], p = ct[i, 4], ciLow = ci[i, 1], ciHigh = ci[i, 2]))
 s <- summary(fit)
+# Theme-4: Breusch–Pagan LM test of RE vs pooled OLS (plmtest on the pooling model). NA_real_ → JSON null (the
+# helper maps non-finite to null); never emit a bare R NULL (it would serialise to an empty array, not null).
+nz   <- function(v) if (length(v) == 0L || !is.finite(v[1])) NA_real_ else unname(v[1])
+pooling <- plm::plm(form, data = pdat, model = 'pooling')
+bp   <- tryCatch(plm::plmtest(pooling, type = 'bp'), error = function(e) NULL)
+bp_lm <- if (is.null(bp)) NA_real_ else nz(bp$statistic)
+bp_df <- if (is.null(bp)) NA_real_ else nz(bp$parameter)
+bp_p  <- if (is.null(bp)) NA_real_ else nz(bp$p.value)
+# Swamy–Arora variance components + theta (scalar for a balanced panel; first element otherwise).
+ec   <- fit$ercomp
+theta <- if (is.null(ec$theta)) NA_real_ else nz(as.numeric(ec$theta))
+v_id  <- if (is.null(ec$sigma2)) NA_real_ else nz(unname(ec$sigma2['idios']))
+v_en  <- if (is.null(ec$sigma2)) NA_real_ else nz(unname(ec$sigma2['id']))
 list(
   coef_rows = coef_rows,
   r2 = unname(s$r.squared['rsq']), adj_r2 = unname(s$r.squared['adjrsq']),
-  n_obs = nrow(df), n_entities = plm::pdim(fit)$nT$n
+  n_obs = nrow(df), n_entities = plm::pdim(fit)$nT$n,
+  bp_lm = bp_lm, bp_df = bp_df, bp_p = bp_p,
+  theta = theta, var_idiosyncratic = v_id, var_entity = v_en
 )`
 
 const R_RE_PLOT = String.raw`
@@ -55,6 +73,8 @@ print(ggplot2::ggplot(pf, ggplot2::aes(x = b, y = term)) +
 interface RawRe {
   coef_rows: ReCoefRow[]
   r2: number; adj_r2: number; n_obs: number; n_entities: number
+  bp_lm: number | null; bp_df: number | null; bp_p: number | null
+  theta: number | null; var_idiosyncratic: number | null; var_entity: number | null
 }
 
 export async function runRandomEffects(
@@ -87,6 +107,8 @@ export async function runRandomEffects(
   return {
     coefRows: raw.coef_rows, r2: raw.r2, adjR2: raw.adj_r2,
     nObs: raw.n_obs, nEntities: raw.n_entities,
+    bpLm: raw.bp_lm, bpDf: raw.bp_df, bpP: raw.bp_p,
+    theta: raw.theta, varIdiosyncratic: raw.var_idiosyncratic, varEntity: raw.var_entity,
     seType: seClustered ? 'clustered' : 'classical', ciLevel: ciLvl, alpha, nExcluded, figCoefPng,
   }
 }

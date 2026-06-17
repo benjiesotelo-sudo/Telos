@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { KruskalWallisResult } from '../stats/kruskalWallis'
 import type { CardContent } from './builders'
-import { f, f01, fdf, fp, fpApa } from '../format/apa'
+import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 
 export function buildKruskalWallis(spec: TestSpec, r: KruskalWallisResult): CardContent {
   const apa = spec.apaTemplate
@@ -12,7 +12,7 @@ export function buildKruskalWallis(spec: TestSpec, r: KruskalWallisResult): Card
   const fig = figuresOf(spec)[0]
   return {
     tables: [
-      { spec: spec.tables[0], rows: r.ranks.map((g) => ({ group: g.group, n: g.n, meanRank: f(g.meanRank) })) },
+      { spec: spec.tables[0], rows: r.ranks.map((g) => ({ group: g.group, n: g.n, median: fx(g.median, f), iqr: fx(g.iqr, f), meanRank: f(g.meanRank) })) },
       { spec: spec.tables[1], rows: [{ h: f(r.h), df: fdf(r.df), p: fp(r.p), eps2: `${f(r.eps2)} [${f(r.eps2Low)}, ${f(r.eps2High)}]` }] },
       { spec: spec.tables[2], rows: r.posthoc.map((d) => ({ pair: d.pair, z: f(d.z), padj: fp(d.pAdj) })) },
     ],

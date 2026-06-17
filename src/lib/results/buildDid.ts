@@ -16,8 +16,10 @@ export function buildDid(spec: TestSpec, r: DidResult): CardContent {
   const t = spec.tables[0]
   const classical = r.seType === 'classical'
   const seLabel = classical ? 'classical SE' : 'clustered SE'
+  // Overall within-F rendered as F(df1, df2) = stat, p (em-dash NA via fx when df/p degenerate) — report-only.
+  const fGof = `F(${fx(r.fDf1, String)}, ${fx(r.fDf2, String)}) = ${f(r.fStat)}, p ${fx(r.fP, fpApa)}`
   const gofValue: Record<string, string> = {
-    n: String(r.nObs), nentities: String(r.nEntities), r2within: f01(r.withinR2), f: f(r.fStat),
+    n: String(r.nObs), nentities: String(r.nEntities), r2within: f01(r.withinR2), f: fGof,
   }
   const rows: Record<string, string | number>[] = [
     ...r.coefRows.flatMap((x) => [

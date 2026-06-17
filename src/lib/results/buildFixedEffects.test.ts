@@ -37,8 +37,23 @@ describe('buildFixedEffects', () => {
       { _kind: 'gof', term: 'N entities', est: '12' },
       { _kind: 'gof', term: 'Within R²', est: '.91' },
       { _kind: 'gof', term: 'Adj. within R²', est: '.90' }, // audit fix: adj within R² is now surfaced
-      { _kind: 'gof', term: 'F', est: '288.78' },
+      // Theme-4: the overall model F renders as F(df1, df2) = stat, p — not a bare number (native-R: F(3, 81) = 288.78, p = 3.86e-43)
+      { _kind: 'gof', term: 'F-test', est: 'F(3, 81) = 288.78, p < .001' },
     ])
+  })
+
+  it('renders the overall model F with its df and p in the GOF footer (Theme-4), em-dash NA when missing', () => {
+    expect(buildFixedEffects(FIXED_EFFECTS, mock()).tables[0].rows
+      .find((x) => x._kind === 'gof' && x.term === 'F-test')!.est)
+      .toBe('F(3, 81) = 288.78, p < .001')
+    // a larger (non-<.001) p uses the spaced "= .nnn" report-only form
+    expect(buildFixedEffects(FIXED_EFFECTS, mock({ fP: 0.0123 })).tables[0].rows
+      .find((x) => x._kind === 'gof' && x.term === 'F-test')!.est)
+      .toBe('F(3, 81) = 288.78, p = .012')
+    // guard: an NA F-statistic collapses the whole footer cell to an em-dash (no "F(NaN, …)")
+    expect(buildFixedEffects(FIXED_EFFECTS, mock({ fStat: NaN })).tables[0].rows
+      .find((x) => x._kind === 'gof' && x.term === 'F-test')!.est)
+      .toBe('—')
   })
 
   it('APA is report-only (states the estimate, no verdict) and names the first predictor', () => {

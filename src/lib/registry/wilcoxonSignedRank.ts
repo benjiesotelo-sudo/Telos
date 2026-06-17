@@ -26,7 +26,9 @@ export const WILCOXON_SIGNED_RANK: TestSpec = {
     { id: 'rank-summary', domId: 'wilcoxon-rank-summary', title: 'Rank summary', // domId: '#table-rank-summary' would collide with Mann-Whitney on a combined page
       columns: [{ key: 'sign', label: 'Sign' }, { key: 'n', label: 'N' }, { key: 'meanRank', label: 'Mean rank' }, { key: 'sumRanks', label: 'Sum of ranks' }] },
     { id: 'signed-rank', title: 'Signed-rank test',
-      columns: [{ key: 'v', label: 'V / W' }, { key: 'z', label: 'Z' }, { key: 'p', label: 'p' }, { key: 'r', label: 'r [95% CI]' }] },
+      columns: [{ key: 'v', label: 'V / W' }, { key: 'z', label: 'Z' }, { key: 'p', label: 'p' }, { key: 'r', label: 'r [95% CI]' },
+        // Hodges–Lehmann median-difference estimate + 95% CI (wilcox.test conf.int=TRUE) — the test's location estimate, surfaced beside the effect size.
+        { key: 'hl', label: 'Median diff [95% CI]' }] },
   ],
   // NO tableNote: the drawn Wilcoxon card has no note under either table (design ruling; consistency test asserts the absence).
   figures: [{ caption: 'Change per case', type: 'difference' }],
@@ -34,8 +36,8 @@ export const WILCOXON_SIGNED_RANK: TestSpec = {
     'The nonparametric counterpart to the paired t-test. It ranks the size of each paired change; a p below alpha means a systematic shift ' +
     'between the two conditions, with r as the effect size. The shift maps to the median difference only when the within-pair differences are ' +
     'roughly symmetric; the sign of the median difference (or Hodges–Lehmann estimate) gives the direction.',
-  // Faithful to the drawn card: the APA line reports only Z, p, r — it omits the V/W its own Table 2 shows (flagged to Benjie, built as drawn).
-  apaTemplate: 'A Wilcoxon signed-rank test gave Z={z}, p {p}, r={r} [{rlo}, {rhi}].',
-  rMap: 'rank(abs(d)) split by sign(d) → Table 1 (per-sign N / mean rank / sum of ranks) · wilcox.test(paired=TRUE) → V, p · coin::wilcoxsign_test() → standardized Z · effectsize::rank_biserial(paired=TRUE) → r',
+  // APA line now reports the V/W its Table 2 shows (Theme-4: completeness — was dropped from the sentence), alongside Z, p, r.
+  apaTemplate: 'A Wilcoxon signed-rank test gave V={v}, Z={z}, p {p}, r={r} [{rlo}, {rhi}].',
+  rMap: 'rank(abs(d)) split by sign(d) → Table 1 (per-sign N / mean rank / sum of ranks) · wilcox.test(paired=TRUE, conf.int=TRUE) → V, p, Hodges–Lehmann median difference + 95% CI · coin::wilcoxsign_test() → standardized Z · effectsize::rank_biserial(paired=TRUE) → r',
   bundleFiles: ['table_rank-summary.png', 'table_signed-rank.png', 'figure_difference.png'],
 }

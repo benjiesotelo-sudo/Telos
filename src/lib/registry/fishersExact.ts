@@ -25,15 +25,17 @@ export const FISHERS_EXACT: TestSpec = {
     { id: 'contingency', title: 'Contingency', domId: 'fishers-exact-contingency',
       columns: [{ key: 'rowcat', label: 'Row \\ Column' }, { key: 'c0', label: 'Col 1' }, { key: 'c1', label: 'Col 2' }, { key: 'total', label: 'Total' }] },
     { id: 'fisher', title: "Fisher's exact test",
-      columns: [{ key: 'p', label: 'p (exact)' }, { key: 'or', label: 'Odds ratio' }, { key: 'ci', label: '95% CI' }] },
+      columns: [{ key: 'p', label: 'p (exact)' }, { key: 'or', label: 'Odds ratio (cond. MLE)' }, { key: 'ci', label: '95% CI' }, { key: 'v', label: "Cramér's V [95% CI]" }] },
   ],
-  tableNote: { kind: 'plain', text: 'odds ratio & CI are reported for 2×2 tables only; larger tables report the exact p only.' },
+  tableNote: { kind: 'plain', text: "the odds ratio is fisher.test()'s conditional MLE (not the sample cross-product) and, with its CI, is reported for 2×2 tables only; for larger tables the OR is undefined, so Cramér's V (effectsize::cramers_v) reports the strength of association alongside the exact p." },
   figures: [{ caption: 'Cross-classification', type: 'mosaic / grouped bar chart', file: 'bar' }],
   howToRead:
     'An exact alternative to chi-square for small samples. A p below alpha means the two categories are associated; ' +
-    'for 2×2 tables the odds ratio quantifies the association — OR>1 means the outcome is more likely in the first ' +
-    'row/group, OR<1 less likely, OR=1 no association. Check the row/column order before reading direction, ' +
-    "since the OR reflects the table's orientation.",
+    "for 2×2 tables the odds ratio quantifies the association — this is fisher.test()'s conditional MLE (the " +
+    'non-central hypergeometric estimate), not the sample cross-product. OR>1 means the outcome is more likely in the ' +
+    'first row/group, OR<1 less likely, OR=1 no association; check the row/column order before reading direction, ' +
+    "since the OR reflects the table's orientation. For tables larger than 2×2 the odds ratio is undefined, so " +
+    "Cramér's V (0–1) reports the strength of association instead.",
   apaTemplate: "A Fisher's exact test of [Var1] by [Var2] gave p {p}.",
   rMap: 'fisher.test() → Table 2 · ggplot2::geom_bar() → figure',
   bundleFiles: ['table_contingency.png', 'table_fisher.png', 'figure_bar.png'],

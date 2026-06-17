@@ -19,11 +19,25 @@ describe('runFishersExact', () => {
     expect(r.n).toBe(40)
   }, 900_000)
 
-  it('spike known answers — 3×3 method × grade_band (exact p only)', async () => {
+  it('spike known answers — 3×3 method × grade_band (exact p + Cramér V vs native-R)', async () => {
     const r = await runFishersExact(engine, loadAssociationFixture(), 'method', 'grade_band')
     expect(r.p).toBeCloseTo(0.5354022782, 6)
     expect(r.is2x2).toBe(false)
     expect(r.or).toBeUndefined()
+    // larger-than-2×2: OR is undefined → effectsize::cramers_v(adjust=FALSE, ci=0.95) is the association effect size.
+    // native-R ground truth: V=0.198644856473, CI [0, 1] (one-sided, upper bound pinned at 1.00).
+    expect(r.v).toBeCloseTo(0.198644856473, 6)
+    expect(r.vLow).toBeCloseTo(0, 6)
+    expect(r.vHigh).toBeCloseTo(1, 6)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+  }, 300_000)
+
+  it('2×2 has no Cramér V (OR is the effect size there)', async () => {
+    const r = await runFishersExact(engine, loadAssociationFixture(), 'passed', 'gender')
+    // fisher.test returns the CONDITIONAL MLE odds ratio, not the sample cross-product (4.33…).
+    expect(r.or).toBeCloseTo(4.16340597179, 6)
+    expect(r.v).toBeUndefined()
+    expect(r.vLow).toBeUndefined()
+    expect(r.vHigh).toBeUndefined()
   }, 300_000)
 })

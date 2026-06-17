@@ -1,7 +1,7 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
 
-export interface RankSummaryRow { group: string; n: number; meanRank: number }
+export interface RankSummaryRow { group: string; n: number; median: number; iqr: number; meanRank: number }
 export interface DunnRow { pair: string; z: number; pAdj: number }
 export interface KruskalWallisResult {
   ranks: RankSummaryRow[]
@@ -17,7 +17,8 @@ const R_STATS = String.raw`
 gf <- factor(g)
 kw <- kruskal.test(y ~ gf)
 rk <- rank(y)
-ranks <- lapply(levels(gf), function(l) { v <- rk[gf == l]; list(group = l, n = length(v), meanRank = mean(v)) })
+ranks <- lapply(levels(gf), function(l) { v <- rk[gf == l]; yv <- y[gf == l]
+  list(group = l, n = length(v), median = median(yv), iqr = IQR(yv), meanRank = mean(v)) })
 n <- length(y); h <- unname(kw$statistic)
 eps2 <- h * (n + 1) / (n^2 - 1)  # equivalent to effectsize::rank_epsilon_squared (spike-proven)
 # ε² CI is bootstrapped — seed for reproducibility (native R ≡ WebR); one-sided, upper bound pinned at 1.00 (APA convention).

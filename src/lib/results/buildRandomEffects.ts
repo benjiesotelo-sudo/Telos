@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { RandomEffectsResult } from '../stats/randomEffects'
 import type { CardContent } from './builders'
-import { f, fpApa } from '../format/apa'
+import { f, fdf, fpApa, fx } from '../format/apa'
 
 // modelsummary coef table (design 2026-06-16) — merges the old Coefficients + Model fit into one stacked table.
 // Per term: B row → muted (clustered SE) row → muted [CI] row. Then a rule, then one gof row per spec.tables[0].gof.
@@ -26,10 +26,17 @@ export function buildRandomEffects(spec: TestSpec, r: RandomEffectsResult): Card
     .replace('predictor X', first ? `predictor ${first.term}` : 'predictor X')
     .replace('{b}', first ? f(first.b) : '—')
     .replace('p {p}', `p ${first ? fpApa(first.p) : '—'}`)
+  // Theme-4: APPEND the Breusch–Pagan LM test (RE vs pooled OLS) + Swamy–Arora variance components / θ to the drawn
+  // note (cf. buildFixedEffects appending the poolability F). fx collapses an NA test/θ to a single em-dash (no NaN).
+  const bp = fx(r.bpLm, (v) => `χ²(${fdf(r.bpDf ?? NaN)}) = ${f(v)}, p ${fpApa(r.bpP ?? NaN)} — a low p favours the random effects over pooled OLS`)
+  const vc = fx(r.theta, (v) => `θ = ${f(v)} (variance components: idiosyncratic ${fx(r.varIdiosyncratic, f)}, between ${fx(r.varEntity, f)})`)
+  const note: CardContent['note'] = spec.tableNote
+    ? { ...spec.tableNote, text: `${spec.tableNote.text} Breusch–Pagan LM test (RE vs pooled OLS): ${bp}. Swamy–Arora ${vc}.` }
+    : null
   const figs = figuresOf(spec)
   return {
     tables: [{ spec: t, rows }],
-    note: spec.tableNote ?? null,
+    note,
     figures: [{ caption: figs[0].caption, type: figs[0].type, file: figs[0].file, png: r.figCoefPng }],
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,

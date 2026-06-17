@@ -12,11 +12,18 @@ describe('buildKendallsTau', () => {
   it('fills the correlation row per format conventions', () => {
     const c = buildKendallsTau(KENDALLS_TAU, res)
     expect(c.tables[0].rows).toEqual([{ pair: 'satisfaction – motivation', tau: '0.51 [0.30, 0.69]', z: '3.46', p: '<.001', n: 40 }])
-    expect(c.note).toBeNull()
     expect(c.figures[0].file).toBe('scatter')
   })
-  it('APA is a full sentence mirroring Spearman; tiny p becomes p<.001', () => {
+  it('labels the statistic as tau-b — header sub + tie-corrected note (Theme-4, report-only)', () => {
     const c = buildKendallsTau(KENDALLS_TAU, res)
-    expect(c.apa).toBe("A Kendall's tau correlation gave τ=.51 [.30, .69], p < .001, N=40.")
+    // table header carries the tau-b variant: τ + <sub>b</sub>
+    const tauCol = c.tables[0].spec.columns.find((col) => col.key === 'tau')
+    expect(tauCol).toMatchObject({ label: 'τ', sub: 'b' })
+    // tie-corrected note threaded from the registry, anchored to the correlation table
+    expect(c.note).toEqual({ kind: 'plain', text: 'τ is Kendall’s tau-b — the tie-corrected variant (cor.test, method = "kendall").', afterTableId: 'correlation' })
+  })
+  it('APA is a full sentence naming tau-b; tiny p becomes p<.001', () => {
+    const c = buildKendallsTau(KENDALLS_TAU, res)
+    expect(c.apa).toBe("A Kendall's tau-b correlation gave τ=.51 [.30, .69], p < .001, N=40.")
   })
 })

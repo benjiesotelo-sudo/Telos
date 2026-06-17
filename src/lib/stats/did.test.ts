@@ -21,6 +21,10 @@ describe('runDid', () => {
     expect(r.nEntities).toBe(12)
     expect(r.withinR2).toBeCloseTo(0.8406621, 4)
     expect(r.fStat).toBeCloseTo(216.3148, 2)
+    // Overall within-F df + p (native R 4.6.0: summary(fit)$fstatistic) → F(2, 82), p ≈ 1.97e-33.
+    expect(r.fDf1).toBe(2)
+    expect(r.fDf2).toBe(82)
+    expect(r.fP).toBeCloseTo(1.972789e-33, 38)
     // Treated main effect is absorbed: only Post + Treated×Post are returned
     expect(r.coefRows.map((c) => c.term).sort()).toEqual(['po', 'po:tr'])
     const did = r.coefRows.find((c) => c.term === 'po:tr')!

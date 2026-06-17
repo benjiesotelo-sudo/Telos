@@ -50,7 +50,8 @@ export const LOGISTIC_REGRESSION: TestSpec = {
   figures: [{ caption: 'Classifier performance', type: 'ROC curve (with AUC)', file: 'roc' }],
   howToRead:
     "Each predictor's odds ratio tells how the odds of the outcome change per unit (>1 increases, <1 decreases); " +
-    'p tests significance (read it from the z column, z = B/SE). Model fit and the ROC/AUC show how well it classifies overall.',
+    'a term carries weight when its OR confidence interval excludes 1, and the inline omnibus χ² (with its p) tests the model as a whole. ' +
+    'Model fit and the ROC/AUC show how well it classifies overall.',
   apaTemplate: 'Predictor X was associated with the outcome, OR={or}, 95% CI [{ciLow}, {ciHigh}], p {p} (AUC={auc}).',
   rMap: 'glm(family=binomial) → B/SE/z/p · exp(cbind(OR=coef(m), confint(m))) → OR + 95% CI · performance::r2_nagelkerke(m) → Nagelkerke R² · anova(m, test="Chisq") → omnibus χ² · logLik(m)/AIC(m)/BIC(m) → Log.Lik./AIC/BIC · table(predicted, observed) → Table 2 (classification) · pROC → ROC/AUC',
   bundleFiles: ['table_coefficients.png', 'table_classification.png', 'figure_roc.png'],

@@ -20,6 +20,11 @@ describe('runChiSquareIndependence', () => {
     expect(r.colCats).toEqual(['female', 'male'])
     expect(r.counts.at(-1)!.at(-1)).toBe(40) // grand total margin
     expect(r.n).toBe(40)
+    // chisq.test(tab)$stdres — native-R ground truth (unaffected by Yates correction). rows no/yes × cols female/male.
+    expect(r.stdRes[0][0]).toBeCloseTo(2.216367, 6)
+    expect(r.stdRes[0][1]).toBeCloseTo(-2.216367, 6)
+    expect(r.stdRes[1][0]).toBeCloseTo(-2.216367, 6)
+    expect(r.stdRes[1][1]).toBeCloseTo(2.216367, 6)
   }, 900_000)
 
   it('spike known answers — 2×2 correction OFF', async () => {
@@ -37,6 +42,13 @@ describe('runChiSquareIndependence', () => {
     expect(r.vLow).toBeCloseTo(0, 3)    // cramers_v(adjust=FALSE, ci=0.95)$CI_low — native R ≡ WebR
     expect(r.vHigh).toBeCloseTo(1, 3)   // one-sided CI: upper bound pinned at 1.00
     expect(r.minExpected).toBeCloseTo(5.225, 6)
+    // chisq.test(tab)$stdres — native-R ground truth. rows discussion/lecture/seminar × cols no/yes.
+    expect(r.stdRes[0][0]).toBeCloseTo(2.197439, 6)
+    expect(r.stdRes[0][1]).toBeCloseTo(-2.197439, 6)
+    expect(r.stdRes[1][0]).toBeCloseTo(-1.470311, 6)
+    expect(r.stdRes[1][1]).toBeCloseTo(1.470311, 6)
+    expect(r.stdRes[2][0]).toBeCloseTo(-0.868649, 6)
+    expect(r.stdRes[2][1]).toBeCloseTo(0.868649, 6)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 300_000)
 })

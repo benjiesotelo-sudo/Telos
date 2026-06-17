@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { ChiSquareIndependenceResult } from '../stats/chiSquareIndependence'
 import type { CardContent } from './builders'
-import { f, f01, f1, fdf, fp, fpApa } from '../format/apa'
+import { f, f01, f1, fdf, fp, fpApa, fx } from '../format/apa'
 
 const pc = (x: number) => x.toFixed(1) // percentages at 1 dp (frequencies precedent)
 
@@ -12,8 +12,10 @@ export function buildChiSquareIndependence(spec: TestSpec, r: ChiSquareIndepende
   const columns = [{ key: 'rowcat', label: 'Row \\ Column' },
     ...r.colCats.map((cat, j) => ({ key: `c${j}`, label: cat })), { key: 'total', label: 'Total' }]
   const R = r.rowCats.length, C = r.colCats.length
+  // Cell = obs [exp] (row% / col%) r=±std-residual — the trailing residual mirrors the GoF sibling's Std. residual
+  // column (chisq.test()$stdres); |r| beyond ~±1.96 flags the cells driving the association (see how-to-read).
   const cell = (i: number, j: number) =>
-    `${r.counts[i][j]} [${f(r.expected[i][j])}] (${pc(r.rowPct[i][j])}% / ${pc(r.colPct[i][j])}%)`
+    `${r.counts[i][j]} [${f(r.expected[i][j])}] (${pc(r.rowPct[i][j])}% / ${pc(r.colPct[i][j])}%) r=${fx(r.stdRes[i]?.[j] ?? null, f)}`
   const bodyRows = r.rowCats.map((cat, i) => {
     const row: Record<string, string | number> = { rowcat: cat, total: String(r.counts[i][C]) }
     r.colCats.forEach((_, j) => { row[`c${j}`] = cell(i, j) })

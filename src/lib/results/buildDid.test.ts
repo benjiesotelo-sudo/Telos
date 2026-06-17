@@ -11,7 +11,7 @@ const mock = (over: Partial<DidResult> = {}): DidResult => ({
     { term: 'po:tr', b: 1.525625, se: 0.116532, t: 13.092, p: 1e-20, ciLow: 1.293806, ciHigh: 1.757444 },
   ],
   seType: 'clustered', ciLevel: 0.95, alpha: 0.05,
-  withinR2: 0.8406621, fStat: 216.3148, nObs: 96, nEntities: 12, nExcluded: 0,
+  withinR2: 0.8406621, fStat: 216.3148, fDf1: 2, fDf2: 82, fP: 1.972789e-33, nObs: 96, nEntities: 12, nExcluded: 0,
   preTrend: { F: 0.004068, df1: 3, df2: 40, p: 0.999636 },
   figTrendsPng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
   ...over,
@@ -40,8 +40,20 @@ describe('buildDid', () => {
       { _kind: 'gof', term: 'Num.Obs.', est: '96' },
       { _kind: 'gof', term: 'N entities', est: '12' },
       { _kind: 'gof', term: 'Within R²', est: '.84' },
-      { _kind: 'gof', term: 'F', est: '216.31' },
+      { _kind: 'gof', term: 'F', est: 'F(2, 82) = 216.31, p < .001' },
     ])
+  })
+
+  it('renders the overall F as F(df1, df2) = stat, p in the GOF footer (report-only)', () => {
+    const c = buildDid(DID, mock())
+    const fRow = c.tables[0].rows.find((x) => x._kind === 'gof' && x.term === 'F')
+    expect(fRow!.est).toBe('F(2, 82) = 216.31, p < .001')
+  })
+
+  it('em-dashes the overall F df/p when degenerate (NA → null guarded)', () => {
+    const c = buildDid(DID, mock({ fDf1: null, fDf2: null, fP: null }))
+    const fRow = c.tables[0].rows.find((x) => x._kind === 'gof' && x.term === 'F')
+    expect(fRow!.est).toBe('F(—, —) = 216.31, p —')
   })
 
   it('APA reports the DiD interaction estimate (report-only, literal 95% CI, clustered SE)', () => {

@@ -11,6 +11,8 @@ const mock = (over: Partial<RandomEffectsResult> = {}): RandomEffectsResult => (
     { term: 'size', b: 0.956744, se: 0.047436, t: 20.169133, p: 1e-9, ciLow: 0.862532, ciHigh: 1.050956 },
   ],
   r2: 0.98005, adjR2: 0.9793994, nObs: 96, nEntities: 12,
+  bpLm: 0.06952968, bpDf: 1, bpP: 0.7920228,
+  theta: 0.0420548809841274, varIdiosyncratic: 0.2500838, varEntity: 0.00280499,
   seType: 'clustered', ciLevel: 0.95, alpha: 0.05, nExcluded: 0,
   figCoefPng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
   ...over,
@@ -48,5 +50,25 @@ describe('buildRandomEffects', () => {
   it('how-to-read appends the α line, unchanged from the spec wording', () => {
     expect(buildRandomEffects(RANDOM_EFFECTS, mock({ alpha: 0.05 })).howToRead)
       .toBe(RANDOM_EFFECTS.howToRead + ' Your significance threshold (α) is 0.05.')
+  })
+
+  // Theme-4: the BP LM test (RE vs pooled OLS) + variance components / theta append to the drawn table note.
+  it('appends the Breusch–Pagan LM test (RE vs pooled OLS) to the table note', () => {
+    const note = buildRandomEffects(RANDOM_EFFECTS, mock()).note!
+    expect(note.text).toContain(RANDOM_EFFECTS.tableNote!.text)
+    expect(note.text).toContain('Breusch–Pagan LM test')
+    expect(note.text).toContain('χ²(1) = 0.07, p = .792')
+  })
+  it('appends the Swamy–Arora variance components + theta to the table note', () => {
+    const note = buildRandomEffects(RANDOM_EFFECTS, mock()).note!
+    expect(note.text).toContain('θ = 0.04')
+    expect(note.text).toContain('idiosyncratic 0.25')
+    expect(note.text).toContain('between 0.00')
+  })
+  it('guards a missing BP LM / theta to an em-dash (no NaN leaks)', () => {
+    const note = buildRandomEffects(RANDOM_EFFECTS, mock({ bpLm: null, bpDf: null, bpP: null, theta: null, varIdiosyncratic: null, varEntity: null })).note!
+    expect(note.text).toContain('Breusch–Pagan LM test (RE vs pooled OLS): —')
+    expect(note.text).toContain('Swamy–Arora —')
+    expect(note.text).not.toMatch(/NaN/)
   })
 })

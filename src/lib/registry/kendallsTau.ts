@@ -22,13 +22,14 @@ export const KENDALLS_TAU: TestSpec = {
   },
   tables: [
     { id: 'correlation', title: "Kendall's tau", captionStyle: 'bare', domId: 'kendalls-tau-correlation',
-      columns: [{ key: 'pair', label: 'Pair' }, { key: 'tau', label: 'τ [95% CI]' }, { key: 'z', label: 'z' }, { key: 'p', label: 'p' }, { key: 'n', label: 'N' }] },
+      columns: [{ key: 'pair', label: 'Pair' }, { key: 'tau', label: 'τ', sub: 'b', suffix: ' [95% CI]' }, { key: 'z', label: 'z' }, { key: 'p', label: 'p' }, { key: 'n', label: 'N' }] },
   ],
+  tableNote: { kind: 'plain', text: 'τ is Kendall’s tau-b — the tie-corrected variant (cor.test, method = "kendall").', afterTableId: 'correlation' },
   figures: [{ caption: 'Relationship', type: 'scatter plot (optionally on ranks — τ measures monotonic, not linear, association)', file: 'scatter' }],
   howToRead:
-    'τ is a rank correlation based on concordant vs. discordant pairs — well suited to small samples and many ties. ' +
+    'τ (Kendall’s tau-b) is a rank correlation based on concordant vs. discordant pairs, with a correction for ties — well suited to small samples and many ties. ' +
     'Sign = direction, magnitude = strength; p tests significance.',
-  apaTemplate: "A Kendall's tau correlation gave τ={tau} [{lo}, {hi}], p {p}, N={n}.",
+  apaTemplate: "A Kendall's tau-b correlation gave τ={tau} [{lo}, {hi}], p {p}, N={n}.",
   rMap: 'cor.test(method="kendall") → table · ggplot2 → figure',
   bundleFiles: ['table_correlation.png', 'figure_scatter.png'],
 }

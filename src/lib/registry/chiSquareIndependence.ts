@@ -23,20 +23,21 @@ export const CHI_SQUARE_INDEPENDENCE: TestSpec = {
     minRule: { kind: 'used-columns', n: 2 }, // needs two distinct categorical columns
   },
   tables: [
-    { id: 'contingency', title: 'Contingency (observed [expected])', domId: 'chi-square-independence-contingency',
+    { id: 'contingency', title: 'Contingency (observed [expected] (row% / col%) std. residual)', domId: 'chi-square-independence-contingency',
       // Drawn placeholders; the builder replaces them with one column per category + Total (frequencies' sanctioned divergence).
       columns: [{ key: 'rowcat', label: 'Row \\ Column' }, { key: 'c0', label: 'Col 1' }, { key: 'c1', label: 'Col 2' }, { key: 'more', label: '…' }, { key: 'total', label: 'Total' }] },
     { id: 'chi-square', title: 'Chi-square test', domId: 'chi-square-independence-chi-square',
       columns: [{ key: 'chisq', label: 'χ²' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'v', label: "Cramér's V [95% CI]" }] },
   ],
   tableNote: { kind: 'plain', text:
-    "the contingency table is r×c — columns expand to the number of categories in the column variable; expected counts and row/column percentages are shown, with a warning (suggesting Fisher's exact) if expected counts are too small. For 2×2 tables chisq.test() applies Yates' continuity correction by default (set correct=FALSE for the uncorrected χ²)." },
+    "the contingency table is r×c — columns expand to the number of categories in the column variable; each cell shows observed [expected] (row% / col%) and its standardized residual r (chisq.test()$stdres), with a warning (suggesting Fisher's exact) if expected counts are too small. A standardized residual beyond about ±1.96 flags a cell that significantly drives the association. For 2×2 tables chisq.test() applies Yates' continuity correction to the χ² by default (set correct=FALSE for the uncorrected χ²); the standardized residuals are unaffected by the correction." },
   figures: [{ caption: 'Cross-classification', type: 'mosaic or grouped bar chart', file: 'bar' }],
   howToRead:
     'Tests whether two categorical variables are associated. A p below alpha means they are related; ' +
-    "Cramér's V gives the strength of association (0–1). Valid only when expected counts are mostly ≥ 5 " +
+    "Cramér's V gives the strength of association (0–1); each cell's standardized residual (r) beyond about ±1.96 " +
+    'flags a category combination that significantly drives the association. Valid only when expected counts are mostly ≥ 5 ' +
     "(the app flags this and suggests Fisher's exact) and each case appears once (raw counts, not percentages).",
   apaTemplate: 'A chi-square test of independence gave χ²({df}, N={n})={chisq}, p {p}, V={v} [{vlo}, {vhi}].',
-  rMap: 'chisq.test() → Table 2 · sqrt(χ²/(N·min(r−1,c−1))) (matches rcompanion::cramerV) → V · ggplot2::geom_bar() → figure',
+  rMap: 'chisq.test() → Table 2 · chisq.test(...)$stdres → Table 1 std. residuals · sqrt(χ²/(N·min(r−1,c−1))) (matches rcompanion::cramerV) → V · ggplot2::geom_bar() → figure',
   bundleFiles: ['table_contingency.png', 'table_chi-square.png', 'figure_bar.png'],
 }

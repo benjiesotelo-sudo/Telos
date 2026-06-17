@@ -24,7 +24,7 @@ export const KRUSKAL_WALLIS: TestSpec = {
   },
   tables: [
     { id: 'rank-summary', domId: 'kruskal-wallis-rank-summary', title: 'Rank summary',
-      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'meanRank', label: 'Mean rank' }] },
+      columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'median', label: 'Median' }, { key: 'iqr', label: 'IQR' }, { key: 'meanRank', label: 'Mean rank' }] },
     { id: 'kruskal-wallis', title: 'Kruskal-Wallis test',
       columns: [{ key: 'h', label: 'H' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'eps2', label: 'ε² [95% CI]' }] },
     { id: 'posthoc', domId: 'kruskal-wallis-posthoc', title: 'Dunn post-hoc',

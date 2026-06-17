@@ -7,9 +7,9 @@ const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
 const spikeResult: KruskalWallisResult = {
   ranks: [
-    { group: 'control', n: 20, meanRank: 24.9 },
-    { group: 'drug_a', n: 20, meanRank: 28.15 },
-    { group: 'drug_b', n: 20, meanRank: 38.45 },
+    { group: 'control', n: 20, median: 33.55, iqr: 9.625, meanRank: 24.9 },
+    { group: 'drug_a', n: 20, median: 36.5, iqr: 11.975, meanRank: 28.15 },
+    { group: 'drug_b', n: 20, median: 38.7, iqr: 6.6, meanRank: 38.45 },
   ],
   h: 6.56495733622387,
   df: 2,
@@ -29,13 +29,21 @@ const spikeResult: KruskalWallisResult = {
 describe('buildKruskalWallis', () => {
   const c = buildKruskalWallis(spec, spikeResult)
 
-  it('Table 1: rank summary rows with meanRank at 2 dp', () => {
+  it('Table 1: rank summary rows with median, IQR, meanRank at 2 dp', () => {
     expect(c.tables[0].spec.id).toBe('rank-summary')
     expect(c.tables[0].rows).toEqual([
-      { group: 'control', n: 20, meanRank: '24.90' },
-      { group: 'drug_a', n: 20, meanRank: '28.15' },
-      { group: 'drug_b', n: 20, meanRank: '38.45' },
+      { group: 'control', n: 20, median: '33.55', iqr: '9.63', meanRank: '24.90' },
+      { group: 'drug_a', n: 20, median: '36.50', iqr: '11.97', meanRank: '28.15' },
+      { group: 'drug_b', n: 20, median: '38.70', iqr: '6.60', meanRank: '38.45' },
     ])
+  })
+
+  it('Table 1: median/IQR fall back to em-dash when null', () => {
+    const c2 = buildKruskalWallis(spec, {
+      ...spikeResult,
+      ranks: [{ group: 'x', n: 1, median: null as unknown as number, iqr: null as unknown as number, meanRank: 1 }],
+    })
+    expect(c2.tables[0].rows[0]).toEqual({ group: 'x', n: 1, median: '—', iqr: '—', meanRank: '1.00' })
   })
 
   it('Table 2: Kruskal-Wallis row — H · df · p · eps2 [95% CI]', () => {

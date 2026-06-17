@@ -17,7 +17,7 @@ export function buildKendallsTau(spec: TestSpec, r: KendallsTauResult): CardCont
     tables: [{ spec: spec.tables[0], rows: [{
       pair: `${r.varA} – ${r.varB}`, tau: `${f(r.tau)} [${f(r.tauLow)}, ${f(r.tauHigh)}]`, z: f(r.z), p: fp(r.p), n: r.n,
     }] }],
-    note: null,
+    note: spec.tableNote ?? null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,

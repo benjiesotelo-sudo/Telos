@@ -500,17 +500,17 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Rank summary</div>
-      <table class="apa"><thead><tr><th>Group</th><th>N</th><th>Mean rank</th><th>Sum of ranks</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Group</th><th>N</th><th>Mean rank</th><th>Median</th><th>IQR</th><th>Sum of ranks</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Mann-Whitney test</div>
-      <table class="apa"><thead><tr><th>U</th><th>Z</th><th>p</th><th>r [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">r is the rank-biserial effect size.</p>
+      <table class="apa"><thead><tr><th>U</th><th>Z</th><th>p</th><th>r [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-span"><td colspan="4">Hodges-Lehmann median difference = &minus;12.00, 95% CI [&minus;17.00, &minus;7.00]</td></tr></tbody></table>
+      <p class="tbl-note">r is the rank-biserial effect size. The Hodges-Lehmann estimate is the median of all between-group score differences (a location shift); its CI is from the same wilcox.test.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Distribution by group</div><div class="ftype">type: <b>boxplot</b></div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The nonparametric counterpart to the independent t-test, comparing whole distributions via ranks rather than means. A <b>p</b> below alpha means one group's values tend to be systematically higher or lower (stochastic dominance) &mdash; this equals a difference in medians only when the two groups have similar distribution shapes. <b>r</b> gives the effect size.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Mann-Whitney U test gave <i>U</i>=__, <i>Z</i>=__, <i>p</i>&nbsp;__, <i>r</i>=__ [__, __].&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>dplyr</code> rank + group_by/summarise (N, mean rank, sum of ranks) &rarr; Table 1 &middot; <code>wilcox.test()</code> &rarr; U, p &middot; <code>coin::wilcox_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial()</code> &rarr; r &middot; <code>geom_boxplot()</code> &rarr; figure</div>
+        <div class="m"><b>R map:</b> <code>dplyr</code> rank + group_by/summarise (N, mean rank, median, IQR, sum of ranks) &rarr; Table 1 &middot; <code>wilcox.test()</code> &rarr; U, p &middot; <code>wilcox.test(conf.int=TRUE)</code> &rarr; Hodges-Lehmann median difference + 95% CI &middot; <code>coin::wilcox_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial()</code> &rarr; r &middot; <code>geom_boxplot()</code> &rarr; figure</div>
         <div class="m bundle">table_rank-summary.png &middot; table_mann-whitney.png &middot; figure_boxplot.png</div>
       </div>
     </div>
@@ -523,14 +523,14 @@
       <div class="apa-cap"><b>Table 1.</b> Rank summary</div>
       <table class="apa"><thead><tr><th>Sign</th><th>N</th><th>Mean rank</th><th>Sum of ranks</th></tr></thead><tbody class="ghost"><tr><td>Positive / negative / ties</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Signed-rank test</div>
-      <table class="apa"><thead><tr><th>V / W</th><th>Z</th><th>p</th><th>r [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>V / W</th><th>Z</th><th>p</th><th>r [95% CI]</th><th>Median diff [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Change per case</div><div class="ftype">type: <b>difference plot</b> / paired box</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The nonparametric counterpart to the paired t-test. It ranks the size of each paired change; a <b>p</b> below alpha means a systematic shift between the two conditions, with <b>r</b> as the effect size. The shift maps to the median difference only when the within-pair differences are roughly symmetric; the sign of the median difference (or Hodges&ndash;Lehmann estimate) gives the direction.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A Wilcoxon signed-rank test gave <i>Z</i>=__, <i>p</i>&nbsp;__, <i>r</i>=__ [__, __].&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>rank(abs(d))</code> split by <code>sign(d)</code> &rarr; Table 1 (per-sign N / mean rank / sum of ranks) &middot; <code>wilcox.test(paired=TRUE)</code> &rarr; V, p &middot; <code>coin::wilcoxsign_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial(paired=TRUE)</code> &rarr; r</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Wilcoxon signed-rank test gave <i>V</i>=__, <i>Z</i>=__, <i>p</i>&nbsp;__, <i>r</i>=__ [__, __].&rdquo;</div>
+        <div class="m"><b>R map:</b> <code>rank(abs(d))</code> split by <code>sign(d)</code> &rarr; Table 1 (per-sign N / mean rank / sum of ranks) &middot; <code>wilcox.test(paired=TRUE, conf.int=TRUE)</code> &rarr; V, p, Hodges&ndash;Lehmann median difference + 95% CI &middot; <code>coin::wilcoxsign_test()</code> &rarr; standardized Z &middot; <code>effectsize::rank_biserial(paired=TRUE)</code> &rarr; r</div>
         <div class="m bundle">table_rank-summary.png &middot; table_signed-rank.png &middot; figure_difference.png</div>
       </div>
     </div>
@@ -541,7 +541,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Rank summary</div>
-      <table class="apa"><thead><tr><th>Group</th><th>N</th><th>Mean rank</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Group</th><th>N</th><th>Median</th><th>IQR</th><th>Mean rank</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Kruskal-Wallis test</div>
       <table class="apa"><thead><tr><th>H</th><th>df</th><th>p</th><th>&epsilon;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Dunn post-hoc</div>
@@ -627,13 +627,14 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> Kendall's tau</div>
-      <table class="apa"><thead><tr><th>Pair</th><th>&tau; [95% CI]</th><th>z</th><th>p</th><th>N</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Pair</th><th>&tau;<sub>b</sub> [95% CI]</th><th>z</th><th>p</th><th>N</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">&tau; is Kendall’s tau-b &mdash; the tie-corrected variant (cor.test, method = "kendall").</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Relationship</div><div class="ftype">type: <b>scatter plot</b> (optionally on ranks &mdash; &tau; measures monotonic, not linear, association)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p><b>&tau;</b> is a rank correlation based on concordant vs. discordant pairs &mdash; well suited to small samples and many ties. Sign = direction, magnitude = strength; <b>p</b> tests significance.</p></div>
+      <div class="howread"><p><b>&tau;</b> (Kendall’s tau-b) is a rank correlation based on concordant vs. discordant pairs, with a correction for ties &mdash; well suited to small samples and many ties. Sign = direction, magnitude = strength; <b>p</b> tests significance.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A Kendall's tau correlation gave &tau;=__ [__, __], <i>p</i>&nbsp;__, <i>N</i>=__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A Kendall's tau-b correlation gave &tau;=__ [__, __], <i>p</i>&nbsp;__, <i>N</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>cor.test(method="kendall")</code> &rarr; table &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_correlation.png &middot; figure_scatter.png</div>
       </div>
@@ -644,18 +645,18 @@
     <div class="rt-h"><span class="rt-name">Chi-square independence</span><span class="rt-q">are two categorical variables related?</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
-      <div class="apa-cap"><b>Table 1.</b> Contingency (observed [expected])</div>
+      <div class="apa-cap"><b>Table 1.</b> Contingency (observed [expected] (row% / col%) std. residual)</div>
       <table class="apa"><thead><tr><th>Row \ Column</th><th>Col 1</th><th>Col 2</th><th>&hellip;</th><th>Total</th></tr></thead><tbody class="ghost"><tr><td>Row 1</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Row 2</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Chi-square test</div>
       <table class="apa"><thead><tr><th>&chi;&sup2;</th><th>df</th><th>p</th><th>Cram&eacute;r's V [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">the contingency table is r&times;c &mdash; columns expand to the number of categories in the column variable; expected counts and row/column percentages are shown, with a warning (suggesting Fisher's exact) if expected counts are too small. For 2&times;2 tables <code>chisq.test()</code> applies Yates' continuity correction by default (set <code>correct=FALSE</code> for the uncorrected &chi;&sup2;).</p>
+      <p class="tbl-note">the contingency table is r&times;c &mdash; columns expand to the number of categories in the column variable; each cell shows observed [expected] (row% / col%) and its standardized residual r (<code>chisq.test()$stdres</code>), with a warning (suggesting Fisher's exact) if expected counts are too small. A standardized residual beyond about &plusmn;1.96 flags a cell that significantly drives the association. For 2&times;2 tables <code>chisq.test()</code> applies Yates' continuity correction to the &chi;&sup2; by default (set <code>correct=FALSE</code> for the uncorrected &chi;&sup2;); the standardized residuals are unaffected by the correction.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Cross-classification</div><div class="ftype">type: <b>mosaic</b> or grouped bar chart</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Tests whether two categorical variables are associated. A <b>p</b> below alpha means they are related; <b>Cram&eacute;r's V</b> gives the strength of association (0&ndash;1). Valid only when expected counts are mostly &ge; 5 (the app flags this and suggests Fisher's exact) and each case appears once (raw counts, not percentages).</p></div>
+      <div class="howread"><p>Tests whether two categorical variables are associated. A <b>p</b> below alpha means they are related; <b>Cram&eacute;r's V</b> gives the strength of association (0&ndash;1); each cell's standardized residual (r) beyond about &plusmn;1.96 flags a category combination that significantly drives the association. Valid only when expected counts are mostly &ge; 5 (the app flags this and suggests Fisher's exact) and each case appears once (raw counts, not percentages).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A chi-square test of independence gave &chi;&sup2;(__, <i>N</i>=__)=__, <i>p</i>&nbsp;__, <i>V</i>=__ [__, __].&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>chisq.test()</code> &rarr; Table 2 &middot; <code>sqrt(&chi;&sup2;/(N&middot;min(r&minus;1,c&minus;1)))</code> (matches <code>rcompanion::cramerV</code>) &rarr; V &middot; <code>ggplot2::geom_bar()</code> &rarr; figure</div>
+        <div class="m"><b>R map:</b> <code>chisq.test()</code> &rarr; Table 2 &middot; <code>chisq.test(...)$stdres</code> &rarr; Table 1 std. residuals &middot; <code>sqrt(&chi;&sup2;/(N&middot;min(r&minus;1,c&minus;1)))</code> (matches <code>rcompanion::cramerV</code>) &rarr; V &middot; <code>ggplot2::geom_bar()</code> &rarr; figure</div>
         <div class="m bundle">table_contingency.png &middot; table_chi-square.png &middot; figure_bar.png</div>
       </div>
     </div>
@@ -689,12 +690,12 @@
       <div class="apa-cap"><b>Table 1.</b> Contingency</div>
       <table class="apa"><thead><tr><th>Row \ Column</th><th>Col 1</th><th>Col 2</th><th>Total</th></tr></thead><tbody class="ghost"><tr><td>Row 1</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Row 2</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Fisher's exact test</div>
-      <table class="apa"><thead><tr><th>p (exact)</th><th>Odds ratio</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">odds ratio &amp; CI are reported for 2&times;2 tables only; larger tables report the exact p only.</p>
+      <table class="apa"><thead><tr><th>p (exact)</th><th>Odds ratio (cond. MLE)</th><th>95% CI</th><th>Cram&eacute;r's V [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">the odds ratio is <code>fisher.test()</code>'s conditional MLE (not the sample cross-product) and, with its CI, is reported for 2&times;2 tables only; for larger tables the OR is undefined, so Cram&eacute;r's V (<code>effectsize::cramers_v</code>) reports the strength of association alongside the exact p.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Cross-classification</div><div class="ftype">type: <b>mosaic</b> / grouped bar chart</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>An exact alternative to chi-square for small samples. A <b>p</b> below alpha means the two categories are associated; for 2&times;2 tables the <b>odds ratio</b> quantifies the association &mdash; OR&gt;1 means the outcome is more likely in the first row/group, OR&lt;1 less likely, OR=1 no association. Check the row/column order before reading direction, since the OR reflects the table's orientation.</p></div>
+      <div class="howread"><p>An exact alternative to chi-square for small samples. A <b>p</b> below alpha means the two categories are associated; for 2&times;2 tables the <b>odds ratio</b> quantifies the association &mdash; this is <code>fisher.test()</code>'s conditional MLE (the non-central hypergeometric estimate), not the sample cross-product. OR&gt;1 means the outcome is more likely in the first row/group, OR&lt;1 less likely, OR=1 no association; check the row/column order before reading direction, since the OR reflects the table's orientation. For tables larger than 2&times;2 the odds ratio is undefined, so Cram&eacute;r's V (0&ndash;1) reports the strength of association instead.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Fisher's exact test of [Var1] by [Var2] gave <i>p</i>&nbsp;__.&rdquo; &middot; for 2&times;2 tables add &ldquo;(OR=__, 95% CI [__, __])&rdquo;; larger tables report the exact <i>p</i> only.</div>
         <div class="m"><b>R map:</b> <code>fisher.test()</code> &rarr; Table 2 &middot; <code>ggplot2::geom_bar()</code> &rarr; figure</div>
@@ -758,7 +759,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Classifier performance</div><div class="ftype">type: <b>ROC curve</b> (with AUC)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Each predictor's <b>odds ratio</b> tells how the odds of the outcome change per unit (>1 increases, &lt;1 decreases); <b>p</b> tests significance (read it from the <b>z</b> column, z = B/SE). Model fit and the ROC/AUC show how well it classifies overall.</p></div>
+      <div class="howread"><p>Each predictor's <b>odds ratio</b> tells how the odds of the outcome change per unit (&gt;1 increases, &lt;1 decreases); a term carries weight when its OR confidence interval excludes 1, and the inline omnibus <b>&chi;&sup2;</b> (with its <b>p</b>) tests the model as a whole. Model fit and the ROC/AUC show how well it classifies overall.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Predictor X was associated with the outcome, OR=__, 95% CI [__, __], <i>p</i>&nbsp;__ (AUC=__).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>glm(family=binomial)</code> &rarr; B/SE/z/p &middot; <code>exp(cbind(OR=coef(m), confint(m)))</code> &rarr; OR + 95% CI &middot; <code>performance::r2_nagelkerke(m)</code> &rarr; Nagelkerke R&sup2; &middot; <code>anova(m, test="Chisq")</code> &rarr; omnibus &chi;&sup2; &middot; <code>logLik(m)/AIC(m)/BIC(m)</code> &rarr; Log.Lik./AIC/BIC &middot; <code>table(predicted, observed)</code> &rarr; Table 2 (classification) &middot; <code>pROC</code> &rarr; ROC/AUC</div>
@@ -876,7 +877,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Coefficients (within estimator)</div>
-      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Predictor 1&hellip;k</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>Within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Adj. within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>F</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Predictor 1&hellip;k</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>Within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Adj. within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>F-test</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">time-invariant predictors are absorbed by the entity effects and drop out; a predictor must also <b>change within entities over time</b> to be estimable &mdash; predictors with little within-entity variation give large standard errors and unreliable estimates.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b> (estimate &plusmn; CI)</div></div>

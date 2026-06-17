@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { FixedEffectsResult } from '../stats/fixedEffects'
 import type { CardContent } from './builders'
-import { f, f01, fpApa } from '../format/apa'
+import { f, f01, fdf, fpApa, fx } from '../format/apa'
 
 // modelsummary coef table (design 2026-06-16): the old Coefficients + Model fit merge into one stacked table.
 // Per term: B row → muted (clustered/classical SE) row → muted [CI] row. Then a rule, then the gof footer.
@@ -12,9 +12,12 @@ export function buildFixedEffects(spec: TestSpec, r: FixedEffectsResult): CardCo
   const t = spec.tables[0]
   const classical = r.seType === 'classical'
   const seLabel = classical ? 'classical SE' : 'clustered SE'
+  // Theme-4: render the overall model F as F(df1, df2) = stat, p — not a bare number (the result carries fDf1/fDf2/fP).
+  // fx guards an NA F to a single em-dash (no "F(NaN, …)"); fdf prints integer df cleanly; fpApa gives the spaced report-only p.
+  const fGof = fx(r.fStat, (v) => `F(${fdf(r.fDf1)}, ${fdf(r.fDf2)}) = ${f(v)}, p ${fpApa(r.fP)}`)
   const gofValue: Record<string, string> = {
     n: String(r.nObs), nentities: String(r.nEntities),
-    r2within: f01(r.withinR2), adjr2within: f01(r.adjR2), f: f(r.fStat),
+    r2within: f01(r.withinR2), adjr2within: f01(r.adjR2), f: fGof,
   }
   const rows: Record<string, string | number>[] = [
     ...r.coefRows.flatMap((x) => [

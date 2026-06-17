@@ -39,7 +39,8 @@ export const FIXED_EFFECTS: TestSpec = {
       gof: [
         { key: 'n', label: 'Num.Obs.' }, { key: 'nentities', label: 'N entities' },
         { key: 'r2within', label: 'Within R²' }, { key: 'adjr2within', label: 'Adj. within R²' },
-        { key: 'f', label: 'F' },
+        // Theme-4: the value cell now self-describes as "F(df1, df2) = stat, p", so the stub reads "F-test" (was a bare "F").
+        { key: 'f', label: 'F-test' },
       ],
     },
   ],

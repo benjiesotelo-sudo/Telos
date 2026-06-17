@@ -34,6 +34,10 @@ describe('runWilcoxonSignedRank', () => {
     expect(r.r).toBeCloseTo(-1, 6)           // rank_biserial: complete separation
     expect(r.rLow).toBeCloseTo(-1, 3)        // effectsize::rank_biserial(paired=TRUE, ci=0.95)$CI_low — native R ≡ WebR (degenerate at full separation)
     expect(r.rHigh).toBeCloseTo(-1, 3)       // $CI_high
+    // Hodges–Lehmann median difference + 95% CI, exact path (wilcox.test(conf.int=TRUE)): native R est=−11.5, CI [−17,−9].
+    expect(r.hl).toBeCloseTo(-11.5, 5)
+    expect(r.hlLow).toBeCloseTo(-17, 3)
+    expect(r.hlHigh).toBeCloseTo(-9, 3)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
 
@@ -44,6 +48,10 @@ describe('runWilcoxonSignedRank', () => {
     const off = await runWilcoxonSignedRank(engine, paired, 'pre', 'post', false, true)
     expect(off.p).toBeCloseTo(0.02771, 4)    // = the coin Z p (uncorrected normal approximation)
     expect(off.z).toBeCloseTo(-2.20140, 4)   // Z ignores correct= — always coin's standardized statistic
+    // Hodges–Lehmann on the asymptotic path — spike ground truth: HL=−11.5, CI [−14.5,−10.0] (n=6 "conf.level not achievable" warning suppressed).
+    expect(on.hl).toBeCloseTo(-11.5, 5)
+    expect(on.hlLow).toBeCloseTo(-14.50003, 3)
+    expect(on.hlHigh).toBeCloseTo(-9.999945, 3)
   })
 
   it('tied diffs: midrank V=1.5, exact-with-ties p (R 4.6.0 — spike-verified in BOTH environments, no warning)', async () => {
@@ -60,6 +68,10 @@ describe('runWilcoxonSignedRank', () => {
     expect(r.r).toBeCloseTo(-0.857143, 5)
     expect(r.rLow).toBeCloseTo(-0.974404, 3)  // effectsize::rank_biserial(paired=TRUE, ci=0.95) — native R ≡ WebR (discriminating CI)
     expect(r.rHigh).toBeCloseTo(-0.373210, 3)
+    // Hodges–Lehmann, tied exact path: native R est=−2.5, CI [−4.5, 1].
+    expect(r.hl).toBeCloseTo(-2.5, 5)
+    expect(r.hlLow).toBeCloseTo(-4.5, 3)
+    expect(r.hlHigh).toBeCloseTo(1, 3)
     expect(r.nExcluded).toBe(0)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })

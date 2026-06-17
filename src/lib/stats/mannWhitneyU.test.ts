@@ -28,9 +28,13 @@ describe('runMannWhitneyU', () => {
   it('overlap12 default run: pooled rank summary, U for the first (alphabetical) level, EXACT p, coin Z, rank-biserial r, boxplot', async () => {
     const r = await runMannWhitneyU(engine, overlap12, 'score', 'group', true)
     expect(r.ranks).toEqual([
-      { group: 'control', n: 6, meanRank: 4.5, sumRanks: 27 },
-      { group: 'treatment', n: 6, meanRank: 8.5, sumRanks: 51 },
+      { group: 'control', n: 6, meanRank: 4.5, sumRanks: 27, median: 70.5, iqr: 3.25 },
+      { group: 'treatment', n: 6, meanRank: 8.5, sumRanks: 51, median: 76, iqr: 5.5 },
     ])
+    // Hodges-Lehmann median difference + CI on the SAME wilcox.test branch (exact at these N) — native R ≡ WebR.
+    expect(r.hodgesLehmann).toBeCloseTo(-6, 6)
+    expect(r.hlLow).toBeCloseTo(-12, 6)
+    expect(r.hlHigh).toBeCloseTo(1, 6)
     expect(r.u).toBe(6)                       // wilcox.test W = U for alphabetical-first 'control'
     expect(r.p).toBeCloseTo(0.064935, 5)      // EXACT path (= 60/924), R 4.6.0 default at these N
     expect(r.z).toBeCloseTo(-1.92154, 4)      // coin asymptotic Z — card mixes exact p with asymptotic Z
@@ -53,9 +57,13 @@ describe('runMannWhitneyU', () => {
     const r = await runMannWhitneyU(engine, long12, 'score', 'group', true)
     expect(r.nExcluded).toBe(2)
     expect(r.ranks).toEqual([
-      { group: 'control', n: 6, meanRank: 3.5, sumRanks: 21 },
-      { group: 'treatment', n: 6, meanRank: 9.5, sumRanks: 57 },
+      { group: 'control', n: 6, meanRank: 3.5, sumRanks: 21, median: 70.5, iqr: 3.25 },
+      { group: 'treatment', n: 6, meanRank: 9.5, sumRanks: 57, median: 82, iqr: 5 },
     ])
+    // study.csv == these 12 rows: spike ground truth HL = −12, 95% CI [−17, −7] (default/exact branch).
+    expect(r.hodgesLehmann).toBeCloseTo(-12, 6)
+    expect(r.hlLow).toBeCloseTo(-17, 6)
+    expect(r.hlHigh).toBeCloseTo(-7, 6)
     expect(r.u).toBe(0)
     expect(r.p).toBeCloseTo(0.0021645, 6)
     expect(r.z).toBeCloseTo(-2.88231, 4)

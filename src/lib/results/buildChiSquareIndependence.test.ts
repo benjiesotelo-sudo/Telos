@@ -8,13 +8,15 @@ const res: ChiSquareIndependenceResult = { rowVar: 'passed', colVar: 'gender',
   rowCats: ['no', 'yes'], colCats: ['female', 'male'],
   counts: [[8, 10, 18], [12, 10, 22], [20, 20, 40]],
   expected: [[9, 9], [11, 11]], rowPct: [[44.444, 55.556], [54.545, 45.455]], colPct: [[40, 50], [60, 50]],
+  stdRes: [[-0.635642, 0.635642], [0.635642, -0.635642]], // chisq.test(tab)$stdres for this 2×2 (native R)
   chisq: 0.2020, df: 1, p: 0.6531, v: 0.1005, vLow: 0, vHigh: 1, minExpected: 9, n: 40, alpha: 0.05, nExcluded: 0, figurePng: png }
 
 describe('buildChiSquareIndependence', () => {
   it('contingency expands columns; cell = obs [exp] (row% / col%); margins plain', () => {
     const c = buildChiSquareIndependence(CHI_SQUARE_INDEPENDENCE, res)
     expect(c.tables[0].spec.columns.map((x) => x.label)).toEqual(['Row \\ Column', 'female', 'male', 'Total'])
-    expect(c.tables[0].rows[0]).toEqual({ rowcat: 'no', c0: '8 [9.00] (44.4% / 40.0%)', c1: '10 [9.00] (55.6% / 50.0%)', total: '18' })
+    expect(c.tables[0].rows[0]).toEqual({ rowcat: 'no', c0: '8 [9.00] (44.4% / 40.0%) r=−0.64', c1: '10 [9.00] (55.6% / 50.0%) r=0.64', total: '18' })
+    expect(c.tables[0].rows[1]).toEqual({ rowcat: 'yes', c0: '12 [11.00] (54.5% / 60.0%) r=0.64', c1: '10 [11.00] (45.5% / 50.0%) r=−0.64', total: '22' })
     expect(c.tables[0].rows[2]).toEqual({ rowcat: 'Total', c0: '20', c1: '20', total: '40' })
     expect(c.tables[1].rows).toEqual([{ chisq: '0.20', df: '1', p: '.653', v: '0.10 [0.00, 1.00]' }])
   })
