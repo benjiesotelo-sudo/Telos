@@ -156,9 +156,9 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> Descriptive statistics</div>
-      <table class="apa"><thead><tr><th>Variable</th><th>N</th><th>M</th><th>SD</th><th>Min</th><th>Max</th><th>Median</th><th>Skew</th><th>Kurtosis</th></tr></thead>
-      <tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">one row per chosen variable; a Group column is added when "Group by" is used (stats repeat per group).</p>
+      <table class="apa"><thead><tr><th>Variable</th><th>N</th><th>M</th><th>SD</th><th>95% CI</th><th>Min</th><th>Max</th><th>Median</th><th>Skew</th><th>Kurtosis (excess)</th></tr></thead>
+      <tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">one row per chosen variable; a Group column is added when "Group by" is used (stats repeat per group). 95% CI is the t-based confidence interval for the mean; kurtosis is excess (normal = 0).</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Distribution</div><div class="ftype">type: <b>histogram</b> per variable (optional)</div></div>
       <div class="zlabel">How to read this test</div>
@@ -176,8 +176,9 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Frequency distribution (one variable)</div>
-      <table class="apa"><thead><tr><th>Category</th><th>n</th><th>%</th><th>Cumulative %</th></tr></thead>
-      <tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Category</th><th>n</th><th>Valid %</th><th>Total %</th><th>Cumulative %</th></tr></thead>
+      <tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Missing</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note freq-missing">Valid % uses the valid (non-missing) n as its denominator; Total % uses the grand total including the Missing row.</p>
       <div class="apa-cap"><b>Table 2.</b> Cross-tabulation (two variables &middot; n, row %, col %)</div>
       <table class="apa"><thead><tr><th>Row \ Column</th><th>Col 1</th><th>Col 2</th><th>&hellip;</th><th>Total</th></tr></thead>
       <tbody class="ghost"><tr><td>Row 1</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Total</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
@@ -199,16 +200,16 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> Normality tests</div>
-      <table class="apa"><thead><tr><th>Variable</th><th>Test</th><th>Statistic</th><th>N</th><th>p</th></tr></thead>
-      <tbody class="ghost"><tr><td>post_score</td><td>Shapiro-Wilk</td><td>W &mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>post_score</td><td>K&ndash;S (Lilliefors)</td><td>D &mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">skewness &amp; kurtosis appear in the Summary statistics card; Shapiro-Wilk applies for 3&ndash;5000 cases.</p>
+      <table class="apa"><thead><tr><th>Variable</th><th>Test</th><th>Statistic</th><th>N</th><th>p</th><th>Skew</th><th>Kurtosis (excess)</th></tr></thead>
+      <tbody class="ghost"><tr><td>post_score</td><td>Shapiro-Wilk</td><td>W &mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>post_score</td><td>K&ndash;S (Lilliefors)</td><td>D &mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">Kurtosis is excess (normal = 0); both via psych::describe (type 3). Shapiro-Wilk applies for 3&ndash;5000 cases.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Distribution shape</div><div class="ftype">type: <b>histogram</b> + <b>Q&ndash;Q plot</b> per variable</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>A small <b>p</b> (below .05) suggests the data depart from normality. With large samples these tests over-flag trivial deviations; with small samples they have low power, so a <b>p &gt; .05 does not prove normality</b> &mdash; it only means no departure was detected. Either way, judge normality mainly from the <b>Q&ndash;Q plot</b> &mdash; points hugging the diagonal indicate normality.</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Normality was assessed with the Shapiro-Wilk test, <i>W</i>&nbsp;=&nbsp;__, <i>p</i>&nbsp;__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>shapiro.test()</code> (returns W, p) / <code>nortest::lillie.test()</code> (returns D, p) &rarr; table &middot; <code>ggplot2</code> + <code>stat_qq()</code> &rarr; figures</div>
+        <div class="m"><b>R map:</b> <code>shapiro.test()</code> (returns W, p) / <code>nortest::lillie.test()</code> (returns D, p) / <code>psych::describe()</code> (skew, excess kurtosis) &rarr; table &middot; <code>ggplot2</code> + <code>stat_qq()</code> &rarr; figures</div>
         <div class="m bundle">table_normality.png &middot; figure_histogram.png &middot; figure_qq.png</div>
       </div>
     </div>

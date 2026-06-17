@@ -28,7 +28,10 @@ describe('runSummaryStatistics', () => {
     expect(s.median).toBe(76.5)
     expect(s.skew).toBeCloseTo(0.1144, 4)      // describe type-3 b1 — NOT SPSS G1 (spike fact 3)
     expect(s.kurtosis).toBeCloseTo(-1.4922, 4) // EXCESS kurtosis b2−3
+    // t-based mean 95% CI: mean ± qt(.975, n−1)·SE — matches native R
+    expect(s.ciLow).toBeCloseTo(71.8297, 3); expect(s.ciHigh).toBeCloseTo(80.837, 3)
     expect(r.rows[1].n).toBe(11)               // age drops ITS OWN null only — per-variable N
+    expect(r.rows[1].ciLow).toBeCloseTo(25.5486, 3); expect(r.rows[1].ciHigh).toBeCloseTo(30.8151, 3)
     expect(r.histograms.map((h) => h.variable)).toEqual(['score', 'age'])
     for (const h of r.histograms) expect(Array.from(h.png.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
@@ -42,10 +45,12 @@ describe('runSummaryStatistics', () => {
     expect(c.mean).toBeCloseTo(70.3333, 4); expect(c.sd).toBeCloseTo(3.1411, 4)
     expect(c.min).toBe(66); expect(c.max).toBe(75); expect(c.median).toBe(70.5)
     expect(c.skew).toBeCloseTo(0.0669, 4); expect(c.kurtosis).toBeCloseTo(-1.5201, 4)
+    expect(c.ciLow).toBeCloseTo(67.0369, 3); expect(c.ciHigh).toBeCloseTo(73.6297, 3) // per-group t-based mean CI
     expect(t.n).toBe(6)
     expect(t.mean).toBeCloseTo(82.3333, 4); expect(t.sd).toBeCloseTo(3.7771, 4)
     expect(t.min).toBe(78); expect(t.max).toBe(88); expect(t.median).toBe(82)
     expect(t.skew).toBeCloseTo(0.2488, 4); expect(t.kurtosis).toBeCloseTo(-1.7217, 4)
+    expect(t.ciLow).toBeCloseTo(78.3695, 3); expect(t.ciHigh).toBeCloseTo(86.2972, 3)
     expect(r.histograms).toHaveLength(1)
     expect(Array.from(r.histograms[0].png.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })

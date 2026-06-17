@@ -18,9 +18,9 @@ export const DISTRIBUTION_NORMALITY: TestSpec = {
   },
   tables: [
     { id: 'normality', title: 'Normality tests', captionStyle: 'bare', // the card prints bare "Table."
-      columns: [{ key: 'variable', label: 'Variable' }, { key: 'test', label: 'Test' }, { key: 'statistic', label: 'Statistic' }, { key: 'n', label: 'N' }, { key: 'p', label: 'p' }] },
+      columns: [{ key: 'variable', label: 'Variable' }, { key: 'test', label: 'Test' }, { key: 'statistic', label: 'Statistic' }, { key: 'n', label: 'N' }, { key: 'p', label: 'p' }, { key: 'skew', label: 'Skew' }, { key: 'kurtosis', label: 'Kurtosis (excess)' }] },
   ],
-  tableNote: { kind: 'plain', text: 'skewness & kurtosis appear in the Summary statistics card; Shapiro-Wilk applies for 3–5000 cases.' },
+  tableNote: { kind: 'plain', text: 'Kurtosis is excess (normal = 0); both via psych::describe (type 3). Shapiro-Wilk applies for 3–5000 cases.' },
   figures: [ // one drawn figbox, two exported files (bundle line) → two specs sharing the caption
     { caption: 'Distribution shape', type: 'histogram' },
     { caption: 'Distribution shape', type: 'qq' },
@@ -30,6 +30,6 @@ export const DISTRIBUTION_NORMALITY: TestSpec = {
     'with small samples they have low power, so a p > .05 does not prove normality — it only means no departure was detected. ' +
     'Either way, judge normality mainly from the Q–Q plot — points hugging the diagonal indicate normality.',
   apaTemplate: 'Normality was assessed with the Shapiro-Wilk test, W = {w}, p {p}.',
-  rMap: 'shapiro.test() (returns W, p) / nortest::lillie.test() (returns D, p) → table · ggplot2 + stat_qq() → figures',
+  rMap: 'shapiro.test() (returns W, p) / nortest::lillie.test() (returns D, p) / psych::describe() (skew, excess kurtosis) → table · ggplot2 + stat_qq() → figures',
   bundleFiles: ['table_normality.png', 'figure_histogram.png', 'figure_qq.png'],
 }

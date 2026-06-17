@@ -1,17 +1,21 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
 
-// Card R map: shapiro.test() / nortest::lillie.test() → table · ggplot2 + stat_qq() → figures.
+// Card R map: shapiro.test() / nortest::lillie.test() → table · psych::describe() → skew/kurtosis · ggplot2 + stat_qq() → figures.
 // Shapiro-Wilk applies for 3–5000 cases (card note) — outside that range it reports nulls (builder renders em-dashes).
 // nortest::lillie.test stops below n = 5 ("sample size must be greater than 4") — guarded the same way,
 // because minRule admits N = 3 and the runner must not crash on eligible data.
+// skew/kurtosis via psych::describe default type=3 (Joanes & Gill b-family; kurtosis is EXCESS) — the
+// data.frame path verbatim from summaryStatistics.ts. NA (e.g. degenerate column) → null via the JSON helper → em-dash.
 const R_STATS = String.raw`
 n <- length(x)
 sh <- if (n >= 3 && n <= 5000) shapiro.test(x) else NULL
 ks <- if (n >= 5) nortest::lillie.test(x) else NULL
+d <- psych::describe(data.frame(x = x))
 list(n = n,
   shapiro = if (is.null(sh)) list(W = NA_real_, p = NA_real_) else list(W = unname(sh$statistic), p = sh$p.value),
-  ks = if (is.null(ks)) list(D = NA_real_, p = NA_real_) else list(D = unname(ks$statistic), p = ks$p.value))`
+  ks = if (is.null(ks)) list(D = NA_real_, p = NA_real_) else list(D = unname(ks$statistic), p = ks$p.value),
+  skew = d$skew[1], kurtosis = d$kurtosis[1])`
 
 // ggplot2 objects must be print()ed to reach the active png() device.
 // Adaptive Sturges bins: max(5, min(30, ceiling(log2(n)+1))) — avoids the ggplot2 advisory and
@@ -28,7 +32,7 @@ print(ggplot2::ggplot(data.frame(x = x), ggplot2::aes(sample = x)) +
   ggplot2::stat_qq(colour = '#0c447c') + ggplot2::stat_qq_line(colour = '#9cc2ec') +
   ggplot2::labs(x = 'Theoretical quantiles', y = 'Sample quantiles'))`
 
-interface RawStats { n: number; shapiro: { W: number | null; p: number | null }; ks: { D: number | null; p: number | null } }
+interface RawStats { n: number; shapiro: { W: number | null; p: number | null }; ks: { D: number | null; p: number | null }; skew: number | null; kurtosis: number | null }
 export interface VariableNormality extends RawStats {
   variable: string
   nExcluded: number

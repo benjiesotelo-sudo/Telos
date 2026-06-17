@@ -2,9 +2,16 @@ import type { Emitter } from './index'
 import { ggsaveOrPrint } from '../helpers'
 import { categoriesOf, propsArray } from '../../../data/props'
 
-// Association + descriptive family. Each emitter mirrors the matching stats module's R verbatim
-// (same call, same option threading) — NON-model tests, so no modelsummary(): the test call + its
-// summary/effect-size + the card figure, emitted as clean runnable R a student could paste into RStudio.
+// Association + descriptive family. Each inferential emitter mirrors the matching stats module's R
+// verbatim (same call, same option threading) — the test call + its summary/effect-size + the card figure,
+// emitted as clean runnable R a student could paste into RStudio.
+//
+// The two DESCRIPTIVE emitters (summary-statistics, frequencies-crosstabs) instead follow Vincent
+// Arel-Bundock's `modelsummary` datasummary_* convention — the same house style the displayed tables now
+// use: summary-statistics → datasummary_skim(d, type = "numeric"); frequencies-crosstabs → a 2-var
+// datasummary_crosstab(row ~ col) (1-var: datasummary(var ~ N + Percent()), the tabyl-equivalent that the
+// 1-var crosstab form does not support). Verified to run in NATIVE R with modelsummary 2.6.0
+// (type = "numeric" suppresses the tinytable-backend warning datasummary_skim emits under type = "all").
 
 // tails option choice -> R alternative= string (mirrors builders.ts alternativeOf).
 const alternativeOf = (o: Record<string, boolean | number | string>): string =>
@@ -113,45 +120,49 @@ export const assocDescEmitters: Record<string, Emitter> = {
     ].join('\n')
   },
 
-  // psych::describe per variable; grouped → mirror summaryStatistics.ts's per-level describe(data.frame(...)) loop
-  // (NEVER describeBy(vector, g): psych 2.6.3 treats the bare vector as factor codes → garbage). Per-variable histogram.
+  // modelsummary::datasummary_skim on the chosen numeric variables (Arel-Bundock convention, matching the
+  // displayed table). type = "numeric" pins the numeric skim and suppresses the tinytable-backend warning the
+  // default type = "all" raises (spike note, verified native R / modelsummary 2.6.0). Grouped → by = <grp>.
+  // Per-variable histogram retained (the card figure).
   'summary-statistics': (_spec, setup) => {
     const vars = setup.roles['variables'] ?? []
     const grp = (setup.roles['groupBy'] ?? [])[0]
     const lines: string[] = []
-    for (const v of vars) {
-      // Pass a data.frame so psych::describe treats the column as the variable (the data.frame path
-      // matches the module exactly); describeBy then groups on the column accessor, not a bare vector.
-      lines.push(grp
-        ? `print(psych::describeBy(data.frame(x = ${col(v)}), group = ${col(grp)}, mat = TRUE))`
-        : `print(psych::describe(data.frame(x = ${col(v)})))`)
-      lines.push(`print(ggplot(d, aes(${v})) + geom_histogram(bins = 12))`)
-    }
+    // Restrict to the selected variables so the skim rows mirror the displayed table; keep the real variable
+    // names as the data.frame column names (check.names = FALSE). The group column gets a clean `grp` name so
+    // the by= reference stays syntactic even when the source group column name is not.
+    const cols = vars.map((v) => `"${v}" = ${col(v)}`)
+    if (grp) cols.push(`grp = ${col(grp)}`)
+    lines.push(`summ <- data.frame(${cols.join(', ')}, check.names = FALSE)`)
+    lines.push(grp
+      ? `print(datasummary_skim(summ, type = "numeric", by = "grp"))`
+      : `print(datasummary_skim(summ, type = "numeric"))`)
+    for (const v of vars) lines.push(`print(ggplot(d, aes(${v})) + geom_histogram(bins = 12))`)
     return lines.join('\n')
   },
 
-  // janitor::tabyl frequency (1 var) or cross-tab with adorn_totals/percentages (2 vars) · bar / grouped bar
-  // Pre-filter blank/whitespace/NA cells BEFORE tabyl() (frequenciesCrosstabs.ts drops them) to avoid the "" phantom row.
+  // modelsummary datasummary_* frequency / cross-tab (Arel-Bundock convention, matching the displayed table).
+  // 2 vars → datasummary_crosstab(row ~ col): the stacked N + "% row" layout with All margins. 1 var → the
+  // tabyl-equivalent datasummary(var ~ N + Percent()) (datasummary_crosstab has no 1-var form — var ~ 1 errors
+  // "subscript out of bounds" in modelsummary 2.6.0). Pre-filter blank/whitespace/NA cells BEFORE tabulating
+  // (frequenciesCrosstabs.ts drops them) to avoid the read.csv "" phantom row; factor() the categorical
+  // column(s) so datasummary treats them as discrete. Bar / grouped bar figure retained (the card figure).
   'frequencies-crosstabs': (_spec, setup) => {
     const vars = (setup.roles['variables'] ?? []).slice(0, 2)
     if (vars.length < 2) {
       const v = vars[0]
       return [
         `sub <- d[${presentFilter([v])}, ]`,
-        `freq <- janitor::tabyl(sub[["${v}"]])`,
-        'freq$cum_percent <- cumsum(freq$percent)',
-        'print(freq)',
+        `sub[["${v}"]] <- factor(sub[["${v}"]])`,
+        `print(datasummary(${v} ~ N + Percent(), data = sub))`,
         ggsaveOrPrint(`ggplot(sub, aes(${v})) + geom_bar()`),
       ].join('\n')
     }
     const [r, c] = vars
     return [
       `sub <- d[${presentFilter([r, c])}, ]`,
-      `ct <- janitor::tabyl(sub, ${r}, ${c})`,
-      "tot <- janitor::adorn_totals(ct, c('row', 'col'))",
-      'print(tot)',
-      "print(janitor::adorn_percentages(tot, 'row'))",
-      "print(janitor::adorn_percentages(tot, 'col'))",
+      `sub[["${r}"]] <- factor(sub[["${r}"]]); sub[["${c}"]] <- factor(sub[["${c}"]])`,
+      `print(datasummary_crosstab(${r} ~ ${c}, data = sub))`,
       ggsaveOrPrint(`ggplot(sub, aes(${r}, fill = ${c})) + geom_bar(position = "dodge")`),
     ].join('\n')
   },
@@ -180,7 +191,7 @@ export const assocDescPackages: Record<string, string[]> = {
   'chi-square-independence': ['ggplot2'],
   'chi-square-goodness-of-fit': ['effectsize', 'ggplot2'],
   'fishers-exact': ['ggplot2'],
-  'summary-statistics': ['psych', 'ggplot2'],
-  'frequencies-crosstabs': ['janitor', 'ggplot2'],
+  'summary-statistics': ['modelsummary', 'ggplot2'],
+  'frequencies-crosstabs': ['modelsummary', 'ggplot2'],
   'distribution-normality': ['nortest', 'ggplot2'],
 }

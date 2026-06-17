@@ -5,8 +5,9 @@ import type { CardContent } from './builders'
 import { f, f01, fp, fpApa, fx } from '../format/apa'
 
 export function buildDistributionNormality(spec: TestSpec, r: DistributionNormalityResult): CardContent {
+  // skew/kurtosis are per-variable (shared across both test rows, like N); excess kurtosis (psych type 3, normal = 0).
   const row = (v: VariableNormality, test: string, letter: 'W' | 'D', stat: number | null, p: number | null) =>
-    ({ variable: v.variable, test, statistic: `${letter} ${fx(stat, f)}`, n: stat == null ? '—' : v.n, p: fx(p, fp) })
+    ({ variable: v.variable, test, statistic: `${letter} ${fx(stat, f)}`, n: stat == null ? '—' : v.n, p: fx(p, fp), skew: fx(v.skew, f), kurtosis: fx(v.kurtosis, f) })
   const skipped = r.variables.filter((v) => v.shapiro.W == null)
   const note = skipped.length
     ? `${spec.tableNote!.text} ${skipped.map((v) => `Shapiro-Wilk not computed for ${v.variable}: N = ${v.n} is outside that range.`).join(' ')}`

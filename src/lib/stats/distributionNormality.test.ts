@@ -33,6 +33,8 @@ describe('runDistributionNormality', () => {
     expect(v.shapiro.p).toBeCloseTo(0.8292, 3)   // 0.829180865
     expect(v.ks.D).toBeCloseTo(0.1462, 3)        // 0.146181269
     expect(v.ks.p).toBeCloseTo(0.6814, 3)        // 0.681426721
+    expect(v.skew).toBeCloseTo(0.1144, 3)        // psych::describe type 3, native R 4.6.0: 0.1143992142
+    expect(v.kurtosis).toBeCloseTo(-1.4922, 3)   // excess kurtosis (type 3): -1.4922046390
     expect(Array.from(v.histogramPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
     expect(Array.from(v.qqPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
@@ -43,11 +45,15 @@ describe('runDistributionNormality', () => {
     const [s, a] = r.variables
     expect(s.n).toBe(12); expect(s.nExcluded).toBe(0)
     expect(s.shapiro.W).toBeCloseTo(0.9633, 3)
+    expect(s.skew).toBeCloseTo(0.1144, 3)                // long12 skew (type 3): 0.1143992142
+    expect(s.kurtosis).toBeCloseTo(-1.4922, 3)           // long12 excess kurtosis: -1.4922046390
     expect(a.n).toBe(11); expect(a.nExcluded).toBe(1)   // the null row drops for anxiety only
     expect(a.shapiro.W).toBeCloseTo(0.9853, 3)           // 0.985295280
     expect(a.shapiro.p).toBeCloseTo(0.9885, 3)           // 0.988459795
     expect(a.ks.D).toBeCloseTo(0.0794, 3)                // 0.079371235
     expect(a.ks.p).toBeCloseTo(1.0, 3)                   // capped at 1
+    expect(a.skew).toBeCloseTo(0.1235, 3)                // anxiety11 skew (type 3): 0.1234803294
+    expect(a.kurtosis).toBeCloseTo(-1.2705, 3)           // anxiety11 excess kurtosis: -1.2705455920
     for (const v of r.variables) {
       expect(Array.from(v.histogramPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
       expect(Array.from(v.qqPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
@@ -71,5 +77,22 @@ describe('runDistributionNormality', () => {
     const r = await runDistributionNormality(engine, { columns: ['x'], rows: [66, 72, 79, 88].map((x) => ({ x })) }, ['x'])
     expect(r.variables[0].shapiro.W).not.toBeNull()
     expect(r.variables[0].ks).toEqual({ D: null, p: null })
+  })
+
+  // README doc config (docs/test-documentation/03_distribution-normality): students.csv, score + anxiety.
+  // Ground truth from native R 4.6.0 psych::describe(data.frame(x=x)) (type 3, excess kurtosis):
+  // score n=14 skew=0.3013384093 kurtosis=-1.3336563344 · anxiety n=13 skew=-0.1114607449 kurtosis=-1.2784113361
+  it('README config (students.csv): score + anxiety skew/kurtosis ≡ native R psych::describe (type 3, excess)', async () => {
+    const score = [72, 68, 75, 70, 66, 71, 81, 79, 85, 83, 78, 88, 74, 69]
+    const anxiety = [35, 42, 29, 38, 45, 33, null, 27, 22, 25, 31, 19, 36, 40] // id 7 anxiety missing in students.csv
+    const ds: Dataset = { columns: ['score', 'anxiety'], rows: score.map((s, i) => ({ score: s, anxiety: anxiety[i] })) }
+    const r = await runDistributionNormality(engine, ds, ['score', 'anxiety'])
+    const [s, a] = r.variables
+    expect(s.n).toBe(14)
+    expect(s.skew).toBeCloseTo(0.3013, 3)        // 0.3013384093
+    expect(s.kurtosis).toBeCloseTo(-1.3337, 3)   // -1.3336563344
+    expect(a.n).toBe(13); expect(a.nExcluded).toBe(1)
+    expect(a.skew).toBeCloseTo(-0.1115, 3)       // -0.1114607449
+    expect(a.kurtosis).toBeCloseTo(-1.2784, 3)   // -1.2784113361
   })
 })

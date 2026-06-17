@@ -1,5 +1,10 @@
 import type { TestSpec } from './types'
 
+// One-variable note, shown ONLY when a Missing row is present (nExcluded > 0). The builder renders it then.
+// Kept here (not in TestSpec.tableNote, which is the cross-tab note) so the HTML mirror has the exact string.
+export const FREQ_MISSING_NOTE =
+  'Valid % uses the valid (non-missing) n as its denominator; Total % uses the grand total including the Missing row.'
+
 // Encoded from telos_test_outputs.html (Frequencies & cross-tabs card) + telos_test_inputs.html (role slot, option strip).
 export const FREQUENCIES_CROSSTABS: TestSpec = {
   id: 'frequencies-crosstabs',
@@ -18,8 +23,10 @@ export const FREQUENCIES_CROSSTABS: TestSpec = {
     minRule: { kind: 'used-columns', n: 1 }, // ≥1 compatible Used column
   },
   tables: [
+    // Valid % over the valid (non-missing) n; Total % over the grand total — datasummary_crosstab / SPSS split.
+    // The builder appends a Missing row (n = nExcluded) when there are excluded cases.
     { id: 'frequencies', title: 'Frequency distribution (one variable)',
-      columns: [{ key: 'category', label: 'Category' }, { key: 'n', label: 'n' }, { key: 'pct', label: '%' }, { key: 'cumpct', label: 'Cumulative %' }] },
+      columns: [{ key: 'category', label: 'Category' }, { key: 'n', label: 'n' }, { key: 'validpct', label: 'Valid %' }, { key: 'totalpct', label: 'Total %' }, { key: 'cumpct', label: 'Cumulative %' }] },
     // Drawn PLACEHOLDER columns. The builder replaces Col 1/Col 2/… with one column per category of the
     // SECOND variable + Total ("cross-tab columns expand to the number of categories in the column variable").
     { id: 'crosstab', title: 'Cross-tabulation (two variables · n, row %, col %)',

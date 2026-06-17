@@ -122,34 +122,50 @@ describe('assocDesc emitters', () => {
   })
 
   describe('summary-statistics', () => {
-    it('describes each variable with psych::describe on a data.frame (ungrouped)', () => {
+    // Arel-Bundock datasummary_skim convention (matches the displayed table). Verified runnable in native R
+    // with modelsummary 2.6.0; type = "numeric" suppresses the tinytable-backend warning.
+    it('emits datasummary_skim(type = "numeric") over the selected variables (ungrouped)', () => {
       const r = emit('summary-statistics', setup({ variables: ['x', 'y'], groupBy: [] }))
-      expect(r).toContain('psych::describe(data.frame(x = d[["x"]]))')
-      expect(r).toContain('psych::describe(data.frame(x = d[["y"]]))')
+      expect(r).toContain('summ <- data.frame("x" = d[["x"]], "y" = d[["y"]], check.names = FALSE)')
+      expect(r).toContain('datasummary_skim(summ, type = "numeric")')
       expect(r).toContain('geom_histogram')
+      // No longer the old psych::describe path.
+      expect(r).not.toContain('psych::describe')
     })
-    it('uses describeBy on a data.frame (NOT a bare vector) when a group column is assigned', () => {
+    it('threads the group column via by= (clean grp name) when a group column is assigned', () => {
       const r = emit('summary-statistics', setup({ variables: ['x'], groupBy: ['grp'] }))
-      expect(r).toContain('psych::describeBy(data.frame(x = d[["x"]]), group = d[["grp"]], mat = TRUE)')
-      // Guard against the spike-forbidden bare-vector anti-pattern that yields the 'X1*' / mean=3 garbage.
-      expect(r).not.toContain('describeBy(d[["x"]]')
-      expect(r).not.toContain('describeBy(d$x')
+      expect(r).toContain('summ <- data.frame("x" = d[["x"]], grp = d[["grp"]], check.names = FALSE)')
+      expect(r).toContain('datasummary_skim(summ, type = "numeric", by = "grp")')
+      expect(r).not.toContain('describeBy')
+    })
+    it('lists modelsummary (not psych) in the package set', () => {
+      expect(assocDescPackages['summary-statistics']).toContain('modelsummary')
+      expect(assocDescPackages['summary-statistics']).not.toContain('psych')
     })
   })
 
   describe('frequencies-crosstabs', () => {
-    it('one variable -> tabyl frequency table + bar, pre-filtering the "" phantom', () => {
+    // Arel-Bundock datasummary_* convention. 2 vars -> datasummary_crosstab(row ~ col); 1 var ->
+    // datasummary(var ~ N + Percent()) (the crosstab fn has no 1-var form). Verified runnable in native R.
+    it('one variable -> datasummary(var ~ N + Percent()) + bar, pre-filtering the "" phantom + factoring', () => {
       const r = emit('frequencies-crosstabs', setup({ variables: ['cat'] }))
       expect(r).toContain('sub <- d[!is.na(d[["cat"]]) & trimws(d[["cat"]]) != "", ]')
-      expect(r).toContain('janitor::tabyl(sub[["cat"]])')
+      expect(r).toContain('sub[["cat"]] <- factor(sub[["cat"]])')
+      expect(r).toContain('datasummary(cat ~ N + Percent(), data = sub)')
       expect(r).toContain('geom_bar')
+      expect(r).not.toContain('janitor::tabyl')
     })
-    it('two variables -> tabyl cross-tab with adorn_totals + grouped bar, pre-filtering both columns', () => {
+    it('two variables -> datasummary_crosstab(row ~ col) + grouped bar, pre-filtering + factoring both columns', () => {
       const r = emit('frequencies-crosstabs', setup({ variables: ['row', 'col'] }))
       expect(r).toContain('sub <- d[!is.na(d[["row"]]) & trimws(d[["row"]]) != "" & !is.na(d[["col"]]) & trimws(d[["col"]]) != "", ]')
-      expect(r).toContain('janitor::tabyl(sub, row, col)')
-      expect(r).toContain('adorn_totals')
+      expect(r).toContain('sub[["row"]] <- factor(sub[["row"]]); sub[["col"]] <- factor(sub[["col"]])')
+      expect(r).toContain('datasummary_crosstab(row ~ col, data = sub)')
       expect(r).toContain("position = \"dodge\"")
+      expect(r).not.toContain('adorn_totals')
+    })
+    it('lists modelsummary (not janitor) in the package set', () => {
+      expect(assocDescPackages['frequencies-crosstabs']).toContain('modelsummary')
+      expect(assocDescPackages['frequencies-crosstabs']).not.toContain('janitor')
     })
   })
 

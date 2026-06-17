@@ -21,17 +21,23 @@ describe('runFrequenciesCrosstabs', () => {
   beforeAll(async () => { await engine.init() })
   afterAll(async () => { await engine.close() })
 
-  it('one variable → alphabetical frequency rows with cumulative %, bar PNG', async () => {
+  it('one variable → alphabetical rows, Valid%/Total% split (equal w/o missing), cumulative valid %, bar PNG', async () => {
     const r = await runFrequenciesCrosstabs(engine, region6, ['region'])
     expect(r.kind).toBe('one')
     expect(r.freq!.map((x) => x.category)).toEqual(['east', 'north', 'south']) // tabyl alphabetical, NOT first-appearance
     expect(r.freq!.map((x) => x.n)).toEqual([1, 2, 3])
-    expect(r.freq![0].pct).toBeCloseTo(16.667, 2)
-    expect(r.freq![1].pct).toBeCloseTo(33.333, 2)
-    expect(r.freq![2].pct).toBeCloseTo(50, 2)
-    expect(r.freq![0].cumPct).toBeCloseTo(16.667, 2)
-    expect(r.freq![1].cumPct).toBeCloseTo(50, 2)
-    expect(r.freq![2].cumPct).toBeCloseTo(100, 2)
+    // No missing → Valid% == Total%
+    expect(r.freq![0].validPct).toBeCloseTo(16.667, 2)
+    expect(r.freq![1].validPct).toBeCloseTo(33.333, 2)
+    expect(r.freq![2].validPct).toBeCloseTo(50, 2)
+    expect(r.freq![0].totalPct).toBeCloseTo(16.667, 2)
+    expect(r.freq![1].totalPct).toBeCloseTo(33.333, 2)
+    expect(r.freq![2].totalPct).toBeCloseTo(50, 2)
+    expect(r.freq![0].cumValidPct).toBeCloseTo(16.667, 2)
+    expect(r.freq![1].cumValidPct).toBeCloseTo(50, 2)
+    expect(r.freq![2].cumValidPct).toBeCloseTo(100, 2)
+    expect(r.nValid).toBe(6)
+    expect(r.nTotal).toBe(6)
     expect(r.nExcluded).toBe(0)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
@@ -60,5 +66,26 @@ describe('runFrequenciesCrosstabs', () => {
     const two = await runFrequenciesCrosstabs(engine, messy, ['region', 'gender'])
     expect(two.nExcluded).toBe(2)                        // both rows drop; cells return to the verified table
     expect(two.crosstab!.counts).toEqual([[0, 1, 1], [1, 1, 2], [2, 1, 3], [3, 3, 6]])
+  })
+
+  it('missing data → Valid% (over nValid 7) ≠ Total% (over nTotal 8); cum valid % runs to 100 (native-R)', async () => {
+    const r = await runFrequenciesCrosstabs(engine, messy, ['region'])
+    expect(r.nTotal).toBe(8)
+    expect(r.nValid).toBe(7)
+    expect(r.nExcluded).toBe(1)
+    expect(r.freq!.map((x) => x.category)).toEqual(['east', 'north', 'south'])
+    expect(r.freq!.map((x) => x.n)).toEqual([1, 2, 4])
+    // Valid % = n / 7 · 100 (native-R janitor::tabyl on the present rows)
+    expect(r.freq![0].validPct).toBeCloseTo(14.2857, 3)
+    expect(r.freq![1].validPct).toBeCloseTo(28.5714, 3)
+    expect(r.freq![2].validPct).toBeCloseTo(57.1429, 3)
+    // Total % = n / 8 · 100 (grand total incl. the 1 missing)
+    expect(r.freq![0].totalPct).toBeCloseTo(12.5, 3)
+    expect(r.freq![1].totalPct).toBeCloseTo(25, 3)
+    expect(r.freq![2].totalPct).toBeCloseTo(50, 3)
+    // Cumulative valid % runs to 100 over the valid n
+    expect(r.freq![0].cumValidPct).toBeCloseTo(14.2857, 3)
+    expect(r.freq![1].cumValidPct).toBeCloseTo(42.8571, 3)
+    expect(r.freq![2].cumValidPct).toBeCloseTo(100, 3)
   })
 })

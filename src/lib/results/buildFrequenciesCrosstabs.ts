@@ -1,6 +1,8 @@
 import type { TestSpec } from '../registry/types'
 import type { CardContent } from './builders'
 import type { FrequenciesResult } from '../stats/frequenciesCrosstabs'
+import { FREQ_MISSING_NOTE } from '../registry/frequenciesCrosstabs'
+import { fx } from '../format/apa'
 
 // Display convention (recorded): percentages arrive ×100 from the stats module, rendered at 1 dp.
 // The % sign lives in Table 1's column header, and inside the cell for cross-tab cells. No negatives exist here.
@@ -15,8 +17,16 @@ export function buildFrequenciesCrosstabs(spec: TestSpec, r: FrequenciesResult):
     nExcluded: r.nExcluded,
   }
   if (r.kind === 'one') {
-    return { ...base, note: null,
-      tables: [{ spec: spec.tables[0], rows: r.freq!.map((x) => ({ category: x.category, n: x.n, pct: pc(x.pct), cumpct: pc(x.cumPct) })) }] }
+    // datasummary_crosstab split: Valid % (over valid n) vs Total % (over grand total). Cumulative runs on valid %.
+    const rows: Record<string, string | number>[] = r.freq!.map((x) =>
+      ({ category: x.category, n: x.n, validpct: pc(x.validPct), totalpct: pc(x.totalPct), cumpct: pc(x.cumValidPct) }))
+    if (r.nExcluded > 0) {
+      // Missing row: n = nExcluded; Valid % and Cumulative % are undefined for missing → em-dash via fx.
+      // Total % = nExcluded / nTotal · 100 (grand-total denominator).
+      rows.push({ category: 'Missing', n: r.nExcluded, validpct: fx(null, pc), totalpct: pc(r.nExcluded / r.nTotal * 100), cumpct: fx(null, pc) })
+    }
+    return { ...base, note: r.nExcluded > 0 ? { kind: 'plain', text: FREQ_MISSING_NOTE } : null,
+      tables: [{ spec: spec.tables[0], rows }] }
   }
   const ct = r.crosstab!
   // THE one sanctioned divergence from the registry spec: replace the drawn Col 1/Col 2/… placeholders with

@@ -24,11 +24,12 @@ export const SUMMARY_STATISTICS: TestSpec = {
     { id: 'descriptives', title: 'Descriptive statistics', captionStyle: 'bare',
       columns: [
         { key: 'variable', label: 'Variable' }, { key: 'n', label: 'N' }, { key: 'mean', label: 'M' }, { key: 'sd', label: 'SD' },
+        { key: 'ci', label: '95% CI' },
         { key: 'min', label: 'Min' }, { key: 'max', label: 'Max' }, { key: 'median', label: 'Median' },
-        { key: 'skew', label: 'Skew' }, { key: 'kurtosis', label: 'Kurtosis' },
+        { key: 'skew', label: 'Skew' }, { key: 'kurtosis', label: 'Kurtosis (excess)' },
       ] },
   ],
-  tableNote: { kind: 'plain', text: 'one row per chosen variable; a Group column is added when "Group by" is used (stats repeat per group).' },
+  tableNote: { kind: 'plain', text: 'one row per chosen variable; a Group column is added when "Group by" is used (stats repeat per group). 95% CI is the t-based confidence interval for the mean; kurtosis is excess (normal = 0).' },
   figures: [{ caption: 'Distribution', type: 'histogram', optional: true }],
   howToRead:
     'Descriptives summarize your data: the mean and median show the center, the SD and range show the spread, ' +

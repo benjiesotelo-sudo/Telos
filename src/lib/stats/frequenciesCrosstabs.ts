@@ -1,7 +1,8 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
 
-export interface FrequencyRow { category: string; n: number; pct: number; cumPct: number } // pct/cumPct already ×100
+// datasummary_crosstab / SPSS convention: Valid % over the valid (non-missing) n; Total % over the grand total.
+export interface FrequencyRow { category: string; n: number; validPct: number; totalPct: number; cumValidPct: number } // pcts already ×100; cum runs on valid %
 export interface CrossTab {
   rowCats: string[]; colCats: string[] // alphabetical (janitor::tabyl order — spike fact 4)
   counts: number[][]; rowPct: number[][]; colPct: number[][] // (rowCats+Total) × (colCats+Total), Total last; pct ×100
@@ -10,15 +11,21 @@ export interface FrequenciesResult {
   kind: 'one' | 'two'
   freq: FrequencyRow[] | null      // kind 'one'
   crosstab: CrossTab | null        // kind 'two'
-  nExcluded: number
+  nValid: number                   // non-missing rows over the USED columns (Valid % denominator)
+  nTotal: number                   // all rows (Total % denominator; includes the Missing row)
+  nExcluded: number                // nTotal − nValid (the Missing row's n)
   figurePng: Uint8Array<ArrayBuffer>
 }
 
 // tabyl emits proportions 0–1 (spike fact 4) — ×100 here so display values match the verified numbers.
+// datasummary_crosstab style: Valid % over nValid (= sum of counts), Total % over nTotal (grand total incl. missing,
+// passed in as nTotal). Cumulative % runs on the valid percentages.
 const R_FREQ = String.raw`
 t <- janitor::tabyl(v1)
+nValid <- sum(t$n)
 lapply(seq_len(nrow(t)), function(i) list(category = as.character(t[[1]][i]), n = as.numeric(t$n[i]),
-  pct = as.numeric(t$percent[i]) * 100, cumPct = as.numeric(cumsum(t$percent)[i]) * 100))`
+  validPct = as.numeric(t$n[i]) / nValid * 100, totalPct = as.numeric(t$n[i]) / nTotal * 100,
+  cumValidPct = as.numeric(cumsum(t$n)[i]) / nValid * 100))`
 
 // adorn_totals FIRST, then adorn_percentages — janitor keeps the Total row/col inside the % tables
 // (spike-verified: Total row row% = 0.5/0.5; Total col col% = the column marginals).
@@ -50,15 +57,17 @@ export async function runFrequenciesCrosstabs(engine: Engine, data: Dataset, var
   // Present-category counting (design ruling): a row is used iff every USED column has a value.
   const used = variables.slice(0, 2)
   const rows = data.rows.filter((r) => used.every((c) => present(r[c])))
-  const nExcluded = data.rows.length - rows.length
+  const nTotal = data.rows.length
+  const nValid = rows.length
+  const nExcluded = nTotal - nValid
   if (used.length === 1) {
-    const env = { v1: rows.map((r) => String(r[used[0]])) }
+    const env = { v1: rows.map((r) => String(r[used[0]])), nTotal } // nTotal → Total % denominator (incl. the missing rows)
     const freq = await engine.runJson<FrequencyRow[]>(R_FREQ, env)
     const figurePng = await engine.capturePlot(R_BAR, 600, 450, env)
-    return { kind: 'one', freq, crosstab: null, nExcluded, figurePng }
+    return { kind: 'one', freq, crosstab: null, nValid, nTotal, nExcluded, figurePng }
   }
   const env = { v1: rows.map((r) => String(r[used[0]])), v2: rows.map((r) => String(r[used[1]])) }
   const crosstab = await engine.runJson<CrossTab>(R_CROSSTAB, env)
   const figurePng = await engine.capturePlot(R_GROUPED_BAR, 600, 450, env)
-  return { kind: 'two', freq: null, crosstab, nExcluded, figurePng }
+  return { kind: 'two', freq: null, crosstab, nValid, nTotal, nExcluded, figurePng }
 }
