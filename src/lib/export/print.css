@@ -3,7 +3,9 @@
    PDF download to body.printing + window.print(). */
 @media print {
   [data-noprint], .stepper, .theme-select { display: none !important; }
-  .card { break-inside: avoid; }
+  /* keep tables/figures intact, but let a tall result card flow (don't strand the first card
+     onto page 2 behind the Results heading) */
+  .card table, .card figure, .card img { break-inside: avoid; }
   /* one result per page: break before every card after the first */
   .results-cards > * + * { page-break-before: always; }
   .screen, .card, .results-cards > * { width: 100%; max-width: none; }
@@ -12,7 +14,9 @@
 body.printing [data-noprint],
 body.printing .stepper,
 body.printing .theme-select { display: none !important; }
-body.printing .card { break-inside: avoid; }
+body.printing .card table,
+body.printing .card figure,
+body.printing .card img { break-inside: avoid; }
 body.printing .results-cards > * + * { page-break-before: always; }
 body.printing .screen,
 body.printing .card,
