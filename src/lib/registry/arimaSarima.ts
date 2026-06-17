@@ -70,7 +70,8 @@ export const ARIMA_SARIMA: TestSpec = {
     'still carry autocorrelation up to the reported lag (a large p means none is detected); use it with AIC/BIC ' +
     'to judge fit. The forecast table and plot give predictions with uncertainty bands. AIC/BIC compare models ' +
     'only when fit to the same series with identical differencing (d, D) and transformation; lower is better, but ' +
-    'they are relative, not absolute, measures of fit.',
+    'they are relative, not absolute, measures of fit. ' +
+    'Method: R forecast package (Hyndman & Khandakar, 2008; Hyndman & Athanasopoulos, Forecasting: Principles and Practice).',
   // Report-only neutralisation: state the model + diagnostic p without a "white noise / good fit" verdict.
   // {pdq} → (p,d,q); {PDQ} → (P,D,Q)[s], filled at build time. Replacing /\{\w+\}/g → __ matches the HTML card line.
   apaTemplate: 'An ARIMA({pdq})({PDQ}) model was fit (AIC={aic}); the Ljung–Box test of residual autocorrelation gave p {ljungbox_p}.',

@@ -50,7 +50,7 @@ export const RANDOM_EFFECTS: TestSpec = {
   },
   figures: [{ caption: 'Coefficients', type: 'coefficient plot', file: 'coefficients' }],
   howToRead:
-    'Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each B/p as usual — but only trust this model if the Hausman test favours random over fixed effects.',
+    'Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each B/p as usual — but only trust this model if the Hausman test favours random over fixed effects. Method: R plm package (Croissant & Millo, 2008).',
   apaTemplate: 'In a random-effects model, predictor X gave B={b}, p {p}.',
   rMap: 'plm(model="random") → Table · ggplot2 → figure',
   bundleFiles: ['table_coefficients.png', 'figure_coefficients.png'],

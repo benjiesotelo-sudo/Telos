@@ -805,7 +805,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Forecast</div><div class="ftype">type: <b>forecast plot</b> (history + forecast with prediction intervals)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>The chosen <b>(p,d,q)(P,D,Q)</b> orders describe the model. The <b>Ljung&ndash;Box Q(df)</b> row tests whether the residuals still carry autocorrelation up to the reported lag (a large p means none is detected); use it with <b>AIC/BIC</b> to judge fit. The forecast table and plot give predictions with uncertainty bands. AIC/BIC compare models only when fit to the same series with identical differencing (d, D) and transformation; lower is better, but they are relative, not absolute, measures of fit.</p></div>
+      <div class="howread"><p>The chosen <b>(p,d,q)(P,D,Q)</b> orders describe the model. The <b>Ljung&ndash;Box Q(df)</b> row tests whether the residuals still carry autocorrelation up to the reported lag (a large p means none is detected); use it with <b>AIC/BIC</b> to judge fit. The forecast table and plot give predictions with uncertainty bands. AIC/BIC compare models only when fit to the same series with identical differencing (d, D) and transformation; lower is better, but they are relative, not absolute, measures of fit. Method: R forecast package (Hyndman &amp; Khandakar, 2008; Hyndman &amp; Athanasopoulos, Forecasting: Principles and Practice).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;An ARIMA(__)(__) model was fit (AIC=__); the Ljung&ndash;Box test of residual autocorrelation gave p __.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>forecast::auto.arima()</code> / <code>arima()</code> &rarr; Tables &middot; <code>forecast()</code> + <code>autoplot()</code> &rarr; figure</div>
@@ -824,7 +824,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Series &amp; structure</div><div class="ftype">type: <b>series plot</b> + ACF / PACF (and differenced series)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>For <b>ADF</b>, a small p means stationary; for <b>KPSS</b>, a small p means <i>non</i>-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value.</p></div>
+      <div class="howread"><p>For <b>ADF</b>, a small p means stationary; for <b>KPSS</b>, a small p means <i>non</i>-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value. Method: R tseries package ADF/KPSS/PP (Dickey &amp; Fuller; Kwiatkowski, Phillips, Schmidt &amp; Shin, 1992; Phillips &amp; Perron, 1988).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;ADF gave &tau;=__, p __; KPSS gave LM=__, p __; Phillips&ndash;Perron gave Z=__, p __ (&alpha;=__).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>tseries::adf.test()</code> / <code>tseries::kpss.test()</code> &rarr; table &middot; <code>forecast::ggAcf()</code> &rarr; figures</div>
@@ -843,7 +843,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Series together</div><div class="ftype">type: <b>cross-series time plot</b></div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>A significant <b>X&rarr;Y</b> p means past values of X help predict Y beyond Y's own past &mdash; this is <i>predictive precedence</i>, not proof that X causes Y. Check both directions. The result depends entirely on the <b>lag order</b> (this card uses a max lag of 4): choose it on theory or by an information criterion &mdash; <code>vars::VARselect</code> reports the AIC- and BIC-minimising lag &mdash; and report it, since different lags can flip the conclusion. Make both series stationary first.</p></div>
+      <div class="howread"><p>A significant <b>X&rarr;Y</b> p means past values of X help predict Y beyond Y's own past &mdash; this is <i>predictive precedence</i>, not proof that X causes Y. Check both directions. The result depends entirely on the <b>lag order</b> (this card uses a max lag of 4): choose it on theory or by an information criterion &mdash; <code>vars::VARselect</code> reports the AIC- and BIC-minimising lag &mdash; and report it, since different lags can flip the conclusion. Make both series stationary first. Method: R lmtest::grangertest (Granger, 1969).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Granger test X&rarr;Y: F(__,__)=__, p __; Y&rarr;X: F(__,__)=__, p __ (lag=__).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lmtest::grangertest()</code> run once per direction (or <code>vars::causality()</code>) &rarr; the two table rows &middot; <code>ggplot2</code> &rarr; figure</div>
@@ -864,7 +864,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Dynamic response</div><div class="ftype">type: <b>impulse-response function</b> plots</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>A VAR models several series as functions of their joint past. The <b>impulse-response</b> plots show how a shock to one series propagates to the others over time; read each IRF together with its bootstrap confidence band, and note that orthogonalised (Cholesky) IRFs depend on the ordering of the series. Lag selection picks how many past periods to include. A level VAR assumes stationary series &mdash; difference them (or use a VECM) if they are not. The Portmanteau test (vars::serial.test) checks the residuals for remaining serial correlation: a small p suggests the lag order is too low to whiten the residuals.</p></div>
+      <div class="howread"><p>A VAR models several series as functions of their joint past. The <b>impulse-response</b> plots show how a shock to one series propagates to the others over time; read each IRF together with its bootstrap confidence band, and note that orthogonalised (Cholesky) IRFs depend on the ordering of the series. Lag selection picks how many past periods to include. A level VAR assumes stationary series &mdash; difference them (or use a VECM) if they are not. The Portmanteau test (vars::serial.test) checks the residuals for remaining serial correlation: a small p suggests the lag order is too low to whiten the residuals. Method: R vars package (Pfaff, 2008; Lütkepohl, New Introduction to Multiple Time Series Analysis).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A VAR(__) model was selected by AIC; impulse-response functions are shown (Figure).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>vars::VARselect()</code> &rarr; Table 1 &middot; <code>vars::VAR()</code> &rarr; Table 2 &middot; <code>vars::irf()</code> &rarr; figure</div>
@@ -883,7 +883,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b> (estimate &plusmn; CI)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Each <b>B</b> is the within-entity effect of a predictor, controlling for everything stable about each entity. <b>p</b> and the clustered <b>CI</b> assess it; within R&sup2; is the variance explained by the time-varying predictors.</p></div>
+      <div class="howread"><p>Each <b>B</b> is the within-entity effect of a predictor, controlling for everything stable about each entity. <b>p</b> and the clustered <b>CI</b> assess it; within R&sup2; is the variance explained by the time-varying predictors. Method: R plm package (Croissant &amp; Millo, 2008).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;In a fixed-effects model, predictor X gave <i>B</i>=__, <i>p</i>&nbsp;__ (clustered SE).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>plm(model="within")</code> / <code>fixest::feols()</code> &rarr; Table &middot; <code>ggplot2</code> &rarr; figure</div>
@@ -902,7 +902,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b></div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each <b>B</b>/<b>p</b> as usual &mdash; but only trust this model if the Hausman test favours random over fixed effects.</p></div>
+      <div class="howread"><p>Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each <b>B</b>/<b>p</b> as usual &mdash; but only trust this model if the Hausman test favours random over fixed effects. Method: R plm package (Croissant &amp; Millo, 2008).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;In a random-effects model, predictor X gave <i>B</i>=__, <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>plm(model="random")</code> &rarr; Table &middot; <code>ggplot2</code> &rarr; figure</div>
@@ -920,7 +920,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> FE vs. RE</div><div class="ftype">type: <b>side-by-side coefficient plot</b></div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Tests whether the random-effects assumption holds. A <b>p</b> below alpha means the estimates differ systematically &rarr; use <b>fixed effects</b>; a non-significant p means random effects is acceptable (and more efficient).</p></div>
+      <div class="howread"><p>Tests whether the random-effects assumption holds. A <b>p</b> below alpha means the estimates differ systematically &rarr; use <b>fixed effects</b>; a non-significant p means random effects is acceptable (and more efficient). Method: R plm package (Croissant &amp; Millo, 2008).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;A Hausman test comparing the fixed- and random-effects estimates gave &chi;&sup2;(__)=__, <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>plm::phtest()</code> + compare within / random fits &rarr; Table &middot; <code>ggplot2</code> &rarr; figure</div>
@@ -939,7 +939,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Discontinuity</div><div class="ftype">type: <b>RD plot</b> (binned scatter + fitted lines either side of the cutoff)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Estimates the jump in the outcome right at the cutoff &mdash; the <b>estimate</b> is the treatment effect for cases near the threshold. <b>p</b>/<b>CI</b> assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold &mdash; the footer reports the McCrary density test (a small p flags sorting/manipulation at the cutoff); also run covariate-balance / placebo checks.</p></div>
+      <div class="howread"><p>Estimates the jump in the outcome right at the cutoff &mdash; the <b>estimate</b> is the treatment effect for cases near the threshold. <b>p</b>/<b>CI</b> assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold &mdash; the footer reports the McCrary density test (a small p flags sorting/manipulation at the cutoff); also run covariate-balance / placebo checks. Method: R rdrobust package (Calonico, Cattaneo &amp; Titiunik, 2014, 2015).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;At the cutoff, the treatment effect was __, 95% CI [__, __], <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>rdrobust::rdrobust()</code> &rarr; table &middot; <code>rdrobust::rdplot()</code> &rarr; figure</div>
@@ -960,7 +960,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b> (OLS vs. 2SLS)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Check the <b>first-stage F</b> first (rule of thumb &gt; 10 = strong instruments). Then read the 2SLS <b>B</b> for the endogenous predictor as the causal effect, with <b>p</b>/<b>CI</b>. This causal reading rests on the instrument being <b>valid</b> &mdash; relevant <i>and</i> affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models.</p></div>
+      <div class="howread"><p>Check the <b>first-stage F</b> first (rule of thumb &gt; 10 = strong instruments). Then read the 2SLS <b>B</b> for the endogenous predictor as the causal effect, with <b>p</b>/<b>CI</b>. This causal reading rests on the instrument being <b>valid</b> &mdash; relevant <i>and</i> affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models. Method: R ivreg / AER package; weak-instrument F (Stock &amp; Yogo, 2005).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The 2SLS estimate for X was <i>B</i>=__, <i>p</i>&nbsp;__ (first-stage F=__).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lm(endog ~ instruments + covariates)</code> &rarr; Table 1 (first-stage coef./SE/partial F) &middot; <code>summary(AER::ivreg(...), diagnostics=TRUE)</code> &rarr; Table 2 (2SLS) + weak-IV F, Wu-Hausman, Sargan</div>
@@ -981,7 +981,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Balance</div><div class="ftype">type: <b>love plot</b> (standardized differences before vs. after matching)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>First confirm <b>balance</b> &mdash; matched groups should look alike on the covariates (small standardized differences). Then read the <b>ATT</b> as the treatment effect for the treated, with <b>p</b>/<b>CI</b>. The common-support rows tell you how many treated units were dropped for lacking a comparable control and where the two groups’ propensity scores overlap &mdash; good overlap with few drops means the ATT generalizes to most of the treated. PSM only balances the covariates you measured and included, so the causal reading also assumes no important confounder was left unmeasured (ignorability) &mdash; an assumption that cannot be verified from the data.</p></div>
+      <div class="howread"><p>First confirm <b>balance</b> &mdash; matched groups should look alike on the covariates (small standardized differences). Then read the <b>ATT</b> as the treatment effect for the treated, with <b>p</b>/<b>CI</b>. The common-support rows tell you how many treated units were dropped for lacking a comparable control and where the two groups’ propensity scores overlap &mdash; good overlap with few drops means the ATT generalizes to most of the treated. PSM only balances the covariates you measured and included, so the causal reading also assumes no important confounder was left unmeasured (ignorability) &mdash; an assumption that cannot be verified from the data. Method: R MatchIt package (Ho, Imai, King &amp; Stuart, 2011); balance diagnostics (Austin, 2011).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;After propensity-score matching, the ATT was __, 95% CI [__, __], <i>p</i>&nbsp;__.&rdquo;</div>
         <div class="m"><b>R map:</b> <code>MatchIt::matchit()</code> &rarr; balance + matched data &middot; <code>lm()</code>/<code>marginaleffects</code> on matched data &rarr; ATT &middot; <code>cobalt::love.plot()</code></div>
@@ -1000,7 +1000,7 @@
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Parallel trends</div><div class="ftype">type: <b>parallel-trends plot</b> (group means over time, treatment marked)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>The <b>Treated&times;Post</b> coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups <i>would have</i> moved together absent treatment. Similar <b>pre</b>-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it &mdash; a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated&times;time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends.</p></div>
+      <div class="howread"><p>The <b>Treated&times;Post</b> coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups <i>would have</i> moved together absent treatment. Similar <b>pre</b>-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it &mdash; a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated&times;time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends. Method: R plm package with clustered standard errors (Croissant &amp; Millo, 2008; Bertrand, Duflo &amp; Mullainathan, 2004).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The DiD estimate was <i>B</i>=__, 95% CI [__, __], <i>p</i>&nbsp;__ (clustered SE).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>plm(model="within")</code> with clustered SE &rarr; table &middot; <code>ggplot2</code> &rarr; trends plot</div>

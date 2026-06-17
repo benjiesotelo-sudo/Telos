@@ -46,7 +46,7 @@ export const HAUSMAN_TEST: TestSpec = {
   ],
   figures: [{ caption: 'FE vs. RE', type: 'side-by-side coefficient plot', file: 'coefficients' }],
   howToRead:
-    'Tests whether the random-effects assumption holds. A p below alpha means the estimates differ systematically → use fixed effects; a non-significant p means random effects is acceptable (and more efficient).',
+    'Tests whether the random-effects assumption holds. A p below alpha means the estimates differ systematically → use fixed effects; a non-significant p means random effects is acceptable (and more efficient). Method: R plm package (Croissant & Millo, 2008).',
   apaTemplate: 'A Hausman test comparing the fixed- and random-effects estimates gave χ²({df})={chisq}, p {p}.',
   rMap: 'plm::phtest() + compare within / random fits → Table · ggplot2 → figure',
   bundleFiles: ['table_hausman.png', 'figure_coefficients.png'],

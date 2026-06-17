@@ -47,7 +47,7 @@ export const IV_TWO_STAGE: TestSpec = {
   ],
   figures: [{ caption: 'Coefficients', type: 'coefficient plot (OLS vs. 2SLS)', file: 'coefficients' }],
   howToRead:
-    'Check the first-stage F first (rule of thumb > 10 = strong instruments). Then read the 2SLS B for the endogenous predictor as the causal effect, with p/CI. This causal reading rests on the instrument being valid — relevant and affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models.',
+    'Check the first-stage F first (rule of thumb > 10 = strong instruments). Then read the 2SLS B for the endogenous predictor as the causal effect, with p/CI. This causal reading rests on the instrument being valid — relevant and affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models. Method: R ivreg / AER package; weak-instrument F (Stock & Yogo, 2005).',
   tableNote: {
     kind: 'plain',
     text: 'diagnostics: weak-instrument (first-stage F), Wu-Hausman endogeneity, and Sargan over-identification (when applicable).',

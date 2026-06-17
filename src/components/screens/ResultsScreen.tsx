@@ -7,6 +7,7 @@ import { emitRScript } from '../../lib/export/rScript/emit'
 import { toCsv } from '../../lib/export/cleanedCsv'
 import { emitLatex } from '../../lib/export/latex'
 import { licensesText } from '../../lib/export/licenses'
+import { citationsText } from '../../lib/export/citations'
 import { FEEDBACK_URL } from '../../content/copy'
 import { ResultPreviewCard } from '../ResultPreviewCard'
 import { ResultBoundary } from '../ResultBoundary'
@@ -29,8 +30,8 @@ const enc = (str: string): Uint8Array => new TextEncoder().encode(str)
 // keeping this testable in the node env. Over the fresh tests (non-stale runs, in selection
 // order; folder NN = 1-based padded):
 //   figures → NN_id/figure_<file??type>.png · latex → ALSO figures/NN_id/...png (so report.tex
-//   resolves) + report.tex · r → analysis.R + cleaned.csv · r|latex → LICENSES.txt (scoped to the
-//   formats whose bundled R packages/fonts the licence credits — note for review).
+//   resolves) + report.tex · r → analysis.R + cleaned.csv · r|latex → LICENSES.txt + CITATIONS.txt
+//   (both scoped to the formats whose bundled R packages/fonts they credit/cite — note for review).
 export function buildExportFiles(s: SessionState, formats: ExportFormats): Record<string, Uint8Array> {
   const files: Record<string, Uint8Array> = {}
   const fresh = s.selection.filter((id) => s.runs[id] && !s.runs[id].stale)
@@ -48,6 +49,7 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
   if (formats.latex) files['report.tex'] = enc(emitLatex(s.selection, s.setups, SPECS, s.runs))
   if (formats.r) { files['analysis.R'] = enc(emitRScript(fresh, s.setups, SPECS, workingDataset(s))); files['cleaned.csv'] = enc(toCsv(workingDataset(s))) }
   if (formats.r || formats.latex) files['LICENSES.txt'] = enc(licensesText())
+  if (formats.r || formats.latex) files['CITATIONS.txt'] = enc(citationsText())
   return files
 }
 

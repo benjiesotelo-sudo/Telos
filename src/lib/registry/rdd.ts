@@ -37,7 +37,7 @@ export const RDD: TestSpec = {
   tableNote: { kind: 'plain', text: 'inference is robust (bias-corrected): the SE / CI use rdrobust robust standard errors. Bandwidth selector: MSE-optimal (mserd); kernel: triangular.' },
   figures: [{ caption: 'Discontinuity', type: 'RD plot (binned scatter + fitted lines either side of the cutoff)', file: 'rd-plot' }],
   howToRead:
-    'Estimates the jump in the outcome right at the cutoff — the estimate is the treatment effect for cases near the threshold. p/CI assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold — the footer reports the McCrary density test (a small p flags sorting/manipulation at the cutoff); also run covariate-balance / placebo checks.',
+    'Estimates the jump in the outcome right at the cutoff — the estimate is the treatment effect for cases near the threshold. p/CI assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold — the footer reports the McCrary density test (a small p flags sorting/manipulation at the cutoff); also run covariate-balance / placebo checks. Method: R rdrobust package (Calonico, Cattaneo & Titiunik, 2014, 2015).',
   apaTemplate: 'At the cutoff, the treatment effect was {b}, 95% CI [{lo}, {hi}], p {p}.',
   rMap: 'rdrobust::rdrobust() → table · rdrobust::rdplot() → figure',
   bundleFiles: ['table_rd-estimate.png', 'figure_rd-plot.png'],

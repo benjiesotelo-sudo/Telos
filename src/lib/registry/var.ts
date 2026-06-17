@@ -84,7 +84,7 @@ export const VAR: TestSpec = {
     { caption: 'Dynamic response', type: 'impulse-response function plots', file: 'irf' },
   ],
   howToRead:
-    'A VAR models several series as functions of their joint past. The impulse-response plots show how a shock to one series propagates to the others over time; read each IRF together with its bootstrap confidence band, and note that orthogonalised (Cholesky) IRFs depend on the ordering of the series. Lag selection picks how many past periods to include. A level VAR assumes stationary series — difference them (or use a VECM) if they are not. The Portmanteau test (vars::serial.test) checks the residuals for remaining serial correlation: a small p suggests the lag order is too low to whiten the residuals.',
+    'A VAR models several series as functions of their joint past. The impulse-response plots show how a shock to one series propagates to the others over time; read each IRF together with its bootstrap confidence band, and note that orthogonalised (Cholesky) IRFs depend on the ordering of the series. Lag selection picks how many past periods to include. A level VAR assumes stationary series — difference them (or use a VECM) if they are not. The Portmanteau test (vars::serial.test) checks the residuals for remaining serial correlation: a small p suggests the lag order is too low to whiten the residuals. Method: R vars package (Pfaff, 2008; Lütkepohl, New Introduction to Multiple Time Series Analysis).',
   // Report-only neutralisation: state the selected order + that IRFs are shown, no "analysis showed…" lead-in.
   apaTemplate: 'A VAR({p}) model was selected by AIC; impulse-response functions are shown (Figure).',
   rMap: 'vars::VARselect() → Table 1 · vars::VAR() → Table 2 · vars::irf() → figure',

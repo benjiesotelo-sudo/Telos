@@ -51,7 +51,7 @@ export const FIXED_EFFECTS: TestSpec = {
   },
   figures: [{ caption: 'Coefficients', type: 'coefficient plot (estimate ± CI)', file: 'coefficients' }],
   howToRead:
-    'Each B is the within-entity effect of a predictor, controlling for everything stable about each entity. p and the clustered CI assess it; within R² is the variance explained by the time-varying predictors.',
+    'Each B is the within-entity effect of a predictor, controlling for everything stable about each entity. p and the clustered CI assess it; within R² is the variance explained by the time-varying predictors. Method: R plm package (Croissant & Millo, 2008).',
   apaTemplate: 'In a fixed-effects model, predictor X gave B={b}, p {p} (clustered SE).',
   rMap: 'plm(model="within") / fixest::feols() → Table · ggplot2 → figure',
   bundleFiles: ['table_coefficients.png', 'figure_coefficients.png'],
