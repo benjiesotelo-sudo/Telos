@@ -67,14 +67,14 @@ Abadie–Imbens PSM SEs.
   residuals on χ² independence.
 - **Fuller descriptive cards:** Summary stats gains a mean 95% CI (or SE) + "excess kurtosis" label; Frequencies
   gains Valid% vs Total% split + a Missing row; Distribution-normality surfaces skewness/kurtosis on-card.
-  (Quartiles/IQR + grouped Total row = optional nice-to-haves.)
+  (Quartiles/IQR + a grouped Total row are out of scope for this pass — owner-ruled.)
 
 ## Provenance (computational traceability)
 
 Add a **`CITATIONS.txt`** to the export bundle (alongside `LICENSES.txt`): R version, each R package used by the
 emitted analysis, and its `citation()` reference, plus a one-line statement that results are formatted per
-APA-7 and econometric methods follow each package's cited method. (Optional, owner to confirm at spec review:
-a short per-card method-reference line in the how-to-read for the econometrics cards.)
+APA-7 and econometric methods follow each package's cited method. A short per-card method-reference line in the
+how-to-read of the econometrics cards is also included (owner-approved 2026-06-17).
 
 ## Architecture / where changes land
 
@@ -102,8 +102,8 @@ Follows the existing pattern; no new infrastructure.
 - Full causal-robustness battery (Theme 3 deferred items).
 - No new tests go live; the SEM slice is separate (ROADMAP #1).
 
-## Open / owner to confirm at spec review
-- Provenance surfacing: `CITATIONS.txt` in the bundle (core) — and whether to also add a per-card method-reference
-  line for the econometrics cards.
-- Whether quartiles/IQR + a grouped "Total" row (descriptive nice-to-haves) are in or out.
-- Sequencing: one combined plan phased by theme vs. four smaller plans (recommend one plan, phased).
+## Resolved (owner-approved 2026-06-17)
+- Standard confirmed: APA-7 + cited method/package references + computational provenance ("a proper citable convention").
+- Provenance surfacing: **both** — `CITATIONS.txt` in the export bundle **and** a per-card method-reference line in the econometrics cards' how-to-read.
+- Quartiles/IQR + a grouped "Total" row: **out** of scope for this pass.
+- Sequencing: **one combined implementation plan, phased by theme** (Themes 1→4), single gate story.
