@@ -27,6 +27,15 @@ Each slice gets its own design spec + implementation plan here when it starts. S
 | 1 | Latent variables & SEM | ~7: alpha, AVE/CR, EFA, PCA, CB-SEM, PLS-SEM, mediation (R1) | ~2–3 | AMOS-style canvas = new UI surface; full review gauntlet per owner ruling |
 | 2 | Polish & launch | design pass, DRAFT copy confirmations, B-list, feedback URL, analytics, licence, a11y, deploy | ~1 | mostly owner decisions |
 
+## Backlog (deferred, unsequenced — owner picks the slot)
+
+- **Transposed "Table 1" with spanning headers for manova/mancova** (owner-deferred 2026-06-18). Task 16b applied
+  the datasummary vocabulary to the 5 single-outcome between-group cards via a column relabel (no renderer change).
+  The *full* `datasummary_balance` transpose — group names as spanning column headers over Mean/Std.Dev., one row
+  per variable — only pays off where there are several DVs, i.e. **manova/mancova**. It needs two-tier spanning
+  column headers in `ApaTable` (+ `rTable`/`latex`/`print.css` + consistency tests) — a shared-renderer feature.
+  ancova/mixed-anova can ride along as simple relabels or join the feature, to decide when the slice is picked up.
+
 ## Process per slice (owner-ruled 2026-06-12, replaces the full gauntlet)
 
 - **Keep:** pre-plan statistical spike (known answers cross-verified WebR ≡ native R) · card-scoped

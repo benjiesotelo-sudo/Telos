@@ -41,9 +41,11 @@ under WebR (the Task-1 spike recorded ground truth; each card's stats test asser
      one-sample (no group).
    - **SE sub-decision (your call):** independent-t's Table 1 also carries an **SE** column; `datasummary_balance`
      shows only N/Mean/Std.Dev. I **kept SE** (useful, harmless). Say if you'd rather drop it for strict parity.
-   - **Borderline cards deferred (your call):** ancova, mixed-anova, manova/mancova are NOT in scope. manova/mancova
-     (multi-DV by group) are where a *full transposed* Table 1 with spanning headers would actually pay off — if
-     you ever want that, it's the renderer-feature path (Option A), a separate slice.
+   - **Borderline cards → saved as a future slice (you ruled 2026-06-18).** ancova, mixed-anova, manova/mancova
+     were NOT in 16b. manova/mancova (multi-DV by group) are where a *full transposed* Table 1 with spanning
+     headers genuinely pays off — that future slice is the renderer-feature path (two-tier spanning headers in
+     `ApaTable`, the change 16b avoided), scoped to manova/mancova. ancova/mixed-anova can ride along or stay as
+     simple relabels — to decide when that slice is picked up.
 2. **Descriptive `datasummary` display interpretation.** The descriptive tables adopt Arel-Bundock's house style +
    the completeness adds, but KEEP their rich columns (we did NOT regress Summary stats to `datasummary_skim`'s
    spare default, which would drop Skew/Kurtosis). The export emits the real `datasummary_*()` call. Confirm this
