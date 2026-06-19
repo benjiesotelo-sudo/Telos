@@ -19,12 +19,26 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
       )}
       <p style={{ color: 'var(--muted)' }}>{question}</p>
       {content.tables.map((t, i) => (
-        <div key={t.spec.id}>
-          <p><b>{t.spec.captionStyle === 'bare' ? 'Table.' : `Table ${i + 1}.`}</b> {t.spec.title}</p>
-          <ApaTable id={`table-${t.spec.domId ?? t.spec.id}`} spec={t.spec} rows={t.rows} />
-          {content.note && content.note.afterTableId === t.spec.id && (
-            <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
-          )}
+        <div key={t.matrix ? t.matrix.id : t.spec.id}>
+          {t.matrix
+            ? (
+              <>
+                <p><b>Table {i + 1}.</b> {t.matrix.caption}</p>
+                <ApaTable matrix={t.matrix} />
+                {content.note && content.note.afterTableId === t.matrix.id && (
+                  <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
+                )}
+              </>
+            )
+            : (
+              <>
+                <p><b>{t.spec.captionStyle === 'bare' ? 'Table.' : `Table ${i + 1}.`}</b> {t.spec.title}</p>
+                <ApaTable id={`table-${t.spec.domId ?? t.spec.id}`} spec={t.spec} rows={t.rows} />
+                {content.note && content.note.afterTableId === t.spec.id && (
+                  <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
+                )}
+              </>
+            )}
         </div>
       ))}
       {content.note && !content.tables.some((t) => t.spec.id === content.note!.afterTableId) && (

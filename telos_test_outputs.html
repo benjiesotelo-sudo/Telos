@@ -1035,22 +1035,24 @@
   </div>
 
   <div class="rtest">
-    <div class="rt-h"><span class="rt-name">Average variance extracted (AVE)</span><span class="rt-q">convergent validity</span></div>
+    <div class="rt-h"><span class="rt-name">Average variance extracted (AVE)</span><span class="rt-q">convergent and discriminant validity</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Convergent validity</div>
-      <table class="apa"><thead><tr><th>Construct</th><th>AVE</th><th>CR</th><th>&alpha;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Construct</th><th>AVE</th><th>CR</th><th>&omega;</th><th>&alpha;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Discriminant validity (Fornell&ndash;Larcker)</div>
-      <table class="apa"><thead><tr><th>Construct</th><th>C1</th><th>C2</th><th>C3</th></tr></thead><tbody class="ghost"><tr><td>&mdash; (&radic;AVE on diagonal)</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">AVE &ge; .50 indicates adequate convergent validity; computed from the CFA loadings (use the same WLSMV fit as CR for ordinal items). AVE &lt; .50 may still be acceptable when CR &gt; .60 (Fornell &amp; Larcker, 1981), so read AVE together with CR and treat .50 / .70 as heuristics, not hard tests. The Fornell&ndash;Larcker table is a construct &times; construct matrix &mdash; columns expand to the number of constructs in the model.</p>
+      <table class="apa matrix"><thead><tr><th></th><th>C1</th><th>C2</th><th>C3</th></tr></thead><tbody class="ghost"><tr><th>C1</th><td><b>&mdash;</b></td><td></td><td></td></tr><tr><th>C2</th><td>&mdash;</td><td><b>&mdash;</b></td><td></td></tr><tr><th>C3</th><td>&mdash;</td><td>&mdash;</td><td><b>&mdash;</b></td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 3.</b> Discriminant validity (HTMT)</div>
+      <table class="apa matrix"><thead><tr><th></th><th>C1</th><th>C2</th><th>C3</th></tr></thead><tbody class="ghost"><tr><th>C1</th><td></td><td></td><td></td></tr><tr><th>C2</th><td>&mdash;</td><td></td><td></td></tr><tr><th>C3</th><td>&mdash;</td><td>&mdash;</td><td></td></tr></tbody></table>
+      <p class="tbl-note">AVE &ge; .50 indicates adequate convergent validity; computed from the CFA loadings (Fornell &amp; Larcker, 1981). CR &ge; .70 acceptable (Nunnally, 1978; Bagozzi &amp; Yi, 1988); do not cite CR &ge; .70 to Fornell &amp; Larcker. &omega; (McDonald&rsquo;s) is the preferred reliability coefficient &mdash; model-based, not assuming tau-equivalence (McNeish, 2018); &alpha; is retained as a secondary/legacy column. Fornell&ndash;Larcker: diagonal = &radic;AVE (bold); off-diagonal = inter-construct latent correlations. HTMT &lt; .85 indicates discriminant validity for conceptually distinct constructs (Henseler, Ringle &amp; Sarstedt, 2015). When only 1 construct is defined, Tables 2 and 3 are suppressed (discriminant validity requires &ge; 2 constructs). Applies to <b>reflective</b> constructs only.</p>
       <div class="zlabel">Figure</div>
-      <div class="figbox"><div class="fcap"><b>Figure.</b> Validity overview</div><div class="ftype">type: <b>AVE / CR bar chart</b> per construct</div></div>
+      <div class="figbox"><div class="fcap"><b>Figure.</b> Validity overview</div><div class="ftype">type: AVE / CR bar chart per construct</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p><b>AVE</b> is the average share of item variance a construct captures; &ge; .50 means items converge on their construct. Compare &radic;AVE (diagonal) to inter-construct correlations for discriminant validity. Applies to <b>reflective</b> constructs only &mdash; for formative constructs report indicator weights and VIF instead of AVE/CR.</p></div>
+      <div class="howread">AVE (Average Variance Extracted) is the average share of item variance a construct captures; &ge; .50 means items converge on their construct (Fornell &amp; Larcker, 1981). CR (Composite Reliability) &ge; .70 indicates acceptable construct reliability. &omega; (McDonald's omega) is the preferred headline reliability coefficient; &alpha; (Cronbach's) is shown as a secondary/legacy coefficient. For discriminant validity, Fornell&ndash;Larcker (Table 2): each construct's √AVE (bold diagonal) should exceed its correlations with other constructs. HTMT (Table 3): values &lt; .85 support discriminant validity for conceptually distinct constructs &mdash; use HTMT as the primary criterion and Fornell&ndash;Larcker as a legacy check. AVE &lt; .50 may still be acceptable when CR &gt; .60 (F&amp;L caveat), but treat this as a caution, not a lenient pass. All cutoffs are heuristics, not pass/fail gates. Applies to reflective constructs only.</div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;All constructs showed adequate convergent validity (AVE &ge; .50).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>lavaan::cfa()</code> &rarr; loadings &middot; <code>semTools::AVE()</code> &rarr; AVE &middot; <code>semTools::compRelSEM()</code> &rarr; CR &middot; <code>psych::alpha()</code> &rarr; &alpha; (Table 1) &middot; <code>lavInspect(fit,"cor.lv")</code> + <code>sqrt(AVE)</code> on diagonal (or <code>semTools::discriminantValidity()</code>) &rarr; Table 2 (Fornell&ndash;Larcker)</div>
-        <div class="m bundle">table_convergent-validity.png &middot; table_discriminant.png &middot; figure_validity.png</div>
+        <div class="m"><b>APA template:</b> &ldquo;Convergent validity was supported, all AVE &ge; .50 and CR &ge; .70; discriminant validity held, all HTMT &lt; .85.&rdquo;</div>
+        <div class="m"><b>R map:</b> <code>lavaan::cfa()</code> &rarr; fit &middot; <code>semTools::AVE()</code> &rarr; AVE &middot; <code>semTools::compRelSEM()</code> &rarr; CR / &omega; &middot; <code>psych::alpha()</code> &rarr; &alpha; &middot; <code>lavInspect(fit,"cor.lv")</code> + <code>sqrt(AVE)</code> on diagonal &rarr; Table 2 (Fornell&ndash;Larcker) &middot; <code>semTools::htmt()</code> &rarr; Table 3 (HTMT) &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m bundle">table_convergent-validity.png &middot; table_fornell-larcker.png &middot; table_htmt.png &middot; figure_validity.png</div>
       </div>
     </div>
   </div>

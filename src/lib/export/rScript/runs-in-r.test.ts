@@ -114,6 +114,21 @@ const REPS: Rep[] = [
     { items: ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'] },
     { standardizedAlpha: false, dropItem: true },
     ['0.76', 'omega:']), // α ≈ 0.7605; ω line confirms compRelSEM ran
+  // AVE: 3 constructs × 3 items from scale.csv; asserts AVE + HTMT reach stdout
+  { id: 'ave', fixture: 'scale.csv',
+    setup: {
+      roles: {},
+      options: { estimator: 'ML (continuous) · WLSMV (ordinal)' },
+      props: {},
+      blocked: null,
+      constructs: [
+        { name: 'C1', items: ['x1', 'x2', 'x3'] },
+        { name: 'C2', items: ['x4', 'x5', 'x6'] },
+        { name: 'C3', items: ['x7', 'x8', 'x9'] },
+      ],
+    },
+    expect: ['AVE=', 'HTMT'],
+  },
 ]
 
 describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {

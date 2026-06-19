@@ -85,6 +85,9 @@ import { runPropensityScoreMatching, type PsmResult } from '../stats/propensityS
 import { buildPropensityScoreMatching } from './buildPropensityScoreMatching'
 import { runCronbachsAlpha, type CronbachResult } from '../stats/cronbachsAlpha'
 import { buildCronbachsAlpha } from './buildCronbachsAlpha'
+import { runAve, type AveResult } from '../stats/runAve'
+import { buildAve } from './buildAve'
+import type { MatrixTable } from './types'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
 
@@ -92,7 +95,7 @@ import { ciLevel } from '../format/apa'
 export const alternativeOf = (setup: TestSetup): string =>
   ({ 'one-tailed (greater)': 'greater', 'one-tailed (less)': 'less' }[String(setup.options['tails'] ?? 'two-tailed')] ?? 'two.sided')
 
-export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[] }
+export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[]; matrix?: MatrixTable }
 export interface CardContent {
   tables: BuiltTable[]
   note: { kind: 'assume' | 'plain'; text: string; afterTableId?: string } | null // afterTableId: render the note inline after that table (else after all tables)
@@ -188,6 +191,7 @@ export const RUNNERS: Record<string, Runner> = {
     return runPropensityScoreMatching(engine, ds, setup.roles['outcome'][0], setup.roles['treatment'][0], setup.roles['covariates'], { ratio: parseInt(String(setup.options['ratio'] ?? '1'), 10) || 1, caliper: Number.isFinite(cal) ? cal : 0, alpha: alphaOf(setup) })
   },
   'cronbachs-alpha': (engine, ds, setup) => runCronbachsAlpha(engine, ds, setup.roles['items'], 20260619, 2000, setup.options['standardizedAlpha'] as boolean, (setup.options['dropItem'] as boolean) !== false),
+  'ave': (engine, ds, setup) => runAve(engine, ds, setup.constructs ?? []),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -231,4 +235,5 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'rdd': (spec, result) => buildRdd(spec, result as RddResult),
   'propensity-score-matching': (spec, result) => buildPropensityScoreMatching(spec, result as PsmResult),
   'cronbachs-alpha': (spec, result) => buildCronbachsAlpha(spec, result as CronbachResult),
+  'ave': (spec, result) => buildAve(spec, result as AveResult),
 }

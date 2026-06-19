@@ -5,6 +5,100 @@ import type { Emitter } from './index'
 // NEVER call semTools::reliability() — deprecated 2022. Use compRelSEM() for ω/α-equivalent.
 
 export const latentEmitters: Record<string, Emitter> = {
+  // lavaan::cfa (multi-construct) + semTools::AVE/compRelSEM/htmt → convergent + discriminant validity.
+  // NEVER call semTools::reliability() — deprecated 2022.
+  // T1: Construct / AVE / CR / ω / α
+  // T2: Fornell-Larcker matrix (√AVE diagonal; latent correlations off-diagonal)
+  // T3: HTMT matrix
+  // Figure: AVE / CR bar chart (ggplot2)
+  'ave': (_spec, setup) => {
+    const constructs: { name: string; items: string[] }[] = setup.constructs ?? []
+    const k = constructs.length
+    if (k === 0) return '# No constructs defined — nothing to run for AVE.'
+
+    const constructNamesR = `c(${constructs.map((c) => `"${c.name}"`).join(', ')})`
+    const modelLines = constructs.map((c) => `${c.name} =~ ${c.items.join(' + ')}`).join('\n')
+    const constructItemsFlat = constructs.flatMap((c) => c.items)
+    const constructItemsFlatR = `c(${constructItemsFlat.map((v) => `"${v}"`).join(', ')})`
+    const constructItemsLensR = `c(${constructs.map((c) => c.items.length).join(', ')})`
+
+    const lines: string[] = [
+      '# ---- AVE / CR / ω / α via lavaan + semTools + psych ----',
+      `construct_names <- ${constructNamesR}`,
+      `k <- length(construct_names)`,
+      '',
+      `model_str <- "${modelLines.replace(/\n/g, '\\n')}"`,
+      '',
+      '# Fit CFA',
+      'fit <- lavaan::cfa(model_str, data = d, std.lv = FALSE)',
+      '',
+      '# AVE and composite reliability (ω) per construct',
+      '# Do NOT call semTools::reliability() — deprecated 2022.',
+      'ave_vec <- semTools::AVE(fit)',
+      'cr_vec  <- unlist(semTools::compRelSEM(fit))',
+      '',
+      '# Per-construct Cronbach\'s α via psych::alpha',
+      `construct_items_flat <- ${constructItemsFlatR}`,
+      `construct_items_lens <- ${constructItemsLensR}`,
+      'alpha_vec <- numeric(k)',
+      'item_start <- 1L',
+      'for (ci in seq_len(k)) {',
+      '  len <- construct_items_lens[ci]',
+      '  citems <- construct_items_flat[item_start:(item_start + len - 1L)]',
+      '  item_start <- item_start + len',
+      '  a_obj <- psych::alpha(d[, citems, drop = FALSE], warnings = FALSE)',
+      '  alpha_vec[ci] <- a_obj$total$raw_alpha',
+      '}',
+      '',
+      '# Print T1: Convergent validity',
+      'cat("\\n--- Table 1: Convergent validity ---\\n")',
+      'for (ci in seq_len(k)) {',
+      '  nm <- construct_names[ci]',
+      '  cat(sprintf("  %s: AVE=%.3f CR=%.3f omega=%.3f alpha=%.3f\\n",',
+      '              nm, ave_vec[nm], cr_vec[nm], cr_vec[nm], alpha_vec[ci]))',
+      '}',
+    ]
+
+    if (k >= 2) {
+      lines.push(
+        '',
+        '# Fornell-Larcker matrix: diagonal = sqrt(AVE), off-diagonal = latent correlations',
+        'cor_lv <- lavInspect(fit, "cor.lv")',
+        'ave_ordered <- ave_vec[construct_names]',
+        'fl <- cor_lv[construct_names, construct_names]',
+        'for (ci in seq_len(k)) diag(fl)[ci] <- sqrt(ave_ordered[ci])',
+        'cat("\\n--- Table 2: Fornell-Larcker matrix ---\\n")',
+        'print(round(fl, 3))',
+        '',
+        '# HTMT matrix',
+        'htmt_mat <- semTools::htmt(model_str, data = d)',
+        'htmt_ordered <- htmt_mat[construct_names, construct_names]',
+        'cat("\\n--- Table 3: HTMT matrix ---\\n")',
+        'print(round(htmt_ordered, 3))',
+      )
+    }
+
+    lines.push(
+      '',
+      '# Figure: AVE / CR bar chart',
+      `d_plot <- data.frame(`,
+      `  construct = rep(factor(construct_names, levels = rev(construct_names)), 2),`,
+      `  metric    = c(rep("AVE", k), rep("CR", k)),`,
+      `  value     = c(as.numeric(ave_vec[construct_names]), as.numeric(cr_vec[construct_names]))`,
+      `)`,
+      `print(`,
+      `  ggplot2::ggplot(d_plot, ggplot2::aes(x = value, y = construct, fill = metric)) +`,
+      `  ggplot2::geom_col(position = "dodge") +`,
+      `  ggplot2::geom_vline(xintercept = 0.5, linetype = "dashed", colour = "#9cc2ec") +`,
+      `  ggplot2::scale_fill_manual(values = c(AVE = "#0c447c", CR = "#5b9bd5")) +`,
+      `  ggplot2::labs(x = NULL, y = NULL, fill = NULL) +`,
+      `  ggplot2::theme(legend.position = "top")`,
+      `)`,
+    )
+
+    return lines.join('\n')
+  },
+
   // psych::alpha → α + item-total stats (Feldt CI for α);
   // 1-factor lavaan::cfa (std.lv=TRUE, ML) + semTools::compRelSEM → ω + bootstrap 95% CI;
   // ggplot2 item-total bar chart.
@@ -66,5 +160,6 @@ export const latentEmitters: Record<string, Emitter> = {
 }
 
 export const latentPackages: Record<string, string[]> = {
+  'ave': ['lavaan', 'semTools', 'psych', 'ggplot2'],
   'cronbachs-alpha': ['psych', 'lavaan', 'semTools', 'ggplot2'],
 }
