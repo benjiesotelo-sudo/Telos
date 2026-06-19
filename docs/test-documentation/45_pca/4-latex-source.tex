@@ -1,0 +1,43 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Principal component analysis (PCA)}
+
+\begin{tabular}{llll}
+\toprule
+Component & Eigenvalue & \% variance & Cumulative \% \\
+\midrule
+PC1 & 3.216 & 35.7 & 35.7 \\
+PC2 & 1.639 & 18.2 & 53.9 \\
+PC3 & 1.365 & 15.2 & 69.1 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Variable & PC1 & PC2 & PC3 \\
+\midrule
+x1 & .66 &  & $-$.37 \\
+x2 & .39 &  & $-$.62 \\
+x3 & .48 & .33 & $-$.54 \\
+x4 & .77 & $-$.45 &  \\
+x5 & .74 & $-$.48 &  \\
+x6 & .77 & $-$.43 &  \\
+x7 & .35 & .50 & .59 \\
+x8 & .45 & .61 & .33 \\
+x9 & .59 & .51 &  \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_pca/figure_scree.png}
+
+PCA compresses correlated variables into a few components. The variance explained (Table 1) shows how much information each component retains; the component loadings (Table 2) show how strongly each variable contributes. Loadings are correlation-scaled (eigenvector $\times$ $\surd$eigenvalue) so they share the unit of a correlation coefficient. PCA is data reduction --- components are weighted composites of the observed variables, not reflective latent factors; do not interpret them as constructs and do not report communalities (which belong to factor analysis, not PCA). For a latent-construct model use EFA (psych::fa) or CFA (lavaan). The scree plot overlays the parallel-analysis 95th-percentile threshold --- retain components where the observed eigenvalue exceeds that line; the Kaiser eigenvalue $>$ 1 rule is shown for reference but tends to over-extract (Zwick \& Velicer, 1986). Cumulative variance $\ge$ 70\% is a common but explicitly subjective target (Jolliffe \& Cadima, 2016).
+
+PCA (correlation matrix; parallel analysis) retained 3 components explaining 69.1\% of total variance.
+
+\end{document}

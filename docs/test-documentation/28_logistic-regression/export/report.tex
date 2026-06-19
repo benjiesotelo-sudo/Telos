@@ -1,0 +1,48 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Logistic regression}
+
+\begin{tabular}{lll}
+\toprule
+ & Log-odds (B) & Odds ratio (OR) \\
+\midrule
+(Intercept) & $-$6.59 & $<$ 0.01 \\
+ & (2.92) & [$<$ 0.01, 0.24] \\
+pre\_score & 0.08 & 1.08 \\
+ & (0.04) & [1.01, 1.18] \\
+age & 0.03 & 1.03 \\
+ & (0.03) & [0.98, 1.09] \\
+group: b & 1.24 & 3.46 \\
+ & (0.72) & [0.87, 15.44] \\
+\midrule
+Num.Obs. & 40 &  \\
+Nagelkerke R\textsuperscript{2} & 0.28 &  \\
+Omnibus $\chi$\textsuperscript{2} & 9.54 (p .023) &  \\
+Log.Lik. & $-$22.95 &  \\
+AIC & 53.91 &  \\
+BIC & 60.66 &  \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Predicted \textbackslash{} Observed & no & yes & \% correct \\
+\midrule
+no & 13 & 7 & 65.0\% \\
+yes & 7 & 13 & 65.0\% \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_logistic-regression/figure_roc.png}
+
+Each predictor's odds ratio tells how the odds of the outcome change per unit ($>$1 increases, $<$1 decreases); a term carries weight when its OR confidence interval excludes 1, and the inline omnibus $\chi$\textsuperscript{2} (with its p) tests the model as a whole. Model fit and the ROC/AUC show how well it classifies overall. Your significance threshold ($\alpha$) is 0.05.
+
+Predictor pre\_score was associated with the outcome, OR=1.08, 95\% CI [1.01, 1.18], p = .035 (AUC=.76).
+
+\end{document}

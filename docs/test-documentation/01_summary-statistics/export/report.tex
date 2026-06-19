@@ -1,0 +1,30 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Summary statistics}
+
+\begin{tabular}{lllllllllll}
+\toprule
+Group & Variable & N & M & SD & 95\% CI & Min & Max & Median & Skew & Kurtosis (excess) \\
+\midrule
+female & score & 7 & 75.29 & 6.78 & [69.02, 81.55] & 66.00 & 85.00 & 75.00 & $-$0.03 & $-$1.63 \\
+male & score & 7 & 76.00 & 7.39 & [69.16, 82.84] & 69.00 & 88.00 & 72.00 & 0.48 & $-$1.67 \\
+female & anxiety & 6 & 34.17 & 8.57 & [25.18, 43.16] & 22.00 & 45.00 & 33.50 & $-$0.06 & $-$1.75 \\
+male & anxiety & 7 & 31.00 & 7.59 & [23.98, 38.02] & 19.00 & 40.00 & 33.00 & $-$0.28 & $-$1.65 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_summary-statistics/figure_histogram_score.png}
+
+\includegraphics{figures/01_summary-statistics/figure_histogram_anxiety.png}
+
+Descriptives summarize your data: the mean and median show the center, the SD and range show the spread, and skew/kurtosis show how far the shape departs from a normal bell curve. There is no significance test here.
+
+Table X reports descriptive statistics for the study variables.
+
+\end{document}

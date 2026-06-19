@@ -1,0 +1,38 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Poisson / negative binomial}
+
+\begin{tabular}{lll}
+\toprule
+ & Log-count (B) & IRR \\
+\midrule
+(Intercept) & $-$1.46 & 0.23 \\
+ & (0.23) & [0.15, 0.36] \\
+age & 0.01 & 1.01 \\
+ & (0.005) & [1.00, 1.02] \\
+group: b & 0.17 & 1.19 \\
+ & (0.14) & [0.90, 1.56] \\
+\midrule
+Num.Obs. & 40 &  \\
+Dispersion & 1.69 &  \\
+Residual deviance & 67.57 &  \\
+df & 37 &  \\
+Log.Lik. & $-$98.18 &  \\
+AIC & 202.37 &  \\
+BIC & 207.44 &  \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_poisson-negative-binomial/figure_residuals.png}
+
+Models event counts. Each predictor's incidence-rate ratio (IRR) gives the multiplicative change in the expected count per unit ($>$1 more, $<$1 fewer); p tests significance. Check dispersion to pick Poisson vs. negative binomial. If cases have unequal exposure (different observation time/area/population), add an offset of log(exposure) so the model predicts rates, not raw counts --- omitting it biases the IRRs. Your significance threshold ($\alpha$) is 0.05.
+
+Predictor age was associated with the count, IRR=1.01, 95\% CI [1.00, 1.02], p = .007.
+
+\end{document}

@@ -1,0 +1,46 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{One-way ANOVA + post-hoc}
+
+\begin{tabular}{llll}
+\toprule
+Group & N & M & SD \\
+\midrule
+control & 20 & 32.48 & 7.47 \\
+drug\_a & 20 & 33.84 & 6.91 \\
+drug\_b & 20 & 37.81 & 7.79 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllllll}
+\toprule
+Source & SS & df & MS & F & p & $\eta$\textsuperscript{2} [95\% CI] \\
+\midrule
+Between & 307.07 & 2 & 153.53 & 2.81 & .069 & 0.09 [0.00, 1.00] \\
+Within & 3119.95 & 57 & 54.74 &  &  &  \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Pair & Mdiff & SE & padj & 95\% CI \\
+\midrule
+control - drug\_a & $-$1.37 & 2.34 & .828 & [$-$7.00, 4.26] \\
+control - drug\_b & $-$5.33 & 2.34 & .067 & [$-$10.96, 0.29] \\
+drug\_a - drug\_b & $-$3.96 & 2.34 & .216 & [$-$9.59, 1.66] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_one-way-anova/figure_means-plot.png}
+
+The F and its p tell you whether the groups differ overall; $\eta$\textsuperscript{2} (or $\omega$\textsuperscript{2}) is the effect size. If significant, the post-hoc table shows which specific pairs differ, with multiplicity-adjusted p-values. Your significance threshold ($\alpha$) is 0.05.
+
+A one-way ANOVA gave F(2,57)=2.81, p = .069, $\eta$\textsuperscript{2}=.09 [.00, 1.00]. Tukey HSD post-hoc tests showed\ldots{}
+
+\end{document}

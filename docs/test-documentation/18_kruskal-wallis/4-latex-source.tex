@@ -1,0 +1,45 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Kruskal-Wallis}
+
+\begin{tabular}{lllll}
+\toprule
+Group & N & Median & IQR & Mean rank \\
+\midrule
+control & 20 & 33.55 & 9.63 & 24.90 \\
+drug\_a & 20 & 36.50 & 11.97 & 28.15 \\
+drug\_b & 20 & 38.70 & 6.60 & 38.45 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+H & df & p & $\varepsilon$\textsuperscript{2} [95\% CI] \\
+\midrule
+6.56 & 2 & .038 & 0.11 [0.03, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lll}
+\toprule
+Pair & Z & padj \\
+\midrule
+control - drug\_a & 0.59 & .556 \\
+control - drug\_b & 2.45 & .042 \\
+drug\_a - drug\_b & 1.87 & .124 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_kruskal-wallis/figure_boxplot.png}
+
+The nonparametric counterpart to one-way ANOVA. The H/p tests whether any group tends to have systematically higher or lower values (stochastic dominance) --- read it as a "median difference" only when the groups have similar distribution shapes. If significant, Dunn's post-hoc shows which pairs differ, with adjusted p-values. $\varepsilon$\textsuperscript{2} is the effect size. Your significance threshold ($\alpha$) is 0.05.
+
+A Kruskal-Wallis test gave H(2)=6.56, p = .038, $\varepsilon$\textsuperscript{2}=.11 [.03, 1.00].
+
+\end{document}

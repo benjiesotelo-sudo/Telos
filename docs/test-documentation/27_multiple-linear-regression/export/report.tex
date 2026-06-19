@@ -1,0 +1,53 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Multiple linear regression}
+
+\begin{tabular}{llll}
+\toprule
+ & (1) & $\beta$ & VIF \\
+\midrule
+(Intercept) & 20.36 &  &  \\
+ & (6.03) &  &  \\
+ & [8.11, 32.62] &  &  \\
+pre\_score & 0.61 & --- & 1.25 \\
+ & (0.08) &  &  \\
+ & [0.46, 0.77] &  &  \\
+age & 0.02 & --- & 1.41 \\
+ & (0.07) &  &  \\
+ & [$-$0.12, 0.16] &  &  \\
+group: b & 5.35 & --- & 1.04 \\
+ & (1.64) &  &  \\
+ & [2.01, 8.69] &  &  \\
+method: online & $-$2.05 & --- & 1.25 \\
+ & (2.02) &  &  \\
+ & [$-$6.16, 2.06] &  &  \\
+method: workshop & $-$3.25 & --- & 1.25 \\
+ & (2.27) &  &  \\
+ & [$-$7.87, 1.37] &  &  \\
+\midrule
+Num.Obs. & 40 &  &  \\
+R\textsuperscript{2} & 0.75 &  &  \\
+R\textsuperscript{2} Adj. & 0.71 &  &  \\
+F & 20.42 &  &  \\
+RMSE & 4.68 &  &  \\
+AIC & 250.96 &  &  \\
+BIC & 262.78 &  &  \\
+Log.Lik. & $-$118.48 &  &  \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_multiple-linear-regression/figure_residuals.png}
+
+\includegraphics{figures/01_multiple-linear-regression/figure_coefficient-plot.png}
+
+Each predictor's B is its effect holding the others constant; p and CI assess it. R\textsuperscript{2} is the joint variance explained; VIF flags predictors that overlap too much (multicollinearity). B is in each predictor's own units, so to compare which predictors matter most use the standardized coefficient ($\beta$), not B. Your significance threshold ($\alpha$) is 0.05.
+
+The model explained R\textsuperscript{2}=.75 of the variance, F(5,34)=20.42, p $<$ .001; predictor pre\_score gave B=0.61, p $<$ .001.
+
+\end{document}

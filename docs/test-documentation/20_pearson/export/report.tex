@@ -1,0 +1,25 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Pearson correlation}
+
+\begin{tabular}{lllllll}
+\toprule
+Pair & r & 95\% CI & t & df & p & N \\
+\midrule
+hours\_studied -- exam\_score & 0.70 & [0.50, 0.83] & 6.07 & 38 & $<$.001 & 40 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_pearson/figure_scatter.png}
+
+r ranges from $-$1 to +1: the sign is the direction, the magnitude the strength (\textasciitilde{}.1 small, .3 medium, .5 large). p tests whether it differs from zero; the 95\% CI shows the precision. r measures only linear association --- a strong curved relationship can give r near 0, and r is sensitive to outliers, so always inspect the scatterplot (use Spearman's rs for monotonic-but-nonlinear or outlier-affected data). Correlation does not imply causation. Your significance threshold ($\alpha$) is 0.05.
+
+hours\_studied and exam\_score were correlated, r(38)=.70, p $<$ .001, 95\% CI [0.50, 0.83].
+
+\end{document}

@@ -1,0 +1,26 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Granger causality}
+
+\begin{tabular}{llll}
+\toprule
+Direction & F & df & p \\
+\midrule
+X$\rightarrow$Y & 47.89 & 4, 63 & $<$.001 \\
+Y$\rightarrow$X & 30.62 & 4, 63 & $<$.001 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_granger-causality/figure_cross-series.png}
+
+A significant X$\rightarrow$Y p means past values of X help predict Y beyond Y's own past --- this is predictive precedence, not proof that X causes Y. Check both directions. The result depends entirely on the lag order (this card uses a max lag of 4): choose it on theory or by an information criterion --- vars::VARselect reports the AIC- and BIC-minimising lag --- and report it, since different lags can flip the conclusion. Make both series stationary first. Method: R lmtest::grangertest (Granger, 1969). Your significance threshold ($\alpha$) is 0.05.
+
+Granger test X$\rightarrow$Y: F(4,63)=47.89, p $<$ .001; Y$\rightarrow$X: F(4,63)=30.62, p $<$ .001 (lag=4).
+
+\end{document}

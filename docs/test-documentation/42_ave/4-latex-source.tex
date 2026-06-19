@@ -1,0 +1,47 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Average variance extracted (AVE)}
+
+\begin{tabular}{lllll}
+\toprule
+Construct & AVE & CR & $\omega$ & $\alpha$ \\
+\midrule
+visual & .37 & .61 & .61 & .63 \\
+textual & .72 & .89 & .89 & .88 \\
+speed & .42 & .69 & .69 & .69 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lccc}
+\toprule
+ & visual & textual & speed \\
+\midrule
+visual & \textbf{.61} &  &  \\
+textual & .46 & \textbf{.85} &  \\
+speed & .47 & .28 & \textbf{.65} \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lccc}
+\toprule
+ & visual & textual & speed \\
+\midrule
+visual &  &  &  \\
+textual & .38 &  &  \\
+speed & .39 & .28 &  \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_ave/figure_validity.png}
+
+AVE (Average Variance Extracted) is the average share of item variance a construct captures; $\ge$ .50 means items converge on their construct (Fornell \& Larcker, 1981). CR (Composite Reliability) $\ge$ .70 indicates acceptable construct reliability. $\omega$ (McDonald's omega) is the preferred headline reliability coefficient; $\alpha$ (Cronbach's) is shown as a secondary/legacy coefficient. For discriminant validity, Fornell--Larcker (Table 2): each construct's $\surd$AVE (bold diagonal) should exceed its correlations with other constructs. HTMT (Table 3): values $<$ .85 support discriminant validity for conceptually distinct constructs --- use HTMT as the primary criterion and Fornell--Larcker as a legacy check. AVE $<$ .50 may still be acceptable when CR $>$ .60 (F\&L caveat), but treat this as a caution, not a lenient pass. All cutoffs are heuristics, not pass/fail gates. Applies to reflective constructs only.
+
+Convergent validity was supported, all AVE $\ge$ .50 and CR $\ge$ .70; discriminant validity held, all HTMT $<$ .85.
+
+\end{document}

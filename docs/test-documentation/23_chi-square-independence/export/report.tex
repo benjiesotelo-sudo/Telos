@@ -1,0 +1,36 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Chi-square independence}
+
+\begin{tabular}{llll}
+\toprule
+Row \textbackslash{} Column & no & yes & Total \\
+\midrule
+discussion & 11 [7.60] (68.8\% / 57.9\%) r=2.20 & 5 [8.40] (31.3\% / 23.8\%) r=$-$2.20 & 16 \\
+lecture & 4 [6.17] (30.8\% / 21.1\%) r=$-$1.47 & 9 [6.83] (69.2\% / 42.9\%) r=1.47 & 13 \\
+seminar & 4 [5.22] (36.4\% / 21.1\%) r=$-$0.87 & 7 [5.78] (63.6\% / 33.3\%) r=0.87 & 11 \\
+Total & 19 & 21 & 40 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+$\chi$\textsuperscript{2} & df & p & Cram\'{e}r's V [95\% CI] \\
+\midrule
+4.90 & 2 & .086 & 0.35 [0.00, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_chi-square-independence/figure_bar.png}
+
+Tests whether two categorical variables are associated. A p below alpha means they are related; Cram\'{e}r's V gives the strength of association (0--1); each cell's standardized residual (r) beyond about $\pm$1.96 flags a category combination that significantly drives the association. Valid only when expected counts are mostly $\ge$ 5 (the app flags this and suggests Fisher's exact) and each case appears once (raw counts, not percentages). Your significance threshold ($\alpha$) is 0.05.
+
+A chi-square test of independence gave $\chi$\textsuperscript{2}(2, N=40)=4.90, p = .086, V=.35 [.00, 1.00].
+
+\end{document}

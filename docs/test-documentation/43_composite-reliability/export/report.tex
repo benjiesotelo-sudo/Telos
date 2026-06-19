@@ -1,0 +1,27 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Composite reliability (CR)}
+
+\begin{tabular}{lllll}
+\toprule
+Construct & CR & AVE & $\omega$ & $\alpha$ \\
+\midrule
+visual & .61 & .37 & .61 & .63 \\
+textual & .89 & .72 & .89 & .88 \\
+speed & .69 & .42 & .69 & .69 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_composite-reliability/figure_reliability.png}
+
+CR (Composite Reliability) measures how reliably a set of items captures its construct (0--1); $\ge$ .70 is the conventional threshold (Nunnally, 1978; Bagozzi \& Yi, 1988). CR is computed from the CFA loadings via semTools::compRelSEM() --- for a congeneric (unidimensional) factor CR equals McDonald's $\omega$, so the two columns will always match. AVE is shown alongside for quick convergent-validity reference ($\ge$ .50; Fornell \& Larcker, 1981) --- for the full discriminant-validity assessment (Fornell--Larcker + HTMT matrices) run the AVE card. $\alpha$ (Cronbach's) is a secondary/legacy coefficient --- it assumes tau-equivalence (equal loadings) and is a lower bound when loadings differ (McNeish, 2018). All cutoffs are labelled guidelines, not pass/fail gates. Applies to reflective constructs only.
+
+Composite reliability was satisfactory (CR = .\_\_ $\ge$ .70).
+
+\end{document}

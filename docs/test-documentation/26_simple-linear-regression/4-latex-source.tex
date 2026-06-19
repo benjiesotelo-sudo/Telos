@@ -1,0 +1,41 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Simple linear regression}
+
+\begin{tabular}{lll}
+\toprule
+ & (1) & $\beta$ \\
+\midrule
+(Intercept) & 20.07 &  \\
+ & (4.54) &  \\
+ & [10.88, 29.26] &  \\
+pre\_score & 0.64 & 0.81 \\
+ & (0.07) &  \\
+ & [0.49, 0.79] &  \\
+\midrule
+Num.Obs. & 40 &  \\
+R\textsuperscript{2} & 0.66 &  \\
+R\textsuperscript{2} Adj. & 0.65 &  \\
+F & 73.57 &  \\
+RMSE & 5.46 &  \\
+AIC & 255.36 &  \\
+BIC & 260.43 &  \\
+Log.Lik. & $-$124.68 &  \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_simple-linear-regression/figure_fit.png}
+
+\includegraphics{figures/01_simple-linear-regression/figure_residuals.png}
+
+R\textsuperscript{2} is the share of outcome variance explained. The predictor's B is the slope (change in outcome per unit), with p testing whether it differs from zero and the CI showing precision. $\beta$ is the standardized slope (change in outcome in SDs per 1 SD change in the predictor), useful for comparing effect sizes on a common scale. Your significance threshold ($\alpha$) is 0.05.
+
+A simple linear regression gave B=0.64, t(38)=8.58, p $<$ .001, R\textsuperscript{2}=.66.
+
+\end{document}

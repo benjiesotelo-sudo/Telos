@@ -1,0 +1,40 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Factorial ANOVA}
+
+\begin{tabular}{llll}
+\toprule
+Factor A $\times$ B & N & M & SD \\
+\midrule
+control $\times$ f & 10 & 31.14 & 8.22 \\
+drug\_a $\times$ f & 10 & 34.69 & 7.22 \\
+drug\_b $\times$ f & 10 & 33.66 & 8.27 \\
+control $\times$ m & 10 & 33.81 & 6.79 \\
+drug\_a $\times$ m & 10 & 33.00 & 6.86 \\
+drug\_b $\times$ m & 10 & 41.96 & 4.65 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllllll}
+\toprule
+Source & SS & df & MS & F & p & partial $\eta$\textsuperscript{2} [95\% CI] \\
+\midrule
+group & 307.07 & 2 & 153.53 & 3.04 & .056 & 0.10 [0.00, 1.00] \\
+gender & 143.53 & 1 & 143.53 & 2.84 & .098 & 0.05 [0.00, 1.00] \\
+group $\times$ gender & 250.84 & 2 & 125.42 & 2.48 & .093 & 0.08 [0.00, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_factorial-anova/figure_interaction.png}
+
+Each factor's F/p is its main effect; the A$\times$B row tests whether the effect of one factor depends on the other. A significant interaction usually takes priority --- read it from the interaction plot before the main effects. A significant effect for any factor with 3+ levels tells you the levels differ somewhere, not which ones --- use the post-hoc / simple-effects (emmeans) table to find the specific pairs. Your significance threshold ($\alpha$) is 0.05.
+
+A two-way ANOVA gave A$\times$B interaction F(2,54)=2.48, p = .093, partial $\eta$\textsuperscript{2}=.08 [.00, 1.00].
+
+\end{document}

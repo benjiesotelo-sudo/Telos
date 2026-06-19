@@ -1,0 +1,34 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Paired t-test}
+
+\begin{tabular}{llll}
+\toprule
+Condition & N & M & SD \\
+\midrule
+pre & 6 & 70.33 & 3.14 \\
+post & 6 & 82.33 & 3.78 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllllll}
+\toprule
+Pair & t & df & p & Mdiff & 95\% CI & d [95\% CI]z \\
+\midrule
+pre $-$ post & $-$10.39 & 5 & $<$.001 & $-$12.00 & [$-$14.97, $-$9.03] & $-$4.24 [$-$6.90, $-$1.58] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_paired-t-test/figure_difference.png}
+
+Tests whether the average change between two related measurements (e.g. before vs. after) differs from zero. A p below alpha means a significant change; the mean difference, CI and dz describe its size (their sign depends on the subtraction order, A$-$B). A p at or above alpha does not prove there was no change --- only that none was detected. Your significance threshold ($\alpha$) is 0.05.
+
+A paired-samples t-test gave M=$-$12.0, t(5)=$-$10.39, p $<$ .001, dz=$-$4.24 [$-$6.90, $-$1.58].
+
+\end{document}

@@ -1,0 +1,53 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Repeated-measures ANOVA}
+
+\begin{tabular}{llll}
+\toprule
+Condition & N & M & SD \\
+\midrule
+score\_t1 & 60 & 59.55 & 5.45 \\
+score\_t2 & 60 & 62.42 & 5.89 \\
+score\_t3 & 60 & 64.83 & 6.04 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllllll}
+\toprule
+Source & SS & df & MS & F & p & partial $\eta$\textsuperscript{2} [95\% CI] \\
+\midrule
+Condition & 836.30 & 1.78 & 471.04 & 78.51 & $<$.001 & 0.57 [0.48, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Effect & W & p & GG $\varepsilon$ & HF $\varepsilon$ \\
+\midrule
+condition & 0.87 & .020 & 0.89 & 0.91 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Pair & Mdiff & SE & padj & 95\% CI \\
+\midrule
+score\_t1 - score\_t2 & $-$2.86 & 0.42 & $<$.001 & [$-$3.90, $-$1.83] \\
+score\_t1 - score\_t3 & $-$5.27 & 0.35 & $<$.001 & [$-$6.14, $-$4.41] \\
+score\_t2 - score\_t3 & $-$2.41 & 0.48 & $<$.001 & [$-$3.60, $-$1.22] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_repeated-measures-anova/figure_profile.png}
+
+Tests whether the average differs across conditions measured on the same people. Check sphericity first --- if violated, read the corrected F/p. A significant result means conditions differ; post-hoc tests show which. Your significance threshold ($\alpha$) is 0.05.
+
+A repeated-measures ANOVA (GG-corrected) gave F(1.78,104.75)=78.51, p $<$ .001, partial $\eta$\textsuperscript{2}=.57 [.48, 1.00].
+
+\end{document}

@@ -1,0 +1,35 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Wilcoxon signed-rank}
+
+\begin{tabular}{llll}
+\toprule
+Sign & N & Mean rank & Sum of ranks \\
+\midrule
+Positive & 0 & --- & --- \\
+Negative & 6 & 3.50 & 21.00 \\
+Ties & 0 & --- & --- \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+V / W & Z & p & r [95\% CI] & Median diff [95\% CI] \\
+\midrule
+0.00 & $-$2.20 & .031 & $-$1.00 [$-$1.00, $-$1.00] & $-$11.50 [$-$17.00, $-$9.00] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_wilcoxon-signed-rank/figure_difference.png}
+
+The nonparametric counterpart to the paired t-test. It ranks the size of each paired change; a p below alpha means a systematic shift between the two conditions, with r as the effect size. The shift maps to the median difference only when the within-pair differences are roughly symmetric; the sign of the median difference (or Hodges--Lehmann estimate) gives the direction. Your significance threshold ($\alpha$) is 0.05.
+
+A Wilcoxon signed-rank test gave V=0.00, Z=$-$2.20, p = .031, r=$-$1.00 [$-$1.00, $-$1.00].
+
+\end{document}

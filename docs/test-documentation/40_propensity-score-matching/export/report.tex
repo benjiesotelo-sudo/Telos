@@ -1,0 +1,43 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Propensity score matching}
+
+\begin{tabular}{llll}
+\toprule
+Covariate & Std. mean diff (pre) & Std. mean diff (post) & Variance ratio \\
+\midrule
+exper & $-$0.04 & $-$0.10 & 1.10 \\
+wage & 1.07 & 0.23 & 1.14 \\
+ability & 1.36 & 0.37 & 1.28 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{ll}
+\toprule
+ & (1) \\
+\midrule
+Treatment (ATT) & 5.88 \\
+ & (0.25) \\
+ & [5.37, 6.38] \\
+\midrule
+Num.Obs. & 134 \\
+Treated (matched) & 67 \\
+Control (matched) & 67 \\
+\multicolumn{2}{l}{Common support: 0 treated unit(s) dropped (off common support)} \\
+\multicolumn{2}{l}{Propensity overlap: treated [0.11, 0.82], control [0.03, 0.78]} \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_propensity-score-matching/figure_love-plot.png}
+
+First confirm balance --- matched groups should look alike on the covariates (small standardized differences). Then read the ATT as the treatment effect for the treated, with p/CI. The common-support rows tell you how many treated units were dropped for lacking a comparable control and where the two groups’ propensity scores overlap --- good overlap with few drops means the ATT generalizes to most of the treated. PSM only balances the covariates you measured and included, so the causal reading also assumes no important confounder was left unmeasured (ignorability) --- an assumption that cannot be verified from the data. Method: R MatchIt package (Ho, Imai, King \& Stuart, 2011); balance diagnostics (Austin, 2011). Your significance threshold ($\alpha$) is 0.05.
+
+After propensity-score matching, the ATT was 5.88, 95\% CI [5.37, 6.38], p $<$ .001.
+
+\end{document}

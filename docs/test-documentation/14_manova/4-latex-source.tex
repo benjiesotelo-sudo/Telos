@@ -1,0 +1,34 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{MANOVA}
+
+\begin{tabular}{llllll}
+\toprule
+Effect & Pillai / Wilks & approx F & df1 & df2 & p \\
+\midrule
+group & 0.29 & 4.74 & 4 & 114 & .001 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llllll}
+\toprule
+DV & F & df1 & df2 & p & partial $\eta$\textsuperscript{2} [95\% CI] \\
+\midrule
+outcome & 2.81 & 2 & 57 & .069 & 0.09 [0.00, 1.00] \\
+outcome2 & 7.71 & 2 & 57 & .001 & 0.21 [0.06, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_manova/figure_means.png}
+
+Tests whether groups differ on a set of outcomes jointly. Read the multivariate p (Pillai's trace is robust) first; if significant, the per-DV follow-up ANOVAs show which individual outcomes drive it. Because you run one ANOVA per outcome, correct those follow-up p-values for multiple comparisons (e.g. Bonferroni: divide alpha by the number of outcomes) before calling each significant. Your significance threshold ($\alpha$) is 0.05.
+
+A MANOVA gave Pillai's V=.29, F(4,114)=4.74, p = .001.
+
+\end{document}

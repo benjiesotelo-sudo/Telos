@@ -1,0 +1,45 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Friedman}
+
+\begin{tabular}{ll}
+\toprule
+Condition & Mean rank \\
+\midrule
+score\_t1 & 1.23 \\
+score\_t2 & 2.04 \\
+score\_t3 & 2.73 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+$\chi$\textsuperscript{2} & df & p & Kendall's W [95\% CI] \\
+\midrule
+67.19 & 2 & $<$.001 & 0.56 [0.48, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{ll}
+\toprule
+Pair & padj \\
+\midrule
+score\_t1 - score\_t2 & $<$.001 \\
+score\_t1 - score\_t3 & $<$.001 \\
+score\_t2 - score\_t3 & $<$.001 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_friedman/figure_profile.png}
+
+The nonparametric counterpart to repeated-measures ANOVA. The $\chi$\textsuperscript{2}/p tests whether ranks differ across conditions; Kendall's W is the effect size (0--1 agreement). Post-hoc shows which conditions differ. Your significance threshold ($\alpha$) is 0.05.
+
+A Friedman test gave $\chi$\textsuperscript{2}(2)=67.19, p $<$ .001, W=.56 [.48, 1.00].
+
+\end{document}

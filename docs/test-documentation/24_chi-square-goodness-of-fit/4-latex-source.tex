@@ -1,0 +1,35 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Chi-square goodness-of-fit}
+
+\begin{tabular}{llll}
+\toprule
+Category & Observed & Expected & Std. residual \\
+\midrule
+discussion & 16 & 20.00 & $-$1.26 \\
+lecture & 13 & 12.00 & 0.35 \\
+seminar & 11 & 8.00 & 1.19 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+$\chi$\textsuperscript{2} & df (k$-$1) & p & Cohen's w [95\% CI] \\
+\midrule
+2.01 & 2 & .366 & 0.22 [0.00, 2.00] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_chi-square-goodness-of-fit/figure_bar.png}
+
+Tests whether one categorical variable's counts depart from an expected distribution (equal by default). A p below alpha means the observed split differs from expected; a standardized residual beyond about $\pm$1.96 flags a category that significantly drives the result. Valid only when expected counts are mostly $\ge$ 5 (some texts allow $\ge$ 1 if no more than 20\% are below 5); for sparse categories use an exact / simulated test instead. Your significance threshold ($\alpha$) is 0.05.
+
+A goodness-of-fit test, $\chi$\textsuperscript{2}(2, N=40)=2.01, p = .366, w=.22 [.00, 2.00].
+
+\end{document}

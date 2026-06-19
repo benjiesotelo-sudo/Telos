@@ -1,0 +1,15 @@
+id,score,anxiety,gender,program,satisfaction
+1,72,35,male,psychology,4
+2,68,42,female,education,3
+3,75,29,female,psychology,5
+4,70,38,male,business,2
+5,66,45,female,education,3
+6,71,33,male,psychology,4
+7,81,,female,business,5
+8,79,27,male,education,4
+9,85,22,female,psychology,5
+10,83,25,male,business,
+11,78,31,female,education,4
+12,88,19,male,psychology,5
+13,74,36,female,business,3
+14,69,40,male,education,2

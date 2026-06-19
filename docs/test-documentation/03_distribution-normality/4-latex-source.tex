@@ -1,0 +1,34 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Distribution \& normality}
+
+\begin{tabular}{lllllll}
+\toprule
+Variable & Test & Statistic & N & p & Skew & Kurtosis (excess) \\
+\midrule
+score & Shapiro-Wilk & W 0.96 & 14 & .679 & 0.30 & $-$1.33 \\
+score & K--S (Lilliefors) & D 0.13 & 14 & .732 & 0.30 & $-$1.33 \\
+anxiety & Shapiro-Wilk & W 0.98 & 13 & .990 & $-$0.11 & $-$1.28 \\
+anxiety & K--S (Lilliefors) & D 0.09 & 13 & .997 & $-$0.11 & $-$1.28 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_distribution-normality/figure_histogram_score.png}
+
+\includegraphics{figures/01_distribution-normality/figure_qq_score.png}
+
+\includegraphics{figures/01_distribution-normality/figure_histogram_anxiety.png}
+
+\includegraphics{figures/01_distribution-normality/figure_qq_anxiety.png}
+
+A small p (below .05) suggests the data depart from normality. With large samples these tests over-flag trivial deviations; with small samples they have low power, so a p $>$ .05 does not prove normality --- it only means no departure was detected. Either way, judge normality mainly from the Q--Q plot --- points hugging the diagonal indicate normality.
+
+score: Normality was assessed with the Shapiro-Wilk test, W = .96, p = .679. anxiety: Normality was assessed with the Shapiro-Wilk test, W = .98, p = .990.
+
+\end{document}

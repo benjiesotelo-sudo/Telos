@@ -1,0 +1,25 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Kendall's tau}
+
+\begin{tabular}{lllll}
+\toprule
+Pair & $\tau$b [95\% CI] & z & p & N \\
+\midrule
+satisfaction -- motivation & 0.75 [0.66, 0.82] & 5.71 & $<$.001 & 40 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_kendalls-tau/figure_scatter.png}
+
+$\tau$ (Kendall’s tau-b) is a rank correlation based on concordant vs. discordant pairs, with a correction for ties --- well suited to small samples and many ties. Sign = direction, magnitude = strength; p tests significance. Your significance threshold ($\alpha$) is 0.05.
+
+A Kendall's tau-b correlation gave $\tau$=.75 [.66, .82], p $<$ .001, N=40.
+
+\end{document}

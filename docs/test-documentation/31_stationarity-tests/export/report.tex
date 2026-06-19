@@ -1,0 +1,29 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Stationarity tests (ADF, KPSS)}
+
+\begin{tabular}{lllll}
+\toprule
+Test & Statistic & Lag & p & Conclusion \\
+\midrule
+ADF & $-$8.38 & 4 & .010 & stationary \\
+KPSS & 1.81 & 3 & $<$ .010 & non-stationary \\
+PP & $-$26.93 & 3 & $<$ .010 & stationary \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_stationarity-tests/figure_series.png}
+
+\includegraphics{figures/01_stationarity-tests/figure_acf.png}
+
+For ADF, a small p means stationary; for KPSS, a small p means non-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value. Method: R tseries package ADF/KPSS/PP (Dickey \& Fuller; Kwiatkowski, Phillips, Schmidt \& Shin, 1992; Phillips \& Perron, 1988). Your significance threshold ($\alpha$) is 0.05.
+
+ADF gave $\tau$=$-$8.38, p = .010; KPSS gave LM=1.81, p $<$ .010; Phillips--Perron gave Z=$-$26.93, p $<$ .010 ($\alpha$=0.05).
+
+\end{document}

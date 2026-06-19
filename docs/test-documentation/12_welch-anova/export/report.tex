@@ -1,0 +1,45 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Welch's ANOVA}
+
+\begin{tabular}{llll}
+\toprule
+Group & N & M & SD \\
+\midrule
+control & 20 & 32.48 & 7.47 \\
+drug\_a & 20 & 33.84 & 6.91 \\
+drug\_b & 20 & 37.81 & 7.79 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+F & df1 & df2 & p \\
+\midrule
+2.58 & 2 & 37.90 & .089 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Pair & Mdiff & padj & 95\% CI \\
+\midrule
+control - drug\_a & $-$1.37 & .820 & [$-$6.92, 4.18] \\
+control - drug\_b & $-$5.33 & .082 & [$-$11.22, 0.55] \\
+drug\_a - drug\_b & $-$3.96 & .218 & [$-$9.65, 1.72] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_welch-anova/figure_means-plot.png}
+
+A one-way ANOVA that relaxes the equal-variance assumption but still assumes roughly normal data within each group. A significant F means at least one group mean differs from the others; the Games-Howell post-hoc (also variance-robust) then shows which specific pairs differ. Your significance threshold ($\alpha$) is 0.05.
+
+Welch's ANOVA gave F(2,37.90)=2.58, p = .089.
+
+\end{document}

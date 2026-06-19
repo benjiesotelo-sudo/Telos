@@ -1,0 +1,46 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{ANCOVA}
+
+\begin{tabular}{llll}
+\toprule
+Group & Adj. M & SE & 95\% CI \\
+\midrule
+control & 31.42 & 1.11 & [29.20, 33.65] \\
+drug\_a & 35.02 & 1.11 & [32.80, 37.25] \\
+drug\_b & 37.69 & 1.10 & [35.48, 39.90] \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllllll}
+\toprule
+Source & SS & df & MS & F & p & partial $\eta$\textsuperscript{2} [95\% CI] \\
+\midrule
+baseline & 1757.40 & 1 & 1757.40 & 72.23 & $<$.001 & 0.56 [0.42, 1.00] \\
+group & 392.60 & 2 & 196.30 & 8.07 & $<$.001 & 0.22 [0.07, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Pair & Mdiff (adj.) & SE & padj & 95\% CI \\
+\midrule
+control - drug\_a & $-$3.60 & 1.58 & .068 & [$-$7.41, 0.21] \\
+control - drug\_b & $-$6.26 & 1.56 & $<$.001 & [$-$10.03, $-$2.50] \\
+drug\_a - drug\_b & $-$2.66 & 1.57 & .214 & [$-$6.44, 1.11] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_ancova/figure_adjusted-means.png}
+
+Compares group means after statistically removing the influence of a numeric covariate. First confirm the factor$\times$covariate interaction is non-significant (homogeneity of slopes) --- if it is significant, the adjusted-means interpretation is not valid and a different model is needed. Then read the Factor row's F/p for the adjusted group effect, and the adjusted means for the covariate-controlled group values. Your significance threshold ($\alpha$) is 0.05.
+
+Controlling for the covariate, an ANCOVA gave F(2,56)=8.07, p $<$ .001, partial $\eta$\textsuperscript{2}=.22 [0.07, 1.00].
+
+\end{document}

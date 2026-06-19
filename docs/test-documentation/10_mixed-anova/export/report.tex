@@ -1,0 +1,62 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Mixed ANOVA}
+
+\begin{tabular}{lllll}
+\toprule
+Group & Condition & N & M & SD \\
+\midrule
+control & 1 & 20 & 59.78 & 5.21 \\
+drug\_a & 1 & 20 & 59.30 & 6.82 \\
+drug\_b & 1 & 20 & 59.58 & 4.30 \\
+control & 2 & 20 & 61.83 & 5.06 \\
+drug\_a & 2 & 20 & 62.59 & 6.33 \\
+drug\_b & 2 & 20 & 62.84 & 6.43 \\
+control & 3 & 20 & 63.55 & 5.51 \\
+drug\_a & 3 & 20 & 64.55 & 6.82 \\
+drug\_b & 3 & 20 & 66.39 & 5.66 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllllll}
+\toprule
+Source & SS & df & MS & F & p & partial $\eta$\textsuperscript{2} [95\% CI] \\
+\midrule
+Group (between) & 45.68 & 2 & 22.84 & 0.25 & .782 & 0.01 [0.00, 1.00] \\
+Condition (within) & 836.30 & 1.67 & 500.28 & 82.56 & $<$.001 & 0.59 [0.50, 1.00] \\
+Group $\times$ Condition & 51.09 & 3.34 & 15.28 & 2.52 & .056 & 0.08 [0.00, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Effect & W & p & GG $\varepsilon$ & HF $\varepsilon$ \\
+\midrule
+condition & 0.80 & .002 & 0.84 & 0.86 \\
+grp:condition & 0.80 & .002 & 0.84 & 0.86 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Pair & Mdiff & SE & padj & 95\% CI \\
+\midrule
+score\_t1 - score\_t2 & $-$2.86 & 0.42 & $<$.001 & [$-$3.90, $-$1.83] \\
+score\_t1 - score\_t3 & $-$5.27 & 0.32 & $<$.001 & [$-$6.06, $-$4.49] \\
+score\_t2 - score\_t3 & $-$2.41 & 0.48 & $<$.001 & [$-$3.59, $-$1.23] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_mixed-anova/figure_profile.png}
+
+Read the Group $\times$ Condition interaction first --- a significant interaction means the groups changed differently across conditions; only then read the main effects. Check sphericity for the within and interaction terms --- if violated, read the corrected F/p. When the group $\times$ condition interaction is significant, the overall condition comparisons in the post-hoc table can mislead --- read each group's line on the profile plot instead. Your significance threshold ($\alpha$) is 0.05.
+
+A mixed ANOVA yielded a Group $\times$ Condition interaction, F(3.34,95.29)=2.52, p = .056, partial $\eta$\textsuperscript{2}=.08 [.00, 1.00].
+
+\end{document}

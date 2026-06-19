@@ -1,0 +1,71 @@
+Telos — Third-Party Licences and Acknowledgements
+=================================================
+
+Telos bundles and/or generates code that relies on the open-source works below.
+Each is credited with its licence and a canonical URL. No warranty is made by Telos
+for these third-party works; refer to each project for its full licence text.
+
+R language and standard library
+  Licence: GNU GPL (versions 2 and 3)
+  https://www.r-project.org/Licenses/
+
+WebR (R compiled to WebAssembly — runs R in the browser)
+  Licence: GPL-3.0 (the WebR distribution; bundled R is GPL)
+  https://github.com/r-wasm/webr
+
+R packages (each on CRAN under its own open-source licence — see the package page)
+  modelsummary — regression/coef tables in the exported R scripts
+  https://CRAN.R-project.org/package=modelsummary
+  ggplot2 — figures (boxplots, IRF, love plots, …)
+  https://CRAN.R-project.org/package=ggplot2
+  plm — panel models — fixed/random effects, Hausman
+  https://CRAN.R-project.org/package=plm
+  sandwich — robust/clustered standard errors
+  https://CRAN.R-project.org/package=sandwich
+  lmtest — coefficient tests, Granger causality
+  https://CRAN.R-project.org/package=lmtest
+  ivreg — two-stage least squares (2SLS / instrumental variables)
+  https://CRAN.R-project.org/package=ivreg
+  rdrobust — regression discontinuity
+  https://CRAN.R-project.org/package=rdrobust
+  MatchIt — propensity-score matching
+  https://CRAN.R-project.org/package=MatchIt
+  MASS — negative-binomial regression (glm.nb)
+  https://CRAN.R-project.org/package=MASS
+  forecast — ARIMA/SARIMA auto-fitting and forecasting
+  https://CRAN.R-project.org/package=forecast
+  tseries — stationarity tests (ADF, KPSS)
+  https://CRAN.R-project.org/package=tseries
+  vars — vector autoregression, impulse-response
+  https://CRAN.R-project.org/package=vars
+  emmeans — estimated marginal means / post-hoc contrasts
+  https://CRAN.R-project.org/package=emmeans
+  car — companion regression diagnostics
+  https://CRAN.R-project.org/package=car
+  afex — factorial ANOVA
+  https://CRAN.R-project.org/package=afex
+  rstatix — tidy statistical tests
+  https://CRAN.R-project.org/package=rstatix
+  effectsize — standardized effect sizes
+  https://CRAN.R-project.org/package=effectsize
+  parameters — standardized model parameters
+  https://CRAN.R-project.org/package=parameters
+  performance — model fit indices
+  https://CRAN.R-project.org/package=performance
+  pROC — ROC / AUC
+  https://CRAN.R-project.org/package=pROC
+  nortest — normality tests
+  https://CRAN.R-project.org/package=nortest
+  psych — descriptive and psychometric statistics
+  https://CRAN.R-project.org/package=psych
+  coin — permutation tests
+  https://CRAN.R-project.org/package=coin
+  janitor — data cleaning / cross-tabulation
+  https://CRAN.R-project.org/package=janitor
+
+Fonts (SIL Open Font License, Version 1.1 — http://scripts.sil.org/OFL)
+  Crimson Pro — Copyright 2018 The Crimson Pro Project Authors
+  https://github.com/Fonthausen/CrimsonPro
+  Atkinson Hyperlegible — Copyright 2020 Braille Institute of America, Inc.
+  https://www.brailleinstitute.org/freefont
+  (Full OFL text ships alongside each font in this distribution.)

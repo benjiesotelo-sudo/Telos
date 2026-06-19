@@ -1,0 +1,35 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{MANCOVA}
+
+\begin{tabular}{llllll}
+\toprule
+Effect & Pillai / Wilks & approx F & df1 & df2 & p \\
+\midrule
+baseline & 0.55 & 33.87 & 2 & 55 & $<$.001 \\
+group & 0.37 & 6.30 & 4 & 112 & $<$.001 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llllll}
+\toprule
+DV & F & df1 & df2 & p & partial $\eta$\textsuperscript{2} [95\% CI] \\
+\midrule
+outcome & 8.07 & 2 & 56 & $<$.001 & 0.22 [0.07, 1.00] \\
+outcome2 & 7.47 & 2 & 56 & .001 & 0.21 [0.06, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_mancova/figure_adjusted-means.png}
+
+Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. Interpret the univariate follow-ups only if the multivariate p is significant, and adjust them for the number of DVs (e.g. Bonferroni) to control familywise error. Your significance threshold ($\alpha$) is 0.05.
+
+A MANCOVA gave a covariate-adjusted group effect, Pillai's V=.37, F(4,112)=6.30, p $<$ .001.
+
+\end{document}

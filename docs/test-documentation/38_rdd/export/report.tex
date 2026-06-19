@@ -1,0 +1,31 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Regression discontinuity (RDD)}
+
+\begin{tabular}{ll}
+\toprule
+ & (1) \\
+\midrule
+RD treatment effect & 9.90 \\
+ & (0.21) \\
+ & [9.48, 10.28] \\
+\midrule
+Bandwidth & 8.66 \\
+N (left) & 18 \\
+N (right) & 16 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_rdd/figure_rd-plot.png}
+
+Estimates the jump in the outcome right at the cutoff --- the estimate is the treatment effect for cases near the threshold. p/CI assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold --- the footer reports the McCrary density test (a small p flags sorting/manipulation at the cutoff); also run covariate-balance / placebo checks. Method: R rdrobust package (Calonico, Cattaneo \& Titiunik, 2014, 2015).
+
+At the cutoff, the treatment effect was 9.90, 95\% CI [9.48, 10.28], p $<$ .001.
+
+\end{document}

@@ -1,0 +1,48 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Instrumental variables (IV / 2SLS)}
+
+\begin{tabular}{lllll}
+\toprule
+Instrument & Coef. & SE & Partial F & p \\
+\midrule
+educ\_iv & 1.16 & 0.06 & 438.50 & $<$.001 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lll}
+\toprule
+ & OLS & 2SLS \\
+\midrule
+(Intercept) & 178.90 & 202.74 \\
+ & (2.41) & (4.10) \\
+ & [174.16, 183.65] & [194.65, 210.83] \\
+educ & 9.57 & 7.82 \\
+ & (0.16) & (0.28) \\
+ & [9.25, 9.88] & [7.26, 8.38] \\
+exper & $-$0.02 & $-$0.02 \\
+ & (0.05) & (0.06) \\
+ & [$-$0.11, 0.08] & [$-$0.14, 0.09] \\
+\midrule
+Num.Obs. &  & 200 \\
+RMSE &  & 6.67 \\
+F &  & 373.44 \\
+\multicolumn{3}{l}{Weak-instrument F = 438.50, p $<$ .001 (rule of thumb: F $>$ 10)} \\
+\multicolumn{3}{l}{Wu--Hausman = 1022.75, p $<$ .001} \\
+\multicolumn{3}{l}{Sargan: --- (just-identified)} \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_iv-2sls/figure_coefficients.png}
+
+Check the first-stage F first (rule of thumb $>$ 10 = strong instruments). Then read the 2SLS B for the endogenous predictor as the causal effect, with p/CI. This causal reading rests on the instrument being valid --- relevant and affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models. Method: R ivreg / AER package; weak-instrument F (Stock \& Yogo, 2005). Your significance threshold ($\alpha$) is 0.05.
+
+The 2SLS estimate for educ was B=7.82, p $<$ .001 (first-stage F=438.50).
+
+\end{document}

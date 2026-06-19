@@ -1,0 +1,36 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Nested ANOVA}
+
+\begin{tabular}{llll}
+\toprule
+Group & N & M & SD \\
+\midrule
+north & 20 & 32.48 & 7.47 \\
+south & 20 & 33.84 & 6.91 \\
+west & 20 & 37.81 & 7.79 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllllll}
+\toprule
+Source & SS & df & MS & F & p & $\omega$\textsuperscript{2} [95\% CI] \\
+\midrule
+school & 307.07 & 2 & 153.53 & 1.48 & .357 & 0.06 [0.00, 1.00] \\
+classroom (nested in school) & 311.23 & 3 & 103.74 & 1.99 & .126 & 0.04 [0.00, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_nested-anova/figure_grouped-means.png}
+
+Used when one factor sits inside another (e.g. classes within schools). The top factor is tested against variation among its nested units, not raw residuals --- a significant F means the top-level groups differ beyond the nested-unit variability. Your significance threshold ($\alpha$) is 0.05.
+
+A nested ANOVA for A gave F(2,3)=1.48, p = .357, $\omega$\textsuperscript{2}=.06 [.00, 1.00].
+
+\end{document}

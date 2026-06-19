@@ -1,0 +1,25 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Spearman correlation}
+
+\begin{tabular}{lllll}
+\toprule
+Pair & $\rho$ [95\% CI] & S & p & N \\
+\midrule
+satisfaction -- motivation & 0.85 [0.76, 0.90] & 1632.68 & $<$.001 & 40 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_spearman/figure_scatter.png}
+
+$\rho$ measures how well the relationship follows a consistent up-or-down trend (monotonic), using ranks. Read sign and magnitude like Pearson's r; p tests significance. Your significance threshold ($\alpha$) is 0.05.
+
+A Spearman correlation gave $\rho$=.85 [.76, .90], p $<$ .001, N=40.
+
+\end{document}

@@ -1,0 +1,39 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Fixed effects}
+
+\begin{tabular}{ll}
+\toprule
+ & (1) \\
+\midrule
+leverage & $-$5.57 \\
+ & (1.47) \\
+ & [$-$8.49, $-$2.66] \\
+rd\_spend & 1.89 \\
+ & (0.74) \\
+ & [0.41, 3.37] \\
+size & 0.14 \\
+ & (0.43) \\
+ & [$-$0.71, 0.99] \\
+\midrule
+Num.Obs. & 96 \\
+N entities & 12 \\
+Within R\textsuperscript{2} & .91 \\
+Adj. within R\textsuperscript{2} & .90 \\
+F-test & F(3, 81) = 288.78, p $<$ .001 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_fixed-effects/figure_coefficients.png}
+
+Each B is the within-entity effect of a predictor, controlling for everything stable about each entity. p and the clustered CI assess it; within R\textsuperscript{2} is the variance explained by the time-varying predictors. Method: R plm package (Croissant \& Millo, 2008). Your significance threshold ($\alpha$) is 0.05.
+
+In a fixed-effects model, predictor leverage gave B=$-$5.57, p $<$ .001 (clustered SE).
+
+\end{document}

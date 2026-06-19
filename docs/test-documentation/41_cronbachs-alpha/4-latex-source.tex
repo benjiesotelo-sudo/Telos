@@ -1,0 +1,35 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Cronbach's alpha}
+
+\begin{tabular}{lllll}
+\toprule
+$\omega$ & $\alpha$ & 95\% CI & N items & N cases \\
+\midrule
+.63 & .63 & [0.56, 0.70] & 3 & 301 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lll}
+\toprule
+Item & Corrected item-total r & $\alpha$ if item dropped \\
+\midrule
+x1 & 0.45 & .51 \\
+x2 & 0.37 & .61 \\
+x3 & 0.48 & .46 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_cronbachs-alpha/figure_item-total-correlation.png}
+
+$\omega$ (McDonald's omega) is the headline reliability coefficient; it assumes only a congeneric (one-factor) model and is preferred over $\alpha$ when item loadings differ (McNeish, 2018). $\alpha$ (Cronbach's alpha) assumes tau-equivalence (equal loadings) and is a lower bound when loadings differ; it is retained as a secondary/legacy coefficient because reviewers still request it. Both range 0--1; $\ge$ .70 is commonly considered acceptable, $\ge$ .80 good, $>$ .95 suggests item redundancy --- treat these as heuristics, not pass/fail thresholds. The "$\alpha$ if item dropped" column flags items that, if removed, would raise $\alpha$ --- candidates for review. A high coefficient does not prove unidimensionality.
+
+Internal consistency was high, $\omega$=.63 (95\% CI [0.56, 0.70]); Cronbach's $\alpha$=.63.
+
+\end{document}
