@@ -23,6 +23,7 @@ export interface TestSpec {
   tableNote?: { kind: 'assume' | 'plain'; text: string; afterTableId?: string } // absent = no note (Wilcoxon) · afterTableId: render note inline after that table
   figure?: FigureSpec                        // t-test only (locked)
   figures?: FigureSpec[]                     // new entries
+  constructsInput?: true                     // AVE/CR: renders ConstructSlots instead of (or alongside) DragSlots
   howToRead: string; apaTemplate: string; rMap: string; bundleFiles: string[]
   constraints: TestConstraints
 }

@@ -12,7 +12,8 @@ import { categoriesOf, propsArray, propsSumOk, strictlyPositive, defaultEventLev
 
 export type StepId = 'welcome' | 'upload' | 'guide' | 'configure-data' | 'pick-tests' | `test:${string}` | 'results'
 export interface FileInfo { name: string; rows: number; cols: number; encoding: string }
-export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>; blocked: string | null }
+export interface Construct { name: string; items: string[] }
+export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>; blocked: string | null; constructs?: Construct[] }
 export interface TestRun { result: unknown; stale: boolean }
 
 export interface SessionState {
@@ -41,6 +42,10 @@ export interface SessionState {
   removeRole: (testId: string, roleId: string, column: string) => void
   setOption: (testId: string, optionId: string, value: boolean | number | string) => void
   setProp: (testId: string, category: string, value: number) => void
+  addConstruct: (testId: string) => void
+  removeConstruct: (testId: string, index: number) => void
+  setConstructName: (testId: string, index: number, name: string) => void
+  toggleConstructItem: (testId: string, index: number, item: string) => void
   goTo: (step: StepId) => void
   runAll: () => Promise<void>
   reset: () => void
@@ -190,6 +195,31 @@ export const useSession = create<SessionState>((set, get) => {
     setProp: (testId, category, value: number) => edit((s) => ({
       setups: { ...s.setups, [testId]: { ...s.setups[testId], props: { ...s.setups[testId].props, [category]: value } } },
     })),
+    addConstruct: (testId) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs: [...(prev.constructs ?? []), { name: '', items: [] }] } } }
+    }),
+    removeConstruct: (testId, index) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      const constructs = (prev.constructs ?? []).filter((_, i) => i !== index)
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
+    }),
+    setConstructName: (testId, index, name) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      const constructs = (prev.constructs ?? []).map((c, i) => i === index ? { ...c, name } : c)
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
+    }),
+    toggleConstructItem: (testId, index, item) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      // Partition: if item is in another construct, ignore
+      const already = (prev.constructs ?? []).some((c, i) => i !== index && c.items.includes(item))
+      if (already) return {}
+      const constructs = (prev.constructs ?? []).map((c, i) => {
+        if (i !== index) return c
+        return { ...c, items: c.items.includes(item) ? c.items.filter((x) => x !== item) : [...c.items, item] }
+      })
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
+    }),
     goTo: (step) => { if (canEnter(get(), step)) set({ step }) },
     runAll: async () => {
       if (get().runStatus === 'running') return // reentrancy guard: a second concurrent run would interleave writes
