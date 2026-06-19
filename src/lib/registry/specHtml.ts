@@ -17,6 +17,8 @@ export const decode = (s: string) => s
   .replace(/&beta;/g, 'β')
   // Econometrics time-series cards (ARIMA σ²; τ already covered above)
   .replace(/&sigma;/g, 'σ')
+  // Latent-variable / SEM cards (√AVE, ≤, curly apostrophe)
+  .replace(/&radic;/g, '√').replace(/&le;/g, '≤').replace(/&rsquo;/g, '’')
   .replace(/&amp;/g, '&')
 
 export const strip = (s: string) => decode(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim()
