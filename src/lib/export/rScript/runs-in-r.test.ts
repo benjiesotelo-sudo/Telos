@@ -135,6 +135,13 @@ const REPS: Rep[] = [
     { extraction: 'PAF', rotation: 'oblimin', retention: 'parallel' },
     ['KMO:', 'Table 4: Interfactor correlations (Phi)']),
 
+  // pca: 9 variables from scale.csv (Holzinger-Swineford x1–x9); parallel analysis retains 3
+  // native-R verified 2026-06-19: eigenvalues ≈ [3.216, 1.639, 1.365, ...]; cumulative ≈ 35.7%, 53.9%, 69.1%
+  mk('pca', 'scale.csv',
+    { variables: ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'] },
+    { retention: 'parallel', standardize: true },
+    ['Parallel analysis retain: 3', 'eigenvalue=3.216', 'eigenvalue=1.639', 'eigenvalue=1.365', 'cumulative=35.7%', 'Table 2: Component loadings']),
+
   // composite-reliability: 3 constructs × 3 items; asserts CR= substring in stdout
   { id: 'composite-reliability', fixture: 'scale.csv',
     setup: {

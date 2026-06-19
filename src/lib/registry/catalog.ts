@@ -43,6 +43,7 @@ import { CRONBACHS_ALPHA } from './cronbachsAlpha'
 import { AVE } from './ave'
 import { COMPOSITE_RELIABILITY } from './compositeReliability'
 import { EFA } from './efa'
+import { PCA } from './pca'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -96,11 +97,11 @@ export const CATALOG: CatalogEntry[] = [
   e('ave', 'Average variance extracted (AVE)', 'Latent variable models', 'Reliability', 'available'),
   e('composite-reliability', 'Composite reliability (CR)', 'Latent variable models', 'Reliability', 'available'),
   e('efa', 'Exploratory factor analysis (EFA)', 'Latent variable models', 'Factor analysis', 'available'),
-  e('pca', 'Principal component analysis (PCA)', 'Latent variable models', 'Factor analysis'),
   { id: 'cb-sem', name: 'CB-SEM', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'later-slice',
     note: '— pipeline stages selectable: CFA & model fit always run, EFA and the structural stage optional (default: all on); includes path analysis & mediation via drawn path chains (indirect-effects table, bootstrapped CIs); moderation planned for a later version' },
   { id: 'pls-sem', name: 'PLS-SEM', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'later-slice',
     note: '— includes path analysis & mediation via drawn path chains (indirect-effects table, bootstrapped CIs); moderation planned for a later version' },
+  e('pca', 'Principal component analysis (PCA)', 'Data reduction', undefined, 'available'),
 ]
 
 export const FAMILIES = [...new Set(CATALOG.map((c) => c.family))] // tree order
@@ -119,4 +120,5 @@ export const SPECS: Record<string, TestSpec> = {
   [AVE.id]: AVE,
   [COMPOSITE_RELIABILITY.id]: COMPOSITE_RELIABILITY,
   [EFA.id]: EFA,
+  [PCA.id]: PCA,
 }

@@ -314,6 +314,89 @@ export const latentEmitters: Record<string, Emitter> = {
 
     return lines.join('\n')
   },
+
+  // prcomp(scale.=TRUE) → eigenvalues · parallel analysis (kind="pca") → retention
+  // correlation-scaled loadings (rotation × sdev) → T2 (NO communality — PCA is data reduction)
+  // ggplot2 → scree figure
+  'pca': (_spec, setup) => {
+    const variables: string[] = setup.roles['variables'] ?? []
+    if (variables.length < 2) return '# Need ≥ 2 variables for PCA.'
+    const varsR = `c(${variables.map((v) => `"${v}"`).join(', ')})`
+    const retentionOpt = String(setup.options['retention'] ?? 'parallel')
+    const retention = retentionOpt === 'Kaiser' ? 'kaiser' : retentionOpt === 'fixed-n' ? 'fixed' : 'parallel'
+    const nComponents = Number(setup.options['nComponents'] ?? 2)
+    const standardize = setup.options['standardize'] !== false
+
+    const lines: string[] = [
+      `variables <- ${varsR}`,
+      `d_pca <- d[, variables, drop = FALSE]`,
+      `d_pca <- d_pca[complete.cases(d_pca), ]`,
+      `n <- nrow(d_pca)`,
+      '',
+      '# ---- PCA via prcomp ----',
+      `prcomp_obj <- prcomp(d_pca, scale. = ${standardize ? 'TRUE' : 'FALSE'}, center = TRUE)`,
+      `eigenvalues <- prcomp_obj$sdev^2`,
+      `pct_var <- eigenvalues / sum(eigenvalues)`,
+      `cumulative <- cumsum(pct_var)`,
+      '',
+    ]
+
+    if (retention === 'parallel') {
+      lines.push(
+        '# ---- Parallel analysis for retention (kind="pca": standard correlation matrix) ----',
+        `x <- as.matrix(d_pca)`,
+        `if (${standardize ? 'TRUE' : 'FALSE'}) x <- scale(x)`,
+        `nsim <- 500L; seed <- 20260619L; kind <- "pca"`,
+        `set.seed(seed)`,
+        `n_pa <- nrow(x); p_pa <- ncol(x)`,
+        `R_pa <- cor(x)`,
+        `obs_eig <- sort(eigen(R_pa, symmetric = TRUE, only.values = TRUE)$values, decreasing = TRUE)`,
+        `sim_e <- matrix(0, nsim, p_pa)`,
+        `for (i in seq_len(nsim)) {`,
+        `  rx <- matrix(rnorm(n_pa * p_pa), n_pa, p_pa)`,
+        `  sim_e[i, ] <- sort(eigen(cor(rx), symmetric = TRUE, only.values = TRUE)$values, decreasing = TRUE)`,
+        `}`,
+        `sim_p95 <- apply(sim_e, 2, quantile, probs = 0.95)`,
+        `k_retain <- 0L`,
+        `for (i in seq_len(p_pa)) { if (obs_eig[i] > sim_p95[i]) k_retain <- k_retain + 1L else break }`,
+        `k_retain <- max(1L, k_retain)`,
+        `cat("Parallel analysis retain:", k_retain, "\\n")`,
+        '',
+      )
+    } else if (retention === 'kaiser') {
+      lines.push(
+        '# ---- Kaiser eigenvalue > 1 retention ----',
+        `k_retain <- sum(eigenvalues > 1)`,
+        `k_retain <- max(1L, k_retain)`,
+        `cat("Kaiser retain:", k_retain, "\\n")`,
+        '',
+      )
+    } else {
+      lines.push(
+        `k_retain <- ${nComponents}L`,
+        `k_retain <- max(1L, k_retain)`,
+        `cat("Fixed retain:", k_retain, "\\n")`,
+        '',
+      )
+    }
+
+    lines.push(
+      '# ---- Table 1: Variance explained ----',
+      `cat("\\n--- Table 1: Variance explained ---\\n")`,
+      `for (ci in seq_len(k_retain)) {`,
+      `  cat(sprintf("  PC%d: eigenvalue=%.3f pctVar=%.1f%% cumulative=%.1f%%\\n",`,
+      `              ci, eigenvalues[ci], pct_var[ci]*100, cumulative[ci]*100))`,
+      `}`,
+      '',
+      '# ---- Table 2: Correlation-scaled loadings (NO communality — PCA is data reduction) ----',
+      `# Correlation-scaled loading = eigenvector × sqrt(eigenvalue) = rotation col × sdev`,
+      `load_mat <- sweep(prcomp_obj$rotation[, seq_len(k_retain), drop = FALSE], 2, prcomp_obj$sdev[seq_len(k_retain)], "*")`,
+      `cat("\\n--- Table 2: Component loadings (correlation-scaled) ---\\n")`,
+      `print(round(load_mat, 3))`,
+    )
+
+    return lines.join('\n')
+  },
 }
 
 export const latentPackages: Record<string, string[]> = {
@@ -321,4 +404,5 @@ export const latentPackages: Record<string, string[]> = {
   'composite-reliability': ['lavaan', 'semTools', 'psych', 'ggplot2'],
   'cronbachs-alpha': ['psych', 'lavaan', 'semTools', 'ggplot2'],
   'efa': ['psych', 'ggplot2'],
+  'pca': ['ggplot2'],
 }

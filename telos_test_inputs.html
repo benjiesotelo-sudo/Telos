@@ -2801,18 +2801,18 @@
       <div class="inner lbl-wrap">
         <span class="zone-tag">2 · set this test's options</span>
         <div class="optstrip">
-          <span class="optpill"><span class="k">n components</span><span class="v">auto</span><span class="caret">&#9662;</span></span>
-          <span class="optpill"><span class="k">rotation</span><span class="v">none</span><span class="caret">&#9662;</span></span>
+          <span class="optpill"><span class="k">retention</span><span class="v">parallel</span><span class="caret">&#9662;</span></span>
+          <span class="optpill"><span class="k">n components</span><span class="v">2</span><span class="caret">&#9662;</span></span>
           <span class="optpill"><span class="k">standardize</span><span class="v">on</span><span class="caret">&#9662;</span></span>
         </div>
       </div>
       <div class="cfgguide">
         <div class="gh">How to configure this test</div>
-        <p>Use this when you have many numeric variables that overlap and you want to boil them down into a few underlying components — e.g. several survey items measuring the same idea. Drag all the numeric variables you want to summarise (x1&ndash;x5) into <b>Variables</b>; you need at least two. Keep <b>standardize on</b> so variables on different scales count equally, then choose how many components to keep with <b>n components</b>. Categorical columns like region can't go in — only numeric measurements work.</p>
+        <p>Use this when you have many numeric variables that overlap and you want to boil them down into a few underlying components — e.g. several survey items measuring the same idea. Drag all the numeric variables you want to summarise (x1&ndash;x5) into <b>Variables</b>; you need at least two. Keep <b>standardize on</b> so variables on different scales count equally. Set <b>retention</b> to choose how components are selected: parallel analysis (default, recommended), Kaiser eigenvalue &gt; 1, or fixed-n (then set <b>n components</b> manually). Categorical columns like region can't go in — only numeric measurements work.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; tables:</b> component loadings, variance explained</span>
-        <span class="tag"><b>figure:</b> scree plot / biplot</span>
+        <span class="tag"><b>Produces &mdash; tables:</b> variance explained, component loadings</span>
+        <span class="tag"><b>figure:</b> scree plot (with parallel analysis)</span>
       </div>
     </div>
 

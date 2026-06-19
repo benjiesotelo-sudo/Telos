@@ -91,6 +91,8 @@ import { runCompositeReliability, type CompositeReliabilityResult } from '../sta
 import { buildCompositeReliability } from './buildCompositeReliability'
 import { runEfa, type EfaResult } from '../stats/efa'
 import { buildEfa } from './buildEfa'
+import { runPca, type PcaResult } from '../stats/pca'
+import { buildPca } from './buildPca'
 import type { MatrixTable } from './types'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
@@ -205,6 +207,13 @@ export const RUNNERS: Record<string, Runner> = {
     const nFactors = Number(setup.options['nFactors'] ?? 2)
     return runEfa(engine, ds, setup.roles['items'], { extraction, rotation, retention, nFactors })
   },
+  'pca': (engine, ds, setup) => {
+    const retOpt = String(setup.options['retention'] ?? 'parallel')
+    const retention = retOpt === 'Kaiser' ? 'kaiser' as const : retOpt === 'fixed-n' ? 'fixed' as const : 'parallel' as const
+    const nComponents = Number(setup.options['nComponents'] ?? 2)
+    const standardize = setup.options['standardize'] !== false
+    return runPca(engine, ds, setup.roles['variables'], { retention, nComponents, standardize })
+  },
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -251,4 +260,5 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'ave': (spec, result) => buildAve(spec, result as AveResult),
   'composite-reliability': (spec, result) => buildCompositeReliability(spec, result as CompositeReliabilityResult),
   'efa': (spec, result) => buildEfa(spec, result as EfaResult),
+  'pca': (spec, result) => buildPca(spec, result as PcaResult),
 }

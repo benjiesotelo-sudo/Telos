@@ -43,7 +43,7 @@ export function PickTestsScreen() {
             ))}
           </div>
         ))}
-        <p className="hint" style={{ marginBottom: 0 }}>7 · Assumption diagnostics — inline checks under each test (no standalone cards)</p>
+        <p className="hint" style={{ marginBottom: 0 }}>8 · Assumption diagnostics — inline checks under each test (no standalone cards)</p>
       </div>
       <div className="btn-row">
         <span className="hint">→ the stepper grows one step per selected test</span>

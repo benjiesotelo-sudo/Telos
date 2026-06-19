@@ -1109,15 +1109,15 @@
       <table class="apa"><thead><tr><th>Component</th><th>Eigenvalue</th><th>% variance</th><th>Cumulative %</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Component loadings</div>
       <table class="apa"><thead><tr><th>Variable</th><th>PC1</th><th>PC2</th><th>PC3</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">loading columns expand to the number of retained components.</p>
+      <p class="tbl-note">Component loading columns expand to the number of retained components; loadings are correlation-scaled (eigenvector × √eigenvalue); loadings |&lt; .32| suppressed. PCA is data reduction &mdash; components are weighted composites, not latent factors; communalities are not reported (Jolliffe &amp; Cadima, 2016; Frick et al., 2025).</p>
       <div class="zlabel">Figure</div>
-      <div class="figbox"><div class="fcap"><b>Figure.</b> Components</div><div class="ftype">type: <b>scree plot</b> / biplot</div></div>
+      <div class="figbox"><div class="fcap"><b>Figure.</b> Component retention</div><div class="ftype">type: <b>scree plot (with parallel analysis)</b></div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>PCA compresses correlated variables into a few components. The <b>variance explained</b> tells you how much information each component retains; the <b>loadings</b> show which variables each component summarizes. PCA is <b>data reduction</b> &mdash; components are weighted composites of the observed variables, <i>not</i> reflective latent factors, so don't treat them as constructs; for latent constructs use EFA (<code>psych::fa</code>) or CFA (<code>lavaan</code>). Decide how many components to keep using standard rules: eigenvalue &gt; 1 (Kaiser), the scree-plot elbow, or parallel analysis (<code>psych::fa.parallel</code>).</p></div>
+      <div class="howread">PCA compresses correlated variables into a few components. The variance explained (Table 1) shows how much information each component retains; the component loadings (Table 2) show how strongly each variable contributes. Loadings are correlation-scaled (eigenvector × √eigenvalue) so they share the unit of a correlation coefficient. PCA is data reduction — components are weighted composites of the observed variables, not reflective latent factors; do not interpret them as constructs and do not report communalities (which belong to factor analysis, not PCA). For a latent-construct model use EFA (psych::fa) or CFA (lavaan). The scree plot overlays the parallel-analysis 95th-percentile threshold — retain components where the observed eigenvalue exceeds that line; the Kaiser eigenvalue > 1 rule is shown for reference but tends to over-extract (Zwick & Velicer, 1986). Cumulative variance ≥ 70% is a common but explicitly subjective target (Jolliffe & Cadima, 2016).</div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;PCA retained __ components explaining __% of the total variance.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>prcomp()</code> / <code>psych::principal()</code> &rarr; Tables &middot; <code>factoextra</code> &rarr; scree/biplot</div>
-        <div class="m bundle">table_variance.png &middot; table_loadings.png &middot; figure_scree.png (per figure choice: scree or biplot)</div>
+        <div class="m"><b>APA template:</b> &ldquo;PCA (correlation matrix; parallel analysis) retained __ components explaining __% of total variance.&rdquo;</div>
+        <div class="m"><b>R map:</b> <code>prcomp(scale.=TRUE)</code> &rarr; eigenvalues &middot; R_PARALLEL_ANALYSIS (kind="pca") &rarr; retention &middot; correlation-scaled loadings (rotation &times; sdev) &rarr; Table 2 &middot; <code>ggplot2</code> &rarr; scree figure</div>
+        <div class="m bundle">table_variance-explained.png &middot; table_component-loadings.png &middot; figure_scree.png</div>
       </div>
     </div>
   </div>
