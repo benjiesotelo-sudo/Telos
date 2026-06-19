@@ -54,3 +54,7 @@ table.apa.coef .row-se td,table.apa.coef .row-ci td{color:var(--muted);padding-t
 table.apa.coef .row-ci td{padding-bottom:7px;}
 table.apa.coef .gofrule td{border-top:1.25px solid var(--text);padding:0;height:0;}
 table.apa.coef .row-span td{color:var(--muted);font-size:11px;text-align:left;padding-top:7px;}
+/* matrix tables: Fornell-Larcker, HTMT, interfactor-correlation (SEM, 2026-06-19) */
+table.apa.matrix thead th,table.apa.matrix tbody th{text-align:center;font-weight:600;}
+table.apa.matrix tbody th{text-align:left;}
+table.apa.matrix td:empty{color:transparent;}
