@@ -24,12 +24,12 @@ export function ConstructSlotsUI({
   return (
     <div>
       {constructs.length === 0 && (
-        <p className="hint" role="alert" style={{ marginTop: 6 }}>
+        <p className="hint" role="status" style={{ marginTop: 6 }}>
           Add at least 1 construct to define the measurement model.
         </p>
       )}
       {constructs.map((construct, idx) => {
-        const tooFew = construct.items.length > 0 && construct.items.length < 2
+        const tooFew = construct.items.length < 2
         return (
           <div key={idx} className="card" style={{ marginTop: 8 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

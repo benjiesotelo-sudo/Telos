@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { useSession, stepsOf, canEnter, workingDataset, gateOk } from './session'
 import type { Dataset, TTestResult } from '../lib/stats/types'
+import { SPECS } from '../lib/registry/catalog'
 
 const ds: Dataset = { columns: ['group', 'score'], rows: [
   { group: 'control', score: 72 }, { group: 'control', score: 68 }, { group: 'control', score: 75 },
@@ -188,5 +189,44 @@ describe('poisson exposure run gate (B1/convention 11 — needs the shipped pois
     expect(gateOk(useSession.getState(), 'test:poisson-negative-binomial')).toBe(false)
     useSession.getState().removeRole('poisson-negative-binomial', 'exposure', 'months')
     expect(gateOk(useSession.getState(), 'test:poisson-negative-binomial')).toBe(true)
+  })
+})
+
+describe('constructsInput gate guard', () => {
+  const FAKE_ID = '__test-constructs__'
+  beforeEach(() => {
+    // Inject a minimal synthetic spec with constructsInput: true into SPECS
+    ;(SPECS as Record<string, unknown>)[FAKE_ID] = {
+      id: FAKE_ID, constructsInput: true,
+      constraints: { roles: [] },
+      options: [],
+    }
+    useSession.getState().reset()
+    useSession.setState({ selection: [FAKE_ID], setups: { [FAKE_ID]: { roles: {}, options: {}, props: {}, blocked: null, constructs: [] } } })
+  })
+  afterEach(() => { delete (SPECS as Record<string, unknown>)[FAKE_ID] })
+
+  it('gateOk returns false with 0 constructs', () => {
+    expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(false)
+  })
+
+  it('gateOk returns false with a construct that has 1 item (< 2)', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ name: 'A', items: ['q1'] }] } } }))
+    expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(false)
+  })
+
+  it('gateOk returns false when any construct has 0 items', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ name: 'A', items: ['q1', 'q2'] }, { name: 'B', items: [] }] } } }))
+    expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(false)
+  })
+
+  it('gateOk returns true with ≥1 construct each having ≥2 items', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ name: 'A', items: ['q1', 'q2'] }] } } }))
+    expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(true)
+  })
+
+  it('gateOk returns true with multiple constructs all having ≥2 items', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ name: 'A', items: ['q1', 'q2'] }, { name: 'B', items: ['q3', 'q4'] }] } } }))
+    expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(true)
   })
 })

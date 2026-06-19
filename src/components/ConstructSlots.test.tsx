@@ -119,8 +119,14 @@ describe('ConstructSlotsUI — rendering', () => {
     expect(html).not.toContain('group')
   })
 
-  it('shows a validation error when a construct has fewer than 2 items', () => {
+  it('shows a validation error when a construct has 1 item (< 2)', () => {
     const constructs: Construct[] = [{ name: 'Scale A', items: ['q1'] }]
+    const html = renderUI(constructs)
+    expect(html).toContain('least 2 items')
+  })
+
+  it('shows a validation error when a construct has 0 items (brand-new construct)', () => {
+    const constructs: Construct[] = [{ name: '', items: [] }]
     const html = renderUI(constructs)
     expect(html).toContain('least 2 items')
   })

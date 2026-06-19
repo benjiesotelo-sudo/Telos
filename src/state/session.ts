@@ -82,6 +82,11 @@ export const gateOk = (s: SessionState, step: StepId): boolean => {
       const ex = t.roles['exposure']?.[0]
       if (ex && !strictlyPositive(workingDataset(s), ex)) return false
     }
+    // AVE/CR constructs: must have ≥1 construct and every construct must have ≥2 items, or R runner crashes.
+    if (spec.constructsInput) {
+      const cs = t.constructs ?? []
+      if (cs.length === 0 || cs.some((c) => c.items.length < 2)) return false
+    }
     return true
   }
   return true // results
