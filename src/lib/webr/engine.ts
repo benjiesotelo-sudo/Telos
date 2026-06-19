@@ -1,4 +1,5 @@
 import { WebR } from 'webr'
+import { MAKECLUSTER_SHIM } from './parallelShim'
 
 const BASE_URL = typeof window === 'undefined' ? undefined : '/webr/'
 const DETECTCORES_SHIM = `local({ ns <- asNamespace("parallel"); unlockBinding("detectCores", ns); assign("detectCores", function(logical = TRUE, all.tests = FALSE) 1L, envir = ns) })`
@@ -32,6 +33,7 @@ export class Engine {
     onStatus?.('Loading R engine (first run downloads ~20 MB)…')
     await this.webr.init()
     await this.webr.evalRVoid(DETECTCORES_SHIM)
+    await this.webr.evalRVoid(MAKECLUSTER_SHIM)
     await this.webr.evalRVoid(TELOS_JSON_HELPER)
     // Spike-verified under WebR 0.6.0 (R 4.6.0): ggplot2 + nortest + effectsize + psych + coin + janitor all
     // install from the WebR repo. First visit pays the download (~80s Node-side total); the browser caches.
@@ -48,12 +50,16 @@ export class Engine {
     // Reporting-completeness slice additions — spike-verified install + load under WebR 0.6.0 ≡ native R 4.6.0 (2026-06-17-reporting-completeness-spike.md):
     // heplots (Box's M via heplots::boxM — its rgl/broom/purrr/tibble imports all resolve from the r-wasm repo),
     // rddensity (RDD McCrary density test — its lpdensity/ggplot2 deps resolve; LOADS under WebR so no deferral).
+    // SEM/reliability slice additions — spike-verified install + load under WebR 0.6.0 ≡ native R 4.6.0 (2026-06-18-sem-feasibility-spike.md):
+    // lavaan (CB-SEM/CFA/path), semTools (ω/CR/AVE/HTMT/invariance), GPArotation (oblimin for EFA).
+    // psych already preloaded above. makeCluster shim (above) enables seminr bootstrap under WASM.
     for (const pkg of ['ggplot2', 'nortest', 'effectsize', 'psych', 'coin', 'janitor',
       'afex', 'emmeans', 'car', 'rstatix',
       'pROC', 'parameters', 'performance',
       'forecast', 'tseries', 'urca', 'vars', 'lmtest',
       'plm', 'sandwich', 'ivreg', 'rdrobust', 'MatchIt',
-      'heplots', 'rddensity']) {
+      'heplots', 'rddensity',
+      'lavaan', 'semTools', 'GPArotation']) {
       onStatus?.(`Loading ${pkg}…`)
       await this.webr.installPackages([pkg], { quiet: true })
     }
