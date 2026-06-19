@@ -56,7 +56,6 @@ alpha_vec <- numeric(k)
 item_start <- 1L
 for (ci in seq_len(k)) {
   len <- construct_items_lens[ci]
-  cname <- construct_names[ci]
   citems <- construct_items_flat[item_start:(item_start + len - 1L)]
   item_start <- item_start + len
   a_obj <- psych::alpha(d_all[, citems, drop = FALSE], warnings = FALSE)
