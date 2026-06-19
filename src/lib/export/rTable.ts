@@ -99,6 +99,24 @@ export function coefToLatex(t: BuiltTable): string {
   return [`\\begin{tabular}${colSpec(n)}`, '\\toprule', header, '\\midrule', ...body, '\\bottomrule', '\\end{tabular}'].join('\n')
 }
 
+/** A matrix BuiltTable (kind:'matrix' — Fornell-Larcker / HTMT / interfactor-Φ) → booktabs tabular.
+ *  Mirrors ApaTable.tsx: blank corner + column labels header; one row per rowLabel; `lowerOnly` blanks
+ *  the upper triangle; `diagonal:'bold'` bolds the diagonal. Data lives in t.matrix (spec.columns is empty). */
+export function matrixToLatex(t: BuiltTable): string {
+  const m = t.matrix!
+  const n = m.colLabels.length
+  const header = ' & ' + m.colLabels.map(cell).join(' & ') + ' \\\\'
+  const body = m.rowLabels.map((rowLabel, i) => {
+    const cells = m.colLabels.map((_, j) => {
+      if ((m.lowerOnly && j > i) || m.cells[i][j] == null) return ''
+      const c = cell(m.cells[i][j] ?? '')
+      return m.diagonal === 'bold' && j === i ? `\\textbf{${c}}` : c
+    })
+    return `${cell(rowLabel)} & ${cells.join(' & ')} \\\\`
+  })
+  return [`\\begin{tabular}{l${'c'.repeat(n)}}`, '\\toprule', header, '\\midrule', ...body, '\\bottomrule', '\\end{tabular}'].join('\n')
+}
+
 /** A classic BuiltTable → booktabs tabular from columns + rows. */
 export function classicToLatex(t: BuiltTable): string {
   const cols = t.spec.columns

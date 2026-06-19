@@ -1,7 +1,7 @@
 import type { TestSpec } from '../registry/types'
 import type { TestSetup, TestRun } from '../../state/session'
 import { BUILDERS } from '../results/builders'
-import { coefToLatex, classicToLatex, escapeLatex } from './rTable'
+import { coefToLatex, classicToLatex, matrixToLatex, escapeLatex } from './rTable'
 
 // LaTeX report export (design 2026-06-16, export-formats slice): the same report as the in-app results,
 // as a native booktabs LaTeX source. Per selected test, in order: \section{name} → each table (coef vs
@@ -28,7 +28,7 @@ export function emitLatex(
     const content = BUILDERS[id](spec, run.result)
     const folder = `figures/${String(i + 1).padStart(2, '0')}_${id}`
     out.push(`\\section{${escapeLatex(spec.name)}}`)
-    for (const t of content.tables) out.push(t.spec.kind === 'coef' ? coefToLatex(t) : classicToLatex(t))
+    for (const t of content.tables) out.push(t.matrix ? matrixToLatex(t) : t.spec.kind === 'coef' ? coefToLatex(t) : classicToLatex(t))
     for (const fig of content.figures) out.push(`\\includegraphics{${folder}/figure_${fig.file ?? fig.type}.png}`)
     out.push(escapeLatex(content.howToRead))
     out.push(escapeLatex(content.apa))

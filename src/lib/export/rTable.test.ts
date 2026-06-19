@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { BuiltTable } from '../results/builders'
-import { coefToLatex, classicToLatex, escapeLatex } from './rTable'
+import { coefToLatex, classicToLatex, matrixToLatex, escapeLatex } from './rTable'
 
 // Faithful to the real coef row shape (see ApaTable.tsx + buildSimpleLinearRegression / buildHausmanTest):
 // spec.columns = [{key:'term',label:''}, ...value cols]; each row carries a `_kind` and cells at r[col.key].
@@ -136,6 +136,49 @@ describe('classicToLatex', () => {
     expect(tex).toContain('\\bottomrule')
     expect(tex).toMatch(/Source\s*&\s*SS\s*&\s*p\s*\\\\/)
     expect(tex).toMatch(/Between\s*&\s*12.3\s*&\s*.004\s*\\\\/)
+  })
+})
+
+// Matrix tables (kind:'matrix', SEM: Fornell-Larcker / HTMT / interfactor-correlations) carry their data
+// in BuiltTable.matrix with empty spec.columns + rows. Faithful to buildAve.ts flMatrix.
+const flMatrix: BuiltTable = {
+  spec: { id: 'fornell-larcker', title: 'Discriminant validity (Fornell-Larcker)', columns: [] },
+  rows: [],
+  matrix: {
+    kind: 'matrix', id: 'fornell-larcker', caption: 'Discriminant validity (Fornell-Larcker)',
+    rowLabels: ['visual', 'textual', 'R&D'], colLabels: ['visual', 'textual', 'R&D'],
+    cells: [
+      ['.74', null, null],
+      ['.45', '.77', null],
+      ['.30', '.52', '.71'],
+    ],
+    diagonal: 'bold', lowerOnly: true,
+  },
+}
+
+describe('matrixToLatex', () => {
+  it('emits a booktabs tabular with a NON-empty preamble sized to 1 label + N data columns', () => {
+    const tex = matrixToLatex(flMatrix)
+    expect(tex).toContain('\\begin{tabular}{lccc}') // l (row labels) + c per construct
+    expect(tex).not.toContain('\\begin{tabular}{}') // the bug: empty preamble would not compile
+    expect(tex).toContain('\\toprule')
+    expect(tex).toContain('\\bottomrule')
+    expect(tex).toContain('\\end{tabular}')
+  })
+  it('puts the column labels in the header after a blank corner cell', () => {
+    const tex = matrixToLatex(flMatrix)
+    expect(tex).toMatch(/&\s*visual\s*&\s*textual\s*&\s*R\\&D\s*\\\\/)
+  })
+  it('bolds the diagonal (diagonal=bold) and blanks the upper triangle (lowerOnly)', () => {
+    const tex = matrixToLatex(flMatrix)
+    expect(tex).toContain('\\textbf{.74}') // √AVE on the diagonal
+    // visual row: bold diagonal then two empty (upper-triangle) cells
+    expect(tex).toMatch(/visual\s*&\s*\\textbf\{.74\}\s*&\s*&\s*\\\\/)
+  })
+  it('escapes label + cell text', () => {
+    const tex = matrixToLatex(flMatrix)
+    expect(tex).toContain('R\\&D')
+    expect(tex).not.toContain('R&D ')
   })
 })
 

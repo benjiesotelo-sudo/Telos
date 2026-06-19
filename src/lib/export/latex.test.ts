@@ -3,6 +3,7 @@ import { SPECS } from '../registry/catalog'
 import type { TestSetup, TestRun } from '../../state/session'
 import type { SimpleLinearResult } from '../stats/simpleLinearRegression'
 import type { OneWayAnovaResult } from '../stats/oneWayAnova'
+import type { AveResult } from '../stats/runAve'
 import { emitLatex } from './latex'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
@@ -76,5 +77,33 @@ describe('emitLatex', () => {
     const out = tex()
     expect(out).toContain('study\\_hours') // the term name's underscore is escaped in the coef table
     expect(out).not.toContain('study_hours &') // ...and the raw form does not survive
+  })
+})
+
+// AVE (and EFA) carry kind:'matrix' tables (Fornell-Larcker, HTMT, interfactor-Φ) whose data lives in
+// BuiltTable.matrix with empty spec.columns — they must route to matrixToLatex, NOT classicToLatex
+// (which would emit \begin{tabular}{} → "Empty preamble" → the whole report.tex fails to compile).
+const ave: AveResult = {
+  figValidityPng: png,
+  cfa: {
+    labels: ['visual', 'memory'],
+    perConstruct: [
+      { name: 'visual', ave: 0.55, cr: 0.78, omega: 0.78, alpha: 0.75 },
+      { name: 'memory', ave: 0.60, cr: 0.81, omega: 0.81, alpha: 0.79 },
+    ],
+    fornellLarcker: [[0.74, 0], [0.45, 0.77]],
+    htmt: [[0, 0], [0.30, 0]],
+  },
+}
+
+describe('emitLatex — matrix tables (AVE Fornell-Larcker + HTMT)', () => {
+  const out = emitLatex(['ave'], { ave: { roles: {}, options: {}, props: {}, blocked: null } }, SPECS, { ave: { result: ave, stale: false } })
+  it('routes matrix tables to a non-empty booktabs tabular (1 label + N construct columns)', () => {
+    expect(out).not.toContain('\\begin{tabular}{}') // the empty-preamble bug must be gone
+    expect(out).toContain('\\begin{tabular}{lcc}') // 2 constructs → l + c + c
+  })
+  it('includes the construct labels in the matrix', () => {
+    expect(out).toContain('visual')
+    expect(out).toContain('memory')
   })
 })
