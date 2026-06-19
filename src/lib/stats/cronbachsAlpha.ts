@@ -5,11 +5,16 @@ export interface CronbachResult {
   omega: number
   omegaCi: [number, number]
   alpha: number
+  stdAlpha: number
   alphaCi: [number, number]
   nItems: number
   nCases: number
+  /** true when the standardized alpha option is active (affects which α the builder displays in T1) */
+  useStandardizedAlpha: boolean
+  /** item-total statistics; empty array when drop-item option is off */
   itemTotal: { item: string; r: number; alphaDropped: number }[]
-  figItemTotalPng: Uint8Array
+  /** undefined when drop-item option is off */
+  figItemTotalPng: Uint8Array | undefined
 }
 
 // R block: psych::alpha for α + Feldt CI + item-total stats;
@@ -48,7 +53,8 @@ colnames(d) <- items
 
 # ---- Cronbach's α via psych::alpha ----
 a_obj <- psych::alpha(d, warnings = FALSE)
-alpha_val  <- a_obj$total$raw_alpha
+alpha_val     <- a_obj$total$raw_alpha
+std_alpha_val <- a_obj$total$std.alpha
 alpha_lo   <- a_obj$feldt$lower.ci$raw_alpha
 alpha_hi   <- a_obj$feldt$upper.ci$raw_alpha
 r_drop     <- as.numeric(a_obj$item.stats$r.drop)
@@ -76,6 +82,7 @@ list(
   omegaCiLo = unname(omega_ci[1]),
   omegaCiHi = unname(omega_ci[2]),
   alpha     = alpha_val,
+  stdAlpha  = std_alpha_val,
   alphaCiLo = unname(alpha_lo),
   alphaCiHi = unname(alpha_hi),
   nItems    = p,
@@ -103,6 +110,7 @@ interface RawStats {
   omegaCiLo: number
   omegaCiHi: number
   alpha: number
+  stdAlpha: number
   alphaCiLo: number
   alphaCiHi: number
   nItems: number
@@ -124,6 +132,8 @@ export async function runCronbachsAlpha(
   items: string[],
   seed = 20260619,
   nboot = 2000,
+  standardizedAlpha = false,
+  dropItem = true,
 ): Promise<CronbachResult> {
   const rows = listwise(data, items)
   const n = rows.length
@@ -134,18 +144,23 @@ export async function runCronbachsAlpha(
 
   const raw = await engine.runJson<RawStats>(R_STATS, env)
 
-  // The figure gets item names + the r.drop values from the stats run
-  const figEnv = { items, r_drop_vals: raw.rDrop }
-  const figItemTotalPng = await engine.capturePlot(R_FIG, 600, 450, figEnv)
+  // The figure is only generated when the drop-item option is on
+  let figItemTotalPng: Uint8Array | undefined
+  if (dropItem) {
+    const figEnv = { items, r_drop_vals: raw.rDrop }
+    figItemTotalPng = await engine.capturePlot(R_FIG, 600, 450, figEnv)
+  }
 
   return {
     omega: raw.omega,
     omegaCi: [raw.omegaCiLo, raw.omegaCiHi],
     alpha: raw.alpha,
+    stdAlpha: raw.stdAlpha,
     alphaCi: [raw.alphaCiLo, raw.alphaCiHi],
     nItems: raw.nItems,
     nCases: raw.nCases,
-    itemTotal: raw.itemTotal,
+    useStandardizedAlpha: standardizedAlpha,
+    itemTotal: dropItem ? raw.itemTotal : [],
     figItemTotalPng,
   }
 }

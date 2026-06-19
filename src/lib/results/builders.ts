@@ -187,7 +187,7 @@ export const RUNNERS: Record<string, Runner> = {
     const cal = Number(setup.options['caliper'])
     return runPropensityScoreMatching(engine, ds, setup.roles['outcome'][0], setup.roles['treatment'][0], setup.roles['covariates'], { ratio: parseInt(String(setup.options['ratio'] ?? '1'), 10) || 1, caliper: Number.isFinite(cal) ? cal : 0, alpha: alphaOf(setup) })
   },
-  'cronbachs-alpha': (engine, ds, setup) => runCronbachsAlpha(engine, ds, setup.roles['items']),
+  'cronbachs-alpha': (engine, ds, setup) => runCronbachsAlpha(engine, ds, setup.roles['items'], 20260619, 2000, setup.options['standardizedAlpha'] as boolean, (setup.options['dropItem'] as boolean) !== false),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),

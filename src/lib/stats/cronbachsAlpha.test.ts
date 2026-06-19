@@ -59,6 +59,14 @@ describe('runCronbachsAlpha', () => {
     expect(result.alpha).toBeCloseTo(0.760488595825, 4)
   })
 
+  it('stdAlpha matches native R 4.6.0 psych::alpha()$total$std.alpha', () => {
+    // Native R: psych::alpha(d)$total$std.alpha = 0.7604022
+    expect(result.stdAlpha).toBeCloseTo(0.7604022, 4)
+    // std.alpha is always finite and plausibly near raw alpha
+    expect(Number.isFinite(result.stdAlpha)).toBe(true)
+    expect(Math.abs(result.stdAlpha - result.alpha)).toBeLessThan(0.05)
+  })
+
   it('alphaCi (Feldt) matches native R 4.6.0 (exact/deterministic)', () => {
     expect(result.alphaCi[0]).toBeCloseTo(0.717716865952, 3)
     expect(result.alphaCi[1]).toBeCloseTo(0.799078832562, 3)
@@ -85,8 +93,9 @@ describe('runCronbachsAlpha', () => {
     }
   })
 
-  it('figItemTotalPng starts with PNG magic bytes', () => {
-    expect(Array.from(result.figItemTotalPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+  it('figItemTotalPng starts with PNG magic bytes (drop-item on by default)', () => {
+    // figItemTotalPng is defined when dropItem=true (the default)
+    expect(Array.from(result.figItemTotalPng!.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
 
   it('listwise: drops rows missing any item, nCases reflects filtered count', async () => {

@@ -19,7 +19,7 @@ export const CRONBACHS_ALPHA: TestSpec = {
     roles: [
       { roleId: 'items', levels: ['ordinal', 'interval'], arity: { min: 3, max: Infinity } },
     ],
-    minRule: { kind: 'values', n: 3 }, // CFA needs ≥3 items to be identified
+    minRule: { kind: 'values', n: 20 }, // ≥20 complete cases for a stable reliability estimate / CFA convergence (item count is enforced by the items-role arity)
   },
   tables: [
     {
