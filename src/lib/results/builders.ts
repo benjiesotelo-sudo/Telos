@@ -89,6 +89,8 @@ import { runAve, type AveResult } from '../stats/runAve'
 import { buildAve } from './buildAve'
 import { runCompositeReliability, type CompositeReliabilityResult } from '../stats/compositeReliability'
 import { buildCompositeReliability } from './buildCompositeReliability'
+import { runEfa, type EfaResult } from '../stats/efa'
+import { buildEfa } from './buildEfa'
 import type { MatrixTable } from './types'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
@@ -195,6 +197,14 @@ export const RUNNERS: Record<string, Runner> = {
   'cronbachs-alpha': (engine, ds, setup) => runCronbachsAlpha(engine, ds, setup.roles['items'], 20260619, 2000, setup.options['standardizedAlpha'] as boolean, (setup.options['dropItem'] as boolean) !== false),
   'ave': (engine, ds, setup) => runAve(engine, ds, setup.constructs ?? []),
   'composite-reliability': (engine, ds, setup) => runCompositeReliability(engine, ds, setup.constructs ?? []),
+  'efa': (engine, ds, setup) => {
+    const extraction = setup.options['extraction'] === 'ML' ? 'ml' as const : 'pa' as const
+    const rotation = setup.options['rotation'] === 'varimax' ? 'varimax' as const : 'oblimin' as const
+    const retOpt = String(setup.options['retention'] ?? 'parallel')
+    const retention = retOpt === 'Kaiser' ? 'kaiser' as const : retOpt === 'fixed-n' ? 'fixed' as const : 'parallel' as const
+    const nFactors = Number(setup.options['nFactors'] ?? 2)
+    return runEfa(engine, ds, setup.roles['items'], { extraction, rotation, retention, nFactors })
+  },
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -240,4 +250,5 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'cronbachs-alpha': (spec, result) => buildCronbachsAlpha(spec, result as CronbachResult),
   'ave': (spec, result) => buildAve(spec, result as AveResult),
   'composite-reliability': (spec, result) => buildCompositeReliability(spec, result as CompositeReliabilityResult),
+  'efa': (spec, result) => buildEfa(spec, result as EfaResult),
 }

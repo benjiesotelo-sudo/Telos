@@ -41,7 +41,7 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
             )}
         </div>
       ))}
-      {content.note && !content.tables.some((t) => t.spec.id === content.note!.afterTableId) && (
+      {content.note && !content.tables.some((t) => (t.matrix ? t.matrix.id : t.spec.id) === content.note!.afterTableId) && (
         <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
       )}
       {content.nExcluded > 0 && <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.nExcluded} rows excluded (missing values)</p>}

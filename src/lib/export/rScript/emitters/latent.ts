@@ -225,10 +225,100 @@ export const latentEmitters: Record<string, Emitter> = {
 
     return lines.join('\n')
   },
+
+  // psych::KMO() + cortest.bartlett() → suitability · parallel analysis → retention
+  // psych::fa() → rotated loadings + communalities + Phi (oblimin) · ggplot2 → scree figure
+  'efa': (_spec, setup) => {
+    const items: string[] = setup.roles['items'] ?? []
+    if (items.length < 3) return '# Need ≥ 3 items for EFA.'
+    const itemsR = `c(${items.map((v) => `"${v}"`).join(', ')})`
+    const extraction = setup.options['extraction'] === 'ML' ? 'ml' : 'pa'
+    const rotation = setup.options['rotation'] === 'varimax' ? 'varimax' : 'oblimin'
+    const retentionOpt = String(setup.options['retention'] ?? 'parallel')
+    const retention = retentionOpt === 'Kaiser' ? 'kaiser' : retentionOpt === 'fixed-n' ? 'fixed' : 'parallel'
+    const nFactors = Number(setup.options['nFactors'] ?? 2)
+
+    const lines: string[] = [
+      `items <- ${itemsR}`,
+      `d_items <- d[, items, drop = FALSE]`,
+      `n <- nrow(d_items)`,
+      '',
+      '# ---- EFA: suitability ----',
+      `library(psych)`,
+      `R_cor <- cor(d_items)`,
+      `kmo_val <- psych::KMO(R_cor)$MSA`,
+      `cat("KMO:", round(kmo_val, 3), "\\n")`,
+      `bart_obj <- psych::cortest.bartlett(R_cor, n = n)`,
+      `cat("Bartlett chisq:", round(bart_obj$chisq, 1), "df:", bart_obj$df, "p:", bart_obj$p.value, "\\n")`,
+      '',
+    ]
+
+    if (retention === 'parallel') {
+      lines.push(
+        '# ---- Parallel analysis for retention ----',
+        `x <- as.matrix(d_items); nsim <- 500L; seed <- 20260619L; kind <- "fa"`,
+        `set.seed(seed)`,
+        `n_pa <- nrow(x); p_pa <- ncol(x)`,
+        `R_pa <- cor(x); smc_v <- psych::smc(R_pa); smc_v <- pmin(pmax(smc_v, 0), 1); diag(R_pa) <- smc_v`,
+        `obs_eig <- sort(eigen(R_pa, symmetric = TRUE, only.values = TRUE)$values, decreasing = TRUE)`,
+        `sim_e <- matrix(0, nsim, p_pa)`,
+        `for (i in seq_len(nsim)) {`,
+        `  rx <- matrix(rnorm(n_pa * p_pa), n_pa, p_pa)`,
+        `  Rs <- cor(rx); sv <- psych::smc(Rs); sv <- pmin(pmax(sv, 0), 1); diag(Rs) <- sv`,
+        `  sim_e[i, ] <- sort(eigen(Rs, symmetric = TRUE, only.values = TRUE)$values, decreasing = TRUE)`,
+        `}`,
+        `sim_p95 <- apply(sim_e, 2, quantile, probs = 0.95)`,
+        `k_retain <- 0L`,
+        `for (i in seq_len(p_pa)) { if (obs_eig[i] > sim_p95[i]) k_retain <- k_retain + 1L else break }`,
+        `cat("Parallel analysis retain:", k_retain, "\\n")`,
+        '',
+      )
+    } else if (retention === 'kaiser') {
+      lines.push(
+        '# ---- Kaiser eigenvalue > 1 retention ----',
+        `k_retain <- sum(eigen(R_cor, only.values = TRUE)$values > 1)`,
+        `cat("Kaiser retain:", k_retain, "\\n")`,
+        '',
+      )
+    } else {
+      lines.push(
+        `k_retain <- ${nFactors}L`,
+        `cat("Fixed retain:", k_retain, "\\n")`,
+        '',
+      )
+    }
+
+    lines.push(
+      '# ---- psych::fa ----',
+      `fm_method <- "${extraction}"`,
+      `fa_obj <- psych::fa(d_items, nfactors = k_retain, fm = fm_method, rotate = "${rotation}")`,
+      `cat("\\n--- Table 2: Variance explained ---\\n")`,
+      `print(round(fa_obj$Vaccounted, 3))`,
+      `cat("\\n--- Table 3: Rotated loadings + communalities ---\\n")`,
+      `load_mat <- unclass(fa_obj$loadings)`,
+      `h2 <- fa_obj$communality`,
+      `out_mat <- cbind(load_mat, communality = h2)`,
+      `print(round(out_mat, 3))`,
+    )
+
+    if (rotation === 'oblimin') {
+      lines.push(
+        '',
+        '# ---- Phi: interfactor correlations (oblique) ----',
+        `if (!is.null(fa_obj$Phi)) {`,
+        `  cat("\\n--- Table 4: Interfactor correlations (Phi) ---\\n")`,
+        `  print(round(fa_obj$Phi, 3))`,
+        `}`,
+      )
+    }
+
+    return lines.join('\n')
+  },
 }
 
 export const latentPackages: Record<string, string[]> = {
   'ave': ['lavaan', 'semTools', 'psych', 'ggplot2'],
   'composite-reliability': ['lavaan', 'semTools', 'psych', 'ggplot2'],
   'cronbachs-alpha': ['psych', 'lavaan', 'semTools', 'ggplot2'],
+  'efa': ['psych', 'ggplot2'],
 }

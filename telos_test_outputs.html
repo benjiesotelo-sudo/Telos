@@ -1086,15 +1086,17 @@
       <table class="apa"><thead><tr><th>Factor</th><th>Eigenvalue</th><th>% variance</th><th>Cumulative %</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Rotated factor loadings</div>
       <table class="apa"><thead><tr><th>Item</th><th>Factor 1</th><th>Factor 2</th><th>Communality</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">loading columns expand to the number of retained factors.</p>
+      <div class="apa-cap"><b>Table 4.</b> Interfactor correlations (Φ)</div>
+      <table class="apa matrix"><thead><tr><th></th><th>F1</th><th>F2</th></tr></thead><tbody class="ghost"><tr><th>F1</th><td>1.00</td><td></td></tr><tr><th>F2</th><td>&mdash;</td><td>1.00</td></tr></tbody></table>
+      <p class="tbl-note">Loading columns expand to the number of retained factors; loadings |&lt; .32| suppressed (Tabachnick &amp; Fidell). Φ (interfactor correlations) shown for oblique rotation (oblimin) only &mdash; omitted for varimax (orthogonal). KMO &ge; .60 acceptable, &ge; .70 preferred (Kaiser &amp; Rice, 1974). Bartlett p &lt; .001 required. Parallel analysis (Horn, 1965) is the preferred retention rule; Kaiser eigenvalue &gt; 1 is offered but systematically over-extracts (Zwick &amp; Velicer, 1986). Factor order: descending SS-loadings.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Factor retention</div><div class="ftype">type: <b>scree plot</b> (with parallel analysis)</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p>Check <b>KMO</b> (&gt; .60) and a significant <b>Bartlett's</b> test for suitability. The scree/eigenvalues suggest how many factors to keep; the <b>rotated loadings</b> show which items group onto which factor (load strongly on one, weakly on others). EFA is <b>exploratory</b> &mdash; it discovers structure, it does not confirm a hypothesized model; to confirm a proposed factor structure run a CFA, ideally on a separate sample.</p></div>
+      <div class="howread">Check KMO (&gt; .60 acceptable, &gt; .70 preferred; Kaiser &amp; Rice, 1974) and a significant Bartlett's test (p &lt; .001) for suitability. Parallel analysis (Horn, 1965) is the recommended retention rule &mdash; it corrects the upward bias of the Kaiser eigenvalue &gt; 1 rule (Zwick &amp; Velicer, 1986). Table 3 shows the rotated pattern matrix: each loading is the unique contribution of the factor to that item. Loadings |&lt; .32| (~10% variance) are suppressed; a loading &ge; .32 on two or more factors flags a cross-loader (Tabachnick &amp; Fidell). For oblique rotation (oblimin), the Φ matrix shows interfactor correlations &mdash; if all |Φ| &lt; .32, orthogonal rotation (varimax) may be preferred. EFA is exploratory &mdash; it discovers structure; to confirm a proposed factor structure run a CFA, ideally on a separate sample (Watkins, 2018).</div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;EFA (KMO=__, Bartlett's <i>p</i>&lt;.001) yielded __ factors explaining __% of variance.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>psych::KMO()</code>/<code>cortest.bartlett()</code> &rarr; Table 1 &middot; <code>psych::fa()</code> &rarr; Tables 2&ndash;3 &middot; <code>psych::scree()</code> &rarr; figure</div>
-        <div class="m bundle">table_suitability.png &middot; table_variance.png &middot; table_loadings.png &middot; figure_scree.png</div>
+        <div class="m"><b>APA template:</b> &ldquo;EFA (KMO = __, Bartlett's &chi;&sup2;(__) = __, p &lt; .001) with parallel analysis retained __ factors explaining __% of variance (__ rotation).&rdquo;</div>
+        <div class="m"><b>R map:</b> <code>psych::KMO()</code>/<code>cortest.bartlett()</code> &rarr; Table 1 &middot; R_PARALLEL_ANALYSIS &rarr; retention &middot; <code>psych::fa()</code> &rarr; Tables 2&ndash;3 &middot; <code>fa()$Phi</code> &rarr; Table 4 (oblimin only) &middot; <code>ggplot2</code> &rarr; scree figure</div>
+        <div class="m bundle">table_suitability.png &middot; table_variance-explained.png &middot; table_rotated-loadings.png &middot; table_interfactor-correlations.png &middot; figure_scree.png</div>
       </div>
     </div>
   </div>
