@@ -9,6 +9,7 @@ export const EFA: TestSpec = {
   ],
   options: [
     { id: 'retention', label: 'retention', value: 'parallel', kind: 'select', choices: ['parallel', 'Kaiser', 'fixed-n'] },
+    { id: 'nFactors', label: 'n factors', value: '2', kind: 'number', default: 2, hint: 'used only when retention = fixed-n' },
     { id: 'rotation', label: 'rotation', value: 'oblimin', kind: 'select', choices: ['oblimin', 'varimax'] },
     { id: 'extraction', label: 'extraction', value: 'PAF', kind: 'select', choices: ['PAF', 'ML'] },
   ],

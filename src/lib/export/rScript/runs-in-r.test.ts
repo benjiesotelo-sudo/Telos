@@ -133,7 +133,7 @@ const REPS: Rep[] = [
   mk('efa', 'scale.csv',
     { items: ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'] },
     { extraction: 'PAF', rotation: 'oblimin', retention: 'parallel' },
-    ['KMO:', 'Phi']),
+    ['KMO:', 'Table 4: Interfactor correlations (Phi)']),
 
   // composite-reliability: 3 constructs × 3 items; asserts CR= substring in stdout
   { id: 'composite-reliability', fixture: 'scale.csv',

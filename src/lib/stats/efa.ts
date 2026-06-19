@@ -71,7 +71,7 @@ export async function runEfa(
   const extraction = opts.extraction ?? 'pa'
   const rotation = opts.rotation ?? 'oblimin'
   const retention = opts.retention ?? 'parallel'
-  const nFactors = opts.nFactors ?? 1
+  const nFactors = opts.nFactors ?? 2
   const seed = opts.seed ?? 20260619
   const nsim = opts.nsim ?? 500
 
