@@ -25,7 +25,10 @@ R <- cor(x)
 # Observed eigenvalues
 if (kind == "fa") {
   # Reduced matrix: SMC (squared multiple correlations) on the diagonal, matching psych's fa path.
+  # Clamp to [0,1]: smc() can return values outside [0,1] on ill-conditioned matrices, which
+  # corrupts the eigendecomposition. psych::fa.parallel clamps before substituting.
   smc_vals <- smc(R)
+  smc_vals <- pmin(pmax(smc_vals, 0), 1)
   diag(R) <- smc_vals
 }
 observed <- sort(eigen(R, symmetric = TRUE, only.values = TRUE)$values, decreasing = TRUE)
@@ -37,7 +40,9 @@ for (i in seq_len(nsim)) {
   rx <- matrix(rnorm(n * p), nrow = n, ncol = p)
   Rsim <- cor(rx)
   if (kind == "fa") {
-    diag(Rsim) <- smc(Rsim)
+    smc_sim <- smc(Rsim)
+    smc_sim <- pmin(pmax(smc_sim, 0), 1)
+    diag(Rsim) <- smc_sim
   }
   sim_eigs[i, ] <- sort(eigen(Rsim, symmetric = TRUE, only.values = TRUE)$values, decreasing = TRUE)
 }

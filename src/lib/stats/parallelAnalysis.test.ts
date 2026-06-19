@@ -27,6 +27,20 @@ describe('parallelAnalysis', () => {
     expect(result.observed[2]).toBeGreaterThan(result.simP95[2])
     expect(result.observed[3]).toBeLessThanOrEqual(result.simP95[3])
   }, 600_000)
+
+  it('retain is 2 or 3 and eigenvalues are finite/real on HolzingerSwineford1939 x1–x9 (kind=fa)', async () => {
+    const result = await runParallelAnalysis(engine, 'fa')
+    // psych::fa.parallel on HS x1–x9 with fa="fa" typically retains 2–3 factors
+    expect(result.retain).toBeGreaterThanOrEqual(2)
+    expect(result.retain).toBeLessThanOrEqual(3)
+    expect(result.observed).toHaveLength(9)
+    expect(result.simP95).toHaveLength(9)
+    // The clamp guarantees no NaN or eigenvalue corruption from out-of-range smc() values
+    for (let i = 0; i < 9; i++) {
+      expect(Number.isFinite(result.observed[i])).toBe(true)
+      expect(Number.isFinite(result.simP95[i])).toBe(true)
+    }
+  }, 600_000)
 })
 
 describe('orderFactors', () => {
