@@ -39,6 +39,7 @@ import { DID } from './did'
 import { RDD } from './rdd'
 import { IV_TWO_STAGE } from './ivTwoStage'
 import { PROPENSITY_SCORE_MATCHING } from './propensityScoreMatching'
+import { CRONBACHS_ALPHA } from './cronbachsAlpha'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -88,7 +89,7 @@ export const CATALOG: CatalogEntry[] = [
   e('rdd', 'Regression discontinuity (RDD)', 'Econometrics', 'Causal inference', 'available'),
   e('iv-2sls', 'Instrumental variables (IV / 2SLS)', 'Econometrics', 'Causal inference', 'available'),
   e('propensity-score-matching', 'Propensity score matching', 'Econometrics', 'Causal inference', 'available'),
-  e('cronbachs-alpha', "Cronbach's alpha", 'Latent variable models', 'Reliability'),
+  e('cronbachs-alpha', "Cronbach's alpha", 'Latent variable models', 'Reliability', 'available'),
   e('ave', 'Average variance extracted (AVE)', 'Latent variable models', 'Reliability'),
   e('composite-reliability', 'Composite reliability (CR)', 'Latent variable models', 'Reliability'),
   e('efa', 'Exploratory factor analysis (EFA)', 'Latent variable models', 'Factor analysis'),
@@ -111,4 +112,5 @@ export const SPECS: Record<string, TestSpec> = {
   [LOGISTIC_REGRESSION.id]: LOGISTIC_REGRESSION, [POISSON_NEGATIVE_BINOMIAL.id]: POISSON_NEGATIVE_BINOMIAL,
   [ARIMA_SARIMA.id]: ARIMA_SARIMA, [STATIONARITY_TESTS.id]: STATIONARITY_TESTS, [GRANGER_CAUSALITY.id]: GRANGER_CAUSALITY, [VAR.id]: VAR,
   [FIXED_EFFECTS.id]: FIXED_EFFECTS, [RANDOM_EFFECTS.id]: RANDOM_EFFECTS, [HAUSMAN_TEST.id]: HAUSMAN_TEST, [DID.id]: DID, [RDD.id]: RDD, [IV_TWO_STAGE.id]: IV_TWO_STAGE, [PROPENSITY_SCORE_MATCHING.id]: PROPENSITY_SCORE_MATCHING,
+  [CRONBACHS_ALPHA.id]: CRONBACHS_ALPHA,
 }

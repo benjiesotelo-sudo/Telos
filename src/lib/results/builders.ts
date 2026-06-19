@@ -83,6 +83,8 @@ import { runRdd, type RddResult } from '../stats/rdd'
 import { buildRdd } from './buildRdd'
 import { runPropensityScoreMatching, type PsmResult } from '../stats/propensityScoreMatching'
 import { buildPropensityScoreMatching } from './buildPropensityScoreMatching'
+import { runCronbachsAlpha, type CronbachResult } from '../stats/cronbachsAlpha'
+import { buildCronbachsAlpha } from './buildCronbachsAlpha'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
 
@@ -185,6 +187,7 @@ export const RUNNERS: Record<string, Runner> = {
     const cal = Number(setup.options['caliper'])
     return runPropensityScoreMatching(engine, ds, setup.roles['outcome'][0], setup.roles['treatment'][0], setup.roles['covariates'], { ratio: parseInt(String(setup.options['ratio'] ?? '1'), 10) || 1, caliper: Number.isFinite(cal) ? cal : 0, alpha: alphaOf(setup) })
   },
+  'cronbachs-alpha': (engine, ds, setup) => runCronbachsAlpha(engine, ds, setup.roles['items']),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -227,4 +230,5 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'iv-2sls': (spec, result) => buildIvTwoStage(spec, result as IvResult),
   'rdd': (spec, result) => buildRdd(spec, result as RddResult),
   'propensity-score-matching': (spec, result) => buildPropensityScoreMatching(spec, result as PsmResult),
+  'cronbachs-alpha': (spec, result) => buildCronbachsAlpha(spec, result as CronbachResult),
 }

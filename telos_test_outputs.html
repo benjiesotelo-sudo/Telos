@@ -1019,17 +1019,17 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Reliability</div>
-      <table class="apa"><thead><tr><th>&alpha;</th><th>95% CI</th><th>N items</th><th>N cases</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>&omega;</th><th>&alpha;</th><th>95% CI</th><th>N items</th><th>N cases</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Item-total statistics</div>
       <table class="apa"><thead><tr><th>Item</th><th>Corrected item-total r</th><th>&alpha; if item dropped</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
-      <div class="figbox"><div class="fcap"><b>Figure.</b> Item contribution</div><div class="ftype">type: <b>item-total correlation</b> bar chart</div></div>
+      <div class="figbox"><div class="fcap"><b>Figure.</b> Item contribution</div><div class="ftype">type: item-total correlation bar chart</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p><b>&alpha;</b> ranges 0&ndash;1; ~.70+ is commonly considered acceptable. The "&alpha; if item dropped" column flags items that, if removed, would raise reliability &mdash; candidates for review. Note &alpha; assumes tau-equivalence (items contribute equally) and is a <i>lower bound</i> that underestimates reliability when loadings differ; a high &alpha; does not prove the scale is unidimensional, and &alpha; rises simply with more items. Consider McDonald's &omega; (<code>psych::omega</code>) from a one-factor model as a complement.</p></div>
+      <div class="howread"><p><b>&omega;</b> (McDonald's omega) is the headline reliability coefficient; it assumes only a congeneric (one-factor) model and is preferred over &alpha; when item loadings differ (McNeish, 2018). <b>&alpha;</b> (Cronbach's alpha) assumes tau-equivalence (equal loadings) and is a lower bound when loadings differ; it is retained as a secondary/legacy coefficient because reviewers still request it. Both range 0&ndash;1; &ge; .70 is commonly considered acceptable, &ge; .80 good, &gt; .95 suggests item redundancy &mdash; treat these as heuristics, not pass/fail thresholds. The "&alpha; if item dropped" column flags items that, if removed, would raise &alpha; &mdash; candidates for review. A high coefficient does not prove unidimensionality.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;The scale showed good internal consistency, &alpha;=__ (95% CI [__, __]).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>psych::alpha()</code> &rarr; Tables 1&ndash;2 &middot; <code>psych::omega()</code> &rarr; &omega; (optional) &middot; <code>ggplot2</code> &rarr; figure</div>
-        <div class="m bundle">table_reliability.png &middot; table_item-total.png &middot; figure_item-total.png</div>
+        <div class="m"><b>APA template:</b> &ldquo;Internal consistency was high, &omega;=__ (95% CI [__, __]); Cronbach's &alpha;=__.&rdquo;</div>
+        <div class="m"><b>R map:</b> <code>psych::alpha()</code> &rarr; &alpha; + item-total &middot; <code>lavaan::cfa()</code> + <code>semTools::compRelSEM()</code> &rarr; &omega; + 95% CI &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m bundle">table_reliability.png &middot; table_item-total-statistics.png &middot; figure_item-total-correlation.png</div>
       </div>
     </div>
   </div>
