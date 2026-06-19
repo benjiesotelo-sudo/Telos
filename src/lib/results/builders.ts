@@ -87,6 +87,8 @@ import { runCronbachsAlpha, type CronbachResult } from '../stats/cronbachsAlpha'
 import { buildCronbachsAlpha } from './buildCronbachsAlpha'
 import { runAve, type AveResult } from '../stats/runAve'
 import { buildAve } from './buildAve'
+import { runCompositeReliability, type CompositeReliabilityResult } from '../stats/compositeReliability'
+import { buildCompositeReliability } from './buildCompositeReliability'
 import type { MatrixTable } from './types'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
@@ -192,6 +194,7 @@ export const RUNNERS: Record<string, Runner> = {
   },
   'cronbachs-alpha': (engine, ds, setup) => runCronbachsAlpha(engine, ds, setup.roles['items'], 20260619, 2000, setup.options['standardizedAlpha'] as boolean, (setup.options['dropItem'] as boolean) !== false),
   'ave': (engine, ds, setup) => runAve(engine, ds, setup.constructs ?? []),
+  'composite-reliability': (engine, ds, setup) => runCompositeReliability(engine, ds, setup.constructs ?? []),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -236,4 +239,5 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'propensity-score-matching': (spec, result) => buildPropensityScoreMatching(spec, result as PsmResult),
   'cronbachs-alpha': (spec, result) => buildCronbachsAlpha(spec, result as CronbachResult),
   'ave': (spec, result) => buildAve(spec, result as AveResult),
+  'composite-reliability': (spec, result) => buildCompositeReliability(spec, result as CompositeReliabilityResult),
 }

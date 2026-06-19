@@ -2682,60 +2682,33 @@
       <div class="ttl">Composite reliability (CR)</div>
       <div class="sttl">construct reliability of each construct, from its measurement model</div>
       <div class="inner lbl-wrap">
-        <span class="zone-tag">1 · define the constructs (measurement model only)</span>
-        <div class="pl-h">Compatible columns</div>
-        <div class="palette">
-          <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu1&ndash;eu3 <span class="lv">ordinal</span></span>
-          <span class="colchip"><span class="grip">&#9783;&#9783;</span>pu1&ndash;pu3 <span class="lv">ordinal</span></span>
-          <span class="colchip"><span class="grip">&#9783;&#9783;</span>int1&ndash;int3 <span class="lv">ordinal</span></span>
-        </div>
-        <div class="ds-note" style="margin:6px 0 11px;">drag items from the palette onto a construct</div>
-        <div class="canvas">
-          <div class="amosbar"><span class="amospill on">Move</span><span class="amospill">&times; Delete</span><span class="amospill ghost">&#43; Construct</span><span class="amospill" style="opacity:0.45;">&rarr; Draw path</span></div>
-          <div class="amoscanvas">
-            <svg class="amossvg" viewBox="0 0 660 195" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-              <defs><marker id="cov_cr" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0.5,0.5 L9.5,5 L0.5,9.5 z" fill="var(--purple-line)"/></marker></defs>
-              <line class="lat-meas" x1="190" y1="128" x2="145" y2="150"/>
-              <rect class="lat-ind" x="127" y="150" width="36" height="18" rx="3"/>
-              <text class="lat-it" x="145" y="162">eu1</text>
-              <line class="lat-meas" x1="190" y1="128" x2="190" y2="150"/>
-              <rect class="lat-ind" x="172" y="150" width="36" height="18" rx="3"/>
-              <text class="lat-it" x="190" y="162">eu2</text>
-              <line class="lat-meas" x1="190" y1="128" x2="235" y2="150"/>
-              <rect class="lat-ind" x="217" y="150" width="36" height="18" rx="3"/>
-              <text class="lat-it" x="235" y="162">eu3</text>
-              <line class="lat-meas" x1="490" y1="128" x2="445" y2="150"/>
-              <rect class="lat-ind" x="427" y="150" width="36" height="18" rx="3"/>
-              <text class="lat-it" x="445" y="162">pu1</text>
-              <line class="lat-meas" x1="490" y1="128" x2="490" y2="150"/>
-              <rect class="lat-ind" x="472" y="150" width="36" height="18" rx="3"/>
-              <text class="lat-it" x="490" y="162">pu2</text>
-              <line class="lat-meas" x1="490" y1="128" x2="535" y2="150"/>
-              <rect class="lat-ind" x="517" y="150" width="36" height="18" rx="3"/>
-              <text class="lat-it" x="535" y="162">pu3</text>
-              <ellipse class="lat" cx="190" cy="98" rx="58" ry="30"/>
-              <text class="lat-cn" x="190" y="102">Ease of Use</text>
-              <ellipse class="lat" cx="490" cy="98" rx="58" ry="30"/>
-              <text class="lat-cn" x="490" y="102">Usefulness</text>
-              <path class="lat-cov" d="M190,68 Q340,24 490,68" marker-start="url(#cov_cr)" marker-end="url(#cov_cr)"/>
-            </svg>
+        <span class="zone-tag">1 · define the constructs</span>
+        <div class="cs-hint">Add each construct, name it, then check its items. Each construct needs &ge; 2 items.</div>
+        <div class="cs-slots">
+          <div class="cs-slot">
+            <div class="cs-name">Ease of Use</div>
+            <div class="cs-items"><span class="pill on">eu1</span> <span class="pill on">eu2</span> <span class="pill on">eu3</span></div>
           </div>
-          <div class="sem-cap">drag each construct's items together &middot; no structural paths to draw &mdash; CR is read from the CFA measurement model</div>
+          <div class="cs-slot">
+            <div class="cs-name">Usefulness</div>
+            <div class="cs-items"><span class="pill on">pu1</span> <span class="pill on">pu2</span> <span class="pill on">pu3</span></div>
+          </div>
+          <div class="cs-slot ghost"><div class="cs-name-ghost">+ Add construct</div></div>
         </div>
       </div>
       <div class="mini-arrow"></div>
       <div class="inner lbl-wrap">
         <span class="zone-tag">2 · set this test's options</span>
         <div class="optstrip">
-          <span class="optpill"><span class="k">estimator</span><span class="v">from CFA &middot; WLSMV (ordinal)</span><span class="caret">&#9662;</span></span>
+          <span class="optpill"><span class="k">estimator</span><span class="v">ML (continuous) · WLSMV (ordinal)</span><span class="caret">&#9662;</span></span>
         </div>
       </div>
       <div class="cfgguide">
         <div class="gh">How to configure this test</div>
-        <p>Use this for <b>construct reliability</b> &mdash; how consistently a construct's items hang together (a less restrictive alternative to Cronbach's alpha). Define each construct by dragging its items together on the canvas; no arrows are drawn between constructs. CR is computed from the CFA loadings, so use the same estimator as AVE (<b>WLSMV</b> for ordinal Likert items) and report them together. CR &ge; 0.70 is the usual threshold.</p>
+        <p>Use this for <b>construct reliability</b> — how consistently a construct's items hang together (CR &ge; .70; Nunnally, 1978). Add at least one construct and assign &ge; 2 items to it. CR is computed from the CFA loadings via <code>semTools::compRelSEM()</code> — for a congeneric factor, CR equals McDonald's &omega;; both are shown. AVE is shown alongside; for the full discriminant-validity matrices (Fornell–Larcker + HTMT) run the AVE card instead. Use <b>WLSMV</b> for ordinal Likert items.</p>
       </div>
       <div class="meta-row">
-        <span class="tag"><b>Produces &mdash; table:</b> composite reliability (CR, AVE, &alpha;)</span>
+        <span class="tag"><b>Produces &mdash; table:</b> composite reliability (CR, AVE, &omega;, &alpha;)</span>
         <span class="tag"><b>figure:</b> CR bar chart</span>
       </div>
     </div>

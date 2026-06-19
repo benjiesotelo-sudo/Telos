@@ -41,6 +41,7 @@ import { IV_TWO_STAGE } from './ivTwoStage'
 import { PROPENSITY_SCORE_MATCHING } from './propensityScoreMatching'
 import { CRONBACHS_ALPHA } from './cronbachsAlpha'
 import { AVE } from './ave'
+import { COMPOSITE_RELIABILITY } from './compositeReliability'
 
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
@@ -92,7 +93,7 @@ export const CATALOG: CatalogEntry[] = [
   e('propensity-score-matching', 'Propensity score matching', 'Econometrics', 'Causal inference', 'available'),
   e('cronbachs-alpha', "Cronbach's alpha", 'Latent variable models', 'Reliability', 'available'),
   e('ave', 'Average variance extracted (AVE)', 'Latent variable models', 'Reliability', 'available'),
-  e('composite-reliability', 'Composite reliability (CR)', 'Latent variable models', 'Reliability'),
+  e('composite-reliability', 'Composite reliability (CR)', 'Latent variable models', 'Reliability', 'available'),
   e('efa', 'Exploratory factor analysis (EFA)', 'Latent variable models', 'Factor analysis'),
   e('pca', 'Principal component analysis (PCA)', 'Latent variable models', 'Factor analysis'),
   { id: 'cb-sem', name: 'CB-SEM', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'later-slice',
@@ -115,4 +116,5 @@ export const SPECS: Record<string, TestSpec> = {
   [FIXED_EFFECTS.id]: FIXED_EFFECTS, [RANDOM_EFFECTS.id]: RANDOM_EFFECTS, [HAUSMAN_TEST.id]: HAUSMAN_TEST, [DID.id]: DID, [RDD.id]: RDD, [IV_TWO_STAGE.id]: IV_TWO_STAGE, [PROPENSITY_SCORE_MATCHING.id]: PROPENSITY_SCORE_MATCHING,
   [CRONBACHS_ALPHA.id]: CRONBACHS_ALPHA,
   [AVE.id]: AVE,
+  [COMPOSITE_RELIABILITY.id]: COMPOSITE_RELIABILITY,
 }

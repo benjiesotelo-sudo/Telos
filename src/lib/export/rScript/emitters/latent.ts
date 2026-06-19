@@ -157,9 +157,78 @@ export const latentEmitters: Record<string, Emitter> = {
     }
     return lines.join('\n')
   },
+
+  // lavaan::cfa + semTools::compRelSEM/AVE + psych::alpha → CR / ω / AVE / α per construct.
+  // NEVER call semTools::reliability() — deprecated 2022.
+  // T1: Construct / CR / AVE / ω / α (CR = ω for congeneric — identical columns; correct)
+  // Figure: CR bar chart (ggplot2)
+  'composite-reliability': (_spec, setup) => {
+    const constructs: { name: string; items: string[] }[] = setup.constructs ?? []
+    const k = constructs.length
+    if (k === 0) return '# No constructs defined — nothing to run for Composite Reliability.'
+
+    const constructNamesR = `c(${constructs.map((c) => `"${c.name}"`).join(', ')})`
+    const modelLines = constructs.map((c) => `${c.name} =~ ${c.items.join(' + ')}`).join('\n')
+    const constructItemsFlat = constructs.flatMap((c) => c.items)
+    const constructItemsFlatR = `c(${constructItemsFlat.map((v) => `"${v}"`).join(', ')})`
+    const constructItemsLensR = `c(${constructs.map((c) => c.items.length).join(', ')})`
+
+    const lines: string[] = [
+      '# ---- Composite Reliability (CR) / ω / AVE / α via lavaan + semTools + psych ----',
+      `construct_names <- ${constructNamesR}`,
+      `k <- length(construct_names)`,
+      '',
+      `model_str <- "${modelLines.replace(/\n/g, '\\n')}"`,
+      '',
+      '# Fit CFA',
+      'fit <- lavaan::cfa(model_str, data = d, std.lv = FALSE)',
+      '',
+      '# CR (= ω for congeneric) and AVE per construct',
+      '# Do NOT call semTools::reliability() — deprecated 2022.',
+      'cr_vec  <- unlist(semTools::compRelSEM(fit))',
+      'ave_vec <- semTools::AVE(fit)',
+      '',
+      '# Per-construct Cronbach\'s α via psych::alpha',
+      `construct_items_flat <- ${constructItemsFlatR}`,
+      `construct_items_lens <- ${constructItemsLensR}`,
+      'alpha_vec <- numeric(k)',
+      'item_start <- 1L',
+      'for (ci in seq_len(k)) {',
+      '  len <- construct_items_lens[ci]',
+      '  citems <- construct_items_flat[item_start:(item_start + len - 1L)]',
+      '  item_start <- item_start + len',
+      '  a_obj <- psych::alpha(d[, citems, drop = FALSE], warnings = FALSE)',
+      '  alpha_vec[ci] <- a_obj$total$raw_alpha',
+      '}',
+      '',
+      '# Print T1: Composite reliability',
+      'cat("\\n--- Table 1: Composite reliability ---\\n")',
+      'for (ci in seq_len(k)) {',
+      '  nm <- construct_names[ci]',
+      '  cat(sprintf("  %s: CR=%.3f AVE=%.3f omega=%.3f alpha=%.3f\\n",',
+      '              nm, cr_vec[nm], ave_vec[nm], cr_vec[nm], alpha_vec[ci]))',
+      '}',
+      '',
+      '# Figure: CR bar chart',
+      `d_plot <- data.frame(`,
+      `  construct = factor(construct_names, levels = rev(construct_names)),`,
+      `  value     = as.numeric(cr_vec[construct_names])`,
+      `)`,
+      `print(`,
+      `  ggplot2::ggplot(d_plot, ggplot2::aes(x = value, y = construct)) +`,
+      `  ggplot2::geom_col(fill = "#0c447c") +`,
+      `  ggplot2::geom_vline(xintercept = 0.7, linetype = "dashed", colour = "#9cc2ec") +`,
+      `  ggplot2::labs(x = "CR", y = NULL) +`,
+      `  ggplot2::theme(legend.position = "none")`,
+      `)`,
+    ]
+
+    return lines.join('\n')
+  },
 }
 
 export const latentPackages: Record<string, string[]> = {
   'ave': ['lavaan', 'semTools', 'psych', 'ggplot2'],
+  'composite-reliability': ['lavaan', 'semTools', 'psych', 'ggplot2'],
   'cronbachs-alpha': ['psych', 'lavaan', 'semTools', 'ggplot2'],
 }

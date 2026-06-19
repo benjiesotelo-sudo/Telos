@@ -1061,16 +1061,16 @@
     <div class="rt-h"><span class="rt-name">Composite reliability (CR)</span><span class="rt-q">construct reliability</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
-      <div class="apa-cap"><b>Table.</b> Composite reliability</div>
-      <table class="apa"><thead><tr><th>Construct</th><th>CR</th><th>AVE</th><th>&alpha;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">CR &ge; .70 indicates adequate reliability; CR and AVE come from the CFA fit, while &alpha; is computed separately from the raw items (<code>psych::alpha()</code>). CR and McDonald's &omega; coincide for a congeneric (unidimensional) factor.</p>
+      <div class="apa-cap"><b>Table 1.</b> Composite reliability</div>
+      <table class="apa"><thead><tr><th>Construct</th><th>CR</th><th>AVE</th><th>&omega;</th><th>&alpha;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">CR &ge; .70 indicates adequate reliability (Nunnally, 1978; Bagozzi &amp; Yi, 1988); do not cite CR &ge; .70 to Fornell &amp; Larcker. CR and &omega; (McDonald&rsquo;s) coincide for a congeneric (unidimensional) model &mdash; both columns are computed from <code>semTools::compRelSEM()</code>; AVE is from <code>semTools::AVE()</code>; &alpha; (Cronbach&rsquo;s) is retained as a secondary/legacy column (<code>psych::alpha()</code>). Applies to <b>reflective</b> constructs only.</p>
       <div class="zlabel">Figure</div>
-      <div class="figbox"><div class="fcap"><b>Figure.</b> Reliability overview</div><div class="ftype">type: <b>CR bar chart</b> per construct</div></div>
+      <div class="figbox"><div class="fcap"><b>Figure.</b> Reliability overview</div><div class="ftype">type: CR bar chart per construct</div></div>
       <div class="zlabel">How to read this test</div>
-      <div class="howread"><p><b>CR</b> measures how reliably a set of items captures its construct (0&ndash;1); ~.70+ is acceptable. Unlike Cronbach's &alpha;, it weights items by their loadings rather than assuming they contribute equally.</p></div>
+      <div class="howread">CR (Composite Reliability) measures how reliably a set of items captures its construct (0&ndash;1); &ge; .70 is the conventional threshold (Nunnally, 1978; Bagozzi &amp; Yi, 1988). CR is computed from the CFA loadings via <code>semTools::compRelSEM()</code> &mdash; for a congeneric (unidimensional) factor CR equals McDonald's &omega;, so the two columns will always match. AVE is shown alongside for quick convergent-validity reference (&ge; .50; Fornell &amp; Larcker, 1981) &mdash; for the full discriminant-validity assessment (Fornell&ndash;Larcker + HTMT matrices) run the AVE card. &alpha; (Cronbach's) is a secondary/legacy coefficient &mdash; it assumes tau-equivalence (equal loadings) and is a lower bound when loadings differ (McNeish, 2018). All cutoffs are labelled guidelines, not pass/fail gates. Applies to reflective constructs only.</div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;Composite reliability was adequate for all constructs (CR &ge; .70).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>lavaan::cfa()</code> &rarr; loadings &middot; <code>semTools::compRelSEM()</code> &rarr; CR &middot; <code>semTools::AVE()</code> &rarr; AVE &middot; <code>psych::alpha()</code> &rarr; &alpha;</div>
+        <div class="m"><b>APA template:</b> &ldquo;Composite reliability was satisfactory (CR = .__ &ge; .70).&rdquo;</div>
+        <div class="m"><b>R map:</b> <code>lavaan::cfa()</code> &rarr; fit &middot; <code>semTools::compRelSEM()</code> &rarr; CR / &omega; &middot; <code>semTools::AVE()</code> &rarr; AVE &middot; <code>psych::alpha()</code> &rarr; &alpha; &middot; <code>ggplot2</code> &rarr; figure</div>
         <div class="m bundle">table_composite-reliability.png &middot; figure_reliability.png</div>
       </div>
     </div>

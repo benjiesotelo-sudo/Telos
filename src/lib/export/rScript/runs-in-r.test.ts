@@ -129,6 +129,21 @@ const REPS: Rep[] = [
     },
     expect: ['AVE=', 'HTMT'],
   },
+  // composite-reliability: 3 constructs × 3 items; asserts CR= substring in stdout
+  { id: 'composite-reliability', fixture: 'scale.csv',
+    setup: {
+      roles: {},
+      options: { estimator: 'ML (continuous) · WLSMV (ordinal)' },
+      props: {},
+      blocked: null,
+      constructs: [
+        { name: 'C1', items: ['x1', 'x2', 'x3'] },
+        { name: 'C2', items: ['x4', 'x5', 'x6'] },
+        { name: 'C3', items: ['x7', 'x8', 'x9'] },
+      ],
+    },
+    expect: ['CR=', 'Table 1: Composite reliability'],
+  },
 ]
 
 describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
