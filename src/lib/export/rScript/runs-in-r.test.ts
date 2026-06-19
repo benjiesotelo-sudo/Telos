@@ -108,6 +108,12 @@ const REPS: Rep[] = [
   mk('arima-sarima', 'timeseries.csv',
     { time: ['month'], series: ['sales'] },
     { order: 'auto-select', seasonalPeriod: 12, horizon: 12 }),
+
+  // --- latent variable / SEM family ---
+  mk('cronbachs-alpha', 'scale.csv',
+    { items: ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'] },
+    { standardizedAlpha: false, dropItem: true },
+    ['0.76', 'omega:']), // α ≈ 0.7605; ω line confirms compRelSEM ran
 ]
 
 describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
