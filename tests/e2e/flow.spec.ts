@@ -31,7 +31,7 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await page.getByRole('button', { name: 'Confirm & pick test' }).click()
 
   await expect(page.getByRole('heading', { name: 'Pick a test' })).toBeVisible()
-  await expect(page.getByText('arrives in a later slice').first()).toBeVisible()
+  await expect(page.getByText('arrives in a later slice')).toHaveCount(0)   // SEM-B: all 48 tests now live — none greyed
   await expect(page.getByRole('checkbox', { name: 'Pearson' })).toBeDisabled()
   await page.getByRole('checkbox', { name: 'Independent t-test' }).check()
   await page.getByRole('button', { name: 'Confirm selection' }).click()
