@@ -25,6 +25,8 @@ const TELOS_JSON_HELPER = String.raw`
 export class Engine {
   private webr: WebR
   private ready = false
+  /** seminr is installed lazily (see ensureSeminr) — it must never join the eager init() preload loop. */
+  private seminrReady = false
   constructor() { this.webr = new WebR(BASE_URL ? { baseUrl: BASE_URL } : {}) }
 
   /** Boot R, install core-tests packages (first run downloads from the WebR package repo — the browser caches it; Node re-downloads per instance). */
@@ -53,6 +55,12 @@ export class Engine {
     // SEM/reliability slice additions — spike-verified install + load under WebR 0.6.0 ≡ native R 4.6.0 (2026-06-18-sem-feasibility-spike.md):
     // lavaan (CB-SEM/CFA/path), semTools (ω/CR/AVE/HTMT/invariance), GPArotation (oblimin for EFA).
     // psych already preloaded above. makeCluster shim (above) enables seminr bootstrap under WASM.
+    // seminr (PLS-SEM, Sub-slice B) is DELIBERATELY NOT in this eager loop — it is installed LAZILY on the
+    // first pls-sem run via ensureSeminr(). DECISION (eager-vs-lazy, Unit 1): seminr is the heaviest SEM
+    // install (its seminr_model/Rcpp closure measured ~14–44s on a cold WebR repo fetch) and ONLY the single
+    // pls-sem card needs it; every other test (incl. CB-SEM via lavaan, already preloaded above) never pays
+    // that cost. Per the engine's stated size discipline (see broom/caret note above), lazy on-demand wins —
+    // the cold-boot of the other 46 tests stays unchanged; the one PLS user pays the install once per session.
     for (const pkg of ['ggplot2', 'nortest', 'effectsize', 'psych', 'coin', 'janitor',
       'afex', 'emmeans', 'car', 'rstatix',
       'pROC', 'parameters', 'performance',
@@ -64,6 +72,20 @@ export class Engine {
       await this.webr.installPackages([pkg], { quiet: true })
     }
     this.ready = true
+  }
+
+  /**
+   * Lazily install seminr (PLS-SEM) on first use. NOT part of init()'s eager preload (Unit-1 decision: seminr
+   * is the heaviest SEM install and only the pls-sem card needs it). The runPlsSem runner MUST await this
+   * before any estimate_pls/bootstrap_model call. Idempotent: a second call is a no-op. The detectCores and
+   * makeCluster shims are already applied in init() (which every run awaits first), so seminr::bootstrap_model
+   * runs serially under WASM the moment it is installed.
+   */
+  async ensureSeminr(onStatus?: (msg: string) => void): Promise<void> {
+    if (this.seminrReady) return
+    onStatus?.('Loading seminr (PLS-SEM)…')
+    await this.webr.installPackages(['seminr'], { quiet: true })
+    this.seminrReady = true
   }
 
   /** Evaluate an R block (statements allowed); its last value is serialized to JSON and parsed. */

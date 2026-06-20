@@ -27,4 +27,42 @@ describe('Engine', () => {
       as.list(pkgs[vapply(pkgs, function(p) tryCatch({ library(p, character.only = TRUE); TRUE }, error = function(e) FALSE), logical(1))])`)
     expect(ok).toEqual(['pROC', 'parameters', 'performance', 'MASS'])
   }, 600_000)
+  it('lazily installs seminr and runs estimate_pls on the mobi dataset under WebR', async () => {
+    await engine.ensureSeminr()
+    const r = await engine.runJson<{ loaded: boolean; rows: number; cols: number; constructs: string[]; satR2: number }>(`
+      suppressMessages(library(seminr))
+      mm <- constructs(
+        composite("Image",        multi_items("IMAG", 1:5)),
+        composite("Expectation",  multi_items("CUEX", 1:3)),
+        composite("Quality",      multi_items("PERQ", 1:7)),
+        composite("Value",        multi_items("PERV", 1:2)),
+        composite("Satisfaction", multi_items("CUSA", 1:3)),
+        composite("Complaints",   single_item("CUSCO")),
+        composite("Loyalty",      multi_items("CUSL", 1:3)))
+      sm <- relationships(
+        paths(from = "Image",        to = c("Expectation","Satisfaction","Loyalty")),
+        paths(from = "Expectation",  to = c("Quality","Value","Satisfaction")),
+        paths(from = "Quality",      to = c("Value","Satisfaction")),
+        paths(from = "Value",        to = "Satisfaction"),
+        paths(from = "Satisfaction", to = c("Complaints","Loyalty")),
+        paths(from = "Complaints",   to = "Loyalty"))
+      pls <- estimate_pls(data = mobi, measurement_model = mm, structural_model = sm)
+      s <- summary(pls)
+      list(
+        loaded     = requireNamespace("seminr", quietly = TRUE),
+        rows       = nrow(mobi),
+        cols       = ncol(mobi),
+        constructs = rownames(s$reliability),
+        satR2      = unname(round(s$paths["R^2", "Satisfaction"], 3)))`)
+    expect(r.loaded).toBe(true)
+    expect(r.rows).toBe(250)
+    expect(r.cols).toBe(24)
+    expect(r.constructs).toEqual(['Image', 'Expectation', 'Quality', 'Value', 'Satisfaction', 'Complaints', 'Loyalty'])
+    expect(r.satR2).toBe(0.681)
+  }, 600_000)
+  it('ensureSeminr is idempotent — a second call is a no-op and seminr stays loaded', async () => {
+    await engine.ensureSeminr()
+    await engine.ensureSeminr()
+    expect(await engine.runJson<boolean>(`requireNamespace("seminr", quietly = TRUE)`)).toBe(true)
+  }, 600_000)
 })
