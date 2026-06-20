@@ -95,6 +95,8 @@ import { runPca, type PcaResult } from '../stats/pca'
 import { buildPca } from './buildPca'
 import { runCbSem, type CbSemResult } from '../stats/runCbSem'
 import { buildCbSem } from './buildCbSem'
+import { runPlsSem, type PlsSemResult } from '../stats/plsSem'
+import { buildPlsSem } from './buildPlsSem'
 import type { MatrixTable } from './types'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
@@ -218,6 +220,7 @@ export const RUNNERS: Record<string, Runner> = {
     return runPca(engine, ds, setup.roles['variables'], { retention, nComponents, standardize })
   },
   'cb-sem': (engine, ds, setup, onProgress) => runCbSem(engine, ds, setup, onProgress),
+  'pls-sem': (engine, ds, setup, onProgress) => runPlsSem(engine, ds, setup, onProgress),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -266,4 +269,5 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'efa': (spec, result) => buildEfa(spec, result as EfaResult),
   'pca': (spec, result) => buildPca(spec, result as PcaResult),
   'cb-sem': (spec, result) => buildCbSem(spec, result as CbSemResult),
+  'pls-sem': (spec, result) => buildPlsSem(spec, result as PlsSemResult),
 }
