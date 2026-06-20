@@ -1,14 +1,6 @@
-// Locked interface for CB-SEM results (full implementation comes in Unit 6)
-export interface CbSemResult {
-  mode: 'full' | 'cfa-only' | 'path'
-  saturated: boolean
-  efaSuitability?: Record<string, number>
-  efaLoadings?: unknown
-  cfaLoadings: Array<Record<string, unknown>>
-  reliability: Array<Record<string, unknown>>
-  fit?: Record<string, number>
-  structural?: Array<Record<string, unknown>>
-  rsquare?: Record<string, number>
-  indirect?: Array<Record<string, unknown>>
-  estimates: { paths: Array<{ from: number; to: number; beta: number }>; loadings: Record<string, number>; r2: Record<number, number> }
-}
+// CB-SEM result type — single source of truth lives in runCbSem.ts (Unit 6).
+// Re-exported here so the original importer (SemCanvas, Unit 3a) keeps a stable path
+// and there is exactly ONE CbSemResult definition (number-keyed rsquare per the plan's
+// Shared Interfaces). The Unit-3a stub that previously diverged (string-keyed rsquare)
+// is replaced by this re-export.
+export type { CbSemResult } from './runCbSem'
