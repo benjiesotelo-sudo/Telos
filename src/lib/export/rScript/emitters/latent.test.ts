@@ -47,6 +47,9 @@ describe('pls-sem emitter', () => {
     expect(R).toContain('gc()')
     // indirect via specific_effect_significance
     expect(R).toContain('specific_effect_significance')
+    // Q²_predict parity: export must include predict_pls and Q^2_predict
+    expect(R).toContain('predict_pls(pls)')
+    expect(R).toContain('Q^2_predict')
   })
 
   it('handles an empty model gracefully', () => {
