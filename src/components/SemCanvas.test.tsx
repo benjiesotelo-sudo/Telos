@@ -120,6 +120,55 @@ describe('SemCanvasUI — static latent (Full-AMOS) render', () => {
   })
 })
 
+// ── adaptive item-side placement ─────────────────────────────────────────────
+// Constructs span all three zones of a W=760 viewBox:
+//   Quality   cx=146 < 760*0.34=258.4  → LEFT  (items to the left of the oval)
+//   Satisfy   cx=386 between thresholds → BELOW (items below the oval)
+//   Loyalty   cx=626 > 760*0.66=501.6  → RIGHT (items to the right of the oval)
+// With the old always-left code Quality and Loyalty items share the same x
+// and Satisfaction items land to the LEFT of the oval too — all three fail.
+describe('SemCanvasUI — adaptive item-side placement', () => {
+  const sideConstructs: Construct[] = [
+    { id: 1, name: 'Quality',    items: ['q1', 'q2'], x: 80,  y: 128 },  // cx=146 → left zone
+    { id: 2, name: 'Satisfy',   items: ['s1', 's2'], x: 320, y: 128 },  // cx=386 → below zone
+    { id: 3, name: 'Loyalty',   items: ['l1', 'l2'], x: 560, y: 128 },  // cx=626 → right zone
+  ]
+
+  it('items of a left-zone construct render to the LEFT of its oval (ix < oval-left)', () => {
+    // Quality oval left edge = cx - NODE_W/2 = 146 - 66 = 80
+    // Items must have x < 80 (they are to the left of the oval)
+    const html = renderLatent({ constructs: sideConstructs, paths: [] })
+    // Extract all sem-item rect x values from Quality's group.
+    // We check that at least one item rect's x attribute is < 80 (the oval's left).
+    // Strategy: grab all x="<number>" from the full render and ensure the smallest
+    // is below 80 (only left-placed items would be that far left).
+    const xMatches = [...html.matchAll(/class="sem-item" x="([^"]+)"/g)]
+    const xs = xMatches.map((m) => parseFloat(m[1]))
+    // At least some items must be to the left of Quality's oval (x < 80)
+    expect(xs.some((x) => x < 80)).toBe(true)
+  })
+
+  it('items of a right-zone construct render to the RIGHT of its oval (ix > oval-right)', () => {
+    // Loyalty oval right edge = cx + NODE_W/2 = 626 + 66 = 692
+    // Items to the right of oval will have x > 692
+    const html = renderLatent({ constructs: sideConstructs, paths: [] })
+    const xMatches = [...html.matchAll(/class="sem-item" x="([^"]+)"/g)]
+    const xs = xMatches.map((m) => parseFloat(m[1]))
+    // At least some items must be to the right of Loyalty's oval (x > 692)
+    expect(xs.some((x) => x > 692)).toBe(true)
+  })
+
+  it('items of a middle/below-zone construct render BELOW its oval (iy > oval-bottom)', () => {
+    // Satisfy oval bottom = cy + NODE_H/2 = 160 + 32 = 192
+    // Below-placed items must have y > 192
+    const html = renderLatent({ constructs: sideConstructs, paths: [] })
+    const yMatches = [...html.matchAll(/class="sem-item" x="[^"]+" y="([^"]+)"/g)]
+    const ys = yMatches.map((m) => parseFloat(m[1]))
+    // At least some items must be below Satisfy's oval bottom (y > 192)
+    expect(ys.some((y) => y > 192)).toBe(true)
+  })
+})
+
 // ── path mode: observed rectangles, no item boxes ──────────────────────────
 describe('SemCanvasUI — path mode (observed rectangles)', () => {
   it('draws a rectangle per column and no ovals/item boxes in path mode', () => {

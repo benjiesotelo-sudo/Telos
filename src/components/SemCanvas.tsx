@@ -29,8 +29,16 @@ const NODE_H = 64    // oval / rectangle height
 const ITEM_W = 56
 const ITEM_H = 22
 const ITEM_GAP = 6
+const ITEM_SIDE_GAP = 28  // gap between oval edge and item stack
 const DEFAULT_X = 80
 const DEFAULT_Y = 70
+
+/** Choose which side item boxes sit on, based on cx relative to the canvas width W. */
+function itemSide(cx: number, W: number): 'left' | 'right' | 'below' {
+  if (cx < W * 0.34) return 'left'
+  if (cx > W * 0.66) return 'right'
+  return 'below'
+}
 
 export interface SemCanvasUIProps {
   testId: string
@@ -189,23 +197,42 @@ export function SemCanvasUI({
             )
           }
           const tooFew = n.items.length < 2
+          const W = vbProp ? vbProp.w : 760
+          const side = itemSide(c.cx, W)
+          const ni = n.items.length
           return (
             <g key={`node-${n.id}`}>
               {n.items.map((item, k) => {
-                const ix = c.left - ITEM_W - 28
-                const iy = c.top + k * (ITEM_H + ITEM_GAP)
+                let ix: number, iy: number, lx1: number, ly1: number, labelX: number, labelAnchor: string
+                if (side === 'left') {
+                  ix = c.left - ITEM_SIDE_GAP - ITEM_W
+                  iy = c.cy - ((ni - 1) / 2) * (ITEM_H + ITEM_GAP) + k * (ITEM_H + ITEM_GAP) - ITEM_H / 2
+                  lx1 = ix + ITEM_W; ly1 = iy + ITEM_H / 2
+                  labelX = ix - 4; labelAnchor = 'end'
+                } else if (side === 'right') {
+                  ix = c.left + NODE_W + ITEM_SIDE_GAP
+                  iy = c.cy - ((ni - 1) / 2) * (ITEM_H + ITEM_GAP) + k * (ITEM_H + ITEM_GAP) - ITEM_H / 2
+                  lx1 = ix; ly1 = iy + ITEM_H / 2
+                  labelX = ix + ITEM_W + 4; labelAnchor = 'start'
+                } else {
+                  // below
+                  ix = c.cx + (k - (ni - 1) / 2) * (ITEM_W + 12) - ITEM_W / 2
+                  iy = c.top + NODE_H + ITEM_SIDE_GAP
+                  lx1 = ix + ITEM_W / 2; ly1 = iy
+                  labelX = ix + ITEM_W / 2; labelAnchor = 'middle'
+                }
                 const load = estimates?.loadings[item]
                 return (
                   <g key={`item-${k}`}>
                     <line
                       className="sem-measure"
-                      x1={ix + ITEM_W} y1={iy + ITEM_H / 2} x2={c.cx} y2={c.cy}
+                      x1={lx1} y1={ly1} x2={c.cx} y2={c.cy}
                       stroke="var(--line)" strokeWidth={1}
                     />
                     <rect className="sem-item" x={ix} y={iy} width={ITEM_W} height={ITEM_H} rx={3} fill="#fff" stroke="var(--line)" />
                     <text x={ix + ITEM_W / 2} y={iy + ITEM_H / 2 + 4} textAnchor="middle" fontSize={11} fill="var(--text)">{item}</text>
                     {load != null && (
-                      <text className="sem-load-label" x={ix + ITEM_W + 12} y={iy + ITEM_H / 2 - 2} textAnchor="middle" fontSize={9} fill="var(--muted)">
+                      <text className="sem-load-label" x={labelX} y={iy + ITEM_H / 2 - 2} textAnchor={labelAnchor} fontSize={9} fill="var(--muted)">
                         {load.toFixed(2)}
                       </text>
                     )}
