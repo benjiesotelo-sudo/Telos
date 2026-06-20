@@ -112,6 +112,18 @@
   .amospill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border:0.5px solid var(--line);border-radius:7px;padding:4px 9px;color:var(--muted);background:var(--bg);}
   .amospill.on{background:var(--amber-bg);color:var(--amber-tx);border-color:var(--amber-sub);}
   .amospill.ghost{color:var(--faint);border-style:dashed;}
+  .amospill.zoom{font-size:13px;padding:3px 8px;font-weight:700;}
+  .amospill.resize{font-size:11px;padding:3px 8px;}
+
+  /* construct-slots form (CB-SEM, PLS-SEM, AVE, CR) */
+  .cs-hint{font-size:11.5px;color:var(--faint);font-style:italic;margin:10px 0 8px;line-height:1.5;}
+  .cs-slots{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .cs-slot{border:0.5px solid var(--line);border-radius:9px;padding:9px 12px;background:var(--bg);}
+  .cs-slot.ghost{border-style:dashed;opacity:0.55;}
+  .cs-name{font-size:13px;font-weight:700;margin-bottom:5px;}
+  .cs-name-ghost{font-size:12.5px;color:var(--faint);font-style:italic;}
+  .cs-items{display:flex;flex-wrap:wrap;gap:5px;}
+  .cs-mode{display:inline-block;font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;background:var(--purple-bg);color:var(--purple-tx);border-radius:5px;padding:1px 7px;margin-left:7px;vertical-align:middle;}
 
   /* AMOS path-diagram canvas (static depiction of the draw-the-paths interaction) */
   .amoscanvas{width:100%;margin:2px 0;}
@@ -159,7 +171,7 @@
 <body>
 <div class="wrap">
   <h1 class="page">Telos — test configuration <span style="color:var(--muted);font-weight:500;">(step 6 detail)</span></h1>
-  <p class="sub-note">How each selected test is configured by the student: <b>drag the right columns into the test's role slots</b>, then <b>set its options</b>. Every test is drawn as a full configuration card with the same anatomy. The SEM models (CB-SEM, PLS-SEM) use a model-building canvas where the student draws the paths.</p>
+  <p class="sub-note">How each selected test is configured by the student: <b>drag the right columns into the test's role slots</b>, then <b>set its options</b>. Every test is drawn as a full configuration card with the same anatomy. The SEM models (CB-SEM, PLS-SEM) use a model-building canvas where the student draws the structural paths between constructs they define in a form.</p>
   <p class="companion">Companion to <a href="telos_ui_spec.html">telos_ui_spec.html</a> &middot; step 6 ("Configure each test") points here &middot; see <a href="telos_test_outputs.html">telos_test_outputs.html</a> &mdash; what each test produces.</p>
 
   <!-- navigator context -->
@@ -2500,16 +2512,9 @@
     <div class="ttl">CB-SEM</div>
     <div class="sttl">not slot-filling &mdash; the student <b>builds a model</b>: constructs from items, then paths between constructs</div>
     <div class="inner lbl-wrap">
-      <span class="zone-tag">1 · build the model &mdash; drag constructs, draw the paths</span>
-      <div class="pl-h">Compatible columns</div>
-      <div class="palette">
-        <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu1&ndash;eu3 <span class="lv">ordinal</span></span>
-        <span class="colchip"><span class="grip">&#9783;&#9783;</span>pu1&ndash;pu3 <span class="lv">ordinal</span></span>
-        <span class="colchip"><span class="grip">&#9783;&#9783;</span>int1&ndash;int3 <span class="lv">ordinal</span></span>
-      </div>
-      <div class="ds-note" style="margin:6px 0 11px;">drag items from the palette onto a construct</div>
+      <span class="zone-tag">1 · draw the structural model</span>
       <div class="canvas">
-        <div class="amosbar"><span class="amospill on">Move</span><span class="amospill">&rarr; Draw path</span><span class="amospill">&times; Delete</span><span class="amospill ghost">&#43; Construct</span></div>
+        <div class="amosbar"><span class="amospill on">&rarr; Draw path</span><span class="amospill">Move</span><span class="amospill">&times; Delete</span><span class="amospill zoom">&minus;</span><span class="amospill zoom">&#43;</span><span class="amospill zoom">Fit</span><span class="amospill resize">&#8689; resize</span></div>
         <div class="amoscanvas">
           <svg class="amossvg" viewBox="0 0 690 370" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
             <defs><marker id="arw_cb" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0.5,0.5 L9.5,5 L0.5,9.5 z" fill="var(--purple-line)"/></marker></defs>
@@ -2551,12 +2556,29 @@
             <line class="lat-path" x1="474" y1="146" x2="376" y2="244" marker-end="url(#arw_cb)"/>
           </svg>
         </div>
-        <div class="sem-cap">drag an item onto a construct to build the measurement model &middot; click two constructs to draw a structural path &middot; paths that form a chain (e.g. EU &rarr; PU &rarr; INT) automatically produce an <b>Indirect effects</b> table (bootstrapped 95% CIs) &middot; moderation planned for a later version</div>
+        <div class="sem-cap">draw arrows between constructs to build the structural model &middot; click a source construct then a target to draw a path &middot; <b>Move</b> repositions a construct, <b>Delete</b> removes a path or construct &middot; zoom / pan / resize to fit larger models &middot; paths that form a chain (e.g. EU &rarr; PU &rarr; INT) automatically produce an <b>Indirect effects</b> table (bootstrapped 95% CIs) &middot; moderation planned for a later version</div>
+      </div>
+      <span class="zone-tag" style="margin-top:13px;">2 · define the constructs (name each, check its items)</span>
+      <div class="cs-hint">Add each construct, name it, then check its items. Each construct needs &ge; 2 items (recommend &ge; 3); the ovals on the canvas appear as you define them.</div>
+      <div class="cs-slots">
+        <div class="cs-slot">
+          <div class="cs-name">Ease of Use</div>
+          <div class="cs-items"><span class="pill on">eu1</span> <span class="pill on">eu2</span> <span class="pill on">eu3</span></div>
+        </div>
+        <div class="cs-slot">
+          <div class="cs-name">Usefulness</div>
+          <div class="cs-items"><span class="pill on">pu1</span> <span class="pill on">pu2</span> <span class="pill on">pu3</span></div>
+        </div>
+        <div class="cs-slot">
+          <div class="cs-name">Intention</div>
+          <div class="cs-items"><span class="pill on">int1</span> <span class="pill on">int2</span> <span class="pill on">int3</span></div>
+        </div>
+        <div class="cs-slot ghost"><div class="cs-name-ghost">+ Add construct</div></div>
       </div>
     </div>
     <div class="mini-arrow"></div>
     <div class="inner lbl-wrap">
-      <span class="zone-tag">2 · choose the pipeline &amp; options</span>
+      <span class="zone-tag">3 · choose the pipeline &amp; options</span>
       <div class="pipe-h">pipeline &mdash; stages to run <span>&middot; CFA &amp; fit always on; EFA &amp; structural optional</span></div>
       <div class="pipeline">
         <span class="stage on"><span class="nm">EFA</span><span class="ind">&#10003; included</span></span>
@@ -2583,7 +2605,7 @@
     </div>
     <div class="cfgguide">
       <div class="gh">How to configure this test</div>
-      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First build the <b>measurement model</b>: drag the items that belong together into each construct (<b>at least 3 items</b> per construct &mdash; 2 only works inside a larger model). Then build the <b>structural model</b>: draw arrows for the relationships you hypothesize between constructs &mdash; when your paths form a chain (e.g. EU &rarr; PU &rarr; INT), Telos automatically adds an <b>Indirect effects</b> table with bootstrapped 95% CIs (moderation is planned for a later version). When your items are <b>ordinal Likert</b>, use the <b>WLSMV</b> estimator (treats them as ordered) instead of ML/MLR. By default Telos runs the full pipeline (EFA &rarr; CFA &rarr; fit &rarr; structural); deselect <b>EFA</b> for a confirmatory-only run, or the <b>structural</b> stage to validate the measurement model on its own. Missing data is handled to match your estimator &mdash; FIML for continuous (ML/MLR), multiple imputation for ordinal (WLSMV) &mdash; and Telos warns if this differs from your global step-4a setting.</p>
+      <p>Use this to test a <b>theory-driven model</b> with latent constructs measured by several survey items. First <b>define the measurement model</b> in the construct form: add each construct, name it, and check the items that belong to it (<b>at least 2 items</b> per construct, <b>recommend 3</b> &mdash; 2 only works inside a larger model). Then <b>draw the structural model</b> on the canvas: click a source construct then a target to draw an arrow for each relationship you hypothesize &mdash; when your paths form a chain (e.g. EU &rarr; PU &rarr; INT), Telos automatically adds an <b>Indirect effects</b> table with bootstrapped 95% CIs (moderation is planned for a later version). When your items are <b>ordinal Likert</b>, use the <b>WLSMV</b> estimator (treats them as ordered) instead of ML/MLR. By default Telos runs the full pipeline (EFA &rarr; CFA &rarr; fit &rarr; structural); deselect <b>EFA</b> for a confirmatory-only run, or the <b>structural</b> stage to validate the measurement model on its own. Missing data is handled to match your estimator &mdash; FIML for continuous (ML/MLR), multiple imputation for ordinal (WLSMV) &mdash; and Telos warns if this differs from your global step-4a setting.</p>
     </div>
     <div class="meta-row">
       <span class="tag"><b>Produces &mdash; tables:</b> EFA suitability + EFA loadings, CFA loadings, reliability &amp; validity, fit indices, structural paths, indirect effects (when paths chain)</span>
@@ -2820,16 +2842,9 @@
       <div class="ttl">PLS-SEM</div>
       <div class="sttl">variance-based SEM &mdash; build constructs, then draw the paths</div>
       <div class="inner lbl-wrap">
-        <span class="zone-tag">1 · build the model &mdash; drag constructs, draw the paths</span>
-        <div class="pl-h">Compatible columns</div>
-        <div class="palette">
-          <span class="colchip"><span class="grip">&#9783;&#9783;</span>eu1&ndash;eu3 <span class="lv">ordinal</span></span>
-          <span class="colchip"><span class="grip">&#9783;&#9783;</span>pu1&ndash;pu3 <span class="lv">ordinal</span></span>
-          <span class="colchip"><span class="grip">&#9783;&#9783;</span>int1&ndash;int3 <span class="lv">ordinal</span></span>
-        </div>
-        <div class="ds-note" style="margin:6px 0 11px;">drag items from the palette onto a construct</div>
+        <span class="zone-tag">1 · draw the structural model</span>
         <div class="canvas">
-          <div class="amosbar"><span class="amospill on">Move</span><span class="amospill">&rarr; Draw path</span><span class="amospill">&times; Delete</span><span class="amospill ghost">&#43; Construct</span></div>
+          <div class="amosbar"><span class="amospill on">&rarr; Draw path</span><span class="amospill">Move</span><span class="amospill">&times; Delete</span><span class="amospill zoom">&minus;</span><span class="amospill zoom">&#43;</span><span class="amospill zoom">Fit</span><span class="amospill resize">&#8689; resize</span></div>
           <div class="amoscanvas">
             <svg class="amossvg" viewBox="0 0 690 370" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
               <defs><marker id="arw_pls" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0.5,0.5 L9.5,5 L0.5,9.5 z" fill="var(--purple-line)"/></marker></defs>
@@ -2874,7 +2889,24 @@
               <line class="lat-path" x1="474" y1="146" x2="376" y2="244" marker-end="url(#arw_pls)"/>
             </svg>
           </div>
-          <div class="sem-cap">same canvas as CB-SEM &middot; drag items onto a construct, then click two constructs to draw a path &middot; paths that form a chain (e.g. EU &rarr; PU &rarr; INT) automatically produce an <b>Indirect effects</b> table (bootstrapped 95% CIs) &middot; each construct is set <b>reflective</b> or <b>formative</b> individually (same items can be specified either way &mdash; shown here with Ease of Use formative)</div>
+          <div class="sem-cap">same canvas as CB-SEM &middot; draw arrows between constructs to build the structural model &middot; click a source construct then a target to draw a path &middot; paths that form a chain (e.g. EU &rarr; PU &rarr; INT) automatically produce an <b>Indirect effects</b> table (bootstrapped 95% CIs) &middot; each construct is set <b>reflective</b> or <b>formative</b> in the construct form below (same items can be specified either way &mdash; shown here with Ease of Use formative)</div>
+        </div>
+        <span class="zone-tag" style="margin-top:13px;">2 · define the constructs (name each, check its items, set reflective / formative)</span>
+        <div class="cs-hint">Add each construct, name it, check its items, and choose <b>reflective</b> (items reflect the construct) or <b>formative</b> (items cause it). Each construct needs &ge; 2 items.</div>
+        <div class="cs-slots">
+          <div class="cs-slot">
+            <div class="cs-name">Ease of Use <span class="cs-mode">formative</span></div>
+            <div class="cs-items"><span class="pill on">eu1</span> <span class="pill on">eu2</span> <span class="pill on">eu3</span></div>
+          </div>
+          <div class="cs-slot">
+            <div class="cs-name">Usefulness <span class="cs-mode">reflective</span></div>
+            <div class="cs-items"><span class="pill on">pu1</span> <span class="pill on">pu2</span> <span class="pill on">pu3</span></div>
+          </div>
+          <div class="cs-slot">
+            <div class="cs-name">Intention <span class="cs-mode">reflective</span></div>
+            <div class="cs-items"><span class="pill on">int1</span> <span class="pill on">int2</span> <span class="pill on">int3</span></div>
+          </div>
+          <div class="cs-slot ghost"><div class="cs-name-ghost">+ Add construct</div></div>
         </div>
       </div>
       <div class="mini-arrow"></div>
@@ -2889,7 +2921,7 @@
       </div>
       <div class="cfgguide">
         <div class="gh">How to configure this test</div>
-        <p>Use this for variance-based SEM &mdash; well suited to prediction, smaller samples, or formative constructs. Build the model on the same canvas as CB-SEM: drag each construct's items together, then draw arrows for the relationships you hypothesize (including any mediation &mdash; chained paths get an <b>Indirect effects</b> table automatically; moderation is planned for a later version). Switch a construct to <b>formative</b> when its items <i>cause</i> the construct rather than reflect it. Bootstrapping gives the significance of the path coefficients.</p>
+        <p>Use this for variance-based SEM &mdash; well suited to prediction, smaller samples, or formative constructs. First <b>define the constructs</b> in the form: add each one, name it, check its items, and set it <b>reflective</b> (items reflect the construct) or <b>formative</b> (items <i>cause</i> it). Then <b>draw the structural model</b> on the canvas: click a source construct then a target to draw an arrow for each relationship you hypothesize (including any mediation &mdash; chained paths get an <b>Indirect effects</b> table automatically; moderation is planned for a later version). Bootstrapping gives the significance of the path coefficients.</p>
       </div>
       <div class="meta-row">
         <span class="tag"><b>Produces &mdash; tables:</b> outer loadings/weights, reliability &amp; validity (CR/AVE/&rho;<sub>A</sub>), HTMT discriminant validity, structural paths (&beta;, f&sup2;), structural model quality (R&sup2; / Q&sup2;), indirect effects (when paths chain)</span>
@@ -2908,7 +2940,7 @@
     <b>How to read this page:</b><br>
     Every selected test is drawn as a full configuration card with the same parts &mdash; &#9312; drag columns into roles, &#9313; set options, &#9314; a <b>"How to configure this test"</b> guide, &#9315; what it produces.<br>
     The dashed amber <b>"How to configure this test"</b> box is a <b>configure-time guide</b> &mdash; separate from the results-screen <b>"How to read this test"</b> layer in the main spec. One teaches <i>setup</i>; the other teaches <i>interpretation</i>.<br>
-    Latent-variable models (CB-SEM, PLS-SEM, AVE, CR) replace the role slots with a <b>model-building canvas</b> where the student drags items into constructs and draws the paths.<br>
+    Latent-variable models replace the role slots with a <b>construct form</b> (CB-SEM, PLS-SEM, AVE, CR &mdash; name each construct and check its items); for CB-SEM and PLS-SEM, after they define their constructs (name + items) in a form, then draw the structural paths on the canvas in a <b>model-building canvas</b>.<br>
     Drawn grey reasons that lean on the example's <i>meaning</i> (e.g. &ldquo;belongs to a different construct&rdquo;, &ldquo;measured once, not across time&rdquo;) are <b>illustrative</b> &mdash; the app's actual greying is computed from <b>level / arity constraints only</b>, and semantic grouping (which columns are repeated measures of one variable, or items of one construct) is declared by the student's own drag placement, never inferred.<br>
     Slot tags like <b>count</b>, <b>datetime / ordered</b>, <b>id</b> and <b>nom&middot;nested</b> are <b>auto-detected column properties</b> used for slot eligibility &mdash; not step-4 measurement levels the student assigns (those stay nominal &middot; ordinal &middot; interval &middot; ratio).
   </div>
