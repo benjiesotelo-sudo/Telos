@@ -82,8 +82,8 @@ describe('SemCanvasUI — interaction affordances', () => {
     const constructs = [C(1, 'A', ['q1', 'q2'], 100, 80), C(2, 'B', ['q3', 'q4'], 300, 80)]
     const estimates = { paths: [{ from: 1, to: 2, beta: 0.42 }], loadings: {}, r2: { 2: 0.31 } }
     const html = render({ constructs, paths: [{ from: 1, to: 2 }], estimates })
-    expect(html).toContain('0.42')   // β on the path
-    expect(html).toContain('0.31')   // R² on the endogenous oval
+    expect(html).toContain('β = .42')   // β on the path (APA: leading zero stripped, Task 29)
+    expect(html).toContain('R² = .31')  // R² on the endogenous oval (APA)
   })
 
   it('disables every toolbar button while running', () => {
