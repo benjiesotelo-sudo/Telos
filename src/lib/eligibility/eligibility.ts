@@ -97,7 +97,7 @@ export function testEligibility(entry: CatalogEntry, spec: TestSpec | null, colu
   if (rule.kind === 'values') {
     // any role's candidate column with ≥n numeric values (the time-series Time role is a non-numeric
     // datetime, so check across all roles — not just candidates[0], which for those tests is the Time slot).
-    // constructsInput specs (AVE, CR) have roles:[] — check all used numeric columns directly.
+    // inputKind:'construct-slots' specs (AVE, CR) have roles:[] — check all used numeric columns directly.
     const pool = candidates.flat().length > 0
       ? candidates.flat()
       : columns.filter((c) => c.used && c.level !== null && ['ordinal', 'interval', 'ratio'].includes(c.level))

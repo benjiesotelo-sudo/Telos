@@ -21,7 +21,7 @@ export function TestConfigScreen({ testId }: { testId: string }) {
       <div className="eyebrow">{idx} · {spec.name}</div>
       <h1 className="title">Drag columns into roles</h1>
       {setup.blocked && <div className="error-box" role="alert">Blocked: {setup.blocked}</div>}
-      {spec.constructsInput ? <ConstructSlots testId={testId} /> : <DragSlots testId={testId} spec={spec} />}
+      {spec.inputKind ? <ConstructSlots testId={testId} /> : <DragSlots testId={testId} spec={spec} />}
       <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
         {spec.options.map((o) => o.kind === 'display' ? (
           <span key={o.id} className="pill">{o.label} {o.value}</span>

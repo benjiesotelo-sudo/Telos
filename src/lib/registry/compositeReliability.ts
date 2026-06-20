@@ -11,7 +11,7 @@ export const COMPOSITE_RELIABILITY: TestSpec = {
   id: 'composite-reliability',
   name: 'Composite reliability (CR)',
   question: 'construct reliability',
-  constructsInput: true,
+  inputKind: 'construct-slots',
   roles: [],
   options: [
     { id: 'estimator', label: 'estimator', value: 'ML (continuous) · WLSMV (ordinal)', kind: 'display' },

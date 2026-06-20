@@ -12,7 +12,7 @@ export const AVE: TestSpec = {
   id: 'ave',
   name: 'Average variance extracted (AVE)',
   question: 'convergent and discriminant validity',
-  constructsInput: true,
+  inputKind: 'construct-slots',
   roles: [],
   options: [
     { id: 'estimator', label: 'estimator', value: 'ML (continuous) · WLSMV (ordinal)', kind: 'display' },

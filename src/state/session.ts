@@ -87,10 +87,18 @@ export const gateOk = (s: SessionState, step: StepId): boolean => {
       const ex = t.roles['exposure']?.[0]
       if (ex && !strictlyPositive(workingDataset(s), ex)) return false
     }
-    // AVE/CR constructs: must have ≥1 construct and every construct must have ≥2 items, or R runner crashes.
-    if (spec.constructsInput) {
+    // construct-slots (AVE/CR/EFA): ≥1 construct, every construct ≥2 items, or the R runner crashes.
+    if (spec.inputKind === 'construct-slots') {
       const cs = t.constructs ?? []
       if (cs.length === 0 || cs.some((c) => c.items.length < 2)) return false
+    }
+    // sem-canvas (CB-SEM/PLS-SEM): need a measurement model AND ≥1 structural path.
+    // Path mode (each node = 1 observed column) relaxes the ≥2-items rule.
+    if (spec.inputKind === 'sem-canvas') {
+      const cs = t.constructs ?? []
+      if (cs.length === 0) return false
+      if (t.modelKind !== 'path' && cs.some((c) => c.items.length < 2)) return false
+      if ((t.paths?.length ?? 0) < 1) return false
     }
     return true
   }

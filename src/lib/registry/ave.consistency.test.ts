@@ -60,8 +60,8 @@ describe('ave registry stays faithful to the spec HTML (verbatim, card-scoped)',
   it('bundle line equals bundleFiles', () => {
     expect(strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')).toEqual(spec.bundleFiles)
   })
-  it('constructsInput is true (AVE uses construct-slots, not drag-slots)', () => {
-    expect(spec.constructsInput).toBe(true)
+  it('inputKind is construct-slots (AVE uses construct-slots, not drag-slots)', () => {
+    expect(spec.inputKind).toBe('construct-slots')
   })
   it('roles array is empty (constructs replace role slots for AVE)', () => {
     expect(spec.roles).toHaveLength(0)

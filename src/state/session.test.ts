@@ -252,42 +252,51 @@ describe('construct id migration (Sub-slice B)', () => {
   })
 })
 
-describe('constructsInput gate guard', () => {
+describe('inputKind gate guard', () => {
   const FAKE_ID = '__test-constructs__'
+  const CANVAS_ID = '__test-canvas-gate__'
   beforeEach(() => {
-    // Inject a minimal synthetic spec with constructsInput: true into SPECS
-    ;(SPECS as Record<string, unknown>)[FAKE_ID] = {
-      id: FAKE_ID, constructsInput: true,
-      constraints: { roles: [] },
-      options: [],
-    }
+    ;(SPECS as Record<string, unknown>)[FAKE_ID] = { id: FAKE_ID, inputKind: 'construct-slots', constraints: { roles: [] }, options: [] }
+    ;(SPECS as Record<string, unknown>)[CANVAS_ID] = { id: CANVAS_ID, inputKind: 'sem-canvas', constraints: { roles: [] }, options: [] }
     useSession.getState().reset()
-    useSession.setState({ selection: [FAKE_ID], setups: { [FAKE_ID]: { roles: {}, options: {}, props: {}, blocked: null, constructs: [] } } })
+    useSession.setState({ selection: [FAKE_ID, CANVAS_ID], setups: {
+      [FAKE_ID]: { roles: {}, options: {}, props: {}, blocked: null, constructs: [] },
+      [CANVAS_ID]: { roles: {}, options: {}, props: {}, blocked: null, constructs: [], paths: [] },
+    } })
   })
-  afterEach(() => { delete (SPECS as Record<string, unknown>)[FAKE_ID] })
+  afterEach(() => { delete (SPECS as Record<string, unknown>)[FAKE_ID]; delete (SPECS as Record<string, unknown>)[CANVAS_ID] })
 
-  it('gateOk returns false with 0 constructs', () => {
+  it('construct-slots: gateOk false with 0 constructs', () => {
     expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(false)
   })
-
-  it('gateOk returns false with a construct that has 1 item (< 2)', () => {
+  it('construct-slots: gateOk false with a construct that has 1 item (< 2)', () => {
     useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ id: 1, name: 'A', items: ['q1'] }] } } }))
     expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(false)
   })
-
-  it('gateOk returns false when any construct has 0 items', () => {
-    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: [] }] } } }))
-    expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(false)
-  })
-
-  it('gateOk returns true with ≥1 construct each having ≥2 items', () => {
+  it('construct-slots: gateOk true with ≥1 construct each having ≥2 items', () => {
     useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }] } } }))
     expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(true)
   })
 
-  it('gateOk returns true with multiple constructs all having ≥2 items', () => {
-    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3', 'q4'] }] } } }))
-    expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(true)
+  it('sem-canvas (latent): gateOk false with constructs but no paths', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3', 'q4'] }], paths: [] } } }))
+    expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(false)
+  })
+  it('sem-canvas (latent): gateOk false with a path but a construct < 2 items', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3'] }], paths: [{ from: 1, to: 2 }] } } }))
+    expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(false)
+  })
+  it('sem-canvas (latent): gateOk true with ≥2-item constructs AND ≥1 path', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3', 'q4'] }], paths: [{ from: 1, to: 2 }] } } }))
+    expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(true)
+  })
+  it('sem-canvas (path): relaxes the ≥2-items rule (each node = 1 column), needs ≥1 path', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [{ id: 1, name: 'X', items: ['x'] }, { id: 2, name: 'Y', items: ['y'] }], paths: [{ from: 1, to: 2 }] } } }))
+    expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(true)
+  })
+  it('sem-canvas (path): gateOk false with no path even when nodes exist', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [{ id: 1, name: 'X', items: ['x'] }, { id: 2, name: 'Y', items: ['y'] }], paths: [] } } }))
+    expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(false)
   })
 })
 

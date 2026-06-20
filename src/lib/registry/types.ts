@@ -23,7 +23,7 @@ export interface TestSpec {
   tableNote?: { kind: 'assume' | 'plain'; text: string; afterTableId?: string } // absent = no note (Wilcoxon) · afterTableId: render note inline after that table
   figure?: FigureSpec                        // t-test only (locked)
   figures?: FigureSpec[]                     // new entries
-  constructsInput?: true                     // AVE/CR: renders ConstructSlots instead of (or alongside) DragSlots
+  inputKind?: 'construct-slots' | 'sem-canvas' // construct-slots: ConstructSlots form (AVE/CR/EFA). sem-canvas: SEM path canvas + construct form (CB-SEM/PLS-SEM). Absent = drag-slots.
   howToRead: string; apaTemplate: string; rMap: string; bundleFiles: string[]
   constraints: TestConstraints
 }
