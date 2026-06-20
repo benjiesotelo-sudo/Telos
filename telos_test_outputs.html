@@ -1133,13 +1133,13 @@
       <table class="apa"><thead><tr><th>Item</th><th>Factor 1</th><th>Factor 2</th><th>Communality</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">loading columns expand to the number of retained factors.</p>
       <div class="apa-cap"><b>Table 3.</b> Measurement model (CFA loadings)</div>
-      <table class="apa"><thead><tr><th>Construct &rarr; Item</th><th>Std. loading</th><th>SE</th><th>z</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Construct &rarr; Item</th><th>B</th><th>SE</th><th>z</th><th>p</th><th>Std. loading</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 4.</b> Reliability &amp; validity</div>
-      <table class="apa"><thead><tr><th>Construct</th><th>CR</th><th>AVE</th><th>&alpha;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Construct</th><th>CR</th><th>AVE</th><th>&omega;</th><th>&alpha;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 5.</b> Fit indices</div>
       <table class="apa"><thead><tr><th>&chi;&sup2; (df, p)</th><th>&chi;&sup2;/df</th><th>CFI</th><th>TLI</th><th>RMSEA [90% CI]</th><th>SRMR</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 6.</b> Structural paths</div>
-      <table class="apa"><thead><tr><th>Path</th><th>Std. &beta;</th><th>SE</th><th>z</th><th>p</th><th>95% CI</th><th>R&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Path</th><th>B</th><th>SE</th><th>z</th><th>p</th><th>Std. &beta;</th><th>95% CI</th><th>R&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">good fit guideline: CFI/TLI &ge; .95, RMSEA &le; .06, SRMR &le; .08; use WLSMV for ordinal indicators. R&sup2; is filled once per endogenous (outcome) construct. EFA on the same sample is exploratory &mdash; treat it as a diagnostic, not confirmatory evidence.</p>
       <div class="apa-cap"><b>Table 7.</b> Indirect effects (mediation)</div>
       <table class="apa"><thead><tr><th>Path</th><th>Estimate</th><th>SE</th><th>boot 95% CI</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
@@ -1163,7 +1163,7 @@
       <div class="apa-cap"><b>Table 1.</b> Measurement model (outer loadings / weights)</div>
       <table class="apa"><thead><tr><th>Construct &rarr; Item</th><th>Loading / weight</th><th>t</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Reliability &amp; convergent validity (per construct)</div>
-      <table class="apa"><thead><tr><th>Construct</th><th>CR</th><th>AVE</th><th>&rho;<sub>A</sub></th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Construct</th><th>&alpha;</th><th>&rho;<sub>A</sub></th><th>CR (&rho;<sub>C</sub>)</th><th>AVE</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Discriminant validity &mdash; HTMT (construct &times; construct)</div>
       <table class="apa"><thead><tr><th>Construct</th><th>C1</th><th>C2</th><th>C3</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">HTMT is a construct-by-construct matrix (not a per-construct value) &mdash; columns expand to the number of constructs in the model; HTMT &lt; .85/.90 supports discriminant validity.</p>
@@ -1181,7 +1181,7 @@
       <div class="howread"><p>Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does <b>not</b> use CB-SEM global fit indices (CFI/TLI/RMSEA) &mdash; judge it instead by reliability &amp; validity (CR, AVE, HTMT), then R&sup2;, Q&sup2; (predictive relevance) and f&sup2;, with SRMR the only commonly reported approximate fit index. Read the bootstrapped <b>path coefficients</b> (&beta;, p); <b>f&sup2;</b> is each path's effect size (~0.02 small, 0.15 medium, 0.35 large).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;In the PLS-SEM, the path from X to Y gave &beta;=__, <i>p</i>=__ (bootstrap); R&sup2;<sub>Y</sub>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>seminr</code> / <code>plspm</code> &rarr; Tables &amp; bootstrap &middot; <code>summary()</code> &rarr; R&sup2;/R&sup2;adj &middot; <code>seminr::predict_pls()</code> &rarr; Q&sup2; &middot; <code>seminr::specific_effect_significance()</code> (on the bootstrapped model) &rarr; Table 6 indirect effects &middot; <code>seminr::plot()</code> &rarr; diagram</div>
+        <div class="m"><b>R map:</b> <code>seminr</code> &rarr; Tables &amp; bootstrap &middot; <code>summary()</code> &rarr; R&sup2;/R&sup2;adj &middot; <code>seminr::predict_pls()</code> &rarr; Q&sup2; &middot; <code>seminr::specific_effect_significance()</code> (on the bootstrapped model) &rarr; Table 6 indirect effects &middot; <code>seminr::plot()</code> &rarr; diagram</div>
         <div class="m bundle">table_outer-model.png &middot; table_reliability.png &middot; table_htmt.png &middot; table_structural.png &middot; table_structural-quality.png &middot; table_indirect-effects.png (when mediation paths drawn) &middot; figure_path-diagram.png</div>
       </div>
     </div>
