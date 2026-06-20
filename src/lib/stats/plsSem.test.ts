@@ -26,6 +26,11 @@ import type { TestSetup } from '../../state/session'
 //   path Image->Expectation beta=0.5095 ; Expectation->Satisfaction beta=0.2167 ; Image->Satisfaction beta=0.5841
 //   htmt Expectation-Image=0.8880 ; Satisfaction-Image=0.9097 ; Satisfaction-Expectation=0.8650
 //   f2  Image->Expectation=0.3506 ; Image->Satisfaction=0.5129 ; Expectation->Satisfaction=0.0706
+//   indirect Image->Expectation->Satisfaction: est=0.110409 ci=[0.050992, 0.176165] t=3.3587
+//     (specific_effect_significance is a 1×7 MATRIX → index sig[1,"Original Est."]; sig["..."] is all-NA)
+//   Q²_predict (PLSpredict, set.seed(20260620) before predict_pls; mean over a construct's indicators):
+//     Expectation=0.030362  Satisfaction=0.031243  (derived for THIS 3-construct sub-model — NOT the
+//     spike's full-model 0.043/0.039). Image is exogenous → no out-of-sample column → no Q² (not in table).
 // Mixed fixture (reflective Image + FORMATIVE Expectation): suppresses AVE/HTMT row for Expectation,
 //   reports outer WEIGHTS for its indicators, indicator VIF, weight significance.
 
@@ -100,6 +105,25 @@ describe('plsSem', () => {
     // f² present on structural rows; r2 keyed by numeric id in estimates
     expect(typeof r.structural[0].fSquare).toBe('number')
     expect(typeof r.estimates.r2[3]).toBe('number')
+
+    // indirect effect Image → Expectation → Satisfaction: matrix-indexing fix → finite + native-matched
+    const ind = (r.indirect ?? []).find((row) => row.path === 'Image → Expectation → Satisfaction')!
+    expect(ind).toBeDefined()
+    expect(Number.isFinite(Number(ind.est))).toBe(true)
+    expect(Number(ind.est)).toBeCloseTo(0.1104, 2)
+    expect(Number.isFinite(Number(ind.ciLower))).toBe(true)
+    expect(Number.isFinite(Number(ind.ciUpper))).toBe(true)
+    expect(Number(ind.ciLower)).toBeCloseTo(0.0510, 2)
+    expect(Number(ind.ciUpper)).toBeCloseTo(0.1762, 2)
+    // CI brackets the point estimate
+    expect(Number(ind.ciLower)).toBeLessThan(Number(ind.est))
+    expect(Number(ind.est)).toBeLessThan(Number(ind.ciUpper))
+
+    // Q²_predict (PLSpredict): endogenous constructs carry a finite, native-matched q2
+    expect(Number.isFinite(Number(q['Expectation'].q2))).toBe(true)
+    expect(Number.isFinite(Number(q['Satisfaction'].q2))).toBe(true)
+    expect(Number(q['Expectation'].q2)).toBeCloseTo(0.0304, 2)
+    expect(Number(q['Satisfaction'].q2)).toBeCloseTo(0.0312, 2)
   }, 600_000)
 
   it('mixed reflective/formative model suppresses AVE for the formative construct and reports weights', async () => {

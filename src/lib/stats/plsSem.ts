@@ -145,7 +145,19 @@ structural <- lapply(seq_along(path_from), function(e) {
   )
 })
 
-# ---- Structural quality: R² / R²adj / Q² (per §5.2 — endogenous constructs only) ----
+# ---- Q²_predict (PLSpredict, Shmueli et al. 2019; spike 0c §2 ruling) ----
+# seminr has no $validity$q2 and blindfold() is absent under WebR. Compute Q²_predict per indicator as
+# 1 − PLS_RMSE² / LM_RMSE² (out-of-sample); a construct's Q²_predict = mean over its indicators. predict_pls
+# runs once; set.seed right before it makes the CV folds deterministic → WebR≡native parity. Only ENDOGENOUS
+# indicators appear in the PLSpredict tables (exogenous have no out-of-sample column), so a missing item → NA.
+q2_items <- tryCatch({
+  set.seed(seed)
+  pp <- predict_pls(pls)
+  sp <- summary(pp)
+  1 - sp$PLS_out_of_sample["RMSE", ]^2 / sp$LM_out_of_sample["RMSE", ]^2
+}, error = function(e) NULL)
+
+# ---- Structural quality: R² / R²adj / Q²_predict (per §5.2 — endogenous constructs only) ----
 paths_tbl <- s$paths               # has "R^2" and "AdjR^2" rows; cols = endogenous constructs
 endo <- colnames(paths_tbl)
 r2_named <- list()
@@ -153,12 +165,18 @@ quality <- lapply(endo, function(nm) {
   r2v <- as.numeric(paths_tbl["R^2", nm]); r2a <- as.numeric(paths_tbl["AdjR^2", nm])
   cid <- path_to[match(nm, path_to_name)]
   if (!is.na(cid)) r2_named[[as.character(cid)]] <<- r2v
-  q2v <- tryCatch(as.numeric(s$validity$q2[nm]), error = function(e) NA)
+  # mean Q²_predict over this construct's indicators (NA if predict_pls failed or items absent)
+  items_nm <- pls$mmMatrix[pls$mmMatrix[, "construct"] == nm, "measurement"]
+  q2v <- if (is.null(q2_items)) NA else {
+    vals <- q2_items[items_nm[items_nm %in% names(q2_items)]]
+    if (length(vals) == 0) NA else mean(vals)
+  }
   list(construct = nm, r2 = r2v, r2adj = r2a, q2 = q2v)
 })
 
 # ---- Indirect effects: every from->...->to with an intermediate, via specific_effect_significance ----
-# specific_effect_significance returns a NAMED VECTOR/matrix — index by name ("2.5% CI"), not positionally.
+# specific_effect_significance returns a 1×7 MATRIX (class matrix/array/table_output) — a matrix has NO
+# names(), only colnames(). Index by MATRIX COLUMN: sig[1, "Original Est."] etc. (sig["..."] is all-NA).
 indirect <- list()
 adj <- matrix(FALSE, k, k, dimnames = list(construct_names, construct_names))
 for (e in seq_along(path_from_name)) adj[path_from_name[e], path_to_name[e]] <- TRUE
@@ -172,12 +190,12 @@ for (a in construct_names) for (z in construct_names) {
     if (!is.null(sig)) {
       indirect[[length(indirect) + 1]] <- list(
         path = paste0(a, " → ", m, " → ", z),
-        est = as.numeric(sig["Original Est."]),
-        se = as.numeric(sig["Bootstrap SD"]),
-        ciLower = as.numeric(sig["2.5% CI"]),
-        ciUpper = as.numeric(sig["97.5% CI"]),
-        t = as.numeric(sig["T Stat."]),
-        p = 2 * pnorm(-abs(as.numeric(sig["T Stat."])))
+        est = as.numeric(sig[1, "Original Est."]),
+        se = as.numeric(sig[1, "Bootstrap SD"]),
+        ciLower = as.numeric(sig[1, "2.5% CI"]),
+        ciUpper = as.numeric(sig[1, "97.5% CI"]),
+        t = as.numeric(sig[1, "T Stat."]),
+        p = 2 * pnorm(-abs(as.numeric(sig[1, "T Stat."])))
       )
     }
   }
