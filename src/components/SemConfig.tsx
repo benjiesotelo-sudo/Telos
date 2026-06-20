@@ -4,6 +4,7 @@ import { useSession } from '../state/session'
 import type { Construct, StructuralPath } from '../state/session'
 import { ConstructSlots } from './ConstructSlots'
 import { SemCanvas } from './SemCanvas'
+import { SemControls } from './SemControls'
 
 export interface SemConfigUIProps {
   testId: string
@@ -67,7 +68,7 @@ export function SemConfig({ testId }: { testId: string }) {
       running={s.runStatus === 'running'}
       canvas={<SemCanvas testId={testId} />}
       form={<ConstructSlots testId={testId} />}
-      controls={null /* Task 16 mounts <SemControls testId={testId} /> here */}
+      controls={<SemControls testId={testId} />}
     />
   )
 }
