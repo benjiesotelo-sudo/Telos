@@ -1,0 +1,1 @@
+len=58338 w=1104 h=550 nonBlankRatio=0.0232 dpr=2
