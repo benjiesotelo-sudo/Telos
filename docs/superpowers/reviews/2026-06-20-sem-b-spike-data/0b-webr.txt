@@ -1,0 +1,13 @@
+[webr] run=315.8s total=372.0s
+cb_indirect_est= 1.27389402
+cb_indirect_se=0.3534090507
+cb_indirect_ci=0.5978353932,1.970782841
+cb_indirect_p=0.000312648513
+cb_nboot=       5000
+cb_secs=     152.41
+pls_path_labels=       Image  ->  Expectation,      Image  ->  Satisfaction,Expectation  ->  Satisfaction
+pls_path_beta=0.5094926161,0.5841360327,0.2167036508
+pls_path_ci_low=0.4065124661,0.496770106,0.08674555376
+pls_path_ci_high=0.6308953925,0.6878765933,0.3326619231
+pls_nboot=       5000
+pls_secs=     162.67

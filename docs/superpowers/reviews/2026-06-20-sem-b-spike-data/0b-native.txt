@@ -1,0 +1,30 @@
+         used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
+Ncells 494589 26.5    1054255 56.4         NA   717711 38.4
+Vcells 851578  6.5    8388608 64.0      16384  2012713 15.4
+Warning: lavaan->lav_model_nvcov_bootstrap():  
+   1989 bootstrap runs resulted in nonadmissible solutions.
+          used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
+Ncells  773903 41.4    1305114 69.8         NA  1305114 69.8
+Vcells 1587715 12.2    8388608 64.0      16384  4129967 31.6
+cb_indirect_est= 1.27389402
+cb_indirect_se=0.3534090507
+cb_indirect_ci=0.5978353932,1.970782841
+cb_indirect_p=0.000312648513
+cb_nboot=       5000
+cb_secs=      37.27
+          used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
+Ncells  786075 42.0    1305114 69.8         NA  1305114 69.8
+Vcells 1611955 12.3    8388608 64.0      16384  4129967 31.6
+Generating the seminr model
+All 250 observations are valid.
+Bootstrapping model using seminr...
+SEMinR Model successfully bootstrapped
+          used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
+Ncells  804328 43.0    1305114 69.8         NA  1305114 69.8
+Vcells 2125275 16.3    8388608 64.0      16384  7475680 57.1
+pls_path_labels=       Image  ->  Expectation,      Image  ->  Satisfaction,Expectation  ->  Satisfaction
+pls_path_beta=0.5094926161,0.5841360327,0.2167036508
+pls_path_ci_low=0.4065124661,0.496770106,0.08674555376
+pls_path_ci_high=0.6308953925,0.6878765933,0.3326619231
+pls_nboot=       5000
+pls_secs=      23.43
