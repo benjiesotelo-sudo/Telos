@@ -6,6 +6,6 @@ export default defineConfig({
     testTimeout: 1_200_000,
     hookTimeout: 300_000,
     fileParallelism: false,
-    include: ['docs/superpowers/reviews/2026-06-20-sem-b-spike-data/boot-0b.webr.test.ts'],
+    include: ['docs/superpowers/reviews/2026-06-20-sem-b-spike-data/pls-extras-0c.webr.test.ts'],
   },
 })

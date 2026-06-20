@@ -1,0 +1,29 @@
+Generating the seminr model
+All 250 observations are valid.
+fsquare_dimnames=Image|Expectation|Satisfaction
+fsquare_vals=          0,          0,          0,0.3505897754,          0,          0,0.5128647213,0.0705561085,          0
+q2_classic_source=absent
+q2_classic=         NA
+plspredict_source=predict_pls
+q2predict_items=CUEX1|CUEX2|CUEX3|CUSA1|CUSA2|CUSA3
+q2predict_vals=0.07091731704,0.07683005278,-0.01896652043,0.01993122831,0.05320722599,0.04244392732
+q2predict_mean_Expectation=0.0429269498
+q2predict_mean_Satisfaction=0.03852746054
+Bootstrapping model using seminr...
+SEMinR Model successfully bootstrapped
+indirect_colnames=Original Est.|Bootstrap Mean|Bootstrap SD|T Stat.|2.5% CI|97.5% CI|Bootstrap P Val
+indirect_rownames=Image->Expectation->Satisfaction
+indirect_original= 0.11040891
+indirect_ci_lo=0.03609102011
+indirect_ci_hi=0.1760749992
+indirect_p=      0.004
+Generating the seminr model
+All 250 observations are valid.
+formative_weight_items=IMAG1|IMAG2|IMAG3|IMAG4|IMAG5
+formative_weights=0.3053861221,0.3180001514,0.131908678,0.3468288734,0.3150433264
+vif_dimnames=IMAG1|IMAG2|IMAG3|IMAG4|IMAG5
+formative_vif=1.468400742,1.225118967,1.258765155,1.510403402, 1.40314479
+formative_loading_items=IMAG1|IMAG2|IMAG3|IMAG4|IMAG5
+formative_loadings=0.753426257,0.650476114,0.5033620175,0.7665402158,0.7326182063
+redundancy_source=cor_imag1
+redundancy_r=0.753426257
