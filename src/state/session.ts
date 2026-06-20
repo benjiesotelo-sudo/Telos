@@ -31,6 +31,7 @@ export interface SessionState {
   runStatus: 'idle' | 'running' | 'error'
   runPhase: string | null
   runError: string | null
+  runProgress: { message: string; elapsedMs?: number; estMs?: number } | null
   loadDataset: (d: Dataset, info: FileInfo) => void
   visitGuide: () => void
   setColumnLevel: (name: string, level: Level | null) => void
@@ -173,7 +174,7 @@ const initial = {
   step: 'welcome' as StepId, raw: null, fileInfo: null, guideVisited: false,
   columns: [] as ColumnMeta[], missingPolicy: 'leave' as MissingPolicy,
   selection: [] as string[], setups: {} as Record<string, TestSetup>, runs: {} as Record<string, TestRun>, errors: {} as Record<string, string>,
-  runStatus: 'idle' as const, runPhase: null, runError: null,
+  runStatus: 'idle' as const, runPhase: null, runError: null, runProgress: null,
 }
 
 export const useSession = create<SessionState>((set, get) => {

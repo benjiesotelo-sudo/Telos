@@ -110,7 +110,8 @@ export interface CardContent {
   apa: string
   nExcluded: number
 }
-export type Runner = (engine: Engine, ds: Dataset, setup: TestSetup) => Promise<unknown>
+export type RunProgress = (p: { message: string; elapsedMs?: number; estMs?: number }) => void
+export type Runner = (engine: Engine, ds: Dataset, setup: TestSetup, onProgress?: RunProgress) => Promise<unknown>
 
 const alphaOf = (setup: TestSetup) => Number(setup.options['alpha'] ?? 0.05)
 
