@@ -37,6 +37,30 @@ Each slice gets its own design spec + implementation plan here when it starts. S
   column headers in `ApaTable` (+ `rTable`/`latex`/`print.css` + consistency tests) — a shared-renderer feature.
   ancova/mixed-anova can ride along as simple relabels or join the feature, to decide when the slice is picked up.
 
+### Deferred from SEM slice B (owner-ruled 2026-06-20 — "keep B focused, but these are important to have later")
+
+These four came up during the slice-B canvas brainstorm. Slice B is deliberately **single model, one group, no
+moderation** (CB-SEM + PLS-SEM + the AMOS canvas + embedded mediation only). The following are explicitly out of B
+and parked here so they are not lost — the owner picks when each lands.
+
+- **SEM multigroup & measurement invariance** (the natural "slice C", already flagged in
+  `reviews/2026-06-18-sem-reporting-convention.md` §6 as the follow-on after B). CB-SEM invariance ladder
+  configural → metric → scalar with ΔCFI ≤ .01 / Chen-2007 cutoffs; PLS **MICOM** 3-step + **PLS-MGA** for
+  group path differences. Heavy WASM op → must run one fit at a time with `gc()` between + chunked bootstrap +
+  progress (convention §6C). seminr has no MICOM → would need cSEM (override `.R` to 5000) or hand-code. This is
+  what answers "compare males vs females".
+- **Moderation in SEM** (the spec captions on CB-SEM and PLS-SEM already say *"moderation is planned for a later
+  version"*). Moderated/interaction paths — latent interactions for CB-SEM (e.g. double-mean-centred or LMS) and
+  product-indicator / two-stage moderation for PLS. Pairs naturally with the multigroup slice.
+- **Row subsetting / data filtering** (e.g. "run the same model but only on females"). This is **not** SEM-specific —
+  it's a general data-step feature: filter rows by a categorical value before any test runs. Benefits every test in
+  the app, so it belongs in the upload/data pipeline (step 4), not inside the SEM card. Distinct from multigroup
+  (which fits *all* groups and compares them).
+- **Model comparison** (test several competing / nested models and compare them). Side-by-side fit table —
+  χ²/df, CFI, RMSEA, **AIC, BIC**, and for nested models a Δχ²/ΔCFI test (`anova(fit1, fit2)` in lavaan). Today the
+  card is one-model-per-run; this would let the user save 2+ models and diff their fit. Generalises beyond SEM to
+  regression model comparison.
+
 ## Process per slice (owner-ruled 2026-06-12, replaces the full gauntlet)
 
 - **Keep:** pre-plan statistical spike (known answers cross-verified WebR ≡ native R) · card-scoped
