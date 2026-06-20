@@ -120,6 +120,7 @@ struct_rows <- lapply(seq_along(path_from), function(k) {
   r2_val <- if (tnm %in% names(rsq)) as.numeric(rsq[tnm]) else NA_real_
   list(
     from = fid, to = tid,
+    fromName = fnm, toName = tnm,
     b = as.numeric(pe_reg$est[m]), se = as.numeric(pe_reg$se[m]),
     z = as.numeric(pe_reg$z[m]), p = as.numeric(pe_reg$pvalue[m]),
     stdBeta = as.numeric(ss$est.std[gi]),
@@ -175,7 +176,7 @@ function buildModel(
   constructs: Construct[],
   paths: StructuralPath[],
   isPath: boolean,
-): { model: string; hasIndirect: boolean } {
+): { model: string; hasIndirect: boolean; indirectDefs: Array<{ label: string; chainNames: string[] }> } {
   const byId = new Map(constructs.map((c) => [c.id, c]))
   const nameOf = (id: number) => byId.get(id)!.name
   const lines: string[] = []
@@ -195,17 +196,19 @@ function buildModel(
   }
 
   // Auto indirect defs: every chained A→B→C (a path whose target is itself a source) → := a*b.
+  // Capture the construct-name chain alongside each := label so the builder can render NAMES, not ids.
   const sources = new Set(paths.map((p) => p.from))
-  let hasIndirect = false
+  const indirectDefs: Array<{ label: string; chainNames: string[] }> = []
   for (const ab of paths) {
     if (!sources.has(ab.to)) continue // ab.to is not a mediator
     for (const bc of paths.filter((p) => p.from === ab.to)) {
-      lines.push(`ie_${ab.from}_${ab.to}_${bc.to} := p_${ab.from}_${ab.to}*p_${bc.from}_${bc.to}`)
-      hasIndirect = true
+      const label = `ie_${ab.from}_${ab.to}_${bc.to}`
+      lines.push(`${label} := p_${ab.from}_${ab.to}*p_${bc.from}_${bc.to}`)
+      indirectDefs.push({ label, chainNames: [nameOf(ab.from), nameOf(ab.to), nameOf(bc.to)] })
     }
   }
 
-  return { model: lines.join('\n'), hasIndirect }
+  return { model: lines.join('\n'), hasIndirect: indirectDefs.length > 0, indirectDefs }
 }
 
 interface RawResult {
@@ -238,7 +241,7 @@ export async function runCbSem(
   const n = rows.length
   const item_cols_flat = usedCols.flatMap((col) => rows.map((r) => r[col] as number))
 
-  const { model, hasIndirect } = buildModel(constructs, paths, isPath)
+  const { model, hasIndirect, indirectDefs } = buildModel(constructs, paths, isPath)
   const nboot = Number(setup.options['nboot'] ?? 5000)
   const ci_type = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'
 
@@ -278,6 +281,13 @@ export async function runCbSem(
   const rsquare: Record<number, number> = {}
   for (const [k, v] of Object.entries(raw.rsquareIds)) rsquare[Number(k)] = v
 
+  // Attach the construct-name chain (pathLabel) to each indirect row by its lavaan := label, so the
+  // builder renders "ind60 → dem60 → dem65" instead of the internal "ie_1_2_3". Pure additive field.
+  const labelToChain = new Map(indirectDefs.map((d) => [d.label, d.chainNames.join(' → ')]))
+  const indirect = hasIndirect
+    ? raw.indirect.map((row) => ({ ...row, pathLabel: labelToChain.get(String(row.label)) }))
+    : undefined
+
   return {
     mode,
     saturated: isSaturated(raw.df),
@@ -286,7 +296,7 @@ export async function runCbSem(
     fit: raw.fit,
     structural: raw.structural,
     rsquare,
-    indirect: hasIndirect ? raw.indirect : undefined,
+    indirect,
     estimates: {
       paths: raw.estPaths,
       loadings: raw.estLoadings,
