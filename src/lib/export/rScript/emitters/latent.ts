@@ -1,4 +1,6 @@
 import type { Emitter } from './index'
+import type { Construct } from '../../../../state/session'
+import { MAKECLUSTER_SHIM } from '../../../webr/parallelShim'
 
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim — same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
@@ -511,6 +513,104 @@ export const latentEmitters: Record<string, Emitter> = {
 
     return lines.join('\n')
   },
+
+  // seminr PLS-SEM: estimate_pls + bootstrap_model (serial-cluster shim — WASM has no PSOCK sockets).
+  // Reliability raw order is alpha/rhoC/AVE/rhoA → printed reordered to α/ρ_A/CR/AVE.
+  // Reflective = composite(..., weights = mode_A); formative = mode_B (weights + VIF, AVE suppressed).
+  // Bootstrap CI = percentile (seminr default); indirect via specific_effect_significance.
+  'pls-sem': (_spec, setup) => {
+    const constructs: Construct[] = (setup.constructs ?? []) as Construct[]
+    if (constructs.length === 0) return '# No constructs defined — nothing to run for PLS-SEM.'
+    const byId = new Map(constructs.map((c) => [c.id, c.name]))
+    const paths = setup.paths ?? []
+    const nboot = Number(setup.options['nboot'] ?? 5000)
+
+    const mmLines = constructs
+      .map((c) => {
+        const items = `c(${c.items.map((it) => `"${it}"`).join(', ')})`
+        const wt = c.mode === 'formative' ? 'mode_B' : 'mode_A'
+        return `  composite("${c.name}", ${items}, weights = ${wt})`
+      })
+      .join(',\n')
+    const smLines = paths
+      .map((p) => `  paths(from = "${byId.get(p.from) ?? p.from}", to = "${byId.get(p.to) ?? p.to}")`)
+      .join(',\n')
+    const formativeR = `c(${constructs.filter((c) => c.mode === 'formative').map((c) => `"${c.name}"`).join(', ')})`
+
+    const lines: string[] = [
+      '# ---- PLS-SEM via seminr (estimate_pls + bootstrap_model) ----',
+      '# WebR/WASM has no PSOCK sockets — install the serial-cluster shim before seminr bootstraps.',
+      MAKECLUSTER_SHIM,
+      'library(seminr)',
+      '',
+      '# Measurement model (reflective = mode_A; formative = mode_B)',
+      `mm <- constructs(`,
+      mmLines,
+      `)`,
+      '',
+      '# Structural model (paths by construct name)',
+      `sm <- relationships(`,
+      smLines,
+      `)`,
+      '',
+      '# Estimate + bootstrap (percentile CI; serial cores under the shim)',
+      'gc()',
+      'pls <- estimate_pls(data = d, measurement_model = mm, structural_model = sm)',
+      's <- summary(pls)',
+      'set.seed(20260620)',
+      `bo <- bootstrap_model(seminr_model = pls, nboot = ${nboot}, cores = 1)`,
+      'sb <- summary(bo)',
+      'gc()',
+      '',
+      '# Table 1: Outer model (loadings/weights + t/p)',
+      'cat("\\n--- Table 1: Outer model ---\\n")',
+      'print(round(sb$bootstrapped_loadings, 3))',
+      'print(round(sb$bootstrapped_weights, 3))',
+      '',
+      '# Table 2: Reliability — raw seminr order alpha/rhoC/AVE/rhoA → display α / ρ_A / CR / AVE',
+      'cat("\\n--- Table 2: Reliability & convergent validity (alpha / rhoA / rhoC=CR / AVE) ---\\n")',
+      'rel <- s$reliability[, c("alpha", "rhoA", "rhoC", "AVE"), drop = FALSE]',
+      `formative_names <- ${formativeR}`,
+      'if (length(formative_names)) rel[rownames(rel) %in% formative_names, "AVE"] <- NA',
+      'print(round(rel, 4))',
+      '',
+      '# Table 3: Discriminant validity (HTMT)',
+      'cat("\\n--- Table 3: HTMT ---\\n")',
+      'print(round(s$validity$htmt, 3))',
+      '',
+      '# Table 4: Structural paths (β + t/p + 95% CI + f²)',
+      'cat("\\n--- Table 4: Structural paths ---\\n")',
+      'print(round(sb$bootstrapped_paths, 4))',
+      'cat("\\n--- f-squared ---\\n")',
+      'print(round(s$fSquare, 4))',
+      '',
+      '# Table 5: Structural quality (R² / R²adj / Q²)',
+      'cat("\\n--- Table 5: Structural quality (R^2 / AdjR^2) ---\\n")',
+      'print(round(s$paths[c("R^2", "AdjR^2"), , drop = FALSE], 4))',
+      '',
+      '# Table 6: Indirect effects (specific_effect_significance over each mediated triple)',
+      'cat("\\n--- Table 6: Indirect effects ---\\n")',
+      'cn <- pls$constructs',
+      'adj <- matrix(FALSE, length(cn), length(cn), dimnames = list(cn, cn))',
+    ]
+    paths.forEach((p) => {
+      lines.push(`adj["${byId.get(p.from) ?? p.from}", "${byId.get(p.to) ?? p.to}"] <- TRUE`)
+    })
+    lines.push(
+      'for (a in cn) for (z in cn) if (a != z) {',
+      '  for (m in cn[adj[a, ] & adj[, z]]) {',
+      '    sig <- tryCatch(specific_effect_significance(bo, from = a, through = m, to = z, alpha = 0.05),',
+      '                    error = function(e) NULL)',
+      '    if (!is.null(sig)) { cat(sprintf("  %s -> %s -> %s: ", a, m, z)); print(round(sig, 4)) }',
+      '  }',
+      '}',
+      '',
+      '# Figure: path diagram — semPaths stand-in (the app exports the annotated SVG via html-to-image)',
+      'cat("\\n--- Figure: PLS path diagram (semPaths reproducible stand-in) ---\\n")',
+      'tryCatch(print(plot(pls)), error = function(e) cat("(diagram skipped:", conditionMessage(e), ")\\n"))',
+    )
+    return lines.join('\n')
+  },
 }
 
 export const latentPackages: Record<string, string[]> = {
@@ -520,4 +620,5 @@ export const latentPackages: Record<string, string[]> = {
   'efa': ['psych', 'ggplot2'],
   'pca': ['ggplot2'],
   'cb-sem': ['lavaan', 'semTools', 'psych', 'semPlot'],
+  'pls-sem': ['seminr'],
 }
