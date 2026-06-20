@@ -56,6 +56,7 @@ export const CB_SEM: TestSpec = {
     },
     {
       id: 'reliability',
+      domId: 'cb-sem-reliability',
       title: 'Reliability & validity',
       columns: [
         { key: 'construct', label: 'Construct' },
@@ -79,6 +80,7 @@ export const CB_SEM: TestSpec = {
     },
     {
       id: 'structural-paths',
+      domId: 'cb-sem-structural-paths',
       title: 'Structural paths',
       columns: [
         { key: 'path', label: 'Path' },
@@ -93,6 +95,7 @@ export const CB_SEM: TestSpec = {
     },
     {
       id: 'indirect-effects',
+      domId: 'cb-sem-indirect-effects',
       title: 'Indirect effects (mediation)',
       columns: [
         { key: 'path', label: 'Path' },

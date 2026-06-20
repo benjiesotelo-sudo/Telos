@@ -36,6 +36,7 @@ export const PLS_SEM: TestSpec = {
     },
     {
       id: 'reliability',
+      domId: 'pls-sem-reliability',
       title: 'Reliability & convergent validity (per construct)',
       columns: [
         { key: 'construct', label: 'Construct' },
@@ -47,6 +48,7 @@ export const PLS_SEM: TestSpec = {
     },
     {
       id: 'htmt',
+      domId: 'pls-sem-htmt',
       title: 'Discriminant validity — HTMT (construct × construct)',
       columns: [], // MatrixTable — rendered via ApaTable matrix branch; columns unused
     },
@@ -74,6 +76,7 @@ export const PLS_SEM: TestSpec = {
     },
     {
       id: 'indirect-effects',
+      domId: 'pls-sem-indirect-effects',
       title: 'Indirect effects (mediation)',
       columns: [
         { key: 'path', label: 'Path' },

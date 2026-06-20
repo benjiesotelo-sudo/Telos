@@ -29,6 +29,7 @@ export const PATH_ANALYSIS: TestSpec = {
   tables: [
     {
       id: 'structural-paths',
+      domId: 'path-analysis-structural-paths',
       title: 'Structural paths',
       columns: [
         { key: 'path', label: 'Path' },
@@ -43,6 +44,7 @@ export const PATH_ANALYSIS: TestSpec = {
     },
     {
       id: 'indirect-effects',
+      domId: 'path-analysis-indirect-effects',
       title: 'Indirect effects',
       columns: [
         { key: 'path', label: 'Path' },

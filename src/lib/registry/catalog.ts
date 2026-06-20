@@ -43,6 +43,8 @@ import { CRONBACHS_ALPHA } from './cronbachsAlpha'
 import { AVE } from './ave'
 import { COMPOSITE_RELIABILITY } from './compositeReliability'
 import { EFA } from './efa'
+import { CB_SEM } from './cbSem'
+import { PLS_SEM } from './plsSem'
 import { PCA } from './pca'
 import { PATH_ANALYSIS } from './pathAnalysis'
 
@@ -98,9 +100,9 @@ export const CATALOG: CatalogEntry[] = [
   e('ave', 'Average variance extracted (AVE)', 'Latent variable models', 'Reliability', 'available'),
   e('composite-reliability', 'Composite reliability (CR)', 'Latent variable models', 'Reliability', 'available'),
   e('efa', 'Exploratory factor analysis (EFA)', 'Latent variable models', 'Factor analysis', 'available'),
-  { id: 'cb-sem', name: 'CB-SEM', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'later-slice',
+  { id: 'cb-sem', name: 'CB-SEM', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'available',
     note: '— pipeline stages selectable: CFA & model fit always run, EFA and the structural stage optional (default: all on); includes path analysis & mediation via drawn path chains (indirect-effects table, bootstrapped CIs); moderation planned for a later version' },
-  { id: 'pls-sem', name: 'PLS-SEM', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'later-slice',
+  { id: 'pls-sem', name: 'PLS-SEM', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'available',
     note: '— includes path analysis & mediation via drawn path chains (indirect-effects table, bootstrapped CIs); moderation planned for a later version' },
   { id: 'path-analysis', name: 'Path analysis', family: 'Latent variable models', subfamily: 'Structural equation modeling', status: 'available',
     note: '— directed relationships among OBSERVED variables (no measurement model); single-mediator and multi-step mediation via drawn path chains (indirect-effects table, bootstrapped percentile CIs); saturated (df = 0) models report no fit indices' },
@@ -123,6 +125,8 @@ export const SPECS: Record<string, TestSpec> = {
   [AVE.id]: AVE,
   [COMPOSITE_RELIABILITY.id]: COMPOSITE_RELIABILITY,
   [EFA.id]: EFA,
-  [PCA.id]: PCA,
+  [CB_SEM.id]: CB_SEM,
+  [PLS_SEM.id]: PLS_SEM,
   [PATH_ANALYSIS.id]: PATH_ANALYSIS,
+  [PCA.id]: PCA,
 }
