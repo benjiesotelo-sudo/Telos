@@ -39,4 +39,9 @@ describe('SEM-B output cards carry the §6B amendments (B/SE/z/p, ω, reordered 
     expect(rmap).not.toContain('plspm')
     expect(rmap).toContain('seminr')
   })
+  it('CB-SEM R map reliability output includes ω (matches Table 4)', () => {
+    const cbRmap = cb.match(/<b>R map:<\/b>([\s\S]*?)<\/div>/g)!.join(' ')
+    expect(strip(cbRmap)).toContain('ω')
+    expect(strip(cbRmap)).toContain('CR/AVE/ω/α')
+  })
 })
