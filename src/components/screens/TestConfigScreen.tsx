@@ -2,6 +2,7 @@ import { useSession, gateOk, stepsOf, workingDataset } from '../../state/session
 import { SPECS } from '../../lib/registry/catalog'
 import { DragSlots } from '../DragSlots'
 import { ConstructSlots } from '../ConstructSlots'
+import { SemConfig } from '../SemConfig'
 import { categoriesOf, propsArray, propsSumOk } from '../../lib/data/props'
 
 export function TestConfigScreen({ testId }: { testId: string }) {
@@ -21,7 +22,9 @@ export function TestConfigScreen({ testId }: { testId: string }) {
       <div className="eyebrow">{idx} · {spec.name}</div>
       <h1 className="title">Drag columns into roles</h1>
       {setup.blocked && <div className="error-box" role="alert">Blocked: {setup.blocked}</div>}
-      {spec.inputKind ? <ConstructSlots testId={testId} /> : <DragSlots testId={testId} spec={spec} />}
+      {spec.inputKind === 'construct-slots' ? <ConstructSlots testId={testId} />
+        : spec.inputKind === 'sem-canvas' ? <SemConfig testId={testId} />
+        : <DragSlots testId={testId} spec={spec} />}
       <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
         {spec.options.map((o) => o.kind === 'display' ? (
           <span key={o.id} className="pill">{o.label} {o.value}</span>
