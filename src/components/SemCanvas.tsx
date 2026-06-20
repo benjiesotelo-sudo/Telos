@@ -1,13 +1,9 @@
+import { useState, useRef } from 'react'
+import { useSession } from '../state/session'
 import type { Construct, StructuralPath } from '../state/session'
 import type { CbSemResult } from '../lib/stats/cbSem'
 
 const BLUE = '#185fa5'
-
-/** APA-style: 2 dp, strip the leading zero (0.62 → ".62", -0.40 → "-.40"). */
-function fmt(v: number): string {
-  const s = Math.abs(v).toFixed(2).replace(/^0/, '')
-  return v < 0 ? `-${s}` : s
-}
 
 // Layout geometry (static; interactions move x/y in Unit 3b).
 const NODE_W = 132   // oval / rectangle width
@@ -33,33 +29,71 @@ export interface SemCanvasUIProps {
   onSetMode(m: 'draw' | 'move' | 'delete'): void
 }
 
+/** A canvas node: latent constructs are id-addressed; path-mode columns use their array index as id. */
+interface Node { id: number; name: string; items: string[]; x?: number; y?: number }
+
+/** Single source of truth for "what nodes does this model draw, and at what ids". */
+export function nodesOf(p: Pick<SemCanvasUIProps, 'constructs' | 'columns' | 'modelKind'>): Node[] {
+  if (p.modelKind === 'path') {
+    return p.columns.map((name, i) => ({ id: i, name, items: [], x: undefined, y: undefined }))
+  }
+  return p.constructs
+}
+
 /** Center of a node given its (top-left) x/y, with defaults for unplaced nodes. */
-function nodeCenter(n: { x?: number; y?: number }, fallbackIdx: number) {
+function nodeCenter(n: Node, fallbackIdx: number) {
   const x = (n.x ?? DEFAULT_X + fallbackIdx * (NODE_W + 120)) + NODE_W / 2
   const y = (n.y ?? DEFAULT_Y) + NODE_H / 2
   return { cx: x, cy: y, left: x - NODE_W / 2, top: y - NODE_H / 2 }
 }
 
-/** Pure presentational canvas — testable with renderToStaticMarkup. Static render (Unit 3a). */
+/** Pure presentational canvas — testable with renderToStaticMarkup. */
 export function SemCanvasUI({
-  testId, constructs, columns, paths, modelKind, estimates,
+  testId, constructs, columns, paths, modelKind, mode, estimates, running,
+  onAddPath, onRemovePath, onMoveNode: _onMoveNode, onSetMode,
 }: SemCanvasUIProps) {
-  const isPath = modelKind === 'path'
+  // pending draw source (click source → target); cancel when same node re-clicked
+  const [pending, setPending] = useState<number | null>(null)
 
-  // In latent mode nodes come from constructs (id = Construct.id, user-assigned).
-  // In path mode nodes come from columns with id = array index (0, 1, 2, …).
-  // StructuralPath.from/to MUST reference those same ids in both modes.
-  const nodes = isPath
-    ? columns.map((name, i) => ({ id: i, name, items: [] as string[], x: undefined as number | undefined, y: undefined as number | undefined }))
-    : constructs
+  const isPath = modelKind === 'path'
+  const nodes = nodesOf({ constructs, columns, modelKind })
 
   const empty = nodes.length === 0
   // id → center, for resolving path endpoints by node id (Map uses strict-equality; id 0 is safe).
   const centers = new Map<number, ReturnType<typeof nodeCenter>>()
   nodes.forEach((n, i) => centers.set(n.id, nodeCenter(n, i)))
 
+  function clickNode(id: number) {
+    if (running) return
+    if (mode === 'delete') return  // node delete handled by connected wrapper
+    if (mode !== 'draw') return
+    if (pending === null) { setPending(id); return }
+    if (pending === id) { setPending(null); return }   // cancel on same node
+    const dup = paths.some((p) => p.from === pending && p.to === id)
+    if (!dup) onAddPath(pending, id)                   // dedupe: never add an existing directed edge
+    setPending(null)
+  }
+
+  const toolBtn = (m: 'draw' | 'move' | 'delete', label: string) => (
+    <button
+      type="button"
+      aria-label={label}
+      aria-pressed={mode === m}
+      className={`btn ghost${mode === m ? ' on' : ''}`}
+      disabled={running}
+      onClick={() => onSetMode(m)}
+    >
+      {label}
+    </button>
+  )
+
   return (
     <div className="sem-canvas" style={{ position: 'relative' }}>
+      <div role="toolbar" style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+        {toolBtn('draw', 'Draw path')}
+        {toolBtn('move', 'Move')}
+        {toolBtn('delete', 'Delete')}
+      </div>
       {empty && (
         <p className="hint" role="status" style={{ padding: 12 }}>
           {isPath ? 'Assign columns to draw paths.' : 'Add a construct to start the diagram.'}
@@ -83,7 +117,6 @@ export function SemCanvasUI({
           const a = centers.get(p.from)
           const b = centers.get(p.to)
           if (!a || !b) return null
-          // estimates overlay rendered when provided (wired post-run in Task 3c)
           const beta = estimates?.paths.find((e) => e.from === p.from && e.to === p.to)?.beta
           const mx = (a.cx + b.cx) / 2
           const my = (a.cy + b.cy) / 2
@@ -97,8 +130,16 @@ export function SemCanvasUI({
               />
               {beta != null && (
                 <text className="sem-path-label" x={mx} y={my - 6} textAnchor="middle" fontSize={11} fontWeight={600} fill={BLUE}>
-                  {fmt(beta)}
+                  {beta.toFixed(2)}
                 </text>
+              )}
+              {mode === 'delete' && (
+                <circle
+                  data-path-index={i}
+                  cx={mx} cy={my} r={9}
+                  fill="#fff" stroke={BLUE} style={{ cursor: 'pointer' }}
+                  onClick={() => !running && onRemovePath(i)}
+                />
               )}
             </g>
           )
@@ -108,18 +149,20 @@ export function SemCanvasUI({
         {nodes.map((n) => {
           const c = centers.get(n.id)!
           if (isPath) {
-            // estimates overlay rendered when provided (wired post-run in Task 3c)
             return (
               <g key={`node-${n.id}`}>
                 <rect
                   className="sem-node-rect"
+                  data-node-id={n.id}
                   x={c.left} y={c.top} width={NODE_W} height={NODE_H} rx={4}
                   fill="#fff" stroke={BLUE} strokeWidth={2}
+                  style={{ cursor: running ? 'default' : mode === 'move' ? 'grab' : 'pointer' }}
+                  onClick={() => clickNode(n.id)}
                 />
-                <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)">{n.name}</text>
+                <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)" pointerEvents="none">{n.name}</text>
                 {estimates?.r2[n.id] != null && (
-                  <text className="sem-r2-label" x={c.cx} y={c.top - 6} textAnchor="middle" fontSize={11} fill="var(--muted)">
-                    R²={fmt(estimates.r2[n.id])}
+                  <text className="sem-r2-label" x={c.cx} y={c.top - 6} textAnchor="middle" fontSize={11} fill="var(--muted)" pointerEvents="none">
+                    R²={estimates.r2[n.id].toFixed(2)}
                   </text>
                 )}
               </g>
@@ -131,7 +174,6 @@ export function SemCanvasUI({
               {n.items.map((item, k) => {
                 const ix = c.left - ITEM_W - 28
                 const iy = c.top + k * (ITEM_H + ITEM_GAP)
-                // estimates overlay rendered when provided (wired post-run in Task 3c)
                 const load = estimates?.loadings[item]
                 return (
                   <g key={`item-${k}`}>
@@ -144,23 +186,33 @@ export function SemCanvasUI({
                     <text x={ix + ITEM_W / 2} y={iy + ITEM_H / 2 + 4} textAnchor="middle" fontSize={11} fill="var(--text)">{item}</text>
                     {load != null && (
                       <text className="sem-load-label" x={ix + ITEM_W + 12} y={iy + ITEM_H / 2 - 2} textAnchor="middle" fontSize={9} fill="var(--muted)">
-                        {fmt(load)}
+                        {load.toFixed(2)}
                       </text>
                     )}
                   </g>
                 )
               })}
-              {/* latent oval */}
+              {/* latent oval — pending highlight ring rendered first so oval draws on top */}
+              {pending === n.id && (
+                <ellipse
+                  cx={c.cx} cy={c.cy} rx={NODE_W / 2 + 6} ry={NODE_H / 2 + 6}
+                  fill="none" stroke={BLUE} strokeWidth={1} strokeDasharray="3 3" pointerEvents="none"
+                />
+              )}
               <ellipse
                 className={`sem-oval${tooFew ? ' incomplete' : ''}`}
+                data-node-id={n.id}
                 cx={c.cx} cy={c.cy} rx={NODE_W / 2} ry={NODE_H / 2}
                 fill="#fff" stroke={BLUE} strokeWidth={2}
                 strokeDasharray={tooFew ? '5 4' : undefined}
+                opacity={tooFew ? 0.6 : undefined}
+                style={{ cursor: running ? 'default' : mode === 'move' ? 'grab' : 'pointer' }}
+                onClick={() => clickNode(n.id)}
               />
-              <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)">{n.name}</text>
+              <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)" pointerEvents="none">{n.name}</text>
               {estimates?.r2[n.id] != null && (
-                <text className="sem-r2-label" x={c.cx} y={c.top - 6} textAnchor="middle" fontSize={11} fill="var(--muted)">
-                  R²={fmt(estimates.r2[n.id])}
+                <text className="sem-r2-label" x={c.cx} y={c.top - 6} textAnchor="middle" fontSize={11} fill="var(--muted)" pointerEvents="none">
+                  R²={estimates.r2[n.id].toFixed(2)}
                 </text>
               )}
             </g>
@@ -168,5 +220,33 @@ export function SemCanvasUI({
         })}
       </svg>
     </div>
+  )
+}
+
+/** Store-connected canvas: wires useSession, owns the move-drag + viewBox(zoom/pan) + resize-grip state (Task 13). */
+export function SemCanvas({ testId }: { testId: string }) {
+  const s = useSession()
+  const setup = s.setups[testId]
+  const svgRef = useRef<SVGSVGElement | null>(null)
+  void svgRef
+  if (!setup) return null
+  const modelKind = setup.modelKind ?? 'latent'
+  const columns = s.columns.filter((c) => c.used).map((c) => c.name)
+  const [mode, setMode] = useState<'draw' | 'move' | 'delete'>('draw')
+  return (
+    <SemCanvasUI
+      testId={testId}
+      constructs={setup.constructs ?? []}
+      columns={columns}
+      paths={setup.paths ?? []}
+      modelKind={modelKind}
+      mode={mode}
+      estimates={null}
+      running={s.runStatus === 'running'}
+      onAddPath={(from, to) => s.addPath(testId, from, to)}
+      onRemovePath={(i) => s.removePath(testId, i)}
+      onMoveNode={(id, x, y) => s.moveNode(testId, id, x, y)}
+      onSetMode={setMode}
+    />
   )
 }
