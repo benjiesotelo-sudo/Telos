@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { useSession, stepsOf, canEnter, workingDataset, gateOk } from './session'
+import { useSession, stepsOf, canEnter, workingDataset, gateOk, serializeSetups, hydrateSetups } from './session'
 import type { Dataset, TTestResult } from '../lib/stats/types'
 import { SPECS } from '../lib/registry/catalog'
 
@@ -347,5 +347,44 @@ describe('canvas actions (Sub-slice B)', () => {
     useSession.setState((s) => ({ runs: { ...s.runs, [FAKE_ID]: { result: {}, stale: false } } }))
     useSession.getState().addPath(FAKE_ID, 1, 2)
     expect(useSession.getState().runs[FAKE_ID].stale).toBe(true)
+  })
+})
+
+describe('setup round-trip (Sub-slice B)', () => {
+  it('freshSetup leaves canvas fields undefined (readers default)', () => {
+    const FRESH = '__test-fresh__'
+    ;(SPECS as Record<string, unknown>)[FRESH] = { id: FRESH, inputKind: 'sem-canvas', constraints: { roles: [] }, options: [] }
+    useSession.getState().reset()
+    useSession.getState().toggleSelection(FRESH)
+    const setup = useSession.getState().setups[FRESH]
+    expect(setup.paths).toBeUndefined()
+    expect(setup.modelKind).toBeUndefined()
+    expect(setup.constructs).toBeUndefined()
+    delete (SPECS as Record<string, unknown>)[FRESH]
+  })
+
+  it('serialize→deserialize preserves ids, paths, modelKind, mode and node positions', () => {
+    const setups: Record<string, import('./session').TestSetup> = {
+      'cb-sem': {
+        roles: {}, options: { estimator: 'ML' }, props: {}, blocked: null, modelKind: 'latent',
+        constructs: [
+          { id: 1, name: 'A', items: ['q1', 'q2'], mode: 'reflective', x: 20, y: 40 },
+          { id: 2, name: 'B', items: ['q3', 'q4'], mode: 'formative', x: 200, y: 40 },
+        ],
+        paths: [{ from: 1, to: 2 }],
+      },
+    }
+    const round = hydrateSetups(JSON.parse(serializeSetups(setups)))
+    expect(round).toEqual(setups) // deep-equal: nothing lost, nothing coerced
+    expect(round['cb-sem'].constructs!.map((c) => c.id)).toEqual([1, 2])
+    expect(round['cb-sem'].paths).toEqual([{ from: 1, to: 2 }])
+    expect(round['cb-sem'].constructs![0]).toMatchObject({ x: 20, y: 40, mode: 'reflective' })
+  })
+
+  it('hydrating a legacy serialized setup (constructs without id) back-fills ids by index', () => {
+    const legacy = { 'ave': { roles: {}, options: {}, props: {}, blocked: null,
+      constructs: [{ name: 'A', items: ['q1', 'q2'] }, { name: 'B', items: ['q3', 'q4'] }] } }
+    const round = hydrateSetups(legacy as unknown as Record<string, import('./session').TestSetup>)
+    expect(round['ave'].constructs!.map((c) => c.id)).toEqual([0, 1])
   })
 })

@@ -115,6 +115,16 @@ export const canEnter = (s: SessionState, target: StepId): boolean => {
 export const backfillConstructIds = (cs: Construct[]): Construct[] =>
   cs.map((c, i) => (typeof c.id === 'number' ? c : { ...c, id: i }))
 
+/** Round-trip helpers for persisting setups (e.g. localStorage / Supabase — forward storage seam).
+ *  serialize = plain JSON; hydrate = parse + back-fill legacy construct ids by index so
+ *  pre-Sub-slice-B saves keep working. Canvas fields (paths, modelKind, x/y, mode) JSON-serialize
+ *  natively; undefined fields stay absent and readers default. */
+export const serializeSetups = (setups: Record<string, TestSetup>): string => JSON.stringify(setups)
+
+export const hydrateSetups = (parsed: Record<string, TestSetup>): Record<string, TestSetup> =>
+  Object.fromEntries(Object.entries(parsed).map(([id, t]) => [id,
+    t.constructs ? { ...t, constructs: backfillConstructIds(t.constructs) } : t]))
+
 /** Next monotonic id for a construct list — max(existing ids, 0) + 1, so ids start at 1 and a middle removal never reuses an id. */
 const nextConstructId = (cs: Construct[]): number => cs.reduce((m, c) => Math.max(m, c.id), 0) + 1
 
