@@ -321,12 +321,13 @@ export const latentEmitters: Record<string, Emitter> = {
   // lavaan::sem from constructs (=~) + structural paths (~) + auto := indirect defs.
   // Single bootstrap fit for mediation (percentile CI, design D7/D10 — no RNG chunking). Diagram = semPlot::semPaths.
   // Fit table suppressed strictly when fitMeasures(fit,"df") == 0 (shared df==0 predicate; design §3.6/§5.1).
-  'cb-sem': (_spec, setup) => {
+  'cb-sem': (spec, setup) => {
     const constructs: { id: number; name: string; items: string[] }[] =
       (setup.constructs as { id: number; name: string; items: string[] }[]) ?? []
     const paths: { from: number; to: number }[] =
       (setup.paths as { from: number; to: number }[]) ?? []
-    const isPath = setup.modelKind === 'path'
+    // Path mode (observed-only): from the setup OR the spec (path-analysis reuses this emitter, spec.modelKind='path').
+    const isPath = setup.modelKind === 'path' || spec?.modelKind === 'path'
     if (constructs.length === 0) return '# No constructs defined — nothing to run for CB-SEM.'
 
     const nameOf = (id: number) => constructs.find((c) => c.id === id)!.name
@@ -628,6 +629,10 @@ export const latentEmitters: Record<string, Emitter> = {
   },
 }
 
+// Path analysis = observed-only CB-SEM: same emitter (the cb-sem branch keys off setup.modelKind === 'path',
+// which path-analysis always carries) and same R packages. Aliased so emitRScript resolves EMITTERS['path-analysis'].
+latentEmitters['path-analysis'] = latentEmitters['cb-sem']
+
 export const latentPackages: Record<string, string[]> = {
   'ave': ['lavaan', 'semTools', 'psych', 'ggplot2'],
   'composite-reliability': ['lavaan', 'semTools', 'psych', 'ggplot2'],
@@ -636,4 +641,5 @@ export const latentPackages: Record<string, string[]> = {
   'pca': ['ggplot2'],
   'cb-sem': ['lavaan', 'semTools', 'psych', 'semPlot'],
   'pls-sem': ['seminr'],
+  'path-analysis': ['lavaan', 'semTools', 'psych', 'semPlot'],
 }

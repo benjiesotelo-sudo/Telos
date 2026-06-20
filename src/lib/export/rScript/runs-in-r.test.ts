@@ -200,6 +200,29 @@ const REPS: Rep[] = [
     },
     expect: ['Table 5: Fit indices', 'Table 7: Indirect effects'],
   },
+
+  // path-analysis: observed-only CB-SEM, canonical saturated single-mediator X → M → Y (df = 0).
+  // x1=X, x4=M, x7=Y from scale.csv; each construct.name IS the observed column (path mode, no =~).
+  // The direct path x1→x7 makes the model just-identified (df=0) → the fit table is suppressed and the
+  // saturation flag fires; the structural + indirect tables still reach stdout.
+  // Needles MATCH the cb-sem emitter's actual output (latent.ts): the saturated-suppression cat line
+  // ("--- Model is saturated (df = 0): fit indices not reported ---") and "--- Table 6: Structural paths ---".
+  { id: 'path-analysis', fixture: 'scale.csv',
+    setup: {
+      roles: {},
+      options: { estimator: 'ML', nboot: 200, ciType: 'percentile' },
+      props: {},
+      blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 1, name: 'x1', items: ['x1'] },
+        { id: 2, name: 'x4', items: ['x4'] },
+        { id: 3, name: 'x7', items: ['x7'] },
+      ],
+      paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }, { from: 1, to: 3 }],
+    },
+    expect: ['Model is saturated (df = 0)', 'Table 6: Structural paths'],
+  },
 ]
 
 describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {

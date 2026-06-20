@@ -17,11 +17,11 @@ for (const m of tree.matchAll(/<div class="(fam|sub|leaf)">(.*?)<\/div>/gs)) {
 }
 
 describe('catalog stays faithful to the ui-spec picker tree', () => {
-  it('has exactly the 47 leaves, in tree order, under the right family/subfamily', () => { // 47 leaves: unchanged; PCA moved from Latent variable models to Data reduction
+  it('has exactly the catalog leaves, in tree order, under the right family/subfamily', () => { // 48 leaves: SEM-B adds Path analysis as its own picker entry (was folded into the CB/PLS notes); PCA under Data reduction
     expect(rows).toEqual(CATALOG.map((c) => ({ family: c.family, ...(c.subfamily ? { subfamily: c.subfamily } : {}), leaf: c.name })))
   })
   it('the available tests match the shipped specs, in tree order', () => {
-    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['summary-statistics', 'frequencies-crosstabs', 'distribution-normality', 'one-sample-t-test', 'independent-t-test', 'paired-t-test', 'one-way-anova', 'factorial-anova', 'repeated-measures-anova', 'mixed-anova', 'nested-anova', 'welch-anova', 'ancova', 'manova', 'mancova', 'mann-whitney-u', 'wilcoxon-signed-rank', 'kruskal-wallis', 'friedman', 'pearson', 'spearman', 'kendalls-tau', 'chi-square-independence', 'chi-square-goodness-of-fit', 'fishers-exact', 'simple-linear-regression', 'multiple-linear-regression', 'logistic-regression', 'poisson-negative-binomial', 'arima-sarima', 'stationarity-tests', 'granger-causality', 'var', 'fixed-effects', 'random-effects', 'hausman-test', 'did', 'rdd', 'iv-2sls', 'propensity-score-matching', 'cronbachs-alpha', 'ave', 'composite-reliability', 'efa', 'pca'])
+    expect(CATALOG.filter((c) => c.status === 'available').map((c) => c.id)).toEqual(['summary-statistics', 'frequencies-crosstabs', 'distribution-normality', 'one-sample-t-test', 'independent-t-test', 'paired-t-test', 'one-way-anova', 'factorial-anova', 'repeated-measures-anova', 'mixed-anova', 'nested-anova', 'welch-anova', 'ancova', 'manova', 'mancova', 'mann-whitney-u', 'wilcoxon-signed-rank', 'kruskal-wallis', 'friedman', 'pearson', 'spearman', 'kendalls-tau', 'chi-square-independence', 'chi-square-goodness-of-fit', 'fishers-exact', 'simple-linear-regression', 'multiple-linear-regression', 'logistic-regression', 'poisson-negative-binomial', 'arima-sarima', 'stationarity-tests', 'granger-causality', 'var', 'fixed-effects', 'random-effects', 'hausman-test', 'did', 'rdd', 'iv-2sls', 'propensity-score-matching', 'cronbachs-alpha', 'ave', 'composite-reliability', 'efa', 'path-analysis', 'pca'])
   })
   it('every table DOM id is unique across all shipped specs (combined-results-page seam)', () => {
     const ids = Object.values(SPECS).flatMap((s) => s.tables.map((t) => t.domId ?? t.id))

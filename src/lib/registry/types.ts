@@ -24,6 +24,7 @@ export interface TestSpec {
   figure?: FigureSpec                        // t-test only (locked)
   figures?: FigureSpec[]                     // new entries
   inputKind?: 'construct-slots' | 'sem-canvas' // construct-slots: ConstructSlots form (AVE/CR/EFA). sem-canvas: SEM path canvas + construct form (CB-SEM/PLS-SEM). Absent = drag-slots.
+  modelKind?: 'latent' | 'path' // sem-canvas only: 'path' = path-analysis (observed-only CB-SEM, single-column nodes, no measurement model). Absent/'latent' = CB-SEM/PLS-SEM latent model. The runner forces the setup modelKind to match.
   howToRead: string; apaTemplate: string; rMap: string; bundleFiles: string[]
   constraints: TestConstraints
 }

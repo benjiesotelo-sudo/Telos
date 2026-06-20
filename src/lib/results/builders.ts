@@ -221,6 +221,8 @@ export const RUNNERS: Record<string, Runner> = {
   },
   'cb-sem': (engine, ds, setup, onProgress) => runCbSem(engine, ds, setup, onProgress),
   'pls-sem': (engine, ds, setup, onProgress) => runPlsSem(engine, ds, setup, onProgress),
+  // Path analysis = observed-only CB-SEM: reuse runCbSem, forcing modelKind:'path' (no measurement model).
+  'path-analysis': (engine, ds, setup, onProgress) => runCbSem(engine, ds, { ...setup, modelKind: 'path' }, onProgress),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),
@@ -270,4 +272,6 @@ export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardC
   'pca': (spec, result) => buildPca(spec, result as PcaResult),
   'cb-sem': (spec, result) => buildCbSem(spec, result as CbSemResult),
   'pls-sem': (spec, result) => buildPlsSem(spec, result as PlsSemResult),
+  // Path analysis reuses the CB-SEM builder — it suppresses measurement tables when result.mode === 'path'.
+  'path-analysis': (spec, result) => buildCbSem(spec, result as CbSemResult),
 }
