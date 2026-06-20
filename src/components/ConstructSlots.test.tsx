@@ -48,30 +48,33 @@ describe('ConstructSlots — store mutations', () => {
     useSession.getState().addConstruct(TEST_ID)
     const constructs = useSession.getState().setups[TEST_ID].constructs ?? []
     expect(constructs).toHaveLength(1)
-    expect(constructs[0]).toEqual({ name: '', items: [] })
+    expect(constructs[0]).toMatchObject({ name: '', items: [] })
   })
 
-  it('setConstructName updates the name of a construct by index', () => {
+  it('setConstructName updates the name of a construct by id', () => {
     useSession.getState().addConstruct(TEST_ID)
-    useSession.getState().setConstructName(TEST_ID, 0, 'Engagement')
+    const id0 = useSession.getState().setups[TEST_ID].constructs![0].id
+    useSession.getState().setConstructName(TEST_ID, id0, 'Engagement')
     const constructs = useSession.getState().setups[TEST_ID].constructs ?? []
     expect(constructs[0].name).toBe('Engagement')
   })
 
   it('toggleConstructItem adds an item when not present, removes when present', () => {
     useSession.getState().addConstruct(TEST_ID)
-    useSession.getState().toggleConstructItem(TEST_ID, 0, 'q1')
+    const id0 = useSession.getState().setups[TEST_ID].constructs![0].id
+    useSession.getState().toggleConstructItem(TEST_ID, id0, 'q1')
     expect(useSession.getState().setups[TEST_ID].constructs?.[0].items).toEqual(['q1'])
-    useSession.getState().toggleConstructItem(TEST_ID, 0, 'q1')
+    useSession.getState().toggleConstructItem(TEST_ID, id0, 'q1')
     expect(useSession.getState().setups[TEST_ID].constructs?.[0].items).toEqual([])
   })
 
-  it('removeConstruct removes the construct at the given index', () => {
+  it('removeConstruct removes the construct by id', () => {
     useSession.getState().addConstruct(TEST_ID)
     useSession.getState().addConstruct(TEST_ID)
-    useSession.getState().setConstructName(TEST_ID, 0, 'A')
-    useSession.getState().setConstructName(TEST_ID, 1, 'B')
-    useSession.getState().removeConstruct(TEST_ID, 0)
+    const [idA, idB] = useSession.getState().setups[TEST_ID].constructs!.map((c) => c.id)
+    useSession.getState().setConstructName(TEST_ID, idA, 'A')
+    useSession.getState().setConstructName(TEST_ID, idB, 'B')
+    useSession.getState().removeConstruct(TEST_ID, idA)
     const constructs = useSession.getState().setups[TEST_ID].constructs ?? []
     expect(constructs).toHaveLength(1)
     expect(constructs[0].name).toBe('B')
@@ -80,8 +83,9 @@ describe('ConstructSlots — store mutations', () => {
   it('an item assigned to construct 0 cannot be assigned to construct 1 (partition)', () => {
     useSession.getState().addConstruct(TEST_ID)
     useSession.getState().addConstruct(TEST_ID)
-    useSession.getState().toggleConstructItem(TEST_ID, 0, 'q1')
-    useSession.getState().toggleConstructItem(TEST_ID, 1, 'q1')
+    const [id0, id1] = useSession.getState().setups[TEST_ID].constructs!.map((c) => c.id)
+    useSession.getState().toggleConstructItem(TEST_ID, id0, 'q1')
+    useSession.getState().toggleConstructItem(TEST_ID, id1, 'q1')
     const constructs = useSession.getState().setups[TEST_ID].constructs ?? []
     expect(constructs[0].items).toContain('q1')
     expect(constructs[1].items).not.toContain('q1')
@@ -102,7 +106,7 @@ describe('ConstructSlotsUI — rendering', () => {
   })
 
   it('renders numeric columns as item options inside a construct block', () => {
-    const constructs: Construct[] = [{ name: 'Scale A', items: [] }]
+    const constructs: Construct[] = [{ id: 1, name: 'Scale A', items: [] }]
     const html = renderUI(constructs, ['q1', 'q2', 'q3'])
     expect(html).toContain('q1')
     expect(html).toContain('q2')
@@ -114,33 +118,33 @@ describe('ConstructSlotsUI — rendering', () => {
     // ConstructSlotsUI renders whatever columns it receives.
     // A nominal column passed via numericColumns would appear — but the store wrapper
     // filters it out. This test confirms the UI renders exactly what's passed.
-    const constructs: Construct[] = [{ name: 'Scale A', items: [] }]
+    const constructs: Construct[] = [{ id: 1, name: 'Scale A', items: [] }]
     const html = renderUI(constructs, ['q1', 'q2']) // group not included → not rendered
     expect(html).not.toContain('group')
   })
 
   it('shows a validation error when a construct has 1 item (< 2)', () => {
-    const constructs: Construct[] = [{ name: 'Scale A', items: ['q1'] }]
+    const constructs: Construct[] = [{ id: 1, name: 'Scale A', items: ['q1'] }]
     const html = renderUI(constructs)
     expect(html).toContain('least 2 items')
   })
 
   it('shows a validation error when a construct has 0 items (brand-new construct)', () => {
-    const constructs: Construct[] = [{ name: '', items: [] }]
+    const constructs: Construct[] = [{ id: 1, name: '', items: [] }]
     const html = renderUI(constructs)
     expect(html).toContain('least 2 items')
   })
 
   it('does not show item-count error when a construct has 2 or more items', () => {
-    const constructs: Construct[] = [{ name: 'Scale A', items: ['q1', 'q2'] }]
+    const constructs: Construct[] = [{ id: 1, name: 'Scale A', items: ['q1', 'q2'] }]
     const html = renderUI(constructs)
     expect(html).not.toContain('least 2 items')
   })
 
   it('marks an item as incompatible (inOther) when it is in another construct', () => {
     const constructs: Construct[] = [
-      { name: 'A', items: ['q1'] },
-      { name: 'B', items: [] },
+      { id: 1, name: 'A', items: ['q1'] },
+      { id: 2, name: 'B', items: [] },
     ]
     const html = renderUI(constructs)
     // In construct B's item list, q1 is in construct A → gets the incompatible class
@@ -148,7 +152,7 @@ describe('ConstructSlotsUI — rendering', () => {
   })
 
   it('no-constructs message is absent when at least one construct exists', () => {
-    const constructs: Construct[] = [{ name: 'A', items: ['q1', 'q2'] }]
+    const constructs: Construct[] = [{ id: 1, name: 'A', items: ['q1', 'q2'] }]
     const html = renderUI(constructs)
     expect(html).not.toContain('least 1 construct')
   })

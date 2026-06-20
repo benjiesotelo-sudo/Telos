@@ -107,15 +107,17 @@ export function ConstructSlots({ testId }: { testId: string }) {
     .filter((c) => c.used && c.level !== null && NUMERIC_LEVELS.has(c.level))
     .map((c) => c.name)
 
+  const constructs = setup.constructs ?? []
+
   return (
     <ConstructSlotsUI
-      constructs={setup.constructs ?? []}
+      constructs={constructs}
       numericColumns={numericColumns}
       running={s.runStatus === 'running'}
       onAddConstruct={() => s.addConstruct(testId)}
-      onRemoveConstruct={(i) => s.removeConstruct(testId, i)}
-      onSetName={(i, name) => s.setConstructName(testId, i, name)}
-      onToggleItem={(i, item) => s.toggleConstructItem(testId, i, item)}
+      onRemoveConstruct={(i) => s.removeConstruct(testId, constructs[i].id)}
+      onSetName={(i, name) => s.setConstructName(testId, constructs[i].id, name)}
+      onToggleItem={(i, item) => s.toggleConstructItem(testId, constructs[i].id, item)}
     />
   )
 }

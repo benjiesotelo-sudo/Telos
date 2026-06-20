@@ -12,8 +12,9 @@ import { categoriesOf, propsArray, propsSumOk, strictlyPositive, defaultEventLev
 
 export type StepId = 'welcome' | 'upload' | 'guide' | 'configure-data' | 'pick-tests' | `test:${string}` | 'results'
 export interface FileInfo { name: string; rows: number; cols: number; encoding: string }
-export interface Construct { name: string; items: string[] }
-export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>; blocked: string | null; constructs?: Construct[] }
+export interface Construct { id: number; name: string; items: string[]; mode?: 'reflective' | 'formative'; x?: number; y?: number }
+export interface StructuralPath { from: number; to: number }
+export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>; blocked: string | null; constructs?: Construct[]; paths?: StructuralPath[]; modelKind?: 'latent' | 'path' }
 export interface TestRun { result: unknown; stale: boolean }
 
 export interface SessionState {
@@ -43,9 +44,9 @@ export interface SessionState {
   setOption: (testId: string, optionId: string, value: boolean | number | string) => void
   setProp: (testId: string, category: string, value: number) => void
   addConstruct: (testId: string) => void
-  removeConstruct: (testId: string, index: number) => void
-  setConstructName: (testId: string, index: number, name: string) => void
-  toggleConstructItem: (testId: string, index: number, item: string) => void
+  removeConstruct: (testId: string, id: number) => void
+  setConstructName: (testId: string, id: number, name: string) => void
+  toggleConstructItem: (testId: string, id: number, item: string) => void
   goTo: (step: StepId) => void
   runAll: () => Promise<void>
   reset: () => void
@@ -96,6 +97,14 @@ export const canEnter = (s: SessionState, target: StepId): boolean => {
   const steps = stepsOf(s); const i = steps.indexOf(target)
   return i >= 0 && steps.slice(0, i).every((st) => gateOk(s, st))
 }
+
+/** Legacy setups stored constructs without an id (pre-Sub-slice-B). Back-fill ids by array index so
+ *  existing AVE/CR/EFA work keeps running; idempotent (a construct that already has an id is untouched). */
+export const backfillConstructIds = (cs: Construct[]): Construct[] =>
+  cs.map((c, i) => (typeof c.id === 'number' ? c : { ...c, id: i }))
+
+/** Next monotonic id for a construct list — max(existing ids, 0) + 1, so ids start at 1 and a middle removal never reuses an id. */
+const nextConstructId = (cs: Construct[]): number => cs.reduce((m, c) => Math.max(m, c.id), 0) + 1
 
 const freshSetup = (id: string): TestSetup => ({
   roles: Object.fromEntries((SPECS[id]?.constraints.roles ?? []).map((r) => [r.roleId, []])),
@@ -202,28 +211,27 @@ export const useSession = create<SessionState>((set, get) => {
     })),
     addConstruct: (testId) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
-      return { setups: { ...s.setups, [testId]: { ...prev, constructs: [...(prev.constructs ?? []), { name: '', items: [] }] } } }
+      const constructs = backfillConstructIds(prev.constructs ?? [])
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs: [...constructs, { id: nextConstructId(constructs), name: '', items: [] }] } } }
     }),
-    removeConstruct: (testId, index) => edit((s) => {
+    removeConstruct: (testId, id) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
-      const constructs = (prev.constructs ?? []).filter((_, i) => i !== index)
+      const constructs = backfillConstructIds(prev.constructs ?? []).filter((c) => c.id !== id)
+      const paths = (prev.paths ?? []).filter((p) => p.from !== id && p.to !== id) // drop dangling structural paths
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs, paths } } }
+    }),
+    setConstructName: (testId, id, name) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      const constructs = backfillConstructIds(prev.constructs ?? []).map((c) => c.id === id ? { ...c, name } : c)
       return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
     }),
-    setConstructName: (testId, index, name) => edit((s) => {
+    toggleConstructItem: (testId, id, item) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
-      const constructs = (prev.constructs ?? []).map((c, i) => i === index ? { ...c, name } : c)
-      return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
-    }),
-    toggleConstructItem: (testId, index, item) => edit((s) => {
-      const prev = s.setups[testId]; if (!prev) return {}
+      const constructs = backfillConstructIds(prev.constructs ?? [])
       // Partition: if item is in another construct, ignore
-      const already = (prev.constructs ?? []).some((c, i) => i !== index && c.items.includes(item))
-      if (already) return {}
-      const constructs = (prev.constructs ?? []).map((c, i) => {
-        if (i !== index) return c
-        return { ...c, items: c.items.includes(item) ? c.items.filter((x) => x !== item) : [...c.items, item] }
-      })
-      return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
+      if (constructs.some((c) => c.id !== id && c.items.includes(item))) return {}
+      const next = constructs.map((c) => c.id !== id ? c : { ...c, items: c.items.includes(item) ? c.items.filter((x) => x !== item) : [...c.items, item] })
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs: next } } }
     }),
     goTo: (step) => { if (canEnter(get(), step)) set({ step }) },
     runAll: async () => {

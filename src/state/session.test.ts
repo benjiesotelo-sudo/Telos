@@ -192,6 +192,66 @@ describe('poisson exposure run gate (B1/convention 11 — needs the shipped pois
   })
 })
 
+describe('construct id migration (Sub-slice B)', () => {
+  const FAKE_ID = '__test-idmig__'
+  beforeEach(() => {
+    ;(SPECS as Record<string, unknown>)[FAKE_ID] = { id: FAKE_ID, inputKind: 'construct-slots', constraints: { roles: [] }, options: [] }
+    useSession.getState().reset()
+    useSession.setState({ selection: [FAKE_ID], setups: { [FAKE_ID]: { roles: {}, options: {}, props: {}, blocked: null, constructs: [] } } })
+  })
+  afterEach(() => { delete (SPECS as Record<string, unknown>)[FAKE_ID] })
+
+  it('addConstruct assigns a fresh monotonic numeric id', () => {
+    const st = useSession.getState()
+    st.addConstruct(FAKE_ID); st.addConstruct(FAKE_ID); st.addConstruct(FAKE_ID)
+    const ids = useSession.getState().setups[FAKE_ID].constructs!.map((c) => c.id)
+    expect(ids).toEqual([1, 2, 3])
+    expect(ids.every((i) => typeof i === 'number')).toBe(true)
+  })
+
+  it('ids stay unique and monotonic after a middle removal (no id reuse)', () => {
+    const st = useSession.getState()
+    st.addConstruct(FAKE_ID); st.addConstruct(FAKE_ID); st.addConstruct(FAKE_ID)
+    const mid = useSession.getState().setups[FAKE_ID].constructs![1].id
+    st.removeConstruct(FAKE_ID, mid)
+    st.addConstruct(FAKE_ID)
+    const ids = useSession.getState().setups[FAKE_ID].constructs!.map((c) => c.id)
+    expect(ids).toEqual([1, 3, 4]) // 2 removed, next id is 4 not 2 — no reuse
+  })
+
+  it('setConstructName / toggleConstructItem are id-addressed, not index-addressed', () => {
+    const st = useSession.getState()
+    st.addConstruct(FAKE_ID); st.addConstruct(FAKE_ID)
+    const [a, b] = useSession.getState().setups[FAKE_ID].constructs!.map((c) => c.id)
+    st.setConstructName(FAKE_ID, b, 'Second')
+    st.toggleConstructItem(FAKE_ID, a, 'q1')
+    const cs = useSession.getState().setups[FAKE_ID].constructs!
+    expect(cs.find((c) => c.id === b)!.name).toBe('Second')
+    expect(cs.find((c) => c.id === a)!.items).toEqual(['q1'])
+  })
+
+  it('toggleConstructItem still partitions (an item already in another construct is ignored)', () => {
+    const st = useSession.getState()
+    st.addConstruct(FAKE_ID); st.addConstruct(FAKE_ID)
+    const [a, b] = useSession.getState().setups[FAKE_ID].constructs!.map((c) => c.id)
+    st.toggleConstructItem(FAKE_ID, a, 'q1')
+    st.toggleConstructItem(FAKE_ID, b, 'q1') // claimed by a → ignored
+    const cs = useSession.getState().setups[FAKE_ID].constructs!
+    expect(cs.find((c) => c.id === a)!.items).toEqual(['q1'])
+    expect(cs.find((c) => c.id === b)!.items).toEqual([])
+  })
+
+  it('back-fills ids by array index for a legacy setup whose constructs lack id', () => {
+    useSession.setState({ setups: { [FAKE_ID]: { roles: {}, options: {}, props: {}, blocked: null,
+      constructs: [{ name: 'A', items: ['q1', 'q2'] }, { name: 'B', items: ['q3', 'q4'] }] as unknown as import('./session').Construct[] } } })
+    // an id-addressed action triggers back-fill on the touched setup
+    useSession.getState().addConstruct(FAKE_ID)
+    const cs = useSession.getState().setups[FAKE_ID].constructs!
+    expect(cs.map((c) => c.id)).toEqual([0, 1, 2]) // index-0, index-1 back-filled; fresh one continues monotonically
+    expect(cs.map((c) => c.name)).toEqual(['A', 'B', ''])
+  })
+})
+
 describe('constructsInput gate guard', () => {
   const FAKE_ID = '__test-constructs__'
   beforeEach(() => {
@@ -211,22 +271,22 @@ describe('constructsInput gate guard', () => {
   })
 
   it('gateOk returns false with a construct that has 1 item (< 2)', () => {
-    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ name: 'A', items: ['q1'] }] } } }))
+    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ id: 1, name: 'A', items: ['q1'] }] } } }))
     expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(false)
   })
 
   it('gateOk returns false when any construct has 0 items', () => {
-    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ name: 'A', items: ['q1', 'q2'] }, { name: 'B', items: [] }] } } }))
+    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: [] }] } } }))
     expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(false)
   })
 
   it('gateOk returns true with ≥1 construct each having ≥2 items', () => {
-    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ name: 'A', items: ['q1', 'q2'] }] } } }))
+    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }] } } }))
     expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(true)
   })
 
   it('gateOk returns true with multiple constructs all having ≥2 items', () => {
-    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ name: 'A', items: ['q1', 'q2'] }, { name: 'B', items: ['q3', 'q4'] }] } } }))
+    useSession.setState((s) => ({ setups: { ...s.setups, [FAKE_ID]: { ...s.setups[FAKE_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3', 'q4'] }] } } }))
     expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(true)
   })
 })
