@@ -290,3 +290,53 @@ describe('constructsInput gate guard', () => {
     expect(gateOk(useSession.getState(), `test:${FAKE_ID}`)).toBe(true)
   })
 })
+
+describe('canvas actions (Sub-slice B)', () => {
+  const FAKE_ID = '__test-canvas__'
+  beforeEach(() => {
+    ;(SPECS as Record<string, unknown>)[FAKE_ID] = { id: FAKE_ID, inputKind: 'sem-canvas', constraints: { roles: [] }, options: [] }
+    useSession.getState().reset()
+    useSession.setState({ selection: [FAKE_ID], setups: { [FAKE_ID]: { roles: {}, options: {}, props: {}, blocked: null,
+      constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3', 'q4'] }] } } })
+  })
+  afterEach(() => { delete (SPECS as Record<string, unknown>)[FAKE_ID] })
+  const paths = () => useSession.getState().setups[FAKE_ID].paths ?? []
+
+  it('addPath appends a {from,to} edge', () => {
+    useSession.getState().addPath(FAKE_ID, 1, 2)
+    expect(paths()).toEqual([{ from: 1, to: 2 }])
+  })
+
+  it('addPath dedupes an identical edge and ignores a self-loop', () => {
+    const st = useSession.getState()
+    st.addPath(FAKE_ID, 1, 2); st.addPath(FAKE_ID, 1, 2); st.addPath(FAKE_ID, 2, 2)
+    expect(paths()).toEqual([{ from: 1, to: 2 }])
+  })
+
+  it('removePath removes by index', () => {
+    const st = useSession.getState()
+    st.addPath(FAKE_ID, 1, 2); st.addPath(FAKE_ID, 2, 1)
+    st.removePath(FAKE_ID, 0)
+    expect(paths()).toEqual([{ from: 2, to: 1 }])
+  })
+
+  it('moveNode stores x/y on the addressed construct only', () => {
+    useSession.getState().moveNode(FAKE_ID, 2, 140, 55)
+    const cs = useSession.getState().setups[FAKE_ID].constructs!
+    expect(cs.find((c) => c.id === 2)).toMatchObject({ x: 140, y: 55 })
+    expect(cs.find((c) => c.id === 1)!.x).toBeUndefined()
+  })
+
+  it('setConstructMode sets reflective/formative on the addressed construct only', () => {
+    useSession.getState().setConstructMode(FAKE_ID, 1, 'formative')
+    const cs = useSession.getState().setups[FAKE_ID].constructs!
+    expect(cs.find((c) => c.id === 1)!.mode).toBe('formative')
+    expect(cs.find((c) => c.id === 2)!.mode).toBeUndefined()
+  })
+
+  it('actions mark a rendered run stale (routed through revalidated)', () => {
+    useSession.setState((s) => ({ runs: { ...s.runs, [FAKE_ID]: { result: {}, stale: false } } }))
+    useSession.getState().addPath(FAKE_ID, 1, 2)
+    expect(useSession.getState().runs[FAKE_ID].stale).toBe(true)
+  })
+})

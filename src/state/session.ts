@@ -47,6 +47,10 @@ export interface SessionState {
   removeConstruct: (testId: string, id: number) => void
   setConstructName: (testId: string, id: number, name: string) => void
   toggleConstructItem: (testId: string, id: number, item: string) => void
+  addPath: (testId: string, from: number, to: number) => void
+  removePath: (testId: string, index: number) => void
+  moveNode: (testId: string, id: number, x: number, y: number) => void
+  setConstructMode: (testId: string, id: number, mode: 'reflective' | 'formative') => void
   goTo: (step: StepId) => void
   runAll: () => Promise<void>
   reset: () => void
@@ -232,6 +236,26 @@ export const useSession = create<SessionState>((set, get) => {
       if (constructs.some((c) => c.id !== id && c.items.includes(item))) return {}
       const next = constructs.map((c) => c.id !== id ? c : { ...c, items: c.items.includes(item) ? c.items.filter((x) => x !== item) : [...c.items, item] })
       return { setups: { ...s.setups, [testId]: { ...prev, constructs: next } } }
+    }),
+    addPath: (testId, from, to) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev || from === to) return {} // no self-loops
+      const paths = prev.paths ?? []
+      if (paths.some((p) => p.from === from && p.to === to)) return {} // dedupe
+      return { setups: { ...s.setups, [testId]: { ...prev, paths: [...paths, { from, to }] } } }
+    }),
+    removePath: (testId, index) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      return { setups: { ...s.setups, [testId]: { ...prev, paths: (prev.paths ?? []).filter((_, i) => i !== index) } } }
+    }),
+    moveNode: (testId, id, x, y) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      const constructs = backfillConstructIds(prev.constructs ?? []).map((c) => c.id === id ? { ...c, x, y } : c)
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
+    }),
+    setConstructMode: (testId, id, mode) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      const constructs = backfillConstructIds(prev.constructs ?? []).map((c) => c.id === id ? { ...c, mode } : c)
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
     }),
     goTo: (step) => { if (canEnter(get(), step)) set({ step }) },
     runAll: async () => {
