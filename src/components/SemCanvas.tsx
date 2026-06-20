@@ -5,6 +5,16 @@ import type { CbSemResult } from '../lib/stats/cbSem'
 
 const BLUE = '#185fa5'
 
+/** APA leading-zero-stripped, fixed 2-dp formatter for in-[-1,1] coefficients (β, loadings). */
+function fmtCoef(v: number): string {
+  const s = Math.abs(v).toFixed(2).replace(/^0/, '')
+  return (v < 0 ? '-' : '') + s
+}
+/** R² is reported 2-dp, leading zero stripped, never negative-signed in display. */
+function fmtR2(v: number): string {
+  return v.toFixed(2).replace(/^0/, '')
+}
+
 export interface ViewBox { x: number; y: number; w: number; h: number }
 
 /** Map a screen-space point (clientX/Y) into the SVG viewBox space, accounting for zoom+pan.
@@ -157,8 +167,14 @@ export function SemCanvasUI({
                 markerEnd="url(#sem-arrow)"
               />
               {beta != null && (
-                <text className="sem-path-label" x={mx} y={my - 6} textAnchor="middle" fontSize={11} fontWeight={600} fill={BLUE}>
-                  {beta.toFixed(2)}
+                <text
+                  className="sem-path-label"
+                  data-beta={`${p.from}-${p.to}`}
+                  x={mx} y={my - 6}
+                  textAnchor="middle" fontSize={11} fontWeight={600} fill={BLUE}
+                  style={{ paintOrder: 'stroke', stroke: '#f0efe9', strokeWidth: 3 }}
+                >
+                  {`β = ${fmtCoef(beta)}`}
                 </text>
               )}
               {mode === 'delete' && (
@@ -189,8 +205,14 @@ export function SemCanvasUI({
                 />
                 <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)" pointerEvents="none">{n.name}</text>
                 {estimates?.r2[n.id] != null && (
-                  <text className="sem-r2-label" x={c.cx} y={c.top - 6} textAnchor="middle" fontSize={11} fill="var(--muted)" pointerEvents="none">
-                    R²={estimates.r2[n.id].toFixed(2)}
+                  <text
+                    className="sem-r2-label"
+                    data-r2={String(n.id)}
+                    x={c.cx} y={c.top - 6}
+                    textAnchor="middle" fontSize={11} fill="var(--muted)" pointerEvents="none"
+                    style={{ paintOrder: 'stroke', stroke: '#f0efe9', strokeWidth: 3 }}
+                  >
+                    {`R² = ${fmtR2(estimates!.r2[n.id])}`}
                   </text>
                 )}
               </g>
@@ -232,8 +254,14 @@ export function SemCanvasUI({
                     <rect className="sem-item" x={ix} y={iy} width={ITEM_W} height={ITEM_H} rx={3} fill="#fff" stroke="var(--line)" />
                     <text x={ix + ITEM_W / 2} y={iy + ITEM_H / 2 + 4} textAnchor="middle" fontSize={11} fill="var(--text)">{item}</text>
                     {load != null && (
-                      <text className="sem-load-label" x={labelX} y={iy + ITEM_H / 2 - 2} textAnchor={labelAnchor} fontSize={9} fill="var(--muted)">
-                        {load.toFixed(2)}
+                      <text
+                        className="sem-load-label"
+                        data-loading={item}
+                        x={labelX} y={iy + ITEM_H / 2 - 2}
+                        textAnchor={labelAnchor} fontSize={9} fill="var(--muted)"
+                        style={{ paintOrder: 'stroke', stroke: '#f0efe9', strokeWidth: 3 }}
+                      >
+                        {fmtCoef(load)}
                       </text>
                     )}
                   </g>
@@ -258,8 +286,14 @@ export function SemCanvasUI({
               />
               <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)" pointerEvents="none">{n.name}</text>
               {estimates?.r2[n.id] != null && (
-                <text className="sem-r2-label" x={c.cx} y={c.top - 6} textAnchor="middle" fontSize={11} fill="var(--muted)" pointerEvents="none">
-                  R²={estimates.r2[n.id].toFixed(2)}
+                <text
+                  className="sem-r2-label"
+                  data-r2={String(n.id)}
+                  x={c.cx} y={c.top - 6}
+                  textAnchor="middle" fontSize={11} fill="var(--muted)" pointerEvents="none"
+                  style={{ paintOrder: 'stroke', stroke: '#f0efe9', strokeWidth: 3 }}
+                >
+                  {`R² = ${fmtR2(estimates!.r2[n.id])}`}
                 </text>
               )}
             </g>
@@ -368,7 +402,7 @@ export function SemCanvas({ testId }: { testId: string }) {
           paths={setup.paths ?? []}
           modelKind={modelKind}
           mode={mode}
-          estimates={null}
+          estimates={(s.runs[testId]?.result as { estimates?: CbSemResult['estimates'] } | undefined)?.estimates ?? null}
           running={running}
           viewBox={vb}
           onAddPath={(from, to) => s.addPath(testId, from, to)}
