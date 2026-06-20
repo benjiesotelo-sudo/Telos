@@ -278,8 +278,10 @@ export function SemCanvas({ testId }: { testId: string }) {
     if (mode === 'move' && nodeId !== null && modelKind === 'latent') {
       // dragging a latent node (path-mode columns are fixed-laid-out, not movable)
       const c = setup.constructs?.find((x) => x.id === nodeId)
+      // Guard: abort if the node id does not match any current construct (stale data-node-id)
+      if (c === undefined) { drag.current = null; return }
       const p = screenToViewBox(e.clientX, e.clientY, svgRect(), vb)
-      drag.current = { kind: 'node', id: nodeId, offX: p.x - (c?.x ?? 0), offY: p.y - (c?.y ?? 0) }
+      drag.current = { kind: 'node', id: nodeId, offX: p.x - c.x, offY: p.y - c.y }
     } else {
       drag.current = { kind: 'pan', startX: e.clientX, startY: e.clientY, vb0: vb }
     }
@@ -310,6 +312,7 @@ export function SemCanvas({ testId }: { testId: string }) {
     const d = drag.current
     if (d?.kind === 'resize') setHeight(Math.max(240, d.h0 + (e.clientY - d.startY)))
   }
+  function onResizeUp() { drag.current = null }
 
   const zoom = (factor: number) =>
     setVb((v) => {
@@ -328,7 +331,7 @@ export function SemCanvas({ testId }: { testId: string }) {
       <div
         style={{ height, position: 'relative' }}
         onPointerDown={onPointerDown}
-        onPointerMove={(e) => { onPointerMove(e); onResizeMove(e) }}
+        onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
       >
         <SemCanvasUI
@@ -349,6 +352,8 @@ export function SemCanvas({ testId }: { testId: string }) {
         <div
           aria-label="Resize canvas"
           onPointerDown={onResizeDown}
+          onPointerMove={onResizeMove}
+          onPointerUp={onResizeUp}
           style={{ position: 'absolute', right: 4, bottom: 4, width: 14, height: 14, cursor: 'nwse-resize', borderRight: '2px solid #185fa5', borderBottom: '2px solid #185fa5' }}
         />
       </div>
