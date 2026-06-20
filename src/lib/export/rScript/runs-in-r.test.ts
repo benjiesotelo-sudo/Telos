@@ -158,6 +158,30 @@ const REPS: Rep[] = [
     expect: ['CR=', 'Table 1: Composite reliability'],
   },
 
+  // pls-sem: 3 reflective constructs from the seminr 'mobi' example; nboot reduced to 300 for gate time.
+  // native-R verified 2026-06-21 (seminr 2.5.0): reliability rhoC Image≈0.833, Satisfaction≈0.871;
+  // R^2 Satisfaction≈0.616; HTMT + bootstrapped paths reach stdout.
+  { id: 'pls-sem', fixture: 'mobi.csv',
+    setup: {
+      roles: {},
+      options: { nboot: 300 },
+      props: {},
+      blocked: null,
+      modelKind: 'latent' as const,
+      constructs: [
+        { id: 1, name: 'Image', mode: 'reflective' as const, items: ['IMAG1', 'IMAG2', 'IMAG3', 'IMAG4', 'IMAG5'] },
+        { id: 2, name: 'Expectation', mode: 'reflective' as const, items: ['CUEX1', 'CUEX2', 'CUEX3'] },
+        { id: 3, name: 'Satisfaction', mode: 'reflective' as const, items: ['CUSA1', 'CUSA2', 'CUSA3'] },
+      ],
+      paths: [
+        { from: 1, to: 2 },
+        { from: 1, to: 3 },
+        { from: 2, to: 3 },
+      ],
+    },
+    expect: ['Table 2: Reliability', 'Table 3: HTMT', 'Table 4: Structural paths'],
+  },
+
   // cb-sem: Bollen PoliticalDemocracy (ind60→dem60→dem65 + direct). df=41 (NOT saturated → fit table prints).
   // native-R verified 2026-06-20: CFI≈.953, indirect a*b≈1.274; nboot reduced to 200 for the time budget.
   { id: 'cb-sem', fixture: 'polidemocracy.csv',
