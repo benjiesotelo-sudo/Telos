@@ -7,14 +7,18 @@ import type { MatrixTable } from '../lib/results/types'
 //   'rule' = the horizontal rule before the GOF footer · 'gof' = a footer row ·
 //   'span' = a full-width row (e.g. the Hausman χ² diagnostic), text in the first column's key.
 // Matrix tables (kind:'matrix', SEM): square correlation-style grids (Fornell-Larcker, HTMT, …).
-type ClassicProps = { id: string; spec: TableSpec; rows: Record<string, string | number>[]; matrix?: never }
-type MatrixProps = { matrix: MatrixTable; id?: never; spec?: never; rows?: never }
+type ClassicProps = { id: string; spec: TableSpec; rows: Record<string, string | number>[]; matrix?: never; domId?: never }
+// `domId` overrides the matrix's logical id for the DOM id only — so a SEM spec that adds a
+// domId collision-override (Task 33) renders `table-${domId}`, matching what the exporter's
+// captureNode(`table-${spec.domId ?? spec.id}`) looks up. Without it the matrix render id and the
+// export lookup diverge → getElementById null → toPng(null) "Cannot read … ownerDocument".
+type MatrixProps = { matrix: MatrixTable; domId?: string; id?: never; spec?: never; rows?: never }
 
 export function ApaTable(props: ClassicProps | MatrixProps) {
   if (props.matrix) {
     const { id, colLabels, rowLabels, cells, diagonal, lowerOnly } = props.matrix
     return (
-      <table id={`table-${id}`} className="apa matrix">
+      <table id={`table-${props.domId ?? id}`} className="apa matrix">
         <thead><tr>
           <th />
           {colLabels.map((label, j) => <th key={j}>{label}</th>)}

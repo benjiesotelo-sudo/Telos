@@ -71,6 +71,14 @@ describe('ApaTable matrix rendering (kind:matrix)', () => {
     expect(html).toContain('<table')
   })
 
+  it('honors an explicit domId (spec override) for the table DOM id — export capture parity', () => {
+    // Matrix tables under a SEM spec with a domId override (Task 33 collision-avoidance) must
+    // render the same DOM id the exporter captures (`table-${spec.domId}`), else captureNode → null.
+    const h = renderToStaticMarkup(<ApaTable matrix={m3x3} domId="pls-sem-fl" />)
+    expect(h).toContain('id="table-pls-sem-fl"')
+    expect(h).not.toContain('id="table-fl"')
+  })
+
   it('renders a single header row with corner th + colLabels', () => {
     // thead: corner th (empty) + 3 colLabel ths; tbody: 3 row-header ths; <thead> tag itself matches /<th/
     // Verify the thead structure precisely

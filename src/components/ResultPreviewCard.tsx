@@ -25,7 +25,9 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
             ? (
               <>
                 <p><b>Table {i + 1}.</b> {t.matrix.caption}</p>
-                <ApaTable matrix={t.matrix} />
+                {/* domId from the spec (Task-33 collision override) keeps the matrix table's DOM id in
+                    sync with the exporter's captureNode(`table-${spec.domId ?? spec.id}`) lookup. */}
+                <ApaTable matrix={t.matrix} domId={t.spec.domId} />
                 {content.note && content.note.afterTableId === t.matrix.id && (
                   <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
                 )}
