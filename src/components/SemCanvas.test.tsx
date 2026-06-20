@@ -104,4 +104,75 @@ describe('SemCanvasUI — static latent (Full-AMOS) render', () => {
     expect(html).toContain('Add a construct')
     expect((html.match(/<ellipse/g) ?? []).length).toBe(0)
   })
+
+  // (I-2) Close the id=0 named risk: Map uses strict-equality so 0 must not be
+  // treated as falsy when resolving path endpoints.
+  it('draws an arrow for a path whose from id is 0', () => {
+    const html = renderLatent({
+      constructs: [
+        { id: 0, name: 'Exog', items: ['x1', 'x2'], x: 80, y: 60 },
+        { id: 1, name: 'Endog', items: ['y1', 'y2'], x: 320, y: 60 },
+      ],
+      paths: [{ from: 0, to: 1 }],
+    })
+    expect((html.match(/class="sem-path"/g) ?? []).length).toBe(1)
+    expect(html).not.toContain('NaN')
+  })
+})
+
+// ── path mode: observed rectangles, no item boxes ──────────────────────────
+describe('SemCanvasUI — path mode (observed rectangles)', () => {
+  it('draws a rectangle per column and no ovals/item boxes in path mode', () => {
+    const html = renderLatent({
+      modelKind: 'path',
+      constructs: [],
+      columns: ['educ', 'exper', 'wage'],
+      paths: [{ from: 0, to: 2 }, { from: 1, to: 2 }],
+    })
+    // 3 observed-node rectangles, 0 ovals, 0 item boxes
+    expect((html.match(/class="sem-node-rect"/g) ?? []).length).toBe(3)
+    expect((html.match(/<ellipse/g) ?? []).length).toBe(0)
+    expect((html.match(/class="sem-item"/g) ?? []).length).toBe(0)
+    // column names labelled
+    expect(html).toContain('educ'); expect(html).toContain('exper'); expect(html).toContain('wage')
+    // two structural arrows still drawn
+    expect((html.match(/class="sem-path"/g) ?? []).length).toBe(2)
+  })
+})
+
+// ── post-run estimates overlay (static annotation) ─────────────────────────
+const estimates = {
+  paths: [{ from: 1, to: 2, beta: 0.62 }, { from: 2, to: 3, beta: 0.48 }],
+  loadings: { q1: 0.81, s1: 0.77, l1: 0.7 },
+  r2: { 2: 0.39, 3: 0.23 } as Record<number, number>,
+}
+
+describe('SemCanvasUI — estimates overlay (post-run)', () => {
+  it('annotates each structural path with its standardized beta', () => {
+    const html = renderLatent({ estimates })
+    expect(html).toContain('.62')
+    expect(html).toContain('.48')
+    expect((html.match(/class="sem-path-label"/g) ?? []).length).toBe(2)
+  })
+
+  it('annotates each measurement line with its loading when present', () => {
+    const html = renderLatent({ estimates })
+    expect(html).toContain('.81') // q1 loading on Quality
+    expect(html).toContain('.77') // s1 loading on Satisfaction
+    expect((html.match(/class="sem-load-label"/g) ?? []).length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('annotates endogenous ovals with R² when present', () => {
+    const html = renderLatent({ estimates })
+    // R² labels for constructs 2 and 3
+    expect(html).toContain('R²')
+    expect(html).toContain('.39'); expect(html).toContain('.23')
+    expect((html.match(/class="sem-r2-label"/g) ?? []).length).toBe(2)
+  })
+
+  it('draws no estimate labels when estimates is null', () => {
+    const html = renderLatent({ estimates: null })
+    expect(html).not.toContain('class="sem-path-label"')
+    expect(html).not.toContain('class="sem-r2-label"')
+  })
 })

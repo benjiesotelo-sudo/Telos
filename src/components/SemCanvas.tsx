@@ -3,6 +3,12 @@ import type { CbSemResult } from '../lib/stats/cbSem'
 
 const BLUE = '#185fa5'
 
+/** APA-style: 2 dp, strip the leading zero (0.62 → ".62", -0.40 → "-.40"). */
+function fmt(v: number): string {
+  const s = Math.abs(v).toFixed(2).replace(/^0/, '')
+  return v < 0 ? `-${s}` : s
+}
+
 // Layout geometry (static; interactions move x/y in Unit 3b).
 const NODE_W = 132   // oval / rectangle width
 const NODE_H = 64    // oval / rectangle height
@@ -39,13 +45,16 @@ export function SemCanvasUI({
   testId, constructs, columns, paths, modelKind, estimates,
 }: SemCanvasUIProps) {
   const isPath = modelKind === 'path'
-  // In latent mode nodes come from constructs; in path mode from columns (Task 11).
+
+  // In latent mode nodes come from constructs (id = Construct.id, user-assigned).
+  // In path mode nodes come from columns with id = array index (0, 1, 2, …).
+  // StructuralPath.from/to MUST reference those same ids in both modes.
   const nodes = isPath
     ? columns.map((name, i) => ({ id: i, name, items: [] as string[], x: undefined as number | undefined, y: undefined as number | undefined }))
     : constructs
 
   const empty = nodes.length === 0
-  // id → center, for resolving path endpoints by construct id.
+  // id → center, for resolving path endpoints by node id (Map uses strict-equality; id 0 is safe).
   const centers = new Map<number, ReturnType<typeof nodeCenter>>()
   nodes.forEach((n, i) => centers.set(n.id, nodeCenter(n, i)))
 
@@ -69,33 +78,61 @@ export function SemCanvasUI({
           </marker>
         </defs>
 
-        {/* Structural path arrows (drawn first, under the nodes). */}
+        {/* Structural path arrows + (post-run) β label at the midpoint. */}
         {paths.map((p, i) => {
           const a = centers.get(p.from)
           const b = centers.get(p.to)
           if (!a || !b) return null
+          // estimates overlay rendered when provided (wired post-run in Task 3c)
+          const beta = estimates?.paths.find((e) => e.from === p.from && e.to === p.to)?.beta
+          const mx = (a.cx + b.cx) / 2
+          const my = (a.cy + b.cy) / 2
           return (
-            <line
-              key={`path-${i}`}
-              className="sem-path"
-              x1={a.cx} y1={a.cy} x2={b.cx} y2={b.cy}
-              stroke={BLUE} strokeWidth={2}
-              markerEnd="url(#sem-arrow)"
-            />
+            <g key={`path-${i}`}>
+              <line
+                className="sem-path"
+                x1={a.cx} y1={a.cy} x2={b.cx} y2={b.cy}
+                stroke={BLUE} strokeWidth={2}
+                markerEnd="url(#sem-arrow)"
+              />
+              {beta != null && (
+                <text className="sem-path-label" x={mx} y={my - 6} textAnchor="middle" fontSize={11} fontWeight={600} fill={BLUE}>
+                  {fmt(beta)}
+                </text>
+              )}
+            </g>
           )
         })}
 
-        {/* Nodes: latent = oval + item boxes + measurement lines; path = rectangle (Task 11). */}
-        {nodes.map((n, i) => {
+        {/* Nodes: latent = oval + item boxes + measurement lines; path = observed rectangle. */}
+        {nodes.map((n) => {
           const c = centers.get(n.id)!
-          const tooFew = !isPath && n.items.length < 2
-          if (isPath) return null // rectangles handled in Task 11
+          if (isPath) {
+            // estimates overlay rendered when provided (wired post-run in Task 3c)
+            return (
+              <g key={`node-${n.id}`}>
+                <rect
+                  className="sem-node-rect"
+                  x={c.left} y={c.top} width={NODE_W} height={NODE_H} rx={4}
+                  fill="#fff" stroke={BLUE} strokeWidth={2}
+                />
+                <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)">{n.name}</text>
+                {estimates?.r2[n.id] != null && (
+                  <text className="sem-r2-label" x={c.cx} y={c.top - 6} textAnchor="middle" fontSize={11} fill="var(--muted)">
+                    R²={fmt(estimates.r2[n.id])}
+                  </text>
+                )}
+              </g>
+            )
+          }
+          const tooFew = n.items.length < 2
           return (
             <g key={`node-${n.id}`}>
-              {/* measurement lines + item boxes */}
               {n.items.map((item, k) => {
                 const ix = c.left - ITEM_W - 28
                 const iy = c.top + k * (ITEM_H + ITEM_GAP)
+                // estimates overlay rendered when provided (wired post-run in Task 3c)
+                const load = estimates?.loadings[item]
                 return (
                   <g key={`item-${k}`}>
                     <line
@@ -105,6 +142,11 @@ export function SemCanvasUI({
                     />
                     <rect className="sem-item" x={ix} y={iy} width={ITEM_W} height={ITEM_H} rx={3} fill="#fff" stroke="var(--line)" />
                     <text x={ix + ITEM_W / 2} y={iy + ITEM_H / 2 + 4} textAnchor="middle" fontSize={11} fill="var(--text)">{item}</text>
+                    {load != null && (
+                      <text className="sem-load-label" x={ix + ITEM_W + 12} y={iy + ITEM_H / 2 - 2} textAnchor="middle" fontSize={9} fill="var(--muted)">
+                        {fmt(load)}
+                      </text>
+                    )}
                   </g>
                 )
               })}
@@ -116,6 +158,11 @@ export function SemCanvasUI({
                 strokeDasharray={tooFew ? '5 4' : undefined}
               />
               <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)">{n.name}</text>
+              {estimates?.r2[n.id] != null && (
+                <text className="sem-r2-label" x={c.cx} y={c.top - 6} textAnchor="middle" fontSize={11} fill="var(--muted)">
+                  R²={fmt(estimates.r2[n.id])}
+                </text>
+              )}
             </g>
           )
         })}
