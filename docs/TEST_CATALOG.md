@@ -2,7 +2,7 @@
 
 > **Auto-generated** from the registries (`src/lib/registry/*.ts`) via `npx tsx scripts/gen-test-tree.ts` — do not hand-edit; regenerate after registry changes.
 >
-> Purpose: a single reviewable breakdown of every test — **how it is configured** (role slots + options) and **what it outputs** (tables, figures, assumption notes, APA write-up, R map) — for completeness review. **45 of 47 tests run live**; the rest are drawn in the picker but greyed ("arrives in a later slice").
+> Purpose: a single reviewable breakdown of every test — **how it is configured** (role slots + options) and **what it outputs** (tables, figures, assumption notes, APA write-up, R map) — for completeness review. **48 of 48 tests run live**; the rest are drawn in the picker but greyed ("arrives in a later slice").
 
 ## Flow
 
@@ -66,6 +66,9 @@ flowchart TD
   F6 --> F6_1["Average variance extracted (AVE)"]
   F6 --> F6_2["Composite reliability (CR)"]
   F6 --> F6_3["Exploratory factor analysis (EFA)"]
+  F6 --> F6_4["CB-SEM"]
+  F6 --> F6_5["PLS-SEM"]
+  F6 --> F6_6["Path analysis"]
   T --> F7[Data reduction]
   F7 --> F7_0["Principal component analysis (PCA)"]
 ```
@@ -905,6 +908,65 @@ flowchart TD
   - *APA template* — "EFA (KMO = __, Bartlett's χ²(__) = __, p < .001) with parallel analysis retained __ factors explaining __% of variance (__ rotation)."
   - *R map* — psych::KMO()/cortest.bartlett() → Table 1 · R_PARALLEL_ANALYSIS → retention · psych::fa() → Tables 2–3 · fa()$Phi → Table 4 (oblimin only) · ggplot2 → scree figure
 
+### CB-SEM
+*Latent variable models › Structural equation modeling* — confirmatory structural model
+
+- **Configure**
+  - Roles (drag columns in):
+  - Options:
+    - estimator — fixed display: `WLSMV (ordinal) / ML / MLR`
+    - missing — fixed display: `MI`
+    - bootstrap — fixed display: `5000`
+- **Outputs**
+  - **Table 1 — EFA suitability**: KMO · Bartlett's χ² · df · p
+  - **Table 2 — EFA rotated factor loadings**: Item · Factor 1 · Factor 2 · Communality
+  - **Table 3 — Measurement model (CFA loadings)**: Construct → Item · B · SE · z · p · Std. loading
+  - **Table 4 — Reliability & validity**: Construct · CR · AVE · ω · α
+  - **Table 5 — Fit indices**: χ² (df, p) · χ²/df · CFI · TLI · RMSEA [90% CI] · SRMR
+  - **Table 6 — Structural paths**: Path · B · SE · z · p · Std. β · 95% CI · R²
+  - **Table 7 — Indirect effects (mediation)**: Path · Estimate · SE · boot 95% CI · p
+  - *Figure* — Model: path diagram (constructs, loadings, structural paths)
+  - *Assumption / note* — Tables shown follow the pipeline stages you ran (EFA → CFA → fit → structural); if EFA was deselected, Tables 1–2 are omitted; if the structural stage was deselected, Tables 6–7 are omitted. Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 — guidelines, not pass/fail gates; RMSEA is unstable at small df / small N, so interpret it cautiously for compact models. Use WLSMV for ordinal indicators. R² is filled once per endogenous (outcome) construct. When the model is saturated (df = 0, e.g. a just-identified path model), the fit-indices table is suppressed and a saturation flag is shown. EFA on the same sample is exploratory — treat it as a diagnostic, not confirmatory evidence. The indirect-effects table appears only when the drawn structural paths form a chain (X → M → Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI. Moderation is planned for a later version.
+  - *APA template* — "The model fit well (CFI=__, RMSEA=__, SRMR=__); the path from X to Y gave β=__, p=__."
+  - *R map* — (if EFA stage run) psych::KMO()/cortest.bartlett() → Table 1 · psych::fa() → Table 2 · lavaan::sem() (estimator ML/MLR or WLSMV) → loadings & structural paths · lavaan::fitMeasures() (or summary(fit, fit.measures=TRUE)) → Table 5 fit indices (χ²/df = chisq/df) · semTools::compRelSEM() / AVE() / psych::alpha() → CR/AVE/ω/α table · lavInspect(fit, "rsquare") → Table 6 R² · defined effects (:= in the lavaan syntax, se="bootstrap") → Table 7 indirect effects · semPlot::semPaths() → diagram
+
+### PLS-SEM
+*Latent variable models › Structural equation modeling* — variance-based structural model
+
+- **Configure**
+  - Roles (drag columns in):
+  - Options:
+    - weighting — fixed display: `path`
+    - bootstrap — fixed display: `5000`
+    - missing — fixed display: `global step-4a setting`
+- **Outputs**
+  - **Table 1 — Measurement model (outer loadings / weights)**: Construct → Item · Loading / weight · t · p
+  - **Table 2 — Reliability & convergent validity (per construct)**: Construct · α · ρ_A · CR (ρ_C ) · AVE
+  - **Table 3 — Discriminant validity — HTMT (construct × construct)**: 
+  - **Table 4 — Structural paths**: Path · β · t · p · 95% CI · f²
+  - **Table 5 — Structural model quality (per endogenous construct)**: Construct · R² · R²_adj · Q²
+  - **Table 6 — Indirect effects (mediation)**: Path · Estimate · SE · boot 95% CI · p
+  - *Figure* — Model: path diagram (with loadings, path coefficients, R²)
+  - *Assumption / note* — HTMT is a construct-by-construct matrix (not a per-construct value) — columns expand to the number of constructs in the model; HTMT < .85/.90 supports discriminant validity (Henseler, Ringle & Sarstedt, 2015). Significance comes from bootstrapping (percentile 95% CIs, 5000 resamples); R² and Q² assess the structural model (f²: ~0.02 small, 0.15 medium, 0.35 large; Cohen, 1988). PLS-SEM deliberately has no global fit indices (CFI/TLI/RMSEA) — judge it by reliability & validity, then R²/Q²/f² (Hair et al., 2019). The indirect-effects table appears only when the drawn paths form a chain (X → M → Y). Formative constructs suppress AVE/HTMT and are judged by indicator weights, VIF, and redundancy convergent validity. Moderation is planned for a later version.
+  - *APA template* — "In the PLS-SEM, the path from X to Y gave β=__, p=__ (bootstrap); R²Y=__."
+  - *R map* — seminr → Tables & bootstrap · summary() → R²/R²adj · seminr::predict_pls() → Q² · seminr::specific_effect_significance() (on the bootstrapped model) → Table 6 indirect effects · seminr::plot() → diagram
+
+### Path analysis
+*Latent variable models › Structural equation modeling* — directed relationships among observed variables (path / mediation models)
+
+- **Configure**
+  - Roles (drag columns in):
+  - Options:
+    - estimator — fixed display: `ML`
+    - bootstrap resamples — fixed display: `5000`
+- **Outputs**
+  - **Table 1 — Structural paths**: Path · B · SE · z · p · Std. β · 95% CI · R²
+  - **Table 2 — Indirect effects**: Path · Estimate · SE · boot 95% CI · p
+  - *Figure* — Path diagram: app-drawn path diagram with fitted estimates
+  - *Assumption / note* — Path analysis fits directed relationships among observed variables (lavaan::sem) — no latent measurement model, so no CFA loadings, reliability, or AVE are reported. When the model is saturated (df = 0, e.g. a single-mediator X → M → Y chain), it fits the data perfectly by construction and global fit indices (χ², CFI, TLI, RMSEA, SRMR) are not reported; an over-identified model (df > 0) reports fit, interpreting RMSEA cautiously at small df / small N (Kenny, Kaniskan & McCoach, 2015). Indirect (mediated) effects are tested with bias-uncorrected percentile bootstrap 95% CIs (5,000 resamples; MacKinnon, Lockwood & Williams, 2004); an interval excluding 0 indicates a credible indirect effect.
+  - *APA template* — "A path model fit to the observed variables; the indirect effect of X on Y through M was significant, bootstrap 95% CI excluding 0."
+  - *R map* — lavaan::sem() on observed variables (regressions only; no =~) → fit · standardizedSolution() + lavInspect(fit,"rsquare") → Table 1 (structural paths + R²) · auto := indirect-effect definitions + bootstrap (boot.ci.type="perc", R = 5000) → Table 2 (indirect effects) · fit indices suppressed when fitMeasures(fit,"df") == 0 (saturated) · semPlot::semPaths() → figure (rectangles = observed)
+
 ## Data reduction
 
 ### Principal component analysis (PCA)
@@ -929,4 +991,3 @@ flowchart TD
 
 ## Not yet live (drawn in the picker, greyed)
 
-- **Latent variable models** — CB-SEM, PLS-SEM
