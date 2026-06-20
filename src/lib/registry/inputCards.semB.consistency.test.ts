@@ -53,6 +53,13 @@ describe('SEM-B input cards realize the hybrid decision (form defines constructs
     expect(bar).not.toContain('Construct')
     expect(bar).toContain('<span class="amospill on">&rarr; Draw path</span>')
   })
+  it('PLS-SEM options zone is numbered 3 (not 2, which is reserved for define-constructs)', () => {
+    expect(plsCard).toContain("3 · set this test's options")
+    expect(plsCard).not.toContain("2 · set this test's options")
+  })
+  it('CB-SEM pipeline/options zone is numbered 3', () => {
+    expect(cbCard).toContain('3 · choose the pipeline &amp; options')
+  })
   it('inputs legend describes form-defines + paths-only canvas, not drag-items-into-constructs', () => {
     expect(legend).not.toContain('the student drags items into constructs and draws the paths')
     expect(legend).toContain('they define their constructs (name + items) in a form, then draw the structural paths on the canvas')
