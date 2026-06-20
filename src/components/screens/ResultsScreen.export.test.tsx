@@ -96,6 +96,11 @@ describe('buildExportFiles (Task 10)', () => {
     expect(Object.keys(files)).toContain('LICENSES.txt')
   })
 
+  it('never emits the sem path diagram from the pure file map (it is DOM-layered in download)', () => {
+    const files = buildExportFiles(session(), { tables: false, figures: true, pdf: false, latex: true, r: false })
+    expect(Object.keys(files).some((k) => k.endsWith('figure_path-diagram.png'))).toBe(false)
+  })
+
   // Gap case (BLOCKER regression): when a non-fresh test precedes a fresh one in the selection, the
   // report.tex \includegraphics NN must equal the figure-PNG key NN (the FULL-selection index), so the
   // figures resolve. Here A (simple-linear-regression) has NO run; B (one-way-anova) is fresh → B is 02.

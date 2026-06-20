@@ -39,6 +39,7 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
     const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
     const content = BUILDERS[id](spec, s.runs[id].result)
     for (const fig of content.figures) {
+      if (!fig.png.length) continue // 0-byte placeholder (e.g. sem-canvas path diagram — layered by rasterSemFigures)
       const name = `figure_${fig.file ?? fig.type}.png`
       if (formats.figures) files[`${folder}${name}`] = fig.png
       if (formats.latex) files[`figures/${folder}${name}`] = fig.png // emitLatex \includegraphics path
@@ -64,6 +65,28 @@ export function printReport(doc: Document = document, win: Window = window) {
   win.print()
 }
 
+// DOM-bound raster of the on-screen annotated path diagram (Task 29 svg id
+// `figure-path-diagram-<id>`). Layered here — NOT in buildExportFiles — because, like
+// the table PNGs, it needs captureNode (async, html-to-image) and a live DOM node; the
+// builder is sync/no-DOM and can't produce it (§4.2). Same folder slug + figures/ latex
+// copy convention as buildExportFiles so report.tex's \includegraphics resolves.
+export async function rasterSemFigures(
+  s: SessionState,
+  fresh: string[],
+  formats: Pick<ExportFormats, 'figures' | 'latex'>,
+  files: Record<string, Uint8Array>,
+): Promise<void> {
+  if (!formats.figures && !formats.latex) return
+  for (const id of fresh) {
+    const spec = SPECS[id]
+    if (spec?.inputKind !== 'sem-canvas') continue
+    const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
+    const png = await captureNode(`figure-path-diagram-${id}`)
+    if (formats.figures) files[`${folder}figure_path-diagram.png`] = png
+    if (formats.latex) files[`figures/${folder}figure_path-diagram.png`] = png
+  }
+}
+
 // mm:ss for the bootstrap progress readout (elapsed + spike-calibrated estimate; not per-resample counts)
 const mmss = (ms: number) => {
   const t = Math.max(0, Math.round(ms / 1000))
@@ -87,6 +110,7 @@ export function ResultsScreen() {
         const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
         for (const t of BUILDERS[id](spec, s.runs[id].result).tables) files[`${folder}table_${t.spec.id}.png`] = await captureNode(`table-${t.spec.domId ?? t.spec.id}`)
       }
+      await rasterSemFigures(s, fresh, formats, files) // sem-canvas path diagram: DOM raster of the annotated <svg>
       const names = Object.keys(files)
       if (names.length === 1) { const fname = names[0].split('/').pop()!; saveBlob(new Blob([files[names[0]] as Uint8Array<ArrayBuffer>], { type: mimeFor(fname) }), fname) }
       else if (names.length) saveBlob(new Blob([buildBundle(files)], { type: 'application/zip' }), 'telos-export.zip')
