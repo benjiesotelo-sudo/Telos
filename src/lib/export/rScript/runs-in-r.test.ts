@@ -157,6 +157,25 @@ const REPS: Rep[] = [
     },
     expect: ['CR=', 'Table 1: Composite reliability'],
   },
+
+  // cb-sem: Bollen PoliticalDemocracy (ind60→dem60→dem65 + direct). df=41 (NOT saturated → fit table prints).
+  // native-R verified 2026-06-20: CFI≈.953, indirect a*b≈1.274; nboot reduced to 200 for the time budget.
+  { id: 'cb-sem', fixture: 'polidemocracy.csv',
+    setup: {
+      roles: {},
+      options: { estimator: 'ML', nboot: 200, ciType: 'percentile' },
+      props: {},
+      blocked: null,
+      modelKind: 'latent',
+      constructs: [
+        { id: 1, name: 'ind60', items: ['x1', 'x2', 'x3'] },
+        { id: 2, name: 'dem60', items: ['y1', 'y2', 'y3', 'y4'] },
+        { id: 3, name: 'dem65', items: ['y5', 'y6', 'y7', 'y8'] },
+      ],
+      paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }, { from: 1, to: 3 }],
+    },
+    expect: ['Table 5: Fit indices', 'Table 7: Indirect effects'],
+  },
 ]
 
 describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
