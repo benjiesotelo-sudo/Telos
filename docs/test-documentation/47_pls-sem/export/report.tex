@@ -1,0 +1,80 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{PLS-SEM}
+
+\begin{tabular}{llll}
+\toprule
+Construct $\rightarrow$ Item & Loading / weight & t & p \\
+\midrule
+ & .87 & 31.19 & $<$ .001 \\
+ & .60 & 9.42 & $<$ .001 \\
+ & .76 & 18.78 & $<$ .001 \\
+ & .90 & 63.67 & $<$ .001 \\
+ & .89 & 63.38 & $<$ .001 \\
+ & .91 & 69.44 & $<$ .001 \\
+ & .56 & 5.28 & $<$ .001 \\
+ & .76 & 13.83 & $<$ .001 \\
+ & .91 & 33.06 & $<$ .001 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Construct & $\alpha$ & $\rho$A & CR ($\rho$C) & AVE \\
+\midrule
+visual & .63 & .72 & .79 & .56 \\
+textual & .88 & .89 & .93 & .81 \\
+speed & .69 & .89 & .80 & .57 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lccc}
+\toprule
+ & visual & textual & speed \\
+\midrule
+visual &  &  &  \\
+textual & .42 &  &  \\
+speed & .47 & .29 &  \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llllll}
+\toprule
+Path & $\beta$ & t & p & 95\% CI & f\textsuperscript{2} \\
+\midrule
+visual $\rightarrow$ textual & .35 & 6.31 & $<$ .001 & [.24, .46] &  \\
+textual $\rightarrow$ speed & .12 & 1.97 & .049 & [.00, .24] &  \\
+visual $\rightarrow$ speed & .35 & 6.72 & $<$ .001 & [.25, .45] &  \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Construct & R\textsuperscript{2} & R\textsuperscript{2}adj & Q\textsuperscript{2} \\
+\midrule
+textual & .12 & .12 & -0.02 \\
+speed & .17 & .16 & -0.00 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Path & Estimate & SE & boot 95\% CI & p \\
+\midrule
+visual $\rightarrow$ textual $\rightarrow$ speed & .04 & 0.02 & [.00, .10] & .088 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_pls-sem/figure_path-diagram.png}
+
+Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does not use CB-SEM global fit indices (CFI/TLI/RMSEA) --- judge it instead by reliability \& validity (CR, AVE, HTMT), then R\textsuperscript{2}, Q\textsuperscript{2} (predictive relevance) and f\textsuperscript{2}, with SRMR the only commonly reported approximate fit index. Read the bootstrapped path coefficients ($\beta$, p); f\textsuperscript{2} is each path's effect size (\textasciitilde{}0.02 small, 0.15 medium, 0.35 large).
+
+In the PLS-SEM, the path from X to Y gave $\beta$=\_\_, p=\_\_ (bootstrap); R\textsuperscript{2}Y=\_\_.
+
+\end{document}

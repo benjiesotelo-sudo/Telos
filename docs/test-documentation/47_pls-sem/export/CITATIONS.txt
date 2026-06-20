@@ -1,0 +1,67 @@
+Telos — Citations for the Exported Analysis
+===========================================
+
+The exported analysis.R was generated for R and relies on the packages cited below.
+Please cite the R version and each package you use in any resulting work.
+
+R language and environment
+  R Core Team (2026). R 4.6.0: A Language and Environment for Statistical Computing.
+  R Foundation for Statistical Computing, Vienna, Austria. https://www.R-project.org/
+
+R packages (citation()-style references — run citation("<pkg>") in R for the canonical entry)
+  afex
+    Singmann H, Bolker B, Westfall J, Aust F, Ben-Shachar MS (2024). afex: Analysis of Factorial Experiments. R package. https://CRAN.R-project.org/package=afex
+  car
+    Fox J, Weisberg S (2019). An R Companion to Applied Regression, Third edition. Sage, Thousand Oaks CA. https://CRAN.R-project.org/package=car
+  coin
+    Hothorn T, Hornik K, van de Wiel MA, Zeileis A (2008). "Implementing a Class of Permutation Tests: The coin Package." Journal of Statistical Software, 28(8), 1-23. https://CRAN.R-project.org/package=coin
+  effectsize
+    Ben-Shachar MS, Lüdecke D, Makowski D (2020). "effectsize: Estimation of Effect Size Indices and Standardized Parameters." Journal of Open Source Software, 5(56), 2815. https://CRAN.R-project.org/package=effectsize
+  emmeans
+    Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package. https://CRAN.R-project.org/package=emmeans
+  forecast
+    Hyndman R, Athanasopoulos G, Bergmeir C, et al. (2024). forecast: Forecasting functions for time series and linear models. R package. https://CRAN.R-project.org/package=forecast
+  ggplot2
+    Wickham H (2016). ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York. https://CRAN.R-project.org/package=ggplot2
+  ivreg
+    Fox J, Kleiber C, Zeileis A (2024). ivreg: Instrumental-Variables Regression by 2SLS, 2SM, or 2SMM, with Diagnostics. R package. https://CRAN.R-project.org/package=ivreg
+  lavaan
+    lavaan. https://CRAN.R-project.org/package=lavaan
+  lmtest
+    Zeileis A, Hothorn T (2002). "Diagnostic Checking in Regression Relationships." R News, 2(3), 7-10. https://CRAN.R-project.org/package=lmtest
+  MASS
+    Venables WN, Ripley BD (2002). Modern Applied Statistics with S, Fourth edition. Springer, New York. https://CRAN.R-project.org/package=MASS
+  MatchIt
+    Ho DE, Imai K, King G, Stuart EA (2011). "MatchIt: Nonparametric Preprocessing for Parametric Causal Inference." Journal of Statistical Software, 42(8), 1-28. https://CRAN.R-project.org/package=MatchIt
+  modelsummary
+    Arel-Bundock V (2022). "modelsummary: Data and Model Summaries in R." Journal of Statistical Software, 103(1), 1-23. https://CRAN.R-project.org/package=modelsummary
+  nortest
+    Gross J, Ligges U (2015). nortest: Tests for Normality. R package. https://CRAN.R-project.org/package=nortest
+  parameters
+    Lüdecke D, Ben-Shachar MS, Patil I, Makowski D (2020). "Extracting, Computing and Exploring the Parameters of Statistical Models using R." Journal of Open Source Software, 5(53), 2445. https://CRAN.R-project.org/package=parameters
+  performance
+    Lüdecke D, Ben-Shachar MS, Patil I, Waggoner P, Makowski D (2021). "performance: An R Package for Assessment, Comparison and Testing of Statistical Models." Journal of Open Source Software, 6(60), 3139. https://CRAN.R-project.org/package=performance
+  plm
+    Croissant Y, Millo G (2008). "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2), 1-43. https://CRAN.R-project.org/package=plm
+  pROC
+    Robin X, Turck N, Hainard A, et al. (2011). "pROC: an open-source package for R and S+ to analyze and compare ROC curves." BMC Bioinformatics, 12, 77. https://CRAN.R-project.org/package=pROC
+  psych
+    Revelle W (2024). psych: Procedures for Psychological, Psychometric, and Personality Research. Northwestern University, Evanston. https://CRAN.R-project.org/package=psych
+  rdrobust
+    Calonico S, Cattaneo MD, Farrell MH, Titiunik R (2017). "rdrobust: Software for Regression-Discontinuity Designs." The Stata Journal, 17(2), 372-404. https://CRAN.R-project.org/package=rdrobust
+  rstatix
+    Kassambara A (2023). rstatix: Pipe-Friendly Framework for Basic Statistical Tests. R package. https://CRAN.R-project.org/package=rstatix
+  sandwich
+    Zeileis A, Köll S, Graham N (2020). "Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R." Journal of Statistical Software, 95(1), 1-36. https://CRAN.R-project.org/package=sandwich
+  seminr
+    seminr. https://CRAN.R-project.org/package=seminr
+  semPlot
+    semPlot. https://CRAN.R-project.org/package=semPlot
+  semTools
+    semTools. https://CRAN.R-project.org/package=semTools
+  tseries
+    Trapletti A, Hornik K (2024). tseries: Time Series Analysis and Computational Finance. R package. https://CRAN.R-project.org/package=tseries
+  vars
+    Pfaff B (2008). "VAR, SVAR and SVEC Models: Implementation Within R Package vars." Journal of Statistical Software, 27(4). https://CRAN.R-project.org/package=vars
+
+Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.

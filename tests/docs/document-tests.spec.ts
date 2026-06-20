@@ -16,6 +16,7 @@ interface Case {
   nn: string; id: string; name: string; question: string; fixture: string
   pickName: string; dataConfig: DataCfg[]; drags: Drag[]; set: SetAction[]
   constructs?: { name: string; items: string[] }[] // construct-slots tests (AVE, CR) — no drag roles
+  paths?: Drag[] // sem-canvas tests (CB-SEM, PLS-SEM): structural paths drawn between constructs (by name)
 }
 
 async function dragChip(page: Page, chip: string, roleId: string) {
@@ -58,6 +59,16 @@ async function documentTest(page: Page, c: Case) {
       const card = page.locator('.card').filter({ has: page.getByLabel(`Construct ${i + 1} name`) })
       await card.getByLabel(`Construct ${i + 1} name`).fill(c.constructs[i].name)
       for (const item of c.constructs[i].items) await card.getByLabel(item).check()
+    }
+    // sem-canvas tests (CB-SEM, PLS-SEM): draw structural paths between the construct ovals.
+    // Ovals render in construct add-order; Draw is the canvas default → click source oval then target.
+    if (c.paths) {
+      await expect(page.locator('ellipse[data-node-id]')).toHaveCount(c.constructs.length)
+      const idxOf = (name: string) => c.constructs!.findIndex((k) => k.name === name)
+      for (const [from, to] of c.paths) {
+        await page.locator('[data-node-id]').nth(idxOf(from)).click()
+        await page.locator('[data-node-id]').nth(idxOf(to)).click()
+      }
     }
   } else {
     await expect(page.locator('[data-role]').first()).toBeVisible()
@@ -154,6 +165,18 @@ const CASES: Case[] = [
   { nn: '43', id: 'composite-reliability', name: 'Composite reliability (CR)', question: 'reliability of each construct', fixture: 'scale.csv', pickName: 'Composite reliability (CR)', dataConfig: [], drags: [], set: [], constructs: [{ name: 'visual', items: ['x1', 'x2', 'x3'] }, { name: 'textual', items: ['x4', 'x5', 'x6'] }, { name: 'speed', items: ['x7', 'x8', 'x9'] }] },
   { nn: '44', id: 'efa', name: 'Exploratory factor analysis (EFA)', question: 'underlying factors behind a set of items', fixture: 'scale.csv', pickName: 'Exploratory factor analysis (EFA)', dataConfig: [], drags: [['x1', 'items'], ['x2', 'items'], ['x3', 'items'], ['x4', 'items'], ['x5', 'items'], ['x6', 'items'], ['x7', 'items'], ['x8', 'items'], ['x9', 'items']], set: [] },
   { nn: '45', id: 'pca', name: 'Principal component analysis (PCA)', question: 'reduce many variables to a few components', fixture: 'scale.csv', pickName: 'Principal component analysis (PCA)', dataConfig: [], drags: [['x1', 'variables'], ['x2', 'variables'], ['x3', 'variables'], ['x4', 'variables'], ['x5', 'variables'], ['x6', 'variables'], ['x7', 'variables'], ['x8', 'variables'], ['x9', 'variables']], set: [] },
+  // ── Latent variables & SEM — sub-slice B (AMOS canvas): scale.csv = Holzinger-Swineford x1–x9 ──
+  // CB-SEM / PLS-SEM use the construct-slots FORM (define constructs) + the canvas (draw structural paths).
+  // 3 H-S constructs + a full structural model (visual→textual→speed, + direct visual→speed) → mediation.
+  { nn: '46', id: 'cb-sem', name: 'CB-SEM', question: 'confirmatory structural model among latent constructs', fixture: 'scale.csv', pickName: 'CB-SEM', dataConfig: [], drags: [], set: [],
+    constructs: [{ name: 'visual', items: ['x1', 'x2', 'x3'] }, { name: 'textual', items: ['x4', 'x5', 'x6'] }, { name: 'speed', items: ['x7', 'x8', 'x9'] }],
+    paths: [['visual', 'textual'], ['textual', 'speed'], ['visual', 'speed']] },
+  { nn: '47', id: 'pls-sem', name: 'PLS-SEM', question: 'variance-based structural model (prediction-oriented)', fixture: 'scale.csv', pickName: 'PLS-SEM', dataConfig: [], drags: [], set: [],
+    constructs: [{ name: 'visual', items: ['x1', 'x2', 'x3'] }, { name: 'textual', items: ['x4', 'x5', 'x6'] }, { name: 'speed', items: ['x7', 'x8', 'x9'] }],
+    paths: [['visual', 'textual'], ['textual', 'speed'], ['visual', 'speed']] },
+  // path-analysis (48): observed-only path mode — DEFERRED from doc capture. The canvas→runner path-mode
+  // bridge (modelKind:'path' init + seeding setup.constructs from columns) is not yet wired, so it cannot
+  // be driven from the app UI yet. Document once the path-mode UI bridge lands (flagged for owner).
 ]
 
 for (const c of CASES) {
