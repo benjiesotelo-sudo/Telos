@@ -5,6 +5,24 @@ import type { CbSemResult } from '../lib/stats/cbSem'
 
 const BLUE = '#185fa5'
 
+export interface ViewBox { x: number; y: number; w: number; h: number }
+
+/** Map a screen-space point (clientX/Y) into the SVG viewBox space, accounting for zoom+pan.
+ *  Pure + DOM-free so the drag math is unit-tested without a real SVG. */
+export function screenToViewBox(
+  clientX: number, clientY: number,
+  rect: { left: number; top: number; width: number; height: number },
+  vb: ViewBox,
+): { x: number; y: number } {
+  return {
+    x: vb.x + ((clientX - rect.left) / rect.width) * vb.w,
+    y: vb.y + ((clientY - rect.top) / rect.height) * vb.h,
+  }
+}
+
+const BASE_VB: ViewBox = { x: 0, y: 0, w: 720, h: 320 }
+const ZOOM_STEP = 1.2
+
 // Layout geometry (static; interactions move x/y in Unit 3b).
 const NODE_W = 132   // oval / rectangle width
 const NODE_H = 64    // oval / rectangle height
@@ -23,6 +41,7 @@ export interface SemCanvasUIProps {
   mode: 'draw' | 'move' | 'delete'
   estimates?: CbSemResult['estimates'] | null
   running: boolean
+  viewBox?: ViewBox
   onAddPath(from: number, to: number): void
   onRemovePath(index: number): void
   onMoveNode(id: number, x: number, y: number): void
@@ -50,6 +69,7 @@ function nodeCenter(n: Node, fallbackIdx: number) {
 /** Pure presentational canvas — testable with renderToStaticMarkup. */
 export function SemCanvasUI({
   testId, constructs, columns, paths, modelKind, mode, estimates, running,
+  viewBox: vbProp,
   onAddPath, onRemovePath, onMoveNode: _onMoveNode, onSetMode,
 }: SemCanvasUIProps) {
   // pending draw source (click source → target); cancel when same node re-clicked
@@ -102,7 +122,7 @@ export function SemCanvasUI({
       <svg
         id={`figure-path-diagram-${testId}`}
         width="100%"
-        viewBox="0 0 760 360"
+        viewBox={vbProp ? `${vbProp.x} ${vbProp.y} ${vbProp.w} ${vbProp.h}` : '0 0 760 360'}
         preserveAspectRatio="xMidYMid meet"
         style={{ background: '#f0efe9', border: '1px solid var(--line)', borderRadius: 10 }}
       >
@@ -223,30 +243,115 @@ export function SemCanvasUI({
   )
 }
 
-/** Store-connected canvas: wires useSession, owns the move-drag + viewBox(zoom/pan) + resize-grip state (Task 13). */
+/** Store-connected canvas: useSession wiring + pointer-drag move + viewBox zoom/pan + resize grip.
+ *  Items "keep their side" for free — SemCanvasUI draws item boxes relative to the (moved) node centre. */
 export function SemCanvas({ testId }: { testId: string }) {
   const s = useSession()
   const setup = s.setups[testId]
-  const svgRef = useRef<SVGSVGElement | null>(null)
-  void svgRef
+  const [mode, setMode] = useState<'draw' | 'move' | 'delete'>('draw')
+  const [vb, setVb] = useState<ViewBox>(BASE_VB)
+  const [height, setHeight] = useState(360)
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  // active gesture: dragging a node (move tool) or panning the canvas (any tool, blank-space drag)
+  const drag = useRef<
+    | { kind: 'node'; id: number; offX: number; offY: number }
+    | { kind: 'pan'; startX: number; startY: number; vb0: ViewBox }
+    | { kind: 'resize'; startY: number; h0: number }
+    | null
+  >(null)
+
   if (!setup) return null
+  const running = s.runStatus === 'running'
   const modelKind = setup.modelKind ?? 'latent'
   const columns = s.columns.filter((c) => c.used).map((c) => c.name)
-  const [mode, setMode] = useState<'draw' | 'move' | 'delete'>('draw')
+
+  const svgRect = () => {
+    const svg = wrapRef.current?.querySelector('svg')
+    const r = svg?.getBoundingClientRect()
+    return r ? { left: r.left, top: r.top, width: r.width, height: r.height } : { left: 0, top: 0, width: vb.w, height: vb.h }
+  }
+
+  function onPointerDown(e: React.PointerEvent) {
+    if (running) return
+    const target = (e.target as Element).closest('[data-node-id]')
+    const nodeId = target ? Number(target.getAttribute('data-node-id')) : null
+    if (mode === 'move' && nodeId !== null && modelKind === 'latent') {
+      // dragging a latent node (path-mode columns are fixed-laid-out, not movable)
+      const c = setup.constructs?.find((x) => x.id === nodeId)
+      const p = screenToViewBox(e.clientX, e.clientY, svgRect(), vb)
+      drag.current = { kind: 'node', id: nodeId, offX: p.x - (c?.x ?? 0), offY: p.y - (c?.y ?? 0) }
+    } else {
+      drag.current = { kind: 'pan', startX: e.clientX, startY: e.clientY, vb0: vb }
+    }
+    ;(e.target as Element).setPointerCapture?.(e.pointerId)
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    const d = drag.current
+    if (!d) return
+    if (d.kind === 'node') {
+      const p = screenToViewBox(e.clientX, e.clientY, svgRect(), vb)
+      s.moveNode(testId, d.id, Math.round(p.x - d.offX), Math.round(p.y - d.offY))
+    } else if (d.kind === 'pan') {
+      const r = svgRect()
+      const dx = ((e.clientX - d.startX) / r.width) * vb.w
+      const dy = ((e.clientY - d.startY) / r.height) * vb.h
+      setVb({ ...d.vb0, x: d.vb0.x - dx, y: d.vb0.y - dy })
+    }
+  }
+
+  function onPointerUp() { drag.current = null }
+
+  function onResizeDown(e: React.PointerEvent) {
+    drag.current = { kind: 'resize', startY: e.clientY, h0: height }
+    ;(e.target as Element).setPointerCapture?.(e.pointerId)
+  }
+  function onResizeMove(e: React.PointerEvent) {
+    const d = drag.current
+    if (d?.kind === 'resize') setHeight(Math.max(240, d.h0 + (e.clientY - d.startY)))
+  }
+
+  const zoom = (factor: number) =>
+    setVb((v) => {
+      const w = v.w / factor; const h = v.h / factor
+      return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w, h }   // zoom about the centre
+    })
+  const fit = () => setVb(BASE_VB)
+
   return (
-    <SemCanvasUI
-      testId={testId}
-      constructs={setup.constructs ?? []}
-      columns={columns}
-      paths={setup.paths ?? []}
-      modelKind={modelKind}
-      mode={mode}
-      estimates={null}
-      running={s.runStatus === 'running'}
-      onAddPath={(from, to) => s.addPath(testId, from, to)}
-      onRemovePath={(i) => s.removePath(testId, i)}
-      onMoveNode={(id, x, y) => s.moveNode(testId, id, x, y)}
-      onSetMode={setMode}
-    />
+    <div ref={wrapRef}>
+      <div role="toolbar" style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+        <button type="button" aria-label="Zoom out" className="btn ghost" disabled={running} onClick={() => zoom(1 / ZOOM_STEP)}>−</button>
+        <button type="button" aria-label="Zoom in" className="btn ghost" disabled={running} onClick={() => zoom(ZOOM_STEP)}>+</button>
+        <button type="button" aria-label="Fit" className="btn ghost" disabled={running} onClick={fit}>Fit</button>
+      </div>
+      <div
+        style={{ height, position: 'relative' }}
+        onPointerDown={onPointerDown}
+        onPointerMove={(e) => { onPointerMove(e); onResizeMove(e) }}
+        onPointerUp={onPointerUp}
+      >
+        <SemCanvasUI
+          testId={testId}
+          constructs={setup.constructs ?? []}
+          columns={columns}
+          paths={setup.paths ?? []}
+          modelKind={modelKind}
+          mode={mode}
+          estimates={null}
+          running={running}
+          viewBox={vb}
+          onAddPath={(from, to) => s.addPath(testId, from, to)}
+          onRemovePath={(i) => s.removePath(testId, i)}
+          onMoveNode={(id, x, y) => s.moveNode(testId, id, x, y)}
+          onSetMode={setMode}
+        />
+        <div
+          aria-label="Resize canvas"
+          onPointerDown={onResizeDown}
+          style={{ position: 'absolute', right: 4, bottom: 4, width: 14, height: 14, cursor: 'nwse-resize', borderRight: '2px solid #185fa5', borderBottom: '2px solid #185fa5' }}
+        />
+      </div>
+    </div>
   )
 }
