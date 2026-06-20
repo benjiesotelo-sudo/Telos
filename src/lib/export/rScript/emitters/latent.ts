@@ -315,6 +315,120 @@ export const latentEmitters: Record<string, Emitter> = {
     return lines.join('\n')
   },
 
+  // lavaan::sem from constructs (=~) + structural paths (~) + auto := indirect defs.
+  // Single bootstrap fit for mediation (percentile CI, design D7/D10 — no RNG chunking). Diagram = semPlot::semPaths.
+  // Fit table suppressed strictly when fitMeasures(fit,"df") == 0 (shared df==0 predicate; design §3.6/§5.1).
+  'cb-sem': (_spec, setup) => {
+    const constructs: { id: number; name: string; items: string[] }[] =
+      (setup.constructs as { id: number; name: string; items: string[] }[]) ?? []
+    const paths: { from: number; to: number }[] =
+      (setup.paths as { from: number; to: number }[]) ?? []
+    const isPath = setup.modelKind === 'path'
+    if (constructs.length === 0) return '# No constructs defined — nothing to run for CB-SEM.'
+
+    const nameOf = (id: number) => constructs.find((c) => c.id === id)!.name
+    const nboot = Number(setup.options['nboot'] ?? 5000)
+    const ciType = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'
+
+    // Model lines: measurement (latent only) + structural + auto indirect defs.
+    const lines: string[] = []
+    if (!isPath) for (const c of constructs) lines.push(`${c.name} =~ ${c.items.join(' + ')}`)
+    const targets = [...new Set(paths.map((p) => p.to))]
+    for (const t of targets) {
+      const rhs = paths.filter((p) => p.to === t)
+        .map((p) => `p_${p.from}_${p.to}*${nameOf(p.from)}`).join(' + ')
+      lines.push(`${nameOf(t)} ~ ${rhs}`)
+    }
+    const sources = new Set(paths.map((p) => p.from))
+    let hasIndirect = false
+    for (const ab of paths) {
+      if (!sources.has(ab.to)) continue
+      for (const bc of paths.filter((p) => p.from === ab.to)) {
+        lines.push(`ie_${ab.from}_${ab.to}_${bc.to} := p_${ab.from}_${ab.to}*p_${bc.from}_${bc.to}`)
+        hasIndirect = true
+      }
+    }
+    const modelR = lines.join('\\n')
+
+    const out: string[] = [
+      '# ---- CB-SEM via lavaan::sem (measurement + structural + indirect) ----',
+      `model_str <- "${modelR}"`,
+      '',
+      '# Single awaited bootstrap fit for mediation (no RNG chunking — preserves WebR≡native parity).',
+      'gc()',
+      'set.seed(20260620)',
+    ]
+    if (hasIndirect) {
+      out.push(
+        `fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = ${nboot})`,
+        `pe  <- lavaan::parameterEstimates(fit, boot.ci.type = "${ciType}", level = 0.95)`,
+      )
+    } else {
+      out.push(
+        'fit <- lavaan::sem(model_str, data = d)',
+        'pe  <- lavaan::parameterEstimates(fit, level = 0.95)',
+      )
+    }
+    out.push(
+      'gc()',
+      'ss <- lavaan::standardizedSolution(fit)',
+      '',
+    )
+
+    if (!isPath) {
+      out.push(
+        '# ---- Table 3: Measurement model (CFA) — B / SE / z / p / Std. loading ----',
+        'cat("\\n--- Table 3: Measurement model (CFA) ---\\n")',
+        'print(ss[ss$op == "=~", c("lhs","rhs","est.std")])',
+        '',
+        '# ---- Table 4: Reliability & validity — CR / AVE / ω / α ----',
+        '# Do NOT call semTools::reliability() — deprecated 2022.',
+        'cr_vec  <- unlist(semTools::compRelSEM(fit))',
+        'ave_vec <- semTools::AVE(fit)',
+        'cat("\\n--- Table 4: Reliability & validity ---\\n")',
+        'print(round(rbind(CR = cr_vec, AVE = ave_vec[names(cr_vec)]), 3))',
+        '',
+      )
+    }
+
+    out.push(
+      '# ---- Table 5: Fit indices (suppressed strictly when df == 0 — saturated) ----',
+      'df_val <- as.numeric(lavaan::fitMeasures(fit, "df"))',
+      'if (df_val == 0) {',
+      '  cat("\\nModel is saturated (df == 0): fit indices suppressed.\\n")',
+      '} else {',
+      '  fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",',
+      '                                   "rmsea.ci.lower","rmsea.ci.upper","srmr"))',
+      '  cat("\\n--- Table 5: Fit indices ---\\n")',
+      '  print(round(fm, 3))',
+      '}',
+      '',
+      '# ---- Table 6: Structural paths (standardized β + 95% CI + R²) ----',
+      'cat("\\n--- Table 6: Structural paths ---\\n")',
+      'print(ss[ss$op == "~", c("lhs","rhs","est.std","se","z","pvalue","ci.lower","ci.upper")])',
+      'cat("\\n--- R-square (endogenous) ---\\n")',
+      'print(round(lavInspect(fit, "rsquare"), 3))',
+    )
+
+    if (hasIndirect) {
+      out.push(
+        '',
+        '# ---- Table 7: Indirect effects (bootstrap percentile 95% CI) ----',
+        'cat("\\n--- Table 7: Indirect effects ---\\n")',
+        'print(pe[pe$op == ":=", c("lhs","est","se","ci.lower","ci.upper","pvalue")])',
+      )
+    }
+
+    out.push(
+      '',
+      '# ---- Figure: path diagram (reproducible stand-in for the app-drawn annotated SVG) ----',
+      'semPlot::semPaths(fit, what = "std", layout = "tree", edge.label.cex = 0.9,',
+      '                  nodeLabels = NULL, residuals = FALSE, intercepts = FALSE)',
+    )
+
+    return out.join('\n')
+  },
+
   // prcomp(scale.=TRUE) → eigenvalues · parallel analysis (kind="pca") → retention
   // correlation-scaled loadings (rotation × sdev) → T2 (NO communality — PCA is data reduction)
   // ggplot2 → scree figure
@@ -405,4 +519,5 @@ export const latentPackages: Record<string, string[]> = {
   'cronbachs-alpha': ['psych', 'lavaan', 'semTools', 'ggplot2'],
   'efa': ['psych', 'ggplot2'],
   'pca': ['ggplot2'],
+  'cb-sem': ['lavaan', 'semTools', 'psych', 'semPlot'],
 }
