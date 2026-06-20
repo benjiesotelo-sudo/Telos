@@ -1,6 +1,7 @@
 import type { Emitter } from './index'
 import type { Construct } from '../../../../state/session'
 import { MAKECLUSTER_SHIM } from '../../../webr/parallelShim'
+import { R_SATURATED_PREDICATE } from '../../../stats/semSaturation'
 
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim — same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
@@ -395,14 +396,14 @@ export const latentEmitters: Record<string, Emitter> = {
 
     out.push(
       '# ---- Table 5: Fit indices (suppressed strictly when df == 0 — saturated) ----',
-      'df_val <- as.numeric(lavaan::fitMeasures(fit, "df"))',
-      'if (df_val == 0) {',
-      '  cat("\\nModel is saturated (df == 0): fit indices suppressed.\\n")',
-      '} else {',
+      '# Shared predicate: byte-identical to the app screen (src/lib/stats/semSaturation.ts R_SATURATED_PREDICATE).',
+      `if (!(${R_SATURATED_PREDICATE})) {`,
       '  fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",',
       '                                   "rmsea.ci.lower","rmsea.ci.upper","srmr"))',
       '  cat("\\n--- Table 5: Fit indices ---\\n")',
       '  print(round(fm, 3))',
+      '} else {',
+      '  cat("\\n--- Model is saturated (df = 0): fit indices not reported ---\\n")',
       '}',
       '',
       '# ---- Table 6: Structural paths (standardized β + 95% CI + R²) ----',

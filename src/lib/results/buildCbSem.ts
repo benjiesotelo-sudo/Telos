@@ -41,8 +41,8 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     tables.push({ spec: specTable(spec, 'reliability'), rows })
   }
 
-  // T5: Fit indices — suppressed when saturated (df==0)
-  const saturated = r.saturated || (r.fit ? isSaturated(r.fit.df) : false)
+  // T5: Fit indices — suppressed when saturated (df==0). One shared predicate from semSaturation.ts.
+  const saturated = r.saturated || isSaturated(r)
   if (r.fit && !saturated) {
     const fit = r.fit
     const rows = [{
