@@ -1,19 +1,20 @@
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SemCanvasUI } from './SemCanvas'
+import type { SemCanvasUIProps } from './SemCanvas'
 import type { Construct, StructuralPath } from '../state/session'
 
 const C = (id: number, name: string, items: string[], x = 0, y = 0): Construct =>
   ({ id, name, items, x, y })
 const noop = () => {}
 
-const baseProps = {
+const baseProps: SemCanvasUIProps = {
   testId: 'test-canvas',
   constructs: [] as Construct[],
   columns: [] as string[],
   paths: [] as StructuralPath[],
-  modelKind: 'latent' as const,
-  mode: 'draw' as const,
+  modelKind: 'latent',
+  mode: 'draw',
   estimates: null,
   running: false,
   onAddPath: noop,

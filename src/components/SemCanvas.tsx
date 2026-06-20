@@ -225,7 +225,7 @@ export function SemCanvasUI({
           return (
             <g key={`node-${n.id}`}>
               {n.items.map((item, k) => {
-                let ix: number, iy: number, lx1: number, ly1: number, labelX: number, labelAnchor: string
+                let ix: number, iy: number, lx1: number, ly1: number, labelX: number, labelAnchor: 'start' | 'middle' | 'end'
                 if (side === 'left') {
                   ix = c.left - ITEM_SIDE_GAP - ITEM_W
                   iy = c.cy - ((ni - 1) / 2) * (ITEM_H + ITEM_GAP) + k * (ITEM_H + ITEM_GAP) - ITEM_H / 2
@@ -338,11 +338,16 @@ export function SemCanvas({ testId }: { testId: string }) {
     const nodeId = target ? Number(target.getAttribute('data-node-id')) : null
     if (mode === 'move' && nodeId !== null && modelKind === 'latent') {
       // dragging a latent node (path-mode columns are fixed-laid-out, not movable)
-      const c = setup.constructs?.find((x) => x.id === nodeId)
+      const idx = setup.constructs?.findIndex((x) => x.id === nodeId) ?? -1
+      const c = idx >= 0 ? setup.constructs![idx] : undefined
       // Guard: abort if the node id does not match any current construct (stale data-node-id)
       if (c === undefined) { drag.current = null; return }
+      // A construct added via the form has no x/y yet — start the drag from where the node is
+      // actually drawn (SemCanvasUI's nodeCenter default), so the first drag doesn't jump from NaN.
+      const cx = c.x ?? DEFAULT_X + idx * (NODE_W + 120)
+      const cy = c.y ?? DEFAULT_Y
       const p = screenToViewBox(e.clientX, e.clientY, svgRect(), vb)
-      drag.current = { kind: 'node', id: nodeId, offX: p.x - c.x, offY: p.y - c.y }
+      drag.current = { kind: 'node', id: nodeId, offX: p.x - cx, offY: p.y - cy }
     } else {
       drag.current = { kind: 'pan', startX: e.clientX, startY: e.clientY, vb0: vb }
     }

@@ -4,8 +4,6 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { SemConfigUI } from './SemConfig'
 import type { Construct, StructuralPath } from '../state/session'
 
-const noop = () => {}
-
 function renderUI(opts: {
   modelKind?: 'latent' | 'path'
   constructs?: Construct[]

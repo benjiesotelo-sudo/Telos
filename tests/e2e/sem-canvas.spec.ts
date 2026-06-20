@@ -7,16 +7,21 @@ import { gotoCard } from './fixtures/helpers'
 // the drag/move/zoom assertions live here, mirroring association.spec.ts's mouse idiom.
 
 // UNSKIP at the Unit-10 slice gate — needs Unit 4 (cb-sem routing) + Unit 6 (runCbSem)
-test.skip('CB-SEM canvas: draw → move → delete → run → estimates + figure', async ({ page }) => {
+test('CB-SEM canvas: draw → move → delete → run → estimates + figure', async ({ page }) => {
   await gotoCard(page, 'cb-sem', 'sem.csv')   // fixture with q1..q6 (two 3-item constructs)
 
-  // 1. define two constructs in the construct-slots form (below the canvas)
+  // 1. define two constructs in the construct-slots form (below the canvas).
+  // Each construct card renders its OWN copy of every item checkbox, so scope the
+  // checkbox lookup to the card carrying that construct's name field (otherwise q4..q6
+  // match in both cards → strict-mode violation).
+  const card = (n: number) =>
+    page.locator('.card').filter({ has: page.getByLabel(`Construct ${n} name`) })
   await page.getByRole('button', { name: '+ Add construct' }).click()
   await page.getByLabel('Construct 1 name').fill('Engagement')
-  for (const q of ['q1', 'q2', 'q3']) await page.getByRole('checkbox', { name: q }).check()
+  for (const q of ['q1', 'q2', 'q3']) await card(1).getByRole('checkbox', { name: q }).check()
   await page.getByRole('button', { name: '+ Add construct' }).click()
   await page.getByLabel('Construct 2 name').fill('Loyalty')
-  for (const q of ['q4', 'q5', 'q6']) await page.getByRole('checkbox', { name: q }).check()
+  for (const q of ['q4', 'q5', 'q6']) await card(2).getByRole('checkbox', { name: q }).check()
 
   // 2. two ovals appear on the canvas
   await expect(page.locator('ellipse[data-node-id]')).toHaveCount(2)
@@ -27,8 +32,9 @@ test.skip('CB-SEM canvas: draw → move → delete → run → estimates + figur
   // a directed line with the shared arrowhead marker now exists
   await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(1)
 
-  // 4. MOVE: switch to Move, drag the second node by ~80px; its x changes
-  await page.getByRole('button', { name: 'Move' }).click()
+  // 4. MOVE: switch to Move, drag the second node by ~80px; its x changes.
+  // exact:true — substring "move" also matches the "Remove construct N" buttons.
+  await page.getByRole('button', { name: 'Move', exact: true }).click()
   const node = page.locator('[data-node-id]').nth(1)
   const a = await node.boundingBox()
   await page.mouse.move(a!.x + a!.width / 2, a!.y + a!.height / 2)
@@ -39,12 +45,12 @@ test.skip('CB-SEM canvas: draw → move → delete → run → estimates + figur
   expect(b!.x).toBeGreaterThan(a!.x + 20)
 
   // 5. DELETE the path: switch to Delete, click the mid-path handle
-  await page.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Delete', exact: true }).click()
   await page.locator('[data-path-index="0"]').click()
   await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(0)
 
   // re-draw before running
-  await page.getByRole('button', { name: 'Draw path' }).click()
+  await page.getByRole('button', { name: 'Draw path', exact: true }).click()
   await page.locator('[data-node-id]').first().click()
   await page.locator('[data-node-id]').nth(1).click()
 
@@ -55,5 +61,9 @@ test.skip('CB-SEM canvas: draw → move → delete → run → estimates + figur
   // 7. RUN → results screen → annotated path diagram with a standardized β label
   await page.getByRole('button', { name: /run/i }).click()
   await expect(page.locator('svg[id^="figure-path-diagram-"]')).toBeVisible({ timeout: 240_000 })
-  await expect(page.locator('svg[id^="figure-path-diagram-"] text')).toContainText(/0\.\d{2}/)
+  // The fitted structural path is annotated with its standardized β at the diagram midpoint.
+  // Target the β-label text node specifically (the svg holds ~16 text nodes — item labels,
+  // loadings, construct/R² — so a bare `svg text` locator would be non-strict).
+  // APA estimate annotations are leading-zero-stripped (Task 29): rendered β reads "β = .45"/"β = -.01".
+  await expect(page.locator('svg[id^="figure-path-diagram-"] text.sem-path-label')).toContainText(/β\s*=\s*-?\.\d{2}/)
 })

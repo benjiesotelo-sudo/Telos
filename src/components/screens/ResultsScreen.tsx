@@ -12,6 +12,7 @@ import { FEEDBACK_URL } from '../../content/copy'
 import { ResultPreviewCard } from '../ResultPreviewCard'
 import { ResultBoundary } from '../ResultBoundary'
 import { BUILDERS } from '../../lib/results/builders'
+import { SemCanvas } from '../SemCanvas'
 
 const saveBlob = (blob: Blob, name: string) => {
   const url = URL.createObjectURL(blob)
@@ -202,6 +203,10 @@ function BuiltCard({ id, index }: { id: string; index: number }) {
   const spec = SPECS[id]!
   const run = s.runs[id]!
   const content = BUILDERS[id](spec, run.result)
+  // sem-canvas tests: render the live annotated path diagram in the results state (design D5/D8) —
+  // SemCanvas reads estimates from s.runs[id].result, exposes id `figure-path-diagram-<id>`, and is
+  // the DOM node captureNode rasters for the figure_path-diagram.png export.
+  const figureSlot = spec.inputKind === 'sem-canvas' ? <SemCanvas testId={id} /> : undefined
   return <ResultPreviewCard index={index} name={spec.name} question={spec.question} content={content}
-    stale={run.stale} running={s.runStatus === 'running'} onRerun={() => { void s.runAll() }} />
+    stale={run.stale} running={s.runStatus === 'running'} onRerun={() => { void s.runAll() }} figureSlot={figureSlot} />
 }
