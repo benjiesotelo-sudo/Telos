@@ -289,9 +289,12 @@ export const useSession = create<SessionState>((set, get) => {
           if (!spec || !setup || setup.blocked) continue
           const runner = RUNNERS[id]
           if (!runner) continue
-          set({ runPhase: `Running ${spec.name}…` })
+          set({ runPhase: `Running ${spec.name}…`, runProgress: null })
+          // single progress channel into the results-screen bar (SEM bootstrap posts elapsed/est here)
+          const onProgress = (p: { message: string; elapsedMs?: number; estMs?: number }) =>
+            set({ runProgress: p })
           try {
-            const result = await runner(engine, ds, setup)
+            const result = await runner(engine, ds, setup, onProgress)
             const { [id]: _drop, ...rest } = get().errors
             set({ runs: { ...get().runs, [id]: { result, stale: false } }, errors: rest })
           } catch (e) {
@@ -301,7 +304,7 @@ export const useSession = create<SessionState>((set, get) => {
         }
         set({ runStatus: 'idle' })
       } catch (e) { set({ runStatus: 'error', runError: e instanceof Error ? e.message : String(e) }) } // boot failure only
-      finally { set({ runPhase: null }) }
+      finally { set({ runPhase: null, runProgress: null }) }
     },
     reset: () => set({ ...initial }),
   }
