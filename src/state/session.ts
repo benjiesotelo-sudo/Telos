@@ -94,11 +94,15 @@ export const gateOk = (s: SessionState, step: StepId): boolean => {
       if (cs.length === 0 || cs.some((c) => c.items.length < 2)) return false
     }
     // sem-canvas (CB-SEM/PLS-SEM): need a measurement model AND ≥1 structural path.
-    // Path mode (each node = 1 observed column) relaxes the ≥2-items rule.
+    // Path mode (each node = 1 observed column, drawn from the USED columns by index — the
+    // construct-slots form is hidden) gates on ≥2 used columns instead of constructs.
     if (spec.inputKind === 'sem-canvas') {
-      const cs = t.constructs ?? []
-      if (cs.length === 0) return false
-      if (t.modelKind !== 'path' && cs.some((c) => c.items.length < 2)) return false
+      if (t.modelKind === 'path') {
+        if (s.columns.filter((c) => c.used).length < 2) return false   // need ≥2 observed columns to connect
+      } else {
+        const cs = t.constructs ?? []
+        if (cs.length === 0 || cs.some((c) => c.items.length < 2)) return false
+      }
       if ((t.paths?.length ?? 0) < 1) return false
     }
     return true
@@ -137,6 +141,9 @@ const freshSetup = (id: string): TestSetup => ({
   ])),
   props: {},
   blocked: null,
+  // Inherit the spec's model kind: path-analysis → 'path' (canvas draws column rectangles, gate uses
+  // used-columns); cb-sem/pls-sem have no spec.modelKind → undefined → latent default everywhere.
+  modelKind: SPECS[id]?.modelKind,
 })
 
 /** B2: a level-select option follows its fromRole column — reset to the default (second level) on assign/reassign, '' on unassign. Edits to OTHER roles never touch the stored choice. */
@@ -294,7 +301,15 @@ export const useSession = create<SessionState>((set, get) => {
           const onProgress = (p: { message: string; elapsedMs?: number; estMs?: number }) =>
             set({ runProgress: p })
           try {
-            const result = await runner(engine, ds, setup, onProgress)
+            // Path mode: the canvas drew nodes/paths against s.columns.filter(used) BY INDEX, but the
+            // construct-slots form is hidden so setup.constructs is empty. Seed the runner with the SAME
+            // used-columns list + index so path.from/to resolve to column names. Derive a LOCAL runSetup
+            // (don't mutate the stored setup — keeps the canvas/state clean if columns are later toggled).
+            const used = s.columns.filter((c) => c.used).map((c) => c.name)
+            const runSetup = setup.modelKind === 'path'
+              ? { ...setup, constructs: used.map((name, i) => ({ id: i, name, items: [name] })) }
+              : setup
+            const result = await runner(engine, ds, runSetup, onProgress)
             const { [id]: _drop, ...rest } = get().errors
             set({ runs: { ...get().runs, [id]: { result, stale: false } }, errors: rest })
           } catch (e) {

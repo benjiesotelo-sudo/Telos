@@ -1,7 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useSession, stepsOf, canEnter, workingDataset, gateOk, serializeSetups, hydrateSetups } from './session'
 import type { Dataset, TTestResult } from '../lib/stats/types'
 import { SPECS } from '../lib/registry/catalog'
+import { RUNNERS } from '../lib/results/builders'
+
+// runAll boots WebR via getEngine; stub it so the path-mode seeding test runs without WASM.
+vi.mock('../lib/webr/getEngine', () => ({ getEngine: vi.fn(async () => ({} as never)) }))
 
 const ds: Dataset = { columns: ['group', 'score'], rows: [
   { group: 'control', score: 72 }, { group: 'control', score: 68 }, { group: 'control', score: 75 },
@@ -290,12 +294,16 @@ describe('inputKind gate guard', () => {
     useSession.setState((s) => ({ setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3', 'q4'] }], paths: [{ from: 1, to: 2 }] } } }))
     expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(true)
   })
-  it('sem-canvas (path): relaxes the ≥2-items rule (each node = 1 column), needs ≥1 path', () => {
-    useSession.setState((s) => ({ setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [{ id: 1, name: 'X', items: ['x'] }, { id: 2, name: 'Y', items: ['y'] }], paths: [{ from: 1, to: 2 }] } } }))
+  // Path mode gates on USED COLUMNS (nodes come from columns by index, not the hidden construct form).
+  const pcol = (name: string) => ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used: true })
+  it('sem-canvas (path): gates on used columns not constructs — ≥2 used cols + ≥1 path', () => {
+    useSession.setState((s) => ({ columns: [pcol('x'), pcol('y')],
+      setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }] } } }))
     expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(true)
   })
   it('sem-canvas (path): gateOk false with no path even when nodes exist', () => {
-    useSession.setState((s) => ({ setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [{ id: 1, name: 'X', items: ['x'] }, { id: 2, name: 'Y', items: ['y'] }], paths: [] } } }))
+    useSession.setState((s) => ({ columns: [pcol('x'), pcol('y')],
+      setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [], paths: [] } } }))
     expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(false)
   })
 })
@@ -386,5 +394,70 @@ describe('setup round-trip (Sub-slice B)', () => {
       constructs: [{ name: 'A', items: ['q1', 'q2'] }, { name: 'B', items: ['q3', 'q4'] }] } }
     const round = hydrateSetups(legacy as unknown as Record<string, import('./session').TestSetup>)
     expect(round['ave'].constructs!.map((c) => c.id)).toEqual([0, 1])
+  })
+})
+
+describe('path-mode canvas→runner bridge (path-analysis)', () => {
+  beforeEach(() => useSession.getState().reset())
+
+  it('freshSetup inherits modelKind:path from the path-analysis spec (so the canvas + gate see path mode)', () => {
+    useSession.getState().toggleSelection('path-analysis')
+    expect(useSession.getState().setups['path-analysis'].modelKind).toBe('path')
+  })
+
+  it('freshSetup leaves modelKind undefined for cb-sem/pls-sem (latent default, unaffected)', () => {
+    useSession.getState().toggleSelection('cb-sem')
+    expect(useSession.getState().setups['cb-sem'].modelKind).toBeUndefined()
+  })
+
+  it('gateOk path-mode passes with >=2 used columns + >=1 path (no constructs needed)', () => {
+    const col = (name: string, used = true) =>
+      ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
+    useSession.setState({
+      selection: ['path-analysis'],
+      columns: [col('x1'), col('x4'), col('x7')],
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }],
+      } },
+    })
+    expect(gateOk(useSession.getState(), 'test:path-analysis')).toBe(true)
+    // drop a path → gate closes
+    useSession.getState().removePath('path-analysis', 0)
+    expect(gateOk(useSession.getState(), 'test:path-analysis')).toBe(false)
+  })
+
+  it('runAll derives path-mode constructs from the used columns (by index) for the runner', async () => {
+    // The canvas drew paths against s.columns.filter(used) BY INDEX; runAll must seed the runner with
+    // the SAME list + index so path.from/to (column indices) resolve to column names.
+    const col = (name: string, used = true) =>
+      ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
+    const pds: Dataset = { columns: ['x1', 'x4', 'x7'], rows: [
+      { x1: 1, x4: 2, x7: 3 }, { x1: 2, x4: 3, x7: 4 }, { x1: 3, x4: 4, x7: 5 },
+    ] }
+    useSession.setState({
+      raw: pds,
+      columns: [col('x1'), col('x4'), col('x7')],
+      selection: ['path-analysis'],
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path', constructs: [],
+        paths: [{ from: 0, to: 1 }, { from: 1, to: 2 }],
+      } },
+    })
+
+    const spy = vi.spyOn(RUNNERS, 'path-analysis').mockResolvedValue({ ok: true } as never)
+    await useSession.getState().runAll()
+
+    const runSetup = spy.mock.calls[0][2]
+    expect(runSetup.constructs).toEqual([
+      { id: 0, name: 'x1', items: ['x1'] },
+      { id: 1, name: 'x4', items: ['x4'] },
+      { id: 2, name: 'x7', items: ['x7'] },
+    ])
+    // stored setup is NOT mutated (constructs derived locally for the runner only)
+    expect(useSession.getState().setups['path-analysis'].constructs).toEqual([])
+    expect(useSession.getState().runs['path-analysis'].result).toEqual({ ok: true })
+    spy.mockRestore()
   })
 })

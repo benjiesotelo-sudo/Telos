@@ -46,22 +46,21 @@ describe('path-analysis — observed-only CB-SEM picker entry', () => {
     expect(BUILDERS['path-analysis']).toBeTypeOf('function')
   })
 
-  it('gateOk relaxes the >=2-items rule in path mode: >=1 path is enough', () => {
-    // Realistic fixture: each construct.name IS the observed column (single item = the column itself);
-    // paths address constructs by their numeric id. This is the same convention runCbSem + the emitter
-    // use in path mode (name = observed column).
+  it('gateOk relaxes the >=2-items rule in path mode: >=2 used columns + >=1 path is enough', () => {
+    // Path mode derives nodes from the USED columns (the connected SemCanvas draws them by index),
+    // so the gate checks used-columns + >=1 path — NOT constructs (the construct-slots form is hidden
+    // in path mode). Paths address nodes by their numeric index, matching runCbSem's seed.
+    const col = (name: string, used = true) =>
+      ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
     const base = {
       selection: ['path-analysis'],
+      columns: [col('x1'), col('x4'), col('x7')],
       setups: {
         'path-analysis': {
           roles: {}, options: {}, props: {}, blocked: null,
           modelKind: 'path' as const,
-          constructs: [
-            { id: 1, name: 'x1', items: ['x1'] },
-            { id: 2, name: 'x4', items: ['x4'] },
-            { id: 3, name: 'x7', items: ['x7'] },
-          ],
-          paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }],
+          constructs: [],   // irrelevant to path-mode gating: nodes come from columns, not the form
+          paths: [{ from: 0, to: 1 }, { from: 1, to: 2 }],
         },
       },
     } as unknown as SessionState
@@ -73,5 +72,9 @@ describe('path-analysis — observed-only CB-SEM picker entry', () => {
       setups: { 'path-analysis': { ...base.setups['path-analysis'], paths: [] } },
     } as unknown as SessionState
     expect(gateOk(noPaths, 'test:path-analysis')).toBe(false)
+
+    // <2 used columns can't form a model → gate fails even with a path drawn
+    const oneCol = { ...base, columns: [col('x1'), col('x4', false), col('x7', false)] } as unknown as SessionState
+    expect(gateOk(oneCol, 'test:path-analysis')).toBe(false)
   })
 })
