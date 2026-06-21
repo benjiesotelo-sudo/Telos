@@ -34,14 +34,15 @@ const BASE_VB: ViewBox = { x: 0, y: 0, w: 720, h: 320 }
 const ZOOM_STEP = 1.2
 
 // Layout geometry (static; interactions move x/y in Unit 3b).
-const NODE_W = 132   // oval / rectangle width
-const NODE_H = 64    // oval / rectangle height
+export const NODE_W = 132   // oval / rectangle width
+export const NODE_H = 64    // oval / rectangle height
 const ITEM_W = 56
 const ITEM_H = 22
 const ITEM_GAP = 6
 const ITEM_SIDE_GAP = 28  // gap between oval edge and item stack
 const DEFAULT_X = 80
 const DEFAULT_Y = 70
+const GRID_GAP = 28   // min horizontal gap between path-mode grid columns (used to pick cols-per-row)
 
 /** Choose which side item boxes sit on, based on cx relative to the canvas width W. */
 function itemSide(cx: number, W: number): 'left' | 'right' | 'below' {
@@ -77,11 +78,28 @@ export function nodesOf(p: Pick<SemCanvasUIProps, 'constructs' | 'columns' | 'mo
   return p.constructs
 }
 
-/** Center of a node given its (top-left) x/y, with defaults for unplaced nodes. */
+/** Center of a latent node given its (top-left) x/y, with a left-to-right default for unplaced nodes. */
 function nodeCenter(n: Node, fallbackIdx: number) {
   const x = (n.x ?? DEFAULT_X + fallbackIdx * (NODE_W + 120)) + NODE_W / 2
   const y = (n.y ?? DEFAULT_Y) + NODE_H / 2
   return { cx: x, cy: y, left: x - NODE_W / 2, top: y - NODE_H / 2 }
+}
+
+/** Path-mode column nodes are auto-laid in a wrapped grid sized to the viewBox so up to ~9 observed
+ *  rectangles stay WITHIN [0,W]×[0,H] (and thus clickable). Positions derive purely from index/count
+ *  + viewBox dims (path nodes carry no x/y), so estimate overlays keyed off the same centers track it. */
+export function pathNodeCenter(idx: number, count: number, W: number, H: number) {
+  // Columns per row: as many as fit the width with a small inter-node gap, capped so we never overflow.
+  const cols = Math.max(1, Math.min(count, Math.floor((W + GRID_GAP) / (NODE_W + GRID_GAP))))
+  const rows = Math.ceil(count / cols)
+  const col = idx % cols
+  const row = Math.floor(idx / cols)
+  // Even horizontal pitch that centers the whole row block within W; same for vertical within H.
+  const pitchX = cols > 1 ? (W - NODE_W) / (cols - 1) : 0
+  const cx = (cols > 1 ? NODE_W / 2 + col * pitchX : W / 2)
+  const pitchY = rows > 1 ? (H - NODE_H) / (rows - 1) : 0
+  const cy = (rows > 1 ? NODE_H / 2 + row * pitchY : H / 2)
+  return { cx, cy, left: cx - NODE_W / 2, top: cy - NODE_H / 2 }
 }
 
 /** Pure presentational canvas — testable with renderToStaticMarkup. */
@@ -98,8 +116,12 @@ export function SemCanvasUI({
 
   const empty = nodes.length === 0
   // id → center, for resolving path endpoints by node id (Map uses strict-equality; id 0 is safe).
+  // Path mode auto-grids its column rectangles into the viewBox; latent keeps its approved layout.
+  const vbW = vbProp ? vbProp.w : 760
+  const vbH = vbProp ? vbProp.h : 360
   const centers = new Map<number, ReturnType<typeof nodeCenter>>()
-  nodes.forEach((n, i) => centers.set(n.id, nodeCenter(n, i)))
+  nodes.forEach((n, i) =>
+    centers.set(n.id, isPath ? pathNodeCenter(i, nodes.length, vbW, vbH) : nodeCenter(n, i)))
 
   function clickNode(id: number) {
     if (running) return

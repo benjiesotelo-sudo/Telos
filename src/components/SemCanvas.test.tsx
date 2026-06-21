@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { SemCanvasUI } from './SemCanvas'
+import { SemCanvasUI, pathNodeCenter, NODE_W, NODE_H } from './SemCanvas'
 import type { Construct, StructuralPath } from '../state/session'
 
 const noop = () => {}
@@ -186,6 +186,71 @@ describe('SemCanvasUI — path mode (observed rectangles)', () => {
     expect(html).toContain('educ'); expect(html).toContain('exper'); expect(html).toContain('wage')
     // two structural arrows still drawn
     expect((html.match(/class="sem-path"/g) ?? []).length).toBe(2)
+  })
+})
+
+// ── path mode: grid layout keeps every node inside the viewBox (clickable) ──
+// Regression: the old fixed-pitch layout (DEFAULT_X + i*(NODE_W+120)) pushed nodes from
+// index ~3 outside the 720-wide viewBox → unclickable. A path model commonly has 3–9
+// observed variables (scale.csv has 9), so the normal case must fit + stay non-overlapping.
+describe('SemCanvasUI — path-mode grid layout fits the viewBox', () => {
+  const VB_W = 720
+  const VB_H = 320
+
+  it('every node rectangle is fully within [0,W]×[0,H] for N up to 9', () => {
+    for (let count = 1; count <= 9; count++) {
+      for (let i = 0; i < count; i++) {
+        const c = pathNodeCenter(i, count, VB_W, VB_H)
+        // full rectangle extents (not just the center) must lie inside the viewBox
+        expect(c.left, `n=${count} i=${i} left`).toBeGreaterThanOrEqual(0)
+        expect(c.top, `n=${count} i=${i} top`).toBeGreaterThanOrEqual(0)
+        expect(c.left + NODE_W, `n=${count} i=${i} right`).toBeLessThanOrEqual(VB_W)
+        expect(c.top + NODE_H, `n=${count} i=${i} bottom`).toBeLessThanOrEqual(VB_H)
+        // centers (used as path endpoints + click pivots) are inside too
+        expect(c.cx).toBeGreaterThanOrEqual(0); expect(c.cx).toBeLessThanOrEqual(VB_W)
+        expect(c.cy).toBeGreaterThanOrEqual(0); expect(c.cy).toBeLessThanOrEqual(VB_H)
+      }
+    }
+  })
+
+  it('no two of the 9 node rectangles overlap unusably (centers stay distinct + spaced)', () => {
+    const count = 9
+    const cs = Array.from({ length: count }, (_, i) => pathNodeCenter(i, count, VB_W, VB_H))
+    for (let a = 0; a < count; a++) {
+      for (let b = a + 1; b < count; b++) {
+        const dx = Math.abs(cs[a].cx - cs[b].cx)
+        const dy = Math.abs(cs[a].cy - cs[b].cy)
+        // rectangles must not fully coincide: separated on at least one axis by a node extent
+        expect(dx >= NODE_W || dy >= NODE_H, `nodes ${a},${b} overlap (dx=${dx} dy=${dy})`).toBe(true)
+      }
+    }
+  })
+
+  it('places index ≥3 nodes inside the viewBox (the previously-overflowing region)', () => {
+    // 4 columns: with the old fixed pitch, node 3 sat at left = 80 + 3*252 = 836 > 720 (off-canvas).
+    const c3 = pathNodeCenter(3, 4, VB_W, VB_H)
+    expect(c3.left + NODE_W).toBeLessThanOrEqual(VB_W)
+    expect(c3.cx).toBeLessThanOrEqual(VB_W)
+  })
+
+  it('renders all 9 column rectangles with in-bounds x/y in a 9-column path render', () => {
+    const html = renderLatent({
+      modelKind: 'path',
+      constructs: [],
+      columns: ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'],
+      paths: [{ from: 0, to: 8 }, { from: 3, to: 6 }],
+      viewBox: { x: 0, y: 0, w: VB_W, h: VB_H },
+    })
+    const rects = [...html.matchAll(/class="sem-node-rect" data-node-id="\d+" x="([^"]+)" y="([^"]+)"/g)]
+    expect(rects.length).toBe(9)
+    for (const m of rects) {
+      const x = parseFloat(m[1]); const y = parseFloat(m[2])
+      expect(x).toBeGreaterThanOrEqual(0)
+      expect(y).toBeGreaterThanOrEqual(0)
+      expect(x + NODE_W).toBeLessThanOrEqual(VB_W)
+      expect(y + NODE_H).toBeLessThanOrEqual(VB_H)
+    }
+    expect(html).not.toContain('NaN')
   })
 })
 

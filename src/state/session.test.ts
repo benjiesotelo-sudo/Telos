@@ -461,3 +461,53 @@ describe('path-mode canvas→runner bridge (path-analysis)', () => {
     spy.mockRestore()
   })
 })
+
+describe('setColumnUsed — path-mode column re-toggle clears drawn paths', () => {
+  const col = (name: string, used = true) =>
+    ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
+  beforeEach(() => useSession.getState().reset())
+
+  it('toggling a USED column off clears a path-mode setup\'s drawn paths (avoids index-shift mis-binding)', () => {
+    useSession.setState({
+      columns: [col('x1'), col('x2'), col('x3')],
+      selection: ['path-analysis'],
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }, { from: 1, to: 2 }],
+      } },
+    })
+    useSession.getState().setColumnUsed('x2', false) // changes the used-set → paths must clear
+    expect(useSession.getState().setups['path-analysis'].paths).toEqual([])
+    expect(useSession.getState().columns.find((c) => c.name === 'x2')!.used).toBe(false)
+  })
+
+  it('a no-op toggle (same value) does NOT clear path-mode paths', () => {
+    useSession.setState({
+      columns: [col('x1'), col('x2')],
+      selection: ['path-analysis'],
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }],
+      } },
+    })
+    useSession.getState().setColumnUsed('x1', true) // already used → no set change → keep paths
+    expect(useSession.getState().setups['path-analysis'].paths).toEqual([{ from: 0, to: 1 }])
+  })
+
+  it('LATENT setups: toggling a column does NOT touch constructs or paths', () => {
+    useSession.setState({
+      columns: [col('q1'), col('q2'), col('q3')],
+      selection: ['cb-sem'],
+      setups: { 'cb-sem': {
+        roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent',
+        constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3'] }],
+        paths: [{ from: 1, to: 2 }],
+      } },
+    })
+    useSession.getState().setColumnUsed('q3', false)
+    const setup = useSession.getState().setups['cb-sem']
+    expect(setup.paths).toEqual([{ from: 1, to: 2 }])            // untouched
+    expect(setup.constructs).toHaveLength(2)                      // untouched
+    expect(setup.constructs![1].items).toEqual(['q3'])           // untouched
+  })
+})

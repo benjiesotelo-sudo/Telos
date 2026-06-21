@@ -196,7 +196,19 @@ export const useSession = create<SessionState>((set, get) => {
     }),
     visitGuide: () => set({ guideVisited: true }),
     setColumnLevel: (name, level) => edit((s) => ({ columns: s.columns.map((c) => (c.name === name ? { ...c, level } : c)) })),
-    setColumnUsed: (name, used) => edit((s) => ({ columns: s.columns.map((c) => (c.name === name ? { ...c, used } : c)) })),
+    setColumnUsed: (name, used) => edit((s) => {
+      const columns = s.columns.map((c) => (c.name === name ? { ...c, used } : c))
+      // Path-mode canvas node ids are positional indices into the USED columns. Toggling a column's
+      // `used` flag AFTER paths are drawn shifts those indices → drawn paths would silently rebind to
+      // different columns (or go out-of-range → NA in lavaan). When the used-set actually changes,
+      // clear the drawn paths of any PATH-mode setup so the user redraws against the new columns.
+      // Strictly gated to modelKind==='path': latent setups + the 45 other tests are untouched.
+      const wasUsed = s.columns.find((c) => c.name === name)?.used
+      if (wasUsed === used) return { columns } // no-op toggle → don't disturb paths
+      const setups = Object.fromEntries(Object.entries(s.setups).map(([id, t]) =>
+        t.modelKind === 'path' && (t.paths?.length ?? 0) > 0 ? [id, { ...t, paths: [] }] : [id, t]))
+      return { columns, setups }
+    }),
     renameColumn: (name, next) => edit((s) => {
       if (!next.trim() || s.columns.some((c) => c.name === next)) return {}
       const raw = s.raw && { columns: s.raw.columns.map((c) => (c === name ? next : c)),
