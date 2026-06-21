@@ -8,4 +8,38 @@ library(semPlot)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Path analysis ===
-# No constructs defined — nothing to run for CB-SEM.
+# ---- CB-SEM via lavaan::sem (measurement + structural + indirect) ----
+model_str <- "x2 ~ p_0_1*x1\nx3 ~ p_1_2*x2 + p_0_2*x1\nie_0_1_2 := p_0_1*p_1_2"
+
+# Single awaited bootstrap fit for mediation (no RNG chunking — preserves WebR≡native parity).
+gc()
+set.seed(20260620)
+fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = 5000)
+pe  <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)
+gc()
+ss <- lavaan::standardizedSolution(fit)
+
+# ---- Table 5: Fit indices (suppressed strictly when df == 0 — saturated) ----
+# Shared predicate: byte-identical to the app screen (src/lib/stats/semSaturation.ts R_SATURATED_PREDICATE).
+if (!(as.numeric(lavaan::fitMeasures(fit, "df")) == 0)) {
+  fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",
+                                   "rmsea.ci.lower","rmsea.ci.upper","srmr"))
+  cat("\n--- Table 5: Fit indices ---\n")
+  print(round(fm, 3))
+} else {
+  cat("\n--- Model is saturated (df = 0): fit indices not reported ---\n")
+}
+
+# ---- Table 6: Structural paths (standardized β + 95% CI + R²) ----
+cat("\n--- Table 6: Structural paths ---\n")
+print(ss[ss$op == "~", c("lhs","rhs","est.std","se","z","pvalue","ci.lower","ci.upper")])
+cat("\n--- R-square (endogenous) ---\n")
+print(round(lavInspect(fit, "rsquare"), 3))
+
+# ---- Table 7: Indirect effects (bootstrap percentile 95% CI) ----
+cat("\n--- Table 7: Indirect effects ---\n")
+print(pe[pe$op == ":=", c("lhs","est","se","ci.lower","ci.upper","pvalue")])
+
+# ---- Figure: path diagram (reproducible stand-in for the app-drawn annotated SVG) ----
+semPlot::semPaths(fit, what = "std", layout = "tree", edge.label.cex = 0.9,
+                  nodeLabels = NULL, residuals = FALSE, intercepts = FALSE)

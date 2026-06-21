@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useSession, workingDataset, type SessionState } from '../../state/session'
+import { useSession, workingDataset, withPathModeConstructs, type SessionState } from '../../state/session'
 import { SPECS } from '../../lib/registry/catalog'
 import { buildBundle } from '../../lib/export/bundle'
 import { captureNode } from '../../lib/export/capture'
@@ -49,7 +49,14 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
   // Pass the FULL selection (not `fresh`): emitLatex numbers figure folders by the full-selection index
   // and skips non-fresh ids itself, so its \includegraphics NN matches the figure PNG keys written above.
   if (formats.latex) files['report.tex'] = enc(emitLatex(s.selection, s.setups, SPECS, s.runs))
-  if (formats.r) { files['analysis.R'] = enc(emitRScript(fresh, s.setups, SPECS, workingDataset(s))); files['cleaned.csv'] = enc(toCsv(workingDataset(s))) }
+  if (formats.r) {
+    // Path-mode setups store EMPTY constructs (the canvas drew paths against the USED columns by index);
+    // seed them through the SAME helper runAll uses so analysis.R reproduces the on-screen run (export ≡ app).
+    // Non-path setups pass through unchanged → the other 47 tests' exports are byte-identical. Don't mutate s.setups.
+    const usedCols = s.columns.filter((c) => c.used).map((c) => c.name)
+    const exportSetups = Object.fromEntries(Object.entries(s.setups).map(([id, st]) => [id, withPathModeConstructs(st, usedCols)]))
+    files['analysis.R'] = enc(emitRScript(fresh, exportSetups, SPECS, workingDataset(s))); files['cleaned.csv'] = enc(toCsv(workingDataset(s)))
+  }
   if (formats.r || formats.latex) files['LICENSES.txt'] = enc(licensesText())
   if (formats.r || formats.latex) files['CITATIONS.txt'] = enc(citationsText())
   return files

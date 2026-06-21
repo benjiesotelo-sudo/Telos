@@ -115,6 +115,16 @@ export const canEnter = (s: SessionState, target: StepId): boolean => {
   return i >= 0 && steps.slice(0, i).every((st) => gateOk(s, st))
 }
 
+/** Path-mode bridge: the canvas drew nodes/paths against the USED columns BY INDEX, but the
+ *  construct-slots form is hidden so setup.constructs is empty. Seed a LOCAL setup whose constructs
+ *  mirror the used-columns list (id = index, name = column, items = [column]) so path.from/to resolve
+ *  to column names. No-op for latent/non-path setups → the 47 other tests pass through unchanged.
+ *  Shared by both seams (runAll runner + the export emitRScript) so export ≡ app. */
+export function withPathModeConstructs(setup: TestSetup, usedColumnNames: string[]): TestSetup {
+  if (setup.modelKind !== 'path') return setup
+  return { ...setup, constructs: usedColumnNames.map((name, i) => ({ id: i, name, items: [name] })) }
+}
+
 /** Legacy setups stored constructs without an id (pre-Sub-slice-B). Back-fill ids by array index so
  *  existing AVE/CR/EFA work keeps running; idempotent (a construct that already has an id is untouched). */
 export const backfillConstructIds = (cs: Construct[]): Construct[] =>
@@ -318,9 +328,7 @@ export const useSession = create<SessionState>((set, get) => {
             // used-columns list + index so path.from/to resolve to column names. Derive a LOCAL runSetup
             // (don't mutate the stored setup — keeps the canvas/state clean if columns are later toggled).
             const used = s.columns.filter((c) => c.used).map((c) => c.name)
-            const runSetup = setup.modelKind === 'path'
-              ? { ...setup, constructs: used.map((name, i) => ({ id: i, name, items: [name] })) }
-              : setup
+            const runSetup = withPathModeConstructs(setup, used)
             const result = await runner(engine, ds, runSetup, onProgress)
             const { [id]: _drop, ...rest } = get().errors
             set({ runs: { ...get().runs, [id]: { result, stale: false } }, errors: rest })

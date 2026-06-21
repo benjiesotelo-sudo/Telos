@@ -104,6 +104,38 @@ describe('buildExportFiles (Task 10)', () => {
   // Gap case (BLOCKER regression): when a non-fresh test precedes a fresh one in the selection, the
   // report.tex \includegraphics NN must equal the figure-PNG key NN (the FULL-selection index), so the
   // figures resolve. Here A (simple-linear-regression) has NO run; B (one-way-anova) is fresh → B is 02.
+  // Path-analysis export seam (BLOCKER): the stored setup has EMPTY constructs in path mode (the
+  // construct-slots form is hidden — the canvas drew paths against the USED columns by index). The runner
+  // already seeds those constructs; the export seam must too, or analysis.R is the empty CB-SEM stub.
+  it('path-analysis: seeds path-mode constructs from used columns so analysis.R is REAL lavaan, not the stub', () => {
+    const col = (name: string, used = true) =>
+      ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
+    const s = {
+      selection: ['path-analysis'],
+      // stored constructs are EMPTY in path mode; nodes/paths come from the used columns by index.
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path' as const, constructs: [],
+        paths: [{ from: 0, to: 1 }, { from: 1, to: 2 }],
+      } },
+      // minimal path-mode CbSemResult so the builder doesn't throw; the R emitter (under test) reads
+      // the seeded setups, not this result.
+      runs: { 'path-analysis': { result: { mode: 'path', cfaLoadings: [], reliability: [], structural: [], indirect: [], saturated: true, fit: null }, stale: false } },
+      raw: { columns: ['x1', 'x2', 'x3'], rows: [{ x1: 1, x2: 2, x3: 3 }] },
+      columns: [col('x1'), col('x2'), col('x3')],
+      missingPolicy: 'leave',
+    } as unknown as SessionState
+    const files = buildExportFiles(s, { tables: false, figures: false, pdf: false, latex: false, r: true })
+    const r = new TextDecoder().decode(files['analysis.R'])
+    expect(r).not.toContain('No constructs defined') // NOT the stub
+    expect(r).toContain('lavaan::sem')               // real CB-SEM script
+    // structural regressions among the used columns (path.to ~ path.from): x2 ~ x1, x3 ~ x2
+    expect(r).toContain('x2 ~')
+    expect(r).toContain('x3 ~')
+    // stored setup is NOT mutated (constructs seeded locally for the export only)
+    expect(s.setups['path-analysis'].constructs).toEqual([])
+  })
+
   it('report.tex figure NN matches the figure PNG NN when an earlier selected test is not fresh', () => {
     const s = session()
     // Self-contained runs (the shared fixture is mutated by sibling tests): A has NO run, B is fresh.
