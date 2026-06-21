@@ -1,0 +1,35 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs,graphicx,siunitx}
+
+\begin{document}
+
+\section{Path analysis}
+
+\begin{tabular}{llllllll}
+\toprule
+Path & B & SE & z & p & Std. $\beta$ & 95\% CI & R\textsuperscript{2} \\
+\midrule
+x1 $\rightarrow$ x2 & 0.30 & 0.06 & 5.23 & $<$.001 &  & [.19, .40] & .09 \\
+x2 $\rightarrow$ x3 & 0.22 & 0.05 & 4.05 & $<$.001 &  & [.12, .34] & .24 \\
+x1 $\rightarrow$ x3 & 0.36 & 0.05 & 7.29 & $<$.001 &  & [.28, .47] & .24 \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Path & Estimate & SE & boot 95\% CI & p \\
+\midrule
+x1 $\rightarrow$ x2 $\rightarrow$ x3 & 0.07 & 0.02 & [0.03, 0.11] & .001 \\
+\bottomrule
+\end{tabular}
+
+\includegraphics{figures/01_path-analysis/figure_path-diagram.png}
+
+Path analysis estimates a system of regressions among observed variables at once, letting one variable be both an outcome and a predictor (mediation). Structural paths: each B is the unstandardized effect, Std. $\beta$ the standardized effect, with z, p, and a 95\% CI; R\textsuperscript{2} is the variance explained in each endogenous variable. Indirect effects: the product of the paths through a mediator (e.g. X $\rightarrow$ M $\rightarrow$ Y), judged by its bootstrap 95\% CI --- an interval excluding 0 indicates mediation. When df = 0 the model is saturated (it reproduces the data exactly), so fit indices are not informative and are omitted; only with extra constraints (df $>$ 0) do global fit indices apply, and even then read RMSEA cautiously at small df / small N. All thresholds are heuristics, not pass/fail gates.
+
+A path model fit to the observed variables; the indirect effect of X on Y through M was significant, bootstrap 95\% CI excluding 0.
+
+\end{document}

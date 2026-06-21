@@ -10,13 +10,14 @@ import { unzipSync } from 'fflate'
 const OUT = 'docs/test-documentation'
 
 type Drag = [string, string]
-type DataCfg = { column: string; action: string } // 'use' | 'level:nominal' | 'level:ordinal'
+type DataCfg = { column: string; action: string } // 'use' | 'unuse' | 'level:nominal' | 'level:ordinal'
 type SetAction = { label: string; action: 'fill' | 'select' | 'check'; value?: string }
 interface Case {
   nn: string; id: string; name: string; question: string; fixture: string
   pickName: string; dataConfig: DataCfg[]; drags: Drag[]; set: SetAction[]
   constructs?: { name: string; items: string[] }[] // construct-slots tests (AVE, CR) — no drag roles
   paths?: Drag[] // sem-canvas tests (CB-SEM, PLS-SEM): structural paths drawn between constructs (by name)
+  nodePaths?: [number, number][] // path-analysis: observed-column path mode — paths drawn between column rectangles (by node id = index into used-columns)
 }
 
 async function dragChip(page: Page, chip: string, roleId: string) {
@@ -42,6 +43,7 @@ async function documentTest(page: Page, c: Case) {
   await expect(page.getByRole('heading', { name: 'Configure data' })).toBeVisible()
   for (const dc of c.dataConfig) {
     if (dc.action === 'use') await page.getByLabel(`use ${dc.column}`).check()
+    else if (dc.action === 'unuse') await page.getByLabel(`use ${dc.column}`).uncheck()
     else if (dc.action.startsWith('level:')) await page.getByLabel(`level of ${dc.column}`).selectOption(dc.action.slice(6))
   }
   await page.getByRole('button', { name: 'Confirm & pick test' }).click()
@@ -50,8 +52,18 @@ async function documentTest(page: Page, c: Case) {
   await page.getByRole('checkbox', { name: c.pickName, exact: true }).check()
   await page.getByRole('button', { name: 'Confirm selection' }).click()
 
-  // configure-test: construct-slots (AVE / CR) OR drag columns into role slots
-  if (c.constructs) {
+  // configure-test: path-analysis (observed-only path mode) — no construct-slots form, no drag roles.
+  // The canvas shows one RECTANGLE per used column (data-node-id = index into the used-columns list);
+  // Draw is the default tool → click source rect then target rect to draw each structural path.
+  if (c.nodePaths) {
+    const rect = (id: number) => page.locator(`rect.sem-node-rect[data-node-id="${id}"]`)
+    await expect(rect(0)).toBeVisible()
+    for (const [from, to] of c.nodePaths) {
+      await rect(from).click()
+      await rect(to).click()
+    }
+    await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(c.nodePaths.length)
+  } else if (c.constructs) {
     await expect(page.getByRole('button', { name: '+ Add construct' })).toBeVisible()
     for (let i = 0; i < c.constructs.length; i++) {
       await page.getByRole('button', { name: '+ Add construct' }).click()
@@ -174,9 +186,15 @@ const CASES: Case[] = [
   { nn: '47', id: 'pls-sem', name: 'PLS-SEM', question: 'variance-based structural model (prediction-oriented)', fixture: 'scale.csv', pickName: 'PLS-SEM', dataConfig: [], drags: [], set: [],
     constructs: [{ name: 'visual', items: ['x1', 'x2', 'x3'] }, { name: 'textual', items: ['x4', 'x5', 'x6'] }, { name: 'speed', items: ['x7', 'x8', 'x9'] }],
     paths: [['visual', 'textual'], ['textual', 'speed'], ['visual', 'speed']] },
-  // path-analysis (48): observed-only path mode — DEFERRED from doc capture. The canvas→runner path-mode
-  // bridge (modelKind:'path' init + seeding setup.constructs from columns) is not yet wired, so it cannot
-  // be driven from the app UI yet. Document once the path-mode UI bridge lands (flagged for owner).
+  // path-analysis (48): observed-only path mode (canvas→runner bridge now wired). No construct-slots form
+  // and no drag roles — the canvas draws one RECTANGLE per USED column, so we uncheck x4..x9 in
+  // configure-data to keep a clean 3-column model (x1, x2, x3 → node ids 0, 1, 2), then draw the canonical
+  // single-mediator-with-direct-effect triangle: x1→x2, x2→x3, x1→x3. This is df=0 SATURATED, which
+  // showcases path-analysis's distinctive saturation-suppression (no fit-indices table) + the indirect
+  // effect x1→x2→x3 (5k-resample mediation bootstrap; needs the harness's generous result-wait timeout).
+  { nn: '48', id: 'path-analysis', name: 'Path analysis', question: 'directed-path model among observed variables', fixture: 'scale.csv', pickName: 'Path analysis',
+    dataConfig: [{ column: 'x4', action: 'unuse' }, { column: 'x5', action: 'unuse' }, { column: 'x6', action: 'unuse' }, { column: 'x7', action: 'unuse' }, { column: 'x8', action: 'unuse' }, { column: 'x9', action: 'unuse' }],
+    drags: [], set: [], nodePaths: [[0, 1], [1, 2], [0, 2]] },
 ]
 
 for (const c of CASES) {

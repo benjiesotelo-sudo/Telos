@@ -54,6 +54,9 @@ const D = [
   ['45', 'pca', 'Principal component analysis (PCA)', 'reduce many variables to a few components', 'scale.csv', [], [['x1', 'variables'], ['x2', 'variables'], ['x3', 'variables'], ['x4', 'variables'], ['x5', 'variables'], ['x6', 'variables'], ['x7', 'variables'], ['x8', 'variables'], ['x9', 'variables']], 'retention: parallel analysis; standardize ON (correlation matrix); loadings |< .32| suppressed; no communalities', 'Data reduction'],
   ['46', 'cb-sem', 'CB-SEM', 'confirmatory structural model among latent constructs', 'scale.csv', [], [['visual', 'x1, x2, x3'], ['textual', 'x4, x5, x6'], ['speed', 'x7, x8, x9']], 'input: construct-slots form (constructs) + AMOS canvas (structural paths). Paths drawn: visual → textual, textual → speed, visual → speed (mediation). estimator ML; pipeline full (EFA → CFA → fit → structural); bootstrap 5000 (percentile CI)', 'Latent variables · SEM'],
   ['47', 'pls-sem', 'PLS-SEM', 'variance-based structural model (prediction-oriented)', 'scale.csv', [], [['visual', 'x1, x2, x3 (reflective)'], ['textual', 'x4, x5, x6 (reflective)'], ['speed', 'x7, x8, x9 (reflective)']], 'input: construct-slots form (constructs; reflective/formative) + AMOS canvas (structural paths). Paths drawn: visual → textual, textual → speed, visual → speed. weighting: path; bootstrap 5000 (percentile CI); HTMT, f², Q²_predict', 'Latent variables · SEM'],
+  // path-analysis (48): observed-only path mode — no constructs/roles. The "roles" column carries the
+  // OBSERVED columns + the drawn structural paths (rendered specially below; isPath branch).
+  ['48', 'path-analysis', 'Path analysis', 'directed-path model among observed variables', 'scale.csv', ['x4–x9 → Unused (keep x1, x2, x3)'], [['observed', 'x1, x2, x3'], ['paths', 'x1 → x2, x2 → x3, x1 → x3 (single mediator with direct effect)']], 'input: AMOS canvas (one rectangle per used column; structural paths drawn between observed variables — no measurement model). Model is df = 0 saturated → fit indices suppressed; indirect effect x1 → x2 → x3 with 5000-resample bootstrap (percentile CI); estimator ML', 'Latent variables · SEM'],
 ]
 
 const rolesTable = (roles) => roles.map(([c, r]) => `| \`${c}\` | ${r} |`).join('\n')
@@ -62,6 +65,7 @@ for (const [nn, id, name, question, fixture, dataCfg, roles, opts] of D) {
   const folder = join(OUT, `${nn}_${id}`)
   if (!existsSync(folder)) { console.warn('missing folder', folder); continue }
   const isSem = id === 'cb-sem' || id === 'pls-sem'
+  const isPath = id === 'path-analysis'
   const isConstruct = id === 'ave' || id === 'composite-reliability' || isSem
   const md = `# ${nn} · ${name}
 
@@ -72,9 +76,9 @@ for (const [nn, id, name, question, fixture, dataCfg, roles, opts] of D) {
 - **Dataset:** \`${fixture}\`
 ${dataCfg.length ? `- **Configure-data overrides:** ${dataCfg.map((s) => `\`${s}\``).join(', ')}\n` : '- **Configure-data:** app defaults (auto-detected types/levels)\n'}- **Options:** ${opts}
 
-${isSem ? '**Measurement model** — constructs defined in the construct-slots form (structural paths drawn on the AMOS canvas; see Options):' : isConstruct ? '**Constructs** (construct-slots input — name each construct, tick its items):' : '**Role assignments** (drag column → slot):'}
+${isPath ? '**Path model** — observed-only path mode: one rectangle per used column on the AMOS canvas, structural paths drawn directly between observed variables (no measurement model / no constructs):' : isSem ? '**Measurement model** — constructs defined in the construct-slots form (structural paths drawn on the AMOS canvas; see Options):' : isConstruct ? '**Constructs** (construct-slots input — name each construct, tick its items):' : '**Role assignments** (drag column → slot):'}
 
-| ${isConstruct ? 'Construct | Items' : 'Column | Role slot'} |
+| ${isPath ? 'Model element | Value' : isConstruct ? 'Construct | Items' : 'Column | Role slot'} |
 |---|---|
 ${rolesTable(roles)}
 
@@ -102,7 +106,7 @@ for (const [nn, id, name, question, , , , , family] of D) {
 }
 let index = `# Telos — per-test documentation
 
-Auto-generated capture of **47 of the 48 live tests** (path analysis is documented once its canvas path-mode UI bridge lands). Each test has its own folder \`NN_<id>/\` containing the
+Auto-generated capture of **all 48 live tests**. Each test has its own folder \`NN_<id>/\` containing the
 research question, the input configuration (screenshot), and the three outputs — the in-app result, the
 PDF export, and the LaTeX export (source + compiled). See each folder's \`README.md\`.
 

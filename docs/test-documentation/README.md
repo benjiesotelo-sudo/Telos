@@ -1,6 +1,6 @@
 # Telos — per-test documentation
 
-Auto-generated capture of **47 of the 48 live tests** (path analysis is documented once its canvas path-mode UI bridge lands). Each test has its own folder `NN_<id>/` containing the
+Auto-generated capture of **all 48 live tests**. Each test has its own folder `NN_<id>/` containing the
 research question, the input configuration (screenshot), and the three outputs — the in-app result, the
 PDF export, and the LaTeX export (source + compiled). See each folder's `README.md`.
 
@@ -102,6 +102,7 @@ then compiling each LaTeX piece with tectonic. The three outputs share one run, 
 |---|---|---|
 | 46 | [CB-SEM](46_cb-sem/) | confirmatory structural model among latent constructs |
 | 47 | [PLS-SEM](47_pls-sem/) | variance-based structural model (prediction-oriented) |
+| 48 | [Path analysis](48_path-analysis/) | directed-path model among observed variables |
 
 ## Data reduction
 
