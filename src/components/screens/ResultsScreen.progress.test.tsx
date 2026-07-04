@@ -26,21 +26,33 @@ afterEach(() => {
   mockState.runPhase = null
 })
 
-describe('Unit 9a — results-screen progress bar', () => {
-  it('renders a progressbar with the message and an elapsed/estimate readout when runProgress is set during a run', () => {
+describe('Unit 9a — results-screen run narration (RunModule)', () => {
+  it('renders a run-card with the phase text and a width percentage when runProgress carries an estimate', () => {
     mockState.runStatus = 'running'
+    mockState.runPhase = 'Bootstrapping (5000 resamples)…'
     mockState.runProgress = { message: 'Bootstrapping (5000 resamples)…', elapsedMs: 65000, estMs: 160000 }
     const html = renderToStaticMarkup(<ResultsScreen />)
-    expect(html).toContain('role="progressbar"')
+    expect(html).toContain('run-card')
     expect(html).toContain('Bootstrapping (5000 resamples)…')
-    expect(html).toContain('1:05')   // elapsed mm:ss
-    expect(html).toContain('2:40')   // estimate mm:ss
+    expect(html).toContain('width:41%') // round(65000/160000*100) = 41 — the pct span's driving style
+    expect(html).toContain('41%') // the pct span's rendered text
   })
 
-  it('shows no progressbar when runProgress is null', () => {
+  it('renders an indeterminate run-fill (no width) when runProgress has no estimate', () => {
     mockState.runStatus = 'running'
+    mockState.runPhase = 'Loading the R engine…'
     mockState.runProgress = null
     const html = renderToStaticMarkup(<ResultsScreen />)
-    expect(html).not.toContain('role="progressbar"')
+    expect(html).toContain('run-card')
+    expect(html).toContain('Loading the R engine…')
+    expect(html).toContain('run-fill indeterminate')
+  })
+
+  it('renders no run-card when not running', () => {
+    mockState.runStatus = 'idle'
+    mockState.runPhase = null
+    mockState.runProgress = null
+    const html = renderToStaticMarkup(<ResultsScreen />)
+    expect(html).not.toContain('run-card')
   })
 })

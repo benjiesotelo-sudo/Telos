@@ -13,6 +13,7 @@ import { ResultPreviewCard } from '../ResultPreviewCard'
 import { ResultBoundary } from '../ResultBoundary'
 import { BUILDERS } from '../../lib/results/builders'
 import { SemCanvas } from '../SemCanvas'
+import { RunModule } from '../RunModule'
 
 const saveBlob = (blob: Blob, name: string) => {
   const url = URL.createObjectURL(blob)
@@ -95,12 +96,6 @@ export async function rasterSemFigures(
   }
 }
 
-// mm:ss for the bootstrap progress readout (elapsed + spike-calibrated estimate; not per-resample counts)
-const mmss = (ms: number) => {
-  const t = Math.max(0, Math.round(ms / 1000))
-  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`
-}
-
 export function ResultsScreen() {
   const s = useSession()
   const [formats, setFormats] = useState<ExportFormats>({ tables: false, figures: true, pdf: false, latex: false, r: false })
@@ -149,27 +144,9 @@ export function ResultsScreen() {
         {exportError && <div className="error-box" role="alert">Export failed: {exportError}</div>}
       </div>
 
-      {running && (s.runProgress
-        ? (() => {
-            const { message, elapsedMs, estMs } = s.runProgress
-            const pct = elapsedMs != null && estMs ? Math.min(99, Math.round((elapsedMs / estMs) * 100)) : undefined
-            return (
-              <div className="card" role="progressbar"
-                aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}
-                aria-valuetext={message}>
-                <p className="hint" role="status" style={{ marginTop: 0 }}>{message}</p>
-                <div style={{ height: 8, borderRadius: 4, background: '#f0efe9', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: pct != null ? `${pct}%` : '40%', background: '#185fa5', borderRadius: 4 }} />
-                </div>
-                {elapsedMs != null && (
-                  <p className="hint" style={{ marginBottom: 0 }}>
-                    {mmss(elapsedMs)}{estMs ? ` / ~${mmss(estMs)}` : ''} elapsed
-                  </p>
-                )}
-              </div>
-            )
-          })()
-        : <p className="hint" role="status">{s.runPhase ?? 'Running…'}</p>)}
+      {running && <RunModule phase={s.runPhase} progress={s.runProgress}
+        testsDone={s.selection.filter((id) => s.runs[id] && !s.runs[id].stale).length}
+        testsTotal={s.selection.length} />}
       {s.runStatus === 'error' && (
         <div className="error-box" role="alert">Error: {s.runError}{' '}
           <button type="button" disabled={running} onClick={() => { void s.runAll() }}>Try again</button></div>
