@@ -4,6 +4,9 @@ import { DragSlots } from '../DragSlots'
 import { ConstructSlots } from '../ConstructSlots'
 import { SemConfig } from '../SemConfig'
 import { categoriesOf, propsArray, propsSumOk } from '../../lib/data/props'
+import { optionGroup } from '../../lib/registry/optionGroups'
+import { OptionRows } from '../OptionRows'
+import { RunModule } from '../RunModule'
 
 export function TestConfigScreen({ testId }: { testId: string }) {
   const s = useSession()
@@ -25,48 +28,52 @@ export function TestConfigScreen({ testId }: { testId: string }) {
       {spec.inputKind === 'construct-slots' ? <ConstructSlots testId={testId} />
         : spec.inputKind === 'sem-canvas' ? <SemConfig testId={testId} />
         : <DragSlots testId={testId} spec={spec} />}
-      <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-        {spec.options.map((o) => o.kind === 'display' ? (
-          <span key={o.id} className="pill">{o.label} {o.value}</span>
-        ) : o.kind === 'toggle' ? (
-          <label key={o.id} className={`pill${setup.options[o.id] ? ' on' : ''}`} style={{ cursor: 'pointer' }}>
-            <input type="checkbox" checked={!!setup.options[o.id]} disabled={running}
-              onChange={(e) => s.setOption(testId, o.id, e.target.checked)} style={{ marginRight: 6 }} />
-            {o.label} ({o.value})
-          </label>
-        ) : o.kind === 'level-select' ? (
-          (() => {
-            const col = setup.roles[o.fromRole!]?.[0]
-            const cats = col ? categoriesOf(workingDataset(s), col) : []
-            return (
-              <label key={o.id} className="pill">
-                {o.label}{' '}
-                <select aria-label={o.label} value={String(setup.options[o.id] ?? '')} disabled={running || !col}
-                  onChange={(e) => s.setOption(testId, o.id, e.target.value)}
-                  style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
-                  {cats.length ? cats.map((c) => <option key={c} value={c}>{c}</option>) : <option value="">—</option>}
-                </select>
-              </label>
-            )
-          })()
-        ) : o.kind === 'select' || o.kind === 'proportions' || o.kind === 'arima-order' ? (
-          <label key={o.id} className="pill">
-            {o.label}{' '}
-            <select aria-label={o.label} value={String(setup.options[o.id] ?? o.value)} disabled={running}
-              onChange={(e) => s.setOption(testId, o.id, e.target.value)}
-              style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
-              {(o.kind === 'proportions' ? ['equal', 'custom'] : o.kind === 'arima-order' ? ['auto-select', 'manual'] : o.choices!).map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </label>
-        ) : (
-          <label key={o.id} className="pill">
-            {o.label}{' '}
-            <input type="number" value={Number(setup.options[o.id] ?? 0)} disabled={running} aria-label={o.label}
-              onChange={(e) => s.setOption(testId, o.id, Number(e.target.value))}
-              style={{ width: '5em', border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }} />
-          </label>
-        ))}
-      </div>
+      {(() => {
+        const rendered = spec.options.map((o) => ({
+          group: optionGroup(o),
+          node: o.kind === 'display' ? (
+            <span key={o.id} className="pill">{o.label} {o.value}</span>
+          ) : o.kind === 'toggle' ? (
+            <label key={o.id} className={`pill${setup.options[o.id] ? ' on' : ''}`} style={{ cursor: 'pointer' }}>
+              <input type="checkbox" checked={!!setup.options[o.id]} disabled={running}
+                onChange={(e) => s.setOption(testId, o.id, e.target.checked)} style={{ marginRight: 6 }} />
+              {o.label} ({o.value})
+            </label>
+          ) : o.kind === 'level-select' ? (
+            (() => {
+              const col = setup.roles[o.fromRole!]?.[0]
+              const cats = col ? categoriesOf(workingDataset(s), col) : []
+              return (
+                <label key={o.id} className="pill">
+                  {o.label}{' '}
+                  <select aria-label={o.label} value={String(setup.options[o.id] ?? '')} disabled={running || !col}
+                    onChange={(e) => s.setOption(testId, o.id, e.target.value)}
+                    style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
+                    {cats.length ? cats.map((c) => <option key={c} value={c}>{c}</option>) : <option value="">—</option>}
+                  </select>
+                </label>
+              )
+            })()
+          ) : o.kind === 'select' || o.kind === 'proportions' || o.kind === 'arima-order' ? (
+            <label key={o.id} className="pill">
+              {o.label}{' '}
+              <select aria-label={o.label} value={String(setup.options[o.id] ?? o.value)} disabled={running}
+                onChange={(e) => s.setOption(testId, o.id, e.target.value)}
+                style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
+                {(o.kind === 'proportions' ? ['equal', 'custom'] : o.kind === 'arima-order' ? ['auto-select', 'manual'] : o.choices!).map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+          ) : (
+            <label key={o.id} className="pill">
+              {o.label}{' '}
+              <input type="number" value={Number(setup.options[o.id] ?? 0)} disabled={running} aria-label={o.label}
+                onChange={(e) => s.setOption(testId, o.id, Number(e.target.value))}
+                style={{ width: '5em', border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }} />
+            </label>
+          ),
+        }))
+        return <OptionRows children={rendered} />
+      })()}
       {spec.options.some((o) => o.id === 'tails') && String(setup.options['tails'] ?? '').startsWith('one-tailed') && (
         <p className="hint" role="note" style={{ color: 'var(--error-tx)', marginTop: 6 }}>
           ⚠ One-tailed test — only valid for a directional hypothesis set <em>in advance</em>; choosing it after seeing your data inflates false positives.
@@ -108,6 +115,7 @@ export function TestConfigScreen({ testId }: { testId: string }) {
       {spec.options.filter((o) => o.hint).map((o) => (
         <p key={o.id} className="hint" style={{ marginTop: 6 }}>{o.hint}</p>
       ))}
+      {running && <RunModule phase={s.runPhase} progress={s.runProgress} testsDone={s.selection.filter((id) => s.runs[id] && !s.runs[id].stale).length} testsTotal={s.selection.length} />}
       <div className="btn-row">
         <span className="hint">{(() => { // name the first failing gate — a generic hint can't say whether the blocker is here or on a later test
           if (running) return ''
