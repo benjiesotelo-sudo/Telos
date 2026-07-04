@@ -100,6 +100,15 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     useSession.getState().addRole('independent-t-test', 'outcome', 'group')
     expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual(['score'])
   })
+  it('addRole refuses a column already assigned to another role of the same test (spec 2026-07-04 R5)', () => {
+    useSession.getState().addRole('independent-t-test', 'outcome', 'score')
+    useSession.getState().addRole('independent-t-test', 'group', 'score')
+    expect(useSession.getState().setups['independent-t-test'].roles['group']).toEqual([])
+    // removal restores draggability's precondition: the column can be re-assigned elsewhere
+    useSession.getState().removeRole('independent-t-test', 'outcome', 'score')
+    useSession.getState().addRole('independent-t-test', 'group', 'score')
+    expect(useSession.getState().setups['independent-t-test'].roles['group']).toEqual(['score'])
+  })
 })
 
 describe('arity gates (design §3: minimums gate; optional slots never block)', () => {
