@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { WelcomeScreen } from './WelcomeScreen'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { WELCOME_COPY, CREDIT_SUFFIX } from '../../content/copy'
+import { CREDIT_SUFFIX } from '../../content/copy'
 
 const h = () => renderToStaticMarkup(<WelcomeScreen />)
 

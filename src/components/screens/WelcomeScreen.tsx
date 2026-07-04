@@ -8,8 +8,7 @@ const BYLINE = 'Built by Benjamin Sotelo'
  *  body ¶ = everything before the privacy sentence · subline = the privacy sentence ·
  *  credit = the byline (+ the new CREDIT_SUFFIX) with the LinkedIn link. */
 function segments() {
-  const [body, tail] = WELCOME_COPY.split(PRIVACY)
-  return { body: body.trim(), tail: tail.trim() } // tail = 'Built by Benjamin Sotelo — linkedin…'
+  return { body: WELCOME_COPY.split(PRIVACY)[0].trim() }
 }
 
 export function WelcomeScreen() {
