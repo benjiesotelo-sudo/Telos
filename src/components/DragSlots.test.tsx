@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SPECS } from '../lib/registry/catalog'
-import { buildShelves } from '../lib/eligibility/poolShelves'
+import { buildShelves, roleAcceptsLevel } from '../lib/eligibility/poolShelves'
 import { DragSlotsUI } from './DragSlots'
 import type { TestSpec } from '../lib/registry/types'
 import type { ColumnMeta } from '../lib/data/columnMeta'
@@ -37,11 +37,23 @@ const emptyRoles = (spec: TestSpec) => Object.fromEntries(spec.constraints.roles
 const openRoles = (spec: TestSpec, roles: Record<string, string[]>) =>
   spec.constraints.roles.filter((r) => (roles[r.roleId] ?? []).length < r.arity.max)
 
-function render(spec: TestSpec, opts: { columns?: ColumnMeta[]; roles?: Record<string, string[]> } = {}) {
+function render(spec: TestSpec, opts: { columns?: ColumnMeta[]; roles?: Record<string, string[]>; echoRole?: string | null } = {}) {
   const roles = opts.roles ?? emptyRoles(spec)
   const assigned = new Set(Object.values(roles).flat())
   const shelves = buildShelves(opts.columns ?? COLS, openRoles(spec, roles), assigned, working)
-  return renderToStaticMarkup(<DragSlotsUI spec={spec} shelves={shelves} roles={roles} onDrop={noop} onRemove={noop} />)
+  return renderToStaticMarkup(
+    <DragSlotsUI spec={spec} shelves={shelves} roles={roles} onDrop={noop} onRemove={noop} echoRole={opts.echoRole} />
+  )
+}
+
+// Locate a shelf's rendered class attribute by its shelf-head level text (compact SSR markup, no whitespace).
+// Search stops one char before the shelf-head div itself, so the "shelf-head" div's own class isn't mistaken
+// for its enclosing "shelf"/"shelf off"/"shelf echo" div.
+function shelfClassFor(html: string, level: string): string {
+  const headIdx = html.indexOf(`<div class="shelf-head">${level} <span class="count"`)
+  const divStart = html.lastIndexOf('<div class="shelf', headIdx - 1)
+  const classStart = divStart + '<div class="'.length
+  return html.slice(classStart, html.indexOf('"', classStart))
 }
 
 describe('DragSlotsUI grouped pool', () => {
@@ -81,5 +93,19 @@ describe('DragSlotsUI grouped pool', () => {
     expect(render(T_TEST).match(/chip assigned/g) ?? []).toHaveLength(0)
     const html = render(T_TEST, { roles: { outcome: ['score'], group: [] } })
     expect(html.match(/chip assigned/g)).toHaveLength(2)
+  })
+})
+
+describe('hover echo derivation', () => {
+  it('roleAcceptsLevel is exported and mirrors slot rules', () => {
+    const outcome = SPECS['independent-t-test'].constraints.roles.find((r) => r.roleId === 'outcome')!
+    expect(roleAcceptsLevel(outcome, 'ratio', [])).toBe(true)
+    expect(roleAcceptsLevel(outcome, 'nominal', [])).toBe(false)
+  })
+
+  it('echoRole prop echoes the ratio shelf (outcome accepts it) but not the nominal shelf', () => {
+    const html = render(T_TEST, { echoRole: 'outcome' })
+    expect(shelfClassFor(html, 'ratio')).toBe('shelf echo')
+    expect(shelfClassFor(html, 'nominal')).toBe('shelf')
   })
 })

@@ -11,7 +11,7 @@ export interface Shelf { level: Level; chips: ShelfChip[]; dim: boolean; note: s
 
 /** Does this role accept this level? Mirrors slotCompatibility's level rules:
  *  a timeOrder role takes ordinal columns or a date-tagged chip regardless of its (empty) levels list. */
-function roleAcceptsLevel(r: RoleConstraint, level: Level, cols: ColumnMeta[]): boolean {
+export function roleAcceptsLevel(r: RoleConstraint, level: Level, cols: ColumnMeta[]): boolean {
   return r.timeOrder
     ? level === 'ordinal' || cols.some((c) => c.tags.includes('datetime'))
     : r.levels.includes(level)
