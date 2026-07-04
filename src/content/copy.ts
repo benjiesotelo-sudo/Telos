@@ -31,3 +31,6 @@ export const POOL_TEACH: Record<Level, string> = {
   interval: 'No interval columns yet. If a column is numeric without a true zero (e.g. dates or temperatures), set its level in step 4.',
   ratio: 'No ratio columns yet. If a column is numeric with a true zero (e.g. scores or amounts), set its level in step 4.',
 }
+
+// Welcome credit row (redesign spec R4/tribute inventory - new copy, not spec-pinned)
+export const CREDIT_SUFFIX = 'designed and built with Claude Fable 5'

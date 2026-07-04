@@ -17,7 +17,7 @@ async function dragChip(page: Page, chip: string, roleId: string) {
 
 test('full journey: welcome → upload → guide → configure → pick → drag → Welch run → toggle → pooled re-run → level back-edit → stale → re-run → zip export', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Telos' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Telos/ })).toBeVisible()
   await page.getByRole('button', { name: 'Get started' }).click()
 
   await page.setInputFiles('input[type=file]', 'tests/e2e/fixtures/study.csv')
