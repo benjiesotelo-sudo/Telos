@@ -246,7 +246,7 @@ export const useSession = create<SessionState>((set, get) => {
       const setup = s.setups[testId]; const role = SPECS[testId]?.constraints.roles.find((r) => r.roleId === roleId)
       if (!setup || !role) return {}
       const cur = setup.roles[roleId]
-      // one column, one slot per test — cross-role reuse is never statistically meaningful here (spec 2026-07-04 R5)
+      // one column, one slot per test - cross-role reuse is never statistically meaningful here (spec 2026-07-04 R5)
       if (cur.length >= role.arity.max || Object.values(setup.roles).some((cols) => cols.includes(column))) return {}
       const next = syncLevelSelect(s, testId, roleId, { ...setup, roles: { ...setup.roles, [roleId]: [...cur, column] } })
       return { setups: { ...s.setups, [testId]: next } }
@@ -331,7 +331,7 @@ export const useSession = create<SessionState>((set, get) => {
             const used = s.columns.filter((c) => c.used).map((c) => c.name)
             const runSetup = withPathModeConstructs(setup, used)
             const result = await runner(engine, ds, runSetup, onProgress)
-            const { [id]: _drop, ...rest } = get().errors
+            const rest = { ...get().errors }; delete rest[id]
             set({ runs: { ...get().runs, [id]: { result, stale: false } }, errors: rest })
           } catch (e) {
             // readable per-test error card on the results page; later tests still run (spec run-state rule)

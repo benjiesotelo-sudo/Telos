@@ -8,7 +8,7 @@ import type { ColumnMeta } from '../lib/data/columnMeta'
 import type { Dataset } from '../lib/stats/types'
 
 // Hand-built fixtures (poolShelves.test.ts idiom): the connected DragSlots wrapper reads the zustand
-// store, whose SSR snapshot is frozen at the initial state under renderToStaticMarkup — so the unit
+// store, whose SSR snapshot is frozen at the initial state under renderToStaticMarkup - so the unit
 // tests target the props-based DragSlotsUI, same split as ConstructSlots/SemConfig.
 const col = (over: Partial<ColumnMeta> & { name: string }): ColumnMeta =>
   ({ detected: 'float64', tags: [], level: 'ratio', used: true, ...over })

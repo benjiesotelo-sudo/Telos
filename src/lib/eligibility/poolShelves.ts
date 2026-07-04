@@ -35,7 +35,7 @@ export function buildShelves(columns: ColumnMeta[], openRoles: RoleConstraint[],
       // find reason from a role that accepts this level (if any), or just the first role if none accept the level
       const acceptingIndex = openRoles.findIndex((r) => roleAcceptsLevel(r, level, cols))
       const reasonIndex = acceptingIndex >= 0 ? acceptingIndex : 0
-      const reason = ok || dim || !openRoles.length ? null : fits[reasonIndex]?.reason ?? fits[0]?.reason ?? null
+      const reason = ok || dim || !openRoles.length ? null : fits[reasonIndex]?.reason ?? null
       return { col, assigned: false, ok, reason }
     })
     return { level, chips, dim, note: dim ? POOL_SHELF_NOTE(level) : null }

@@ -58,7 +58,7 @@ table.apa.coef .row-span td{color:var(--muted);font-size:11px;text-align:left;pa
 table.apa.matrix thead th,table.apa.matrix tbody th{text-align:center;font-weight:600;}
 table.apa.matrix tbody th{text-align:left;}
 table.apa.matrix td:empty{color:transparent;}
-/* grouped variable pool — level shelves (config-ui, 2026-07-04) */
+/* grouped variable pool - level shelves (config-ui, 2026-07-04) */
 .shelf{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);}
 .shelf:first-of-type{margin-top:6px;padding-top:0;border-top:0;}
 .shelf-head{font-size:11px;color:var(--text);text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
