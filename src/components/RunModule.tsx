@@ -4,12 +4,13 @@ export interface RunModuleProps { phase: string | null; progress: { message: str
 export function RunModule({ phase, progress, testsDone, testsTotal }: RunModuleProps) {
   if (phase === null) return null
   const inTests = phase.startsWith('Running')
-  const pct = progress?.estMs ? Math.min(99, Math.round(((progress.elapsedMs ?? 0) / progress.estMs) * 100)) : null
+  const inFigures = phase.toLowerCase().includes('figure')
+  const pct = progress?.estMs && progress.estMs > 0 ? Math.min(99, Math.round(((progress.elapsedMs ?? 0) / progress.estMs) * 100)) : null
   const phases: [string, 'ok' | 'now' | 'todo'][] = [
     ['Reading your data', 'ok'],
-    ['Loading the R engine', inTests ? 'ok' : 'now'],
-    [`Running ${testsTotal} test${testsTotal === 1 ? '' : 's'}`, inTests ? 'now' : 'todo'],
-    ['Drawing figures', 'todo'],
+    ['Loading the R engine', inTests || inFigures ? 'ok' : 'now'],
+    [`Running ${testsTotal} test${testsTotal === 1 ? '' : 's'}`, inTests && !inFigures ? 'now' : inFigures ? 'ok' : 'todo'],
+    ['Drawing figures', inFigures ? 'now' : 'todo'],
   ]
   const glyph = { ok: '✓', now: '●', todo: '○' } as const
   return (

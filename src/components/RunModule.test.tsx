@@ -21,4 +21,9 @@ describe('RunModule', () => {
     expect(h).toMatch(/now[^>]*>[^<]*Running 2 tests/)
     expect(h).toMatch(/ok[^>]*>[^<]*Loading the R engine/)
   })
+  it('figure phase: figures phase current, tests phase done', () => {
+    const h = renderToStaticMarkup(<RunModule phase="Drawing figures…" progress={null} testsDone={2} testsTotal={2} />)
+    expect(h).toMatch(/now[^>]*>[^<]*Drawing figures/)
+    expect(h).toMatch(/ok[^>]*>[^<]*Running 2 tests/)
+  })
 })
