@@ -1,6 +1,8 @@
+@font-face{font-family:'Crimson Pro';font-weight:400;font-display:swap;src:url('/fonts/q5uDsoa5M_tv7IihmnkabARVoYF6CsKjnlQ.woff2') format('woff2');}
 @font-face{font-family:'Crimson Pro';font-weight:600;font-display:swap;src:url('/fonts/q5uDsoa5M_tv7IihmnkabARboYF6CsKj.woff2') format('woff2');}
-@font-face{font-family:'Atkinson Hyperlegible';font-weight:400;font-display:swap;src:url('/fonts/9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2') format('woff2');}
-@font-face{font-family:'Atkinson Hyperlegible';font-weight:700;font-display:swap;src:url('/fonts/9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2') format('woff2');}
+@font-face{font-family:'Archivo';font-weight:400;font-display:swap;src:url('/fonts/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxKsv4Rn.woff2') format('woff2');}
+@font-face{font-family:'Archivo';font-weight:600;font-display:swap;src:url('/fonts/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLySOxKsv4RnUPU.woff2') format('woff2');}
+@font-face{font-family:'Archivo';font-weight:700;font-display:swap;src:url('/fonts/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLyTOxKsv4RnUPU.woff2') format('woff2');}
 :root{ --bg:#f0efe9; --card:#fff; --text:#2c2c2a; --muted:#5f5e5a; --line:rgba(0,0,0,0.22);
   --blue-sub:#9cc2ec; --font-display:'Crimson Pro',Georgia,serif; --font-ui:'Atkinson Hyperlegible',system-ui,sans-serif; }
 /* Theme attribute set on <html>: 'light' (the default), 'dark', or 'auto' (follows the OS).

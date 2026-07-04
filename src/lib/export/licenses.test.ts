@@ -5,7 +5,7 @@ describe('licensesText', () => {
   const t = licensesText()
   it('credits the two OFL fonts', () => {
     expect(t).toContain('Crimson Pro')
-    expect(t).toContain('Atkinson Hyperlegible')
+    expect(t).toContain('Archivo')
     expect(t).toMatch(/Open Font License|OFL/)
   })
   it('credits the R / WebR runtime', () => {
