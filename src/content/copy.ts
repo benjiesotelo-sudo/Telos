@@ -23,7 +23,7 @@ export const UPLOAD_NOTE = '.csv · .xlsx · .xls — header row assumed to be r
 export const SIZE_WARN = { mb: 20, rows: 100_000 } // ui-spec DRAFT: 'warn above 20 MB or 100,000 rows'
 export const SIZE_WARN_TEXT = 'Large file — analysis may be slow in the browser.' // wording ours (DRAFT review happens rendered)
 
-// Grouped variable pool (test-config drag screens) — spec 2026-07-04
+// Grouped variable pool (test-config drag screens) - spec 2026-07-04
 export const POOL_SHELF_NOTE = (level: Level) => `no open slot takes ${level}`
 export const POOL_TEACH: Record<Level, string> = {
   nominal: 'No nominal columns yet. If a column holds unordered categories (e.g. groups or labels), set its level in step 4.',

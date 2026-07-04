@@ -9,12 +9,17 @@ export const LEVEL_ORDER: Level[] = ['nominal', 'ordinal', 'interval', 'ratio']
 export interface ShelfChip { col: ColumnMeta; assigned: boolean; ok: boolean; reason: string | null }
 export interface Shelf { level: Level; chips: ShelfChip[]; dim: boolean; note: string | null }
 
-/** Does any open slot accept this level in principle? Mirrors slotCompatibility's level rules:
+/** Does this role accept this level? Mirrors slotCompatibility's level rules:
  *  a timeOrder role takes ordinal columns or a date-tagged chip regardless of its (empty) levels list. */
+function roleAcceptsLevel(r: RoleConstraint, level: Level, cols: ColumnMeta[]): boolean {
+  return r.timeOrder
+    ? level === 'ordinal' || cols.some((c) => c.tags.includes('datetime'))
+    : r.levels.includes(level)
+}
+
+/** Does any open slot accept this level in principle? */
 function levelAccepted(level: Level, openRoles: RoleConstraint[], shelfCols: ColumnMeta[]): boolean {
-  return openRoles.some((r) => r.timeOrder
-    ? level === 'ordinal' || shelfCols.some((c) => c.tags.includes('datetime'))
-    : r.levels.includes(level))
+  return openRoles.some((r) => roleAcceptsLevel(r, level, shelfCols))
 }
 
 /** Spec 2026-07-04 two-tier verdicts: shelf dims when the level alone rules every chip out (one shared
@@ -28,12 +33,8 @@ export function buildShelves(columns: ColumnMeta[], openRoles: RoleConstraint[],
       const fits = openRoles.map((r) => slotCompatibility(r, col, working))
       const ok = fits.some((v) => v.ok)
       // find reason from a role that accepts this level (if any), or just the first role if none accept the level
-      const rolesAcceptingLevel = openRoles.filter((r, i) => {
-        if (r.timeOrder) return level === 'ordinal' || cols.some((c) => c.tags.includes('datetime'))
-        return r.levels.includes(level)
-      })
-      const reasonSource = rolesAcceptingLevel.length > 0 ? rolesAcceptingLevel[0] : openRoles[0]
-      const reasonIndex = openRoles.indexOf(reasonSource)
+      const acceptingIndex = openRoles.findIndex((r) => roleAcceptsLevel(r, level, cols))
+      const reasonIndex = acceptingIndex >= 0 ? acceptingIndex : 0
       const reason = ok || dim || !openRoles.length ? null : fits[reasonIndex]?.reason ?? fits[0]?.reason ?? null
       return { col, assigned: false, ok, reason }
     })
