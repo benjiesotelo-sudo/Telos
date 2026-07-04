@@ -44,7 +44,7 @@ export function UploadScreen() {
       <label className="slot" style={{ display: 'block', textAlign: 'center', padding: '30px 16px', cursor: 'pointer' }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) void onFile(f) }}>
-        Drop a file here or <b style={{ color: 'var(--accent)' }}>browse</b>
+        Drop a file here or <b style={{ color: 'var(--accent-deep)' }}>browse</b>
         <div className="hint" style={{ marginTop: 6 }}>{UPLOAD_NOTE}</div>
         <input type="file" accept={UPLOAD_ACCEPT} style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f) }} />

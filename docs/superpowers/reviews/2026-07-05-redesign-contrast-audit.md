@@ -61,7 +61,24 @@ This universally suppresses both transitions and animations when OS-level Reduce
 
 ---
 
+## Usage-level findings (review round 1)
+
+### Browse link (UploadScreen.tsx:47)
+- **Initial**: `var(--accent)` at 13px bold: 2.96:1 on light ground → WCAG AA failure (small text needs 4.5:1)
+- **Fix**: Changed to `var(--accent-deep)` → 5.54:1 on light ground → compliant
+- **Dark mode**: `var(--accent-deep)` resolves to clay token on dark themes; no change needed (already designed)
+
+### Welcome wordmark dot
+- **Finding**: Raw clay (46px) at 2.96:1 against light ground
+- **Exemption**: Decorative punctuation (conveys no information—"Telos." vs "Telos" reads identically); exempt under WCAG 1.4.3(a) decoration clause
+- **Status**: Retained as designed; flagged for owner click-through confirmation
+
+### Audit method update
+- Contrast audit now includes checking where accent tokens are **applied in component code**, not just pair math in tokens.css
+
+---
+
 ## Summary
-- **Contrast**: All pairs compliant (muted/bg = 4.99, passes 4.5 minimum)
+- **Contrast**: All pairs compliant (muted/bg = 4.99, passes 4.5 minimum); browse link fixed to accent-deep
 - **Motion**: Complete coverage; no adjustments needed
-- **Commit**: docs/superpowers/reviews/2026-07-05-redesign-contrast-audit.md only
+- **Commit**: src/components/screens/UploadScreen.tsx + docs/superpowers/reviews/2026-07-05-redesign-contrast-audit.md
