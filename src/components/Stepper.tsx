@@ -7,11 +7,12 @@ export function StepperUI({ model, onGo }: { model: RailModel; onGo: (step: stri
     <nav className="rail" aria-label="Progress">
       <div className="rail-track"><span className="rail-fill" style={{ width: `${Math.round(model.fraction * 100)}%` }} /></div>
       <div className="stages">
-        {model.stages.map((st) => (
+        {model.stages.map((st, i) => (
           <button key={st.id} type="button" className={`stage ${st.state}`} disabled={!st.enabled}
+            aria-label={st.label}
             aria-current={st.state === 'current' ? 'step' : undefined}
             onClick={() => st.firstStep && onGo(st.firstStep)}>
-            <span className="node">{st.state === 'done' ? '✓' : model.stages.indexOf(st) + 1}</span>
+            <span className="node">{st.state === 'done' ? '✓' : i + 1}</span>
             <span className="lbl">{st.label}</span>
             {st.sub.length > 0 && (
               <span className="subdots">

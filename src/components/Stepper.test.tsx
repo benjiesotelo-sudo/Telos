@@ -23,6 +23,7 @@ describe('StepperUI (stage rail)', () => {
   it('is the Progress nav with five stage buttons', () => {
     const h = html()
     expect(h).toContain('aria-label="Progress"')
+    expect(h).toContain('aria-label="Configure"')
     for (const l of ['Upload', 'Data', 'Pick tests', 'Configure', 'Results']) expect(h).toContain(l)
   })
   it('marks done/current stages and disables unreachable ones', () => {
