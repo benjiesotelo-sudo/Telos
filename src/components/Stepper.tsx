@@ -1,33 +1,40 @@
 import { useEffect, useRef } from 'react'
-import { useSession, stepsOf, canEnter, type StepId } from '../state/session'
-import { CATALOG } from '../lib/registry/catalog'
+import { useSession } from '../state/session'
+import { railModel, type RailModel } from '../state/stages'
 
-const label = (st: StepId): string =>
-  st === 'upload' ? 'Upload' : st === 'guide' ? 'Guide' : st === 'configure-data' ? 'Configure data'
-  : st === 'pick-tests' ? 'Pick tests' : st === 'results' ? 'Results'
-  : (() => { const c = CATALOG.find((c) => c.id === st.slice(5)); return c?.short ?? c?.name ?? st.slice(5) })()
+export function StepperUI({ model, onGo }: { model: RailModel; onGo: (step: string) => void }) {
+  return (
+    <nav className="rail" aria-label="Progress">
+      <div className="rail-track"><span className="rail-fill" style={{ width: `${Math.round(model.fraction * 100)}%` }} /></div>
+      <div className="stages">
+        {model.stages.map((st) => (
+          <button key={st.id} type="button" className={`stage ${st.state}`} disabled={!st.enabled}
+            aria-current={st.state === 'current' ? 'step' : undefined}
+            onClick={() => st.firstStep && onGo(st.firstStep)}>
+            <span className="node">{st.state === 'done' ? '✓' : model.stages.indexOf(st) + 1}</span>
+            <span className="lbl">{st.label}</span>
+            {st.sub.length > 0 && (
+              <span className="subdots">
+                {st.sub.map((d) => (
+                  <span key={d.step} role="button" aria-label={d.label} aria-disabled={!d.enabled}
+                    className={`subdot ${d.state}`}
+                    onClick={(e) => { e.stopPropagation(); if (d.enabled) onGo(d.step) }} />
+                ))}
+              </span>
+            )}
+            {st.sublabel && <span className="sublabel">{st.sublabel}</span>}
+          </button>
+        ))}
+      </div>
+      <span className="thread-frac">{model.frac}</span>
+    </nav>
+  )
+}
 
 export function Stepper() {
   const s = useSession()
-  const curRef = useRef<HTMLButtonElement>(null)
-  const steps = stepsOf(s).filter((st) => st !== 'welcome')
-  const cur = s.step === 'welcome' ? -1 : steps.indexOf(s.step)
-  // Keep the active node visible when the strip overflows (8+ steps) — horizontal scroll only.
-  useEffect(() => { curRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' }) }, [cur, s.step])
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => { ref.current?.scrollIntoView({ block: 'nearest' }) }, [s.step])
   if (s.step === 'welcome') return null
-  return (
-    <nav className="stepper" aria-label="Progress">
-      {steps.map((st, i) => (
-        <span key={st} style={{ display: 'contents' }}>
-          {i > 0 && <span className={`connector${i <= cur ? ' done' : ''}`} />}
-          <button type="button" ref={i === cur ? curRef : undefined} className={`step${i < cur ? ' done' : ''}${i === cur ? ' current' : ''}`}
-            disabled={!canEnter(s, st) || s.runStatus === 'running'} // locked steps are real disabled buttons (no silent dead clicks, skipped by Tab); ALL nav locks while an analysis runs (design rule)
-            onClick={() => s.goTo(st)}
-            aria-current={i === cur ? 'step' : undefined}>
-            <span className="dot">{i < cur ? '✓' : i + 1}</span>{label(st)}
-          </button>
-        </span>
-      ))}
-    </nav>
-  )
+  return <div ref={ref}><StepperUI model={railModel(s)} onGo={(step) => s.goTo(step as never)} /></div>
 }
