@@ -64,7 +64,7 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
             </div>
           ))}
       <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>How to read this test</h3>
-      <p>{content.howToRead}</p>
+      <p className="prose">{content.howToRead}</p>
       <p><b>APA template:</b> {content.apa}</p>
     </section>
   )

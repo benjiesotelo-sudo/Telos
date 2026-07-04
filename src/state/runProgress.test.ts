@@ -4,6 +4,9 @@ import type { RunProgress, Runner } from '../lib/results/builders'
 import { RUNNERS } from '../lib/results/builders'
 import { SPECS } from '../lib/registry/catalog'
 
+// runAll boots WebR via getEngine; stub it so this store-level test runs without WASM (see session.test.ts).
+vi.mock('../lib/webr/getEngine', () => ({ getEngine: vi.fn(async () => ({} as never)) }))
+
 describe('Unit 9a — runProgress state field & RunProgress/Runner types', () => {
   it('the store starts with runProgress null and reset() restores it to null', () => {
     useSession.setState({ runProgress: { message: 'busy', elapsedMs: 10, estMs: 20 } })
