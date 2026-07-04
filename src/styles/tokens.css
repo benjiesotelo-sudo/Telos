@@ -58,3 +58,13 @@ table.apa.coef .row-span td{color:var(--muted);font-size:11px;text-align:left;pa
 table.apa.matrix thead th,table.apa.matrix tbody th{text-align:center;font-weight:600;}
 table.apa.matrix tbody th{text-align:left;}
 table.apa.matrix td:empty{color:transparent;}
+/* grouped variable pool — level shelves (config-ui, 2026-07-04) */
+.shelf{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);}
+.shelf:first-of-type{margin-top:6px;padding-top:0;border-top:0;}
+.shelf-head{font-size:11px;color:var(--text);text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
+.shelf-head .count{color:var(--muted);font-weight:400;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+.shelf-head .note{color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;}
+.shelf.off .shelf-head,.shelf.off .pool{opacity:.5;}
+.shelf .teach{margin:6px 0 0;font-style:italic;}
+.pool{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.chip .tag{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:5px;vertical-align:1px;}
