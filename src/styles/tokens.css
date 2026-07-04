@@ -60,7 +60,7 @@ table.apa.matrix tbody th{text-align:left;}
 table.apa.matrix td:empty{color:transparent;}
 /* grouped variable pool - level shelves (config-ui, 2026-07-04) */
 .shelf{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);}
-.shelf:first-of-type{margin-top:6px;padding-top:0;border-top:0;}
+.eyebrow + .shelf{margin-top:6px;padding-top:0;border-top:0;}
 .shelf-head{font-size:11px;color:var(--text);text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
 .shelf-head .count{color:var(--muted);font-weight:400;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
 .shelf-head .note{color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;}

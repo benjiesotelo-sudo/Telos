@@ -74,7 +74,7 @@ The guard closes that gap:
 
 ### Copy
 
-All new user-facing strings (teaching hints, shelf notes) go through `src/content/copy.ts`, following the existing pattern, so the copy-consistency test covers them.
+All new user-facing strings (teaching hints, shelf notes) go through `src/content/copy.ts`, following the existing pattern; they are pinned verbatim by the poolShelves and DragSlots unit tests.
 
 ## Out of scope
 
