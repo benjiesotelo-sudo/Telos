@@ -24,7 +24,7 @@ export function StepperUI({ model, onGo }: { model: RailModel; onGo: (step: stri
               <span className="subdots">
                 {st.sub.map((d) => (
                   <button key={d.step} type="button" className={`subdot ${d.state}`}
-                    aria-label={d.label} disabled={!d.enabled}
+                    aria-label={d.aria} disabled={!d.enabled}
                     onClick={() => onGo(d.step)} />
                 ))}
               </span>

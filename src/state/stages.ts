@@ -1,7 +1,7 @@
 import { stepsOf, canEnter, type SessionState } from './session'
 import { CATALOG } from '../lib/registry/catalog'
 
-export interface SubDot { step: string; label: string; state: 'done' | 'current' | 'todo'; enabled: boolean }
+export interface SubDot { step: string; label: string; aria: string; state: 'done' | 'current' | 'todo'; enabled: boolean }
 export interface Stage { id: 'upload' | 'data' | 'pick' | 'configure' | 'results'; label: string;
   state: 'done' | 'current' | 'todo'; enabled: boolean; firstStep: string | null;
   sub: SubDot[]; sublabel: string | null }
@@ -15,10 +15,7 @@ const GROUPS: [Stage['id'], string, (st: string) => boolean][] = [
   ['results', 'Results', (st) => st === 'results'],
 ]
 
-const shortName = (testId: string) => {
-  const c = CATALOG.find((x) => x.id === testId)
-  return c?.short ?? c?.name ?? testId
-}
+const catalogEntry = (testId: string) => CATALOG.find((x) => x.id === testId)
 
 /** Presentation model for the stage rail. Pure: navigation gates stay in canEnter/goTo. */
 export function railModel(s: SessionState): RailModel {
@@ -35,11 +32,15 @@ export function railModel(s: SessionState): RailModel {
     // a done stage targets its LAST step: back-edits land on the editing screen (configure-data), not the guide;
     // current/todo stages keep the forward flow (first enterable step)
     const firstEnterable = (state === 'done' ? enterable[enterable.length - 1] : enterable[0]) ?? null
-    const sub: SubDot[] = id !== 'configure' ? [] : own.map(([st, i]) => ({
-      step: st, label: shortName(st.slice(5)),
-      state: i < cur ? 'done' : i === cur ? 'current' : 'todo',
-      enabled: !running && canEnter(s, st),
-    }))
+    const sub: SubDot[] = id !== 'configure' ? [] : own.map(([st, i]) => {
+      const c = catalogEntry(st.slice(5))
+      const name = c?.name ?? st.slice(5)
+      return {
+        step: st, label: c?.short ?? name, aria: name,
+        state: i < cur ? 'done' : i === cur ? 'current' : 'todo',
+        enabled: !running && canEnter(s, st),
+      }
+    })
     const curSub = sub.findIndex((d) => d.state === 'current')
     const sublabel = state === 'current' && curSub >= 0 ? `${sub[curSub].label} · ${curSub + 1} of ${sub.length}` : null
     return { id, label, state, enabled: !running && firstEnterable !== null, firstStep: firstEnterable, sub, sublabel }

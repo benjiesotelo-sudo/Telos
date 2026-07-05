@@ -50,6 +50,11 @@ describe('railModel', () => {
     expect(cfg.sub[0].state).toBe('done')
     expect(cfg.sub[1].state).toBe('current')
     expect(cfg.sublabel).toMatch(/2 of 2/)
+    // visual labels stay short, but aria-labels carry the full catalog name (e2e + screen readers know tests by name)
+    expect(cfg.sub[0].label).toBe('t-test')
+    expect(cfg.sub[0].aria).toBe('Independent t-test')
+    expect(cfg.sub[1].label).toBe('One-way ANOVA')
+    expect(cfg.sub[1].aria).toBe('One-way ANOVA + post-hoc')
   })
 
   it('fraction advances with the journey and stages disable while running', () => {

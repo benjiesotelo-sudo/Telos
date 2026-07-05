@@ -91,10 +91,11 @@ table.apa.matrix td:empty{color:transparent;}
 .stage.done .node{background:var(--accent);border-color:var(--accent);color:var(--accent-contrast);}
 .stage.current{color:var(--text);font-weight:650;}
 .stage.current .node{border-color:var(--accent);color:var(--accent-deep);box-shadow:0 0 0 4px var(--accent-soft);}
-.stage .subdots{display:flex;gap:5px;margin-top:1px;}
-.stage .subdot{width:7px;height:7px;border-radius:50%;background:var(--fill);border:0;padding:0;cursor:pointer;}
-.stage .subdot.done{background:var(--accent);}
-.stage .subdot.current{background:var(--bg);border:1.3px solid var(--accent);}
+.stage .subdots{display:flex;gap:0;margin-top:1px;height:7px;}
+.stage .subdot{width:24px;height:24px;margin:-8.5px 0;background:transparent;border:0;padding:0;cursor:pointer;position:relative;border-radius:50%;}
+.stage .subdot::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--fill);}
+.stage .subdot.done::after{background:var(--accent);}
+.stage .subdot.current::after{background:var(--bg);border:1.3px solid var(--accent);inset:7px;}
 .stage .subdot:disabled{cursor:default;}
 .stage .sublabel{font-size:10px;color:var(--muted);font-weight:400;}
 .rail .thread-frac{display:none;font-family:var(--mono);font-size:11px;color:var(--muted);}
@@ -112,8 +113,6 @@ table.apa.matrix td:empty{color:transparent;}
   .rail{position:sticky;}
 }
 /* 24px minimum hit areas (R4) */
-.subdot{position:relative;}
-.subdot::after{content:'';position:absolute;inset:-9px;}
 .hintbar-x::after{content:'';position:absolute;inset:-8px;}
 .hintbar-x{position:relative;}
 .credit-line{font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin-top:26px;display:inline-block;}
