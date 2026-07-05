@@ -48,6 +48,29 @@ describe('Unit 9a — results-screen run narration (RunModule)', () => {
     expect(html).toContain('run-fill indeterminate')
   })
 
+  it('pending cards narrate their OWN state: active test gets a mini track, others wait quietly', () => {
+    mockState.runStatus = 'running'
+    mockState.runPhase = 'Running Independent t-test…'
+    mockState.selection = ['independent-t-test', 'summary-statistics']
+    const html = renderToStaticMarkup(<ResultsScreen />)
+    // the active card carries its own mini progress track
+    expect(html).toContain('card-running')
+    // the queued card does NOT parrot the other test's phase; it waits
+    expect(html).toContain('Waiting its turn…')
+    expect(html.match(/Running Independent t-test…/g)!.length).toBe(1) // global module only, not repeated per card
+    mockState.selection = []
+  })
+
+  it('during engine load, pending cards say they are waiting for the engine, not the raw boot message', () => {
+    mockState.runStatus = 'running'
+    mockState.runPhase = 'Loading ggplot2…'
+    mockState.selection = ['independent-t-test', 'summary-statistics']
+    const html = renderToStaticMarkup(<ResultsScreen />)
+    expect(html).toContain('Waiting for the R engine…')
+    expect(html.match(/Loading ggplot2…/g)!.length).toBe(1) // the global module narrates the boot; cards do not echo it
+    mockState.selection = []
+  })
+
   it('renders no run-card when not running', () => {
     mockState.runStatus = 'idle'
     mockState.runPhase = null

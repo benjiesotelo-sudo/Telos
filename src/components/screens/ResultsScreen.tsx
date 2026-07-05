@@ -164,10 +164,26 @@ export function ResultsScreen() {
           </section>
         )
         const run = s.runs[id]
-        if (!run) return running ? (
-          <section key={id} className="card"><div className="eyebrow">{nn} · {spec.name}</div>
-            <p className="hint" role="status">{s.runPhase ?? 'Running…'}</p></section>
-        ) : null
+        if (!run) {
+          if (!running) return null
+          // per-card state, NOT the global phase echoed (runAll sets runPhase = `Running ${spec.name}…` per test)
+          const active = s.runPhase === `Running ${spec.name}…`
+          return (
+            <section key={id} className={`card${active ? ' card-running' : ''}`}>
+              <div className="eyebrow">{nn} · {spec.name}</div>
+              {active ? (
+                <>
+                  <div className="run-track" style={{ maxWidth: 320 }}><span className="run-fill indeterminate" /></div>
+                  <p className="hint" role="status">{s.runProgress?.message ?? 'Running…'}</p>
+                </>
+              ) : (
+                <p className="hint" style={{ fontStyle: 'italic' }}>
+                  {s.runPhase?.startsWith('Running') ? 'Waiting its turn…' : 'Waiting for the R engine…'}
+                </p>
+              )}
+            </section>
+          )
+        }
         // builder runs inside the boundary (via BuiltCard) so one card's display error can't erase the others
         return <ResultBoundary key={id} label={`${nn} · ${spec.name}`}><BuiltCard id={id} index={i + 1} /></ResultBoundary>
       })}</div>
