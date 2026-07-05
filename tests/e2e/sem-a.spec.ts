@@ -5,13 +5,19 @@ import { unzipSync } from 'fflate'
 // ── Helpers (shared pattern from anova.spec.ts / association.spec.ts) ─────────
 
 async function dragChip(page: Page, chip: string, roleId: string) {
-  const src = page.locator('.chip', { hasText: chip }).first()
-  const dst = page.locator(`[data-role="${roleId}"]`)
-  const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
-  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
-  await page.mouse.down()
-  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
-  await page.mouse.up()
+  // Under parallel-worker load a re-render can shift layout mid-drag and the pointer releases
+  // outside every droppable — confirm the drop landed on a scoped, unmaskable locator (a slot's
+  // hint text can literally contain the chip name) and redrag on a miss.
+  await expect(async () => {
+    const src = page.locator('.chip', { hasText: chip }).first()
+    const dst = page.locator(`[data-role="${roleId}"]`)
+    const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
+    await page.mouse.up()
+    await expect(page.locator(`[data-role="${roleId}"] .chip.assigned`, { hasText: chip })).toBeVisible({ timeout: 1000 })
+  }).toPass()
 }
 
 async function runAnalysis(page: Page) {
@@ -50,11 +56,11 @@ test('Journey: Cronbach\'s alpha — 3-item (interval) scale → T1 ω+α + T2 i
   // ── 4. Configure: drag x1, x2, x3 into items slot ──
   await expect(page.locator('.eyebrow').first()).toContainText("Cronbach's alpha")
   await dragChip(page, 'x1', 'items')
-  await expect(page.locator('[data-role="items"]')).toContainText('x1')
+  await expect(page.locator('[data-role="items"] .chip.assigned', { hasText: 'x1' })).toBeVisible()
   await dragChip(page, 'x2', 'items')
-  await expect(page.locator('[data-role="items"]')).toContainText('x2')
+  await expect(page.locator('[data-role="items"] .chip.assigned', { hasText: 'x2' })).toBeVisible()
   await dragChip(page, 'x3', 'items')
-  await expect(page.locator('[data-role="items"]')).toContainText('x3')
+  await expect(page.locator('[data-role="items"] .chip.assigned', { hasText: 'x3' })).toBeVisible()
 
   // ── 5. Run ──
   await runAnalysis(page)
@@ -226,7 +232,8 @@ test('Journey: EFA — 9-item scale (ratio) → T1 suitability + T2 variance-exp
   await expect(page.locator('.eyebrow').first()).toContainText('Exploratory factor analysis (EFA)')
   for (const item of ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9']) {
     await dragChip(page, item, 'items')
-    await expect(page.locator('[data-role="items"]')).toContainText(item)
+    // 'items' accumulates chips across iterations — filter to the one just dropped
+    await expect(page.locator('[data-role="items"] .chip.assigned', { hasText: item })).toBeVisible()
   }
 
   // Default options: retention=parallel, rotation=oblimin, extraction=PAF

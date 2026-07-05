@@ -5,13 +5,19 @@ import { unzipSync } from 'fflate'
 // ── Helpers (copied from anova.spec.ts — module-local, byte-untouched) ─────────
 
 async function dragChip(page: Page, chip: string, roleId: string) {
-  const src = page.locator('.chip', { hasText: chip }).first()
-  const dst = page.locator(`[data-role="${roleId}"]`)
-  const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
-  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
-  await page.mouse.down()
-  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
-  await page.mouse.up()
+  // Under parallel-worker load a re-render can shift layout mid-drag and the pointer releases
+  // outside every droppable — confirm the drop landed on a scoped, unmaskable locator (a slot's
+  // hint text can literally contain the chip name) and redrag on a miss.
+  await expect(async () => {
+    const src = page.locator('.chip', { hasText: chip }).first()
+    const dst = page.locator(`[data-role="${roleId}"]`)
+    const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
+    await page.mouse.up()
+    await expect(page.locator(`[data-role="${roleId}"] .chip.assigned`, { hasText: chip })).toBeVisible({ timeout: 1000 })
+  }).toPass()
 }
 
 async function configureStep(page: Page, stepName: RegExp, drags: [string, string][]) {
@@ -21,8 +27,8 @@ async function configureStep(page: Page, stepName: RegExp, drags: [string, strin
   }).toPass()
   for (const [chip, role] of drags) {
     await dragChip(page, chip, role)
-    // For multi-chip roles the slot has multiple .chip.assigned — check that at least one contains the chip text
-    await expect(page.locator(`[data-role="${role}"]`)).toContainText(chip)
+    // For multi-chip roles the slot has multiple .chip.assigned — filter to the one carrying this chip
+    await expect(page.locator(`[data-role="${role}"] .chip.assigned`, { hasText: chip })).toBeVisible()
   }
 }
 
@@ -56,9 +62,9 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   // ── 4. Configure: Simple linear — post_score → outcome, pre_score → predictor ──
   await expect(page.locator('.eyebrow').first()).toContainText('Simple linear regression')
   await dragChip(page, 'post_score', 'outcome')
-  await expect(page.locator('[data-role="outcome"]')).toContainText('post_score')
+  await expect(page.locator('[data-role="outcome"] .chip.assigned', { hasText: 'post_score' })).toBeVisible()
   await dragChip(page, 'pre_score', 'predictor')
-  await expect(page.locator('[data-role="predictor"]')).toContainText('pre_score')
+  await expect(page.locator('[data-role="predictor"] .chip.assigned', { hasText: 'pre_score' })).toBeVisible()
 
   // ── Configure: Multiple linear — standardize stays drawn-OFF ──
   await configureStep(page, /Multiple linear regression/, [
@@ -76,15 +82,15 @@ test('Journey: regression — simple, multiple (β em-dash→fill), logistic (ev
   }).toPass()
   await expect(page.getByLabel('event category')).toBeDisabled() // placeholder state (recorded decision 5)
   await dragChip(page, 'passed', 'outcome')
-  await expect(page.locator('[data-role="outcome"]')).toContainText('passed')
+  await expect(page.locator('[data-role="outcome"] .chip.assigned', { hasText: 'passed' })).toBeVisible()
   await expect(page.getByLabel('event category')).toBeEnabled()
   await expect(page.getByLabel('event category')).toHaveValue('yes') // second level alphabetically (B2)
   await dragChip(page, 'pre_score', 'predictors')
-  await expect(page.locator('[data-role="predictors"]')).toContainText('pre_score')
+  await expect(page.locator('[data-role="predictors"] .chip.assigned', { hasText: 'pre_score' })).toBeVisible()
   await dragChip(page, 'age', 'predictors')
-  await expect(page.locator('[data-role="predictors"]')).toContainText('age')
+  await expect(page.locator('[data-role="predictors"] .chip.assigned', { hasText: 'age' })).toBeVisible()
   await dragChip(page, 'group', 'predictors')
-  await expect(page.locator('[data-role="predictors"]')).toContainText('group')
+  await expect(page.locator('[data-role="predictors"] .chip.assigned', { hasText: 'group' })).toBeVisible()
 
   // ── Configure: Poisson / NB — count outcome + optional Exposure slot; model stays drawn Poisson ──
   await configureStep(page, /Poisson \/ negative binomial/, [

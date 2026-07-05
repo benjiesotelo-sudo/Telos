@@ -5,13 +5,19 @@ import { unzipSync } from 'fflate'
 // ── Helpers (copied from anova.spec.ts — module-local, byte-untouched) ─────────
 
 async function dragChip(page: Page, chip: string, roleId: string) {
-  const src = page.locator('.chip', { hasText: chip }).first()
-  const dst = page.locator(`[data-role="${roleId}"]`)
-  const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
-  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
-  await page.mouse.down()
-  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
-  await page.mouse.up()
+  // Under parallel-worker load a re-render can shift layout mid-drag and the pointer releases
+  // outside every droppable — confirm the drop landed on a scoped, unmaskable locator (a slot's
+  // hint text can literally contain the chip name) and redrag on a miss.
+  await expect(async () => {
+    const src = page.locator('.chip', { hasText: chip }).first()
+    const dst = page.locator(`[data-role="${roleId}"]`)
+    const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
+    await page.mouse.up()
+    await expect(page.locator(`[data-role="${roleId}"] .chip.assigned`, { hasText: chip })).toBeVisible({ timeout: 1000 })
+  }).toPass()
 }
 
 async function configureStep(page: Page, stepName: RegExp, drags: [string, string][]) {
@@ -21,8 +27,8 @@ async function configureStep(page: Page, stepName: RegExp, drags: [string, strin
   }).toPass()
   for (const [chip, role] of drags) {
     await dragChip(page, chip, role)
-    // For multi-chip roles the slot has multiple .chip.assigned — check that at least one contains the chip text
-    await expect(page.locator(`[data-role="${role}"]`)).toContainText(chip)
+    // For multi-chip roles the slot has multiple .chip.assigned — filter to the one carrying this chip
+    await expect(page.locator(`[data-role="${role}"] .chip.assigned`, { hasText: chip })).toBeVisible()
   }
 }
 
@@ -58,9 +64,9 @@ test('Journey: association — Pearson, Spearman, Kendall, χ² independence, χ
   // ── 4. Configure: Pearson — hours_studied → variableA, exam_score → variableB ──
   await expect(page.locator('.eyebrow').first()).toContainText('Pearson')
   await dragChip(page, 'hours_studied', 'variableA')
-  await expect(page.locator('[data-role="variableA"]')).toContainText('hours_studied')
+  await expect(page.locator('[data-role="variableA"] .chip.assigned', { hasText: 'hours_studied' })).toBeVisible()
   await dragChip(page, 'exam_score', 'variableB')
-  await expect(page.locator('[data-role="variableB"]')).toContainText('exam_score')
+  await expect(page.locator('[data-role="variableB"] .chip.assigned', { hasText: 'exam_score' })).toBeVisible()
 
   // ── Configure: Spearman — satisfaction → variableA, motivation → variableB ──
   await configureStep(page, /Spearman/, [

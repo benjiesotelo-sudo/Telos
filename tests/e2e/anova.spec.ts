@@ -5,13 +5,19 @@ import { unzipSync } from 'fflate'
 // ── Helpers (copied from flow.spec.ts — module-local, byte-untouched) ─────────
 
 async function dragChip(page: Page, chip: string, roleId: string) {
-  const src = page.locator('.chip', { hasText: chip }).first()
-  const dst = page.locator(`[data-role="${roleId}"]`)
-  const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
-  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
-  await page.mouse.down()
-  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
-  await page.mouse.up()
+  // Under parallel-worker load a re-render can shift layout mid-drag and the pointer releases
+  // outside every droppable — confirm the drop landed on a scoped, unmaskable locator (a slot's
+  // hint text can literally contain the chip name, e.g. "score_t1, score_t2, score_t3") and redrag on a miss.
+  await expect(async () => {
+    const src = page.locator('.chip', { hasText: chip }).first()
+    const dst = page.locator(`[data-role="${roleId}"]`)
+    const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
+    await page.mouse.up()
+    await expect(page.locator(`[data-role="${roleId}"] .chip.assigned`, { hasText: chip })).toBeVisible({ timeout: 1000 })
+  }).toPass()
 }
 
 async function configureStep(page: Page, stepName: RegExp, drags: [string, string][]) {
@@ -21,8 +27,8 @@ async function configureStep(page: Page, stepName: RegExp, drags: [string, strin
   }).toPass()
   for (const [chip, role] of drags) {
     await dragChip(page, chip, role)
-    // For multi-chip roles the slot has multiple .chip.assigned — check that at least one contains the chip text
-    await expect(page.locator(`[data-role="${role}"]`)).toContainText(chip)
+    // For multi-chip roles the slot has multiple .chip.assigned — filter to the one carrying this chip
+    await expect(page.locator(`[data-role="${role}"] .chip.assigned`, { hasText: chip })).toBeVisible()
   }
 }
 
@@ -56,9 +62,9 @@ test('Journey A: between-subjects — one-way ANOVA + factorial ANOVA + Kruskal-
   // ── Configure One-way ANOVA: outcome→Outcome, group→Factor ──
   await expect(page.locator('.eyebrow').first()).toContainText('One-way ANOVA')
   await dragChip(page, 'outcome', 'outcome')
-  await expect(page.locator('[data-role="outcome"] .chip.assigned')).toContainText('outcome')
+  await expect(page.locator('[data-role="outcome"] .chip.assigned', { hasText: 'outcome' })).toBeVisible()
   await dragChip(page, 'group', 'factor')
-  await expect(page.locator('[data-role="factor"] .chip.assigned')).toContainText('group')
+  await expect(page.locator('[data-role="factor"] .chip.assigned', { hasText: 'group' })).toBeVisible()
   // Assert post-hoc select pill shows 'Tukey HSD' as default
   await expect(page.getByLabel('post-hoc', { exact: true })).toHaveValue('Tukey HSD') // the rail's "One-way ANOVA + post-hoc" sub-dot label substring-matches otherwise
 
@@ -169,13 +175,13 @@ test('Journey B: wide/repeated — RM ANOVA + Mixed ANOVA + Friedman; sphericity
   // ── Configure Repeated-measures ANOVA ──
   await expect(page.locator('.eyebrow').first()).toContainText('Repeated-measures ANOVA')
   await dragChip(page, 'subject_id', 'subject')
-  await expect(page.locator('[data-role="subject"] .chip.assigned')).toContainText('subject_id')
+  await expect(page.locator('[data-role="subject"] .chip.assigned', { hasText: 'subject_id' })).toBeVisible()
   await dragChip(page, 'score_t1', 'measures')
-  await expect(page.locator('[data-role="measures"]')).toContainText('score_t1')
+  await expect(page.locator('[data-role="measures"] .chip.assigned', { hasText: 'score_t1' })).toBeVisible()
   await dragChip(page, 'score_t2', 'measures')
-  await expect(page.locator('[data-role="measures"]')).toContainText('score_t2')
+  await expect(page.locator('[data-role="measures"] .chip.assigned', { hasText: 'score_t2' })).toBeVisible()
   await dragChip(page, 'score_t3', 'measures')
-  await expect(page.locator('[data-role="measures"]')).toContainText('score_t3')
+  await expect(page.locator('[data-role="measures"] .chip.assigned', { hasText: 'score_t3' })).toBeVisible()
   // Assert sphericity select defaults to 'GG correction'
   await expect(page.getByLabel('sphericity')).toHaveValue('GG correction')
 

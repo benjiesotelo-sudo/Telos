@@ -4,13 +4,19 @@ import { unzipSync } from 'fflate'
 
 // ── Helpers (copied from anova.spec.ts — module-local, byte-untouched) ─────────
 async function dragChip(page: Page, chip: string, roleId: string) {
-  const src = page.locator('.chip', { hasText: chip }).first()
-  const dst = page.locator(`[data-role="${roleId}"]`)
-  const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
-  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
-  await page.mouse.down()
-  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
-  await page.mouse.up()
+  // Under parallel-worker load a re-render can shift layout mid-drag and the pointer releases
+  // outside every droppable — confirm the drop landed on a scoped, unmaskable locator (the Time
+  // slot's hint text literally contains "month, year") and redrag on a miss.
+  await expect(async () => {
+    const src = page.locator('.chip', { hasText: chip }).first()
+    const dst = page.locator(`[data-role="${roleId}"]`)
+    const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 })
+    await page.mouse.up()
+    await expect(page.locator(`[data-role="${roleId}"] .chip.assigned`, { hasText: chip })).toBeVisible({ timeout: 1000 })
+  }).toPass()
 }
 async function configureStep(page: Page, stepName: RegExp, drags: [string, string][]) {
   await expect(async () => {
@@ -19,7 +25,8 @@ async function configureStep(page: Page, stepName: RegExp, drags: [string, strin
   }).toPass()
   for (const [chip, role] of drags) {
     await dragChip(page, chip, role)
-    await expect(page.locator(`[data-role="${role}"]`)).toContainText(chip)
+    // For multi-chip roles (e.g. series) the slot has multiple .chip.assigned — filter to this one
+    await expect(page.locator(`[data-role="${role}"] .chip.assigned`, { hasText: chip })).toBeVisible()
   }
 }
 async function runAnalysis(page: Page) {
@@ -50,9 +57,9 @@ test('Time-series journey: ARIMA, Stationarity (ADF/KPSS/PP), Granger, VAR', asy
   // ARIMA: month→Time, sales→Series
   await expect(page.locator('.eyebrow').first()).toContainText('ARIMA / SARIMA')
   await dragChip(page, 'month', 'time')
-  await expect(page.locator('[data-role="time"] .chip.assigned')).toContainText('month')
+  await expect(page.locator('[data-role="time"] .chip.assigned', { hasText: 'month' })).toBeVisible()
   await dragChip(page, 'sales', 'series')
-  await expect(page.locator('[data-role="series"] .chip.assigned')).toContainText('sales')
+  await expect(page.locator('[data-role="series"] .chip.assigned', { hasText: 'sales' })).toBeVisible()
   await expect(page.getByLabel('order')).toHaveValue('auto-select')
 
   await configureStep(page, /Stationarity tests/, [['month', 'time'], ['sales', 'series']])
