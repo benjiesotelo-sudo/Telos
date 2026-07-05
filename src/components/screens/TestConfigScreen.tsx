@@ -1,12 +1,12 @@
-import { useSession, gateOk, stepsOf, workingDataset } from '../../state/session'
-import { SPECS } from '../../lib/registry/catalog'
+import { useSession, gateOk, canEnter, stepsOf, workingDataset } from '../../state/session'
+import { SPECS, CATALOG } from '../../lib/registry/catalog'
 import { DragSlots } from '../DragSlots'
 import { ConstructSlots } from '../ConstructSlots'
 import { SemConfig } from '../SemConfig'
 import { categoriesOf, propsArray, propsSumOk } from '../../lib/data/props'
 import { optionGroup } from '../../lib/registry/optionGroups'
 import { OptionRows } from '../OptionRows'
-import { RunModule } from '../RunModule'
+import { TestSwitcher } from '../TestSwitcher'
 
 export function TestConfigScreen({ testId }: { testId: string }) {
   const s = useSession()
@@ -24,6 +24,12 @@ export function TestConfigScreen({ testId }: { testId: string }) {
     <section>
       <div className="eyebrow">{idx} · {spec.name}</div>
       <h1 className="title">Drag columns into roles</h1>
+      <TestSwitcher onGo={(id) => s.goTo(`test:${id}` as never)} tests={s.selection.map((tid, ti) => ({
+        id: tid, n: ti + 1,
+        label: CATALOG.find((c) => c.id === tid)?.short ?? SPECS[tid]?.name ?? tid,
+        state: tid === testId ? 'current' as const : gateOk(s, `test:${tid}`) ? 'done' as const : 'todo' as const,
+        enabled: !running && canEnter(s, `test:${tid}` as never),
+      }))} />
       {setup.blocked && <div className="error-box" role="alert">Blocked: {setup.blocked}</div>}
       {spec.inputKind === 'construct-slots' ? <ConstructSlots testId={testId} />
         : spec.inputKind === 'sem-canvas' ? <SemConfig testId={testId} />
@@ -115,7 +121,6 @@ export function TestConfigScreen({ testId }: { testId: string }) {
       {spec.options.filter((o) => o.hint).map((o) => (
         <p key={o.id} className="hint" style={{ marginTop: 6 }}>{o.hint}</p>
       ))}
-      {running && <RunModule phase={s.runPhase} progress={s.runProgress} testsDone={s.selection.filter((id) => s.runs[id] && !s.runs[id].stale).length} testsTotal={s.selection.length} />}
       <div className="btn-row">
         <span className="hint">{(() => { // name the first failing gate — a generic hint can't say whether the blocker is here or on a later test
           if (running) return ''
