@@ -34,3 +34,6 @@ export const POOL_TEACH: Record<Level, string> = {
 
 // Welcome credit row (redesign spec R4/tribute inventory - new copy, not spec-pinned)
 export const CREDIT_SUFFIX = 'designed and built with Claude Fable 5'
+
+// First-run hint bar (slice 3, R2)
+export const RAIL_HINT = 'Tip: the journey bar is clickable - jump back to any finished stage, or between your tests, anytime.'

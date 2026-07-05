@@ -107,4 +107,10 @@ table.apa.matrix td:empty{color:transparent;}
 .tswitch-pill.current{background:var(--text);border-color:var(--text);color:var(--bg);font-weight:650;cursor:default;}
 .tswitch-pill:disabled:not(.current){opacity:.5;cursor:not-allowed;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+/* first-run hint + rail affordances (slice 3, R2) */
+.hintbar{display:flex;align-items:center;gap:10px;max-width:640px;margin:0 auto 10px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--card);padding:8px 13px;font-size:12.5px;}
+.hintbar-x{margin-left:auto;border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 6px;}
+.stage-btn:not(:disabled):hover .lbl,.stage-btn:focus-visible .lbl{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--accent);}
+.stage-btn:not(:disabled):hover .node{transform:translateY(-1px);}
+.stage-btn .node{transition:transform var(--motion) ease-out,background var(--motion) ease-out,box-shadow var(--motion) ease-out;}
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{transition:none!important;animation:none!important;} }

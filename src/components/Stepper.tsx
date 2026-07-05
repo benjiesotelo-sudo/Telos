@@ -1,5 +1,7 @@
 import { useSession } from '../state/session'
 import { railModel, type RailModel } from '../state/stages'
+import { HintBar, dismissHint } from './HintBar'
+import { RAIL_HINT } from '../content/copy'
 
 export function StepperUI({ model, onGo }: { model: RailModel; onGo: (step: string) => void }) {
   return (
@@ -38,5 +40,8 @@ export function Stepper() {
   if (s.step === 'welcome') return null
   // No wrapper div: .rail is position:sticky, and a same-height wrapper leaves it no room to stick.
   // (The old scroll-into-view served the horizontally-scrolling stepper; the rail never overflows.)
-  return <StepperUI model={railModel(s)} onGo={(step) => s.goTo(step as never)} />
+  return <>
+    <StepperUI model={railModel(s)} onGo={(step) => { dismissHint('telos-hint-rail'); s.goTo(step as never) }} />
+    <HintBar text={RAIL_HINT} storageKey="telos-hint-rail" />
+  </>
 }
