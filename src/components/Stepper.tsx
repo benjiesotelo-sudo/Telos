@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { useSession } from '../state/session'
 import { railModel, type RailModel } from '../state/stages'
-import { HintBar, dismissHint } from './HintBar'
+import { HintBar } from './HintBar'
+import { dismissHint, hintSeen as wasHintSeen } from './hintStorage'
 import { RAIL_HINT } from '../content/copy'
 
 export function StepperUI({ model, onGo }: { model: RailModel; onGo: (step: string) => void }) {
@@ -37,11 +39,13 @@ export function StepperUI({ model, onGo }: { model: RailModel; onGo: (step: stri
 
 export function Stepper() {
   const s = useSession()
+  const [hintSeen, setHintSeen] = useState(() => wasHintSeen('telos-hint-rail'))
+  const dismiss = () => { dismissHint('telos-hint-rail'); setHintSeen(true) }
   if (s.step === 'welcome') return null
   // No wrapper div: .rail is position:sticky, and a same-height wrapper leaves it no room to stick.
   // (The old scroll-into-view served the horizontally-scrolling stepper; the rail never overflows.)
   return <>
-    <StepperUI model={railModel(s)} onGo={(step) => { dismissHint('telos-hint-rail'); s.goTo(step as never) }} />
-    <HintBar text={RAIL_HINT} storageKey="telos-hint-rail" />
+    <StepperUI model={railModel(s)} onGo={(step) => { dismiss(); s.goTo(step as never) }} />
+    {!hintSeen && <HintBar text={RAIL_HINT} onDismiss={dismiss} />}
   </>
 }

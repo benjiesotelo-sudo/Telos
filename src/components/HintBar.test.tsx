@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { HintBar, dismissHint } from './HintBar'
+import { HintBar } from './HintBar'
+import { dismissHint, hintSeen } from './hintStorage'
 
 const KEY = 'telos-hint-rail'
 const store = new Map<string, string>()
@@ -14,14 +15,18 @@ beforeEach(() => {
 })
 
 describe('HintBar (spec R2)', () => {
-  it('renders the tip with a dismiss button on first run', () => {
-    const html = renderToStaticMarkup(<HintBar text="Tip: hello" storageKey={KEY} />)
+  it('renders the tip with a dismiss button', () => {
+    const html = renderToStaticMarkup(<HintBar text="Tip: hello" onDismiss={() => {}} />)
     expect(html).toContain('hintbar')
     expect(html).toContain('Tip: hello')
     expect(html).toContain('aria-label="Dismiss tip"')
   })
-  it('renders nothing once dismissed', () => {
+})
+
+describe('hintStorage', () => {
+  it('is false initially, true after dismissHint', () => {
+    expect(hintSeen(KEY)).toBe(false)
     dismissHint(KEY)
-    expect(renderToStaticMarkup(<HintBar text="Tip: hello" storageKey={KEY} />)).toBe('')
+    expect(hintSeen(KEY)).toBe(true)
   })
 })
