@@ -17,7 +17,7 @@ export function ConfigureDataScreen() {
   }
   return (
     <section>
-      <div className="eyebrow">Step 4</div>
+      <div className="eyebrow">Data · configure</div>
       <h1 className="title">Configure data</h1>
 
       <div className="card">

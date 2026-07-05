@@ -1,8 +1,5 @@
-@font-face{font-family:'Crimson Pro';font-weight:400;font-display:swap;src:url('/fonts/q5uDsoa5M_tv7IihmnkabARboYF6CsKj.woff2') format('woff2');}
-@font-face{font-family:'Crimson Pro';font-weight:600;font-display:swap;src:url('/fonts/q5uDsoa5M_tv7IihmnkabARboYF6CsKj.woff2') format('woff2');}
-@font-face{font-family:'Archivo';font-weight:400;font-display:swap;src:url('/fonts/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxKsv4Rn.woff2') format('woff2');}
-@font-face{font-family:'Archivo';font-weight:600;font-display:swap;src:url('/fonts/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxKsv4Rn.woff2') format('woff2');}
-@font-face{font-family:'Archivo';font-weight:700;font-display:swap;src:url('/fonts/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxKsv4Rn.woff2') format('woff2');}
+@font-face{font-family:'Crimson Pro';font-weight:200 900;font-display:swap;src:url('/fonts/q5uDsoa5M_tv7IihmnkabARboYF6CsKj.woff2') format('woff2');}
+@font-face{font-family:'Archivo';font-weight:100 900;font-display:swap;src:url('/fonts/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxKsv4Rn.woff2') format('woff2');}
 :root{ --bg:#faf9f5; --card:#fff; --text:#141413; --muted:#6e6c64; --line:rgba(20,20,19,.16); --fill:#e8e6dc;
   --accent:#d97757; --accent-deep:#a44a2e; --accent-contrast:#faf9f5; --accent-soft:#f6e3db;
   --info:#6a9bcc; --good:#788c5d; --disabled:#b0aea5;
@@ -18,6 +15,8 @@
   --disabled:#57554e; --error-bg:#3a2620; --error-line:#7a3a24; --error-tx:#f0b9a0; } }
 *{box-sizing:border-box;} html{scroll-padding-top:76px;}
 body{margin:0;font-family:var(--font-ui);background:var(--bg);color:var(--text);line-height:1.55;}
+a{color:var(--accent-deep);}
+a:visited{color:var(--accent-deep);}
 .theme-select{position:fixed;top:10px;right:12px;z-index:30;font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-family:var(--font-ui);}
 .screen{max-width:760px;margin:0 auto;padding:24px 16px 64px;}
 .eyebrow{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600;}
@@ -84,8 +83,9 @@ table.apa.matrix td:empty{color:transparent;}
 .rail-track{position:relative;height:2px;background:var(--fill);border-radius:999px;margin:13px 10px 0;}
 .rail-fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:999px;transition:width var(--motion) ease-out;}
 .rail .stages{display:flex;justify-content:space-between;margin-top:-12px;position:relative;}
-.stage{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:var(--muted);background:none;border:0;padding:0 6px;font-family:var(--font-ui);cursor:default;}
-.stage:not(:disabled){cursor:pointer;}
+.stage{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:var(--muted);font-family:var(--font-ui);}
+.stage-btn{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;padding:0 6px;font:inherit;color:inherit;cursor:default;}
+.stage-btn:not(:disabled){cursor:pointer;}
 .stage .node{width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--bg);border:1.4px solid var(--line);color:var(--muted);transition:background var(--motion) ease-out,box-shadow var(--motion) ease-out;}
 .stage.done .node{background:var(--accent);border-color:var(--accent);color:var(--accent-contrast);}
 .stage.current{color:var(--text);font-weight:650;}
@@ -99,6 +99,5 @@ table.apa.matrix td:empty{color:transparent;}
 .rail .thread-frac{display:none;font-family:var(--mono);font-size:11px;color:var(--muted);}
 @media (max-width:560px){ .stage span.lbl{display:none} .stage.current span.lbl{display:inline} .rail .thread-frac{display:inline} }
 .credit-line{font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin-top:26px;display:inline-block;}
-.credit-line b{color:var(--accent-deep);font-weight:600;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{transition:none!important;animation:none!important;} }

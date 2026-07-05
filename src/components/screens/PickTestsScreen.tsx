@@ -10,12 +10,12 @@ export function PickTestsScreen() {
   const allGreyed = CATALOG.every((c) => !verdicts.get(c.id)!.ok)
   return (
     <section>
-      <div className="eyebrow">Step 5</div>
+      <div className="eyebrow">Pick tests</div>
       <h1 className="title">Pick a test</h1>
       <p className="prose">Select one or more tests below. Tests that don't fit your data are greyed out — hover to see why. Each test you pick gets its own configuration step.</p>
       {allGreyed && (
         <div className="error-box" role="alert">
-          No test fits the current data: every option is greyed out. Check the uploaded file (step 2) or the column levels and Use toggles (step 4).
+          No test fits the current data: every option is greyed out. Check the uploaded file (Upload) or the column levels and Use toggles (Configure data).
         </div>
       )}
       <div className="card">

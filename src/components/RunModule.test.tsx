@@ -21,9 +21,14 @@ describe('RunModule', () => {
     expect(h).toMatch(/now[^>]*>[^<]*Running 2 tests/)
     expect(h).toMatch(/ok[^>]*>[^<]*Loading the R engine/)
   })
-  it('figure phase: figures phase current, tests phase done', () => {
-    const h = renderToStaticMarkup(<RunModule phase="Drawing figures…" progress={null} testsDone={2} testsTotal={2} />)
-    expect(h).toMatch(/now[^>]*>[^<]*Drawing figures/)
-    expect(h).toMatch(/ok[^>]*>[^<]*Running 2 tests/)
+  it('the phase title carries the live-region role, and the track carries progressbar semantics', () => {
+    const idle = renderToStaticMarkup(<RunModule phase="Loading R engine…" progress={null} testsDone={0} testsTotal={2} />)
+    expect(idle).toContain('role="status" aria-live="polite"')
+    expect(idle).toContain('role="progressbar"')
+    expect(idle).toContain('aria-valuemin="0"')
+    expect(idle).toContain('aria-valuemax="100"')
+    expect(idle).not.toContain('aria-valuenow')
+    const withPct = renderToStaticMarkup(<RunModule phase="Running PLS-SEM…" progress={{ message: 'bootstrap', elapsedMs: 30000, estMs: 60000 }} testsDone={1} testsTotal={2} />)
+    expect(withPct).toContain('aria-valuenow="50"')
   })
 })

@@ -61,7 +61,7 @@ export function licensesText(): string {
   lines.push('Fonts (SIL Open Font License, Version 1.1 — http://scripts.sil.org/OFL)')
   lines.push('  Crimson Pro — Copyright 2018 The Crimson Pro Project Authors')
   lines.push('  https://github.com/Fonthausen/CrimsonPro')
-  lines.push('  Archivo — Copyright 2019 Omnibus-Type')
+  lines.push('  Archivo — Copyright 2020 The Archivo Project Authors')
   lines.push('  https://github.com/Omnibus-Type/Archivo')
   lines.push('  (Full OFL text ships alongside each font in this distribution.)')
   lines.push('')

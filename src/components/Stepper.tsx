@@ -8,23 +8,25 @@ export function StepperUI({ model, onGo }: { model: RailModel; onGo: (step: stri
       <div className="rail-track"><span className="rail-fill" style={{ width: `${Math.round(model.fraction * 100)}%` }} /></div>
       <div className="stages">
         {model.stages.map((st, i) => (
-          <button key={st.id} type="button" className={`stage ${st.state}`} disabled={!st.enabled}
-            aria-label={st.label}
-            aria-current={st.state === 'current' ? 'step' : undefined}
-            onClick={() => st.firstStep && onGo(st.firstStep)}>
-            <span className="node">{st.state === 'done' ? '✓' : i + 1}</span>
-            <span className="lbl">{st.label}</span>
+          <span key={st.id} className={`stage ${st.state}`}>
+            <button type="button" className="stage-btn" disabled={!st.enabled}
+              aria-label={st.label}
+              aria-current={st.state === 'current' ? 'step' : undefined}
+              onClick={() => st.firstStep && onGo(st.firstStep)}>
+              <span className="node">{st.state === 'done' ? '✓' : i + 1}</span>
+              <span className="lbl">{st.label}</span>
+              {st.sublabel && <span className="sublabel">{st.sublabel}</span>}
+            </button>
             {st.sub.length > 0 && (
               <span className="subdots">
                 {st.sub.map((d) => (
-                  <span key={d.step} role="button" aria-label={d.label} aria-disabled={!d.enabled}
-                    className={`subdot ${d.state}`}
-                    onClick={(e) => { e.stopPropagation(); if (d.enabled) onGo(d.step) }} />
+                  <button key={d.step} type="button" className={`subdot ${d.state}`}
+                    aria-label={d.label} disabled={!d.enabled}
+                    onClick={() => onGo(d.step)} />
                 ))}
               </span>
             )}
-            {st.sublabel && <span className="sublabel">{st.sublabel}</span>}
-          </button>
+          </span>
         ))}
       </div>
       <span className="thread-frac">{model.frac}</span>

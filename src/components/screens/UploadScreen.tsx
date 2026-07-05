@@ -39,7 +39,7 @@ export function UploadScreen() {
 
   return (
     <section>
-      <div className="eyebrow">Step 2</div>
+      <div className="eyebrow">Upload</div>
       <h1 className="title">Upload data</h1>
       <label className="slot" style={{ display: 'block', textAlign: 'center', padding: '30px 16px', cursor: 'pointer' }}
         onDragOver={(e) => e.preventDefault()}

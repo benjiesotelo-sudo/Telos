@@ -5,7 +5,7 @@ export function GuideScreen() {
   const { visitGuide, goTo } = useSession()
   return (
     <section>
-      <div className="eyebrow">Step 3</div>
+      <div className="eyebrow">Data · guide</div>
       <h1 className="title">Terms guide</h1>
       <div className="card"><p className="prose" style={{ margin: 0 }}>
         {TERMS_COPY.map((seg, i) => (seg.b ? <b key={i}>{seg.b}</b> : <span key={i}>{seg.t}</span>))}

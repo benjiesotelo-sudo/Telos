@@ -26,10 +26,10 @@ export const SIZE_WARN_TEXT = 'Large file — analysis may be slow in the browse
 // Grouped variable pool (test-config drag screens) - spec 2026-07-04
 export const POOL_SHELF_NOTE = (level: Level) => `no open slot takes ${level}`
 export const POOL_TEACH: Record<Level, string> = {
-  nominal: 'No nominal columns yet. If a column holds unordered categories (e.g. groups or labels), set its level in step 4.',
-  ordinal: 'No ordinal columns yet. If a column holds ordered categories (e.g. a rating scale), set its level in step 4.',
-  interval: 'No interval columns yet. If a column is numeric without a true zero (e.g. dates or temperatures), set its level in step 4.',
-  ratio: 'No ratio columns yet. If a column is numeric with a true zero (e.g. scores or amounts), set its level in step 4.',
+  nominal: 'No nominal columns yet. If a column holds unordered categories (e.g. groups or labels), set its level on the Configure data screen.',
+  ordinal: 'No ordinal columns yet. If a column holds ordered categories (e.g. a rating scale), set its level on the Configure data screen.',
+  interval: 'No interval columns yet. If a column is numeric without a true zero (e.g. dates or temperatures), set its level on the Configure data screen.',
+  ratio: 'No ratio columns yet. If a column is numeric with a true zero (e.g. scores or amounts), set its level on the Configure data screen.',
 }
 
 // Welcome credit row (redesign spec R4/tribute inventory - new copy, not spec-pinned)

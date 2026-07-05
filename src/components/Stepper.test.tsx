@@ -29,6 +29,7 @@ describe('StepperUI (stage rail)', () => {
   it('marks done/current stages and disables unreachable ones', () => {
     const h = html()
     expect(h).toContain('aria-current="step"')
+    // "stage done" now lands on the outer <span>, not a <button> - the stage itself is no longer clickable markup.
     expect(h.match(/class="stage done"/g)?.length).toBe(3)
     expect(h).toContain('disabled')
   })
@@ -37,6 +38,11 @@ describe('StepperUI (stage rail)', () => {
     expect(h).toContain('aria-label="Independent t"')
     expect(h).toContain('aria-label="One-way ANOVA"')
     expect(h).toContain('One-way ANOVA · 2 of 2')
+  })
+  it('sub-dots render as real, focusable buttons (not nested inside the stage button)', () => {
+    const h = html()
+    expect(h).toMatch(/<button type="button" class="subdot done"[^>]*>/)
+    expect(h).toMatch(/<button type="button" class="subdot current"[^>]*>/)
   })
   it('the fill width follows the fraction and the compact fraction renders', () => {
     const h = html()
