@@ -38,26 +38,28 @@ export function ConfigureDataScreen() {
       {s.fileInfo && <div className="card mono">{s.fileInfo.rows} rows · {s.fileInfo.cols} columns · {s.fileInfo.encoding}</div>}
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table className="cols-table">
-          <thead><tr><th>Column</th><th>Detected type</th><th>Measurement level</th><th>Use</th></tr></thead>
-          <tbody>
-            {s.columns.map((c) => (
-              <tr key={c.name} style={c.used ? undefined : { opacity: 0.5 }}>
-                <td><input defaultValue={c.name} aria-label={`rename ${c.name}`} style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit', width: '10em' }}
-                  onBlur={(e) => { if (e.target.value !== c.name) s.renameColumn(c.name, e.target.value) }} /></td>
-                <td className="mono">{c.detected}{c.tags.length ? ` · ${c.tags.join(' · ')}` : ''}
-                  {c.detected === 'object' && numericAsText(c.name) && <button type="button" className="pill" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => s.applyFixType(c.name)}>fix type</button>}</td>
-                <td>
-                  <select aria-label={`level of ${c.name}`} value={c.level ?? ''} disabled={!c.used}
-                    onChange={(e) => s.setColumnLevel(c.name, (e.target.value || null) as Level | null)}>
-                    <option value="">—</option>{compatibleLevels(c.detected).map((l) => <option key={l}>{l}</option>)}
-                  </select>
-                </td>
-                <td><input type="checkbox" aria-label={`use ${c.name}`} checked={c.used} onChange={(e) => s.setColumnUsed(c.name, e.target.checked)} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="cols-table">
+            <thead><tr><th>Column</th><th>Detected type</th><th>Measurement level</th><th>Use</th></tr></thead>
+            <tbody>
+              {s.columns.map((c) => (
+                <tr key={c.name} style={c.used ? undefined : { opacity: 0.5 }}>
+                  <td><input defaultValue={c.name} aria-label={`rename ${c.name}`} style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit', width: '10em' }}
+                    onBlur={(e) => { if (e.target.value !== c.name) s.renameColumn(c.name, e.target.value) }} /></td>
+                  <td className="mono">{c.detected}{c.tags.length ? ` · ${c.tags.join(' · ')}` : ''}
+                    {c.detected === 'object' && numericAsText(c.name) && <button type="button" className="pill" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => s.applyFixType(c.name)}>fix type</button>}</td>
+                  <td>
+                    <select aria-label={`level of ${c.name}`} value={c.level ?? ''} disabled={!c.used}
+                      onChange={(e) => s.setColumnLevel(c.name, (e.target.value || null) as Level | null)}>
+                      <option value="">—</option>{compatibleLevels(c.detected).map((l) => <option key={l}>{l}</option>)}
+                    </select>
+                  </td>
+                  <td><input type="checkbox" aria-label={`use ${c.name}`} checked={c.used} onChange={(e) => s.setColumnUsed(c.name, e.target.checked)} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <p className="hint">Derived tags (count · datetime · id) are auto-detected column properties used by test eligibility — not levels you set.</p>
 
