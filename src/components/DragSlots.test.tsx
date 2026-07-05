@@ -37,12 +37,12 @@ const emptyRoles = (spec: TestSpec) => Object.fromEntries(spec.constraints.roles
 const openRoles = (spec: TestSpec, roles: Record<string, string[]>) =>
   spec.constraints.roles.filter((r) => (roles[r.roleId] ?? []).length < r.arity.max)
 
-function render(spec: TestSpec, opts: { columns?: ColumnMeta[]; roles?: Record<string, string[]>; echoRole?: string | null } = {}) {
+function render(spec: TestSpec, opts: { columns?: ColumnMeta[]; roles?: Record<string, string[]>; echoRole?: string | null; armedChip?: string | null } = {}) {
   const roles = opts.roles ?? emptyRoles(spec)
   const assigned = new Set(Object.values(roles).flat())
   const shelves = buildShelves(opts.columns ?? COLS, openRoles(spec, roles), assigned, working)
   return renderToStaticMarkup(
-    <DragSlotsUI spec={spec} shelves={shelves} roles={roles} onDrop={noop} onRemove={noop} echoRole={opts.echoRole} />
+    <DragSlotsUI spec={spec} shelves={shelves} roles={roles} onDrop={noop} onRemove={noop} echoRole={opts.echoRole} armedChip={opts.armedChip} />
   )
 }
 
@@ -107,5 +107,12 @@ describe('hover echo derivation', () => {
     const html = render(T_TEST, { echoRole: 'outcome' })
     expect(shelfClassFor(html, 'ratio')).toBe('shelf echo')
     expect(shelfClassFor(html, 'nominal')).toBe('shelf')
+  })
+})
+
+describe('tap-to-assign', () => {
+  it('an armed chip carries the armed class (test-override prop)', () => {
+    const html = render(T_TEST, { armedChip: 'score' })
+    expect(html).toContain('chip armed')
   })
 })

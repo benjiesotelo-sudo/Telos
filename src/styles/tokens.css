@@ -36,6 +36,7 @@ a:visited{color:var(--accent-deep);}
 .chip{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3.5px 13px;font-size:13px;display:inline-block;transition:background var(--motion) ease-out,border-color var(--motion) ease-out;}
 .chip.assigned{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-deep);font-weight:600;}
 .chip.incompatible{opacity:.45;}
+.chip.armed{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
 .chip .tag{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:5px;vertical-align:1px;}
 .slot{background:var(--card);border:1.4px dashed var(--line);border-radius:11px;padding:9px 13px;margin:8px 0;font-size:13px;transition:border-color var(--motion) ease-out,background var(--motion) ease-out;}
 .slot.over{border-color:var(--accent);border-style:solid;background:var(--accent-soft);}
