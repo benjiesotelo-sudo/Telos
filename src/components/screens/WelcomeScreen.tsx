@@ -16,9 +16,9 @@ export function WelcomeScreen() {
   const { body } = segments()
   return (
     <section style={{ textAlign: 'center', paddingTop: 40 }}>
-      <div className="eyebrow">In-browser statistics for thesis students</div>
-      <h1 className="title" style={{ fontSize: 46, margin: '10px 0 0' }}>Telos<span className="dot" style={{ color: 'var(--accent)' }}>.</span></h1>
-      <svg viewBox="0 0 420 64" width="100%" height="64" aria-hidden="true" style={{ maxWidth: 420, display: 'block', margin: '14px auto 2px' }}>
+      <div className="eyebrow enter-1">In-browser statistics for thesis students</div>
+      <h1 className="title enter-2" style={{ fontSize: 46, margin: '10px 0 0' }}>Telos<span className="dot" style={{ color: 'var(--accent)' }}>.</span></h1>
+      <svg className="enter-3" viewBox="0 0 420 64" width="100%" height="64" aria-hidden="true" style={{ maxWidth: 420, display: 'block', margin: '14px auto 2px' }}>
         <path d="M8 58 C 90 58, 140 10, 210 10 C 280 10, 330 58, 412 58" fill="none" stroke="var(--accent)" strokeWidth="1.5" opacity=".85" />
         <g fill="var(--accent)">
           <circle cx="60" cy="52" r="2.1" opacity=".45" /><circle cx="105" cy="40" r="2.1" opacity=".55" />
@@ -27,11 +27,11 @@ export function WelcomeScreen() {
           <circle cx="362" cy="53" r="2.1" opacity=".45" />
         </g>
       </svg>
-      <p className="prose" style={{ maxWidth: 520, margin: '8px auto 4px', textAlign: 'center' }}>{body}</p>
+      <p className="prose enter-4" style={{ maxWidth: 520, margin: '8px auto 4px', textAlign: 'center' }}>{body}</p>
       <p className="hint" style={{ margin: '2px 0 22px' }}>{PRIVACY}</p>
-      <button className="btn" onClick={() => goTo('upload')}>Get started</button>
+      <button className="btn enter-5" onClick={() => goTo('upload')}>Get started</button>
       <br />
-      <span className="credit-line">{BYLINE} · {CREDIT_SUFFIX} · <a href={LINKEDIN_URL} target="_blank" rel="noopener">linkedin.com/in/benjaminsotelo1</a></span>
+      <span className="credit-line enter-5">{BYLINE} · {CREDIT_SUFFIX} · <a href={LINKEDIN_URL} target="_blank" rel="noopener">linkedin.com/in/benjaminsotelo1</a></span>
     </section>
   )
 }

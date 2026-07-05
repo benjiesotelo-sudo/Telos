@@ -31,11 +31,13 @@ export default function App() {
     <main className="screen">
       <ThemeSelect />
       <Stepper />
-      {step === 'welcome' ? <WelcomeScreen /> : step === 'upload' ? <UploadScreen />
-        : step === 'guide' ? <GuideScreen /> : step === 'configure-data' ? <ConfigureDataScreen />
-        : step === 'pick-tests' ? <PickTestsScreen />
-        : step === 'results' ? <ResultBoundary><ResultsScreen /></ResultBoundary>
-        : <TestConfigScreen testId={step.slice(5)} />}
+      <div className="screen-fade" key={step}>
+        {step === 'welcome' ? <WelcomeScreen /> : step === 'upload' ? <UploadScreen />
+          : step === 'guide' ? <GuideScreen /> : step === 'configure-data' ? <ConfigureDataScreen />
+          : step === 'pick-tests' ? <PickTestsScreen />
+          : step === 'results' ? <ResultBoundary><ResultsScreen /></ResultBoundary>
+          : <TestConfigScreen testId={step.slice(5)} />}
+      </div>
     </main>
   )
 }

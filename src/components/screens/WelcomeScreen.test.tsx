@@ -21,8 +21,12 @@ describe('WelcomeScreen (redesign)', () => {
     expect(html).toContain(CREDIT_SUFFIX)
   })
   it('has exactly one CTA: Get started', () => {
-    expect(h().match(/class="btn"/g)).toHaveLength(1)
+    expect(h().match(/class="btn(?:\s|")/g)).toHaveLength(1)
     expect(h()).toContain('Get started')
     expect(h()).not.toContain('How it works')
+  })
+  it('carries the entrance-stagger classes (motion register R3a)', () => {
+    const html = h()
+    for (const c of ['enter-1', 'enter-2', 'enter-3', 'enter-4']) expect(html).toContain(c)
   })
 })

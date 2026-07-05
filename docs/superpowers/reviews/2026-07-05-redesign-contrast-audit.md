@@ -59,6 +59,9 @@ This universally suppresses both transitions and animations when OS-level Reduce
 - Reduced-motion kill switch functional and comprehensive
 - Live OS-toggle verification deferred to owner click-through
 
+### Motion Register (R3) - New Keyframes
+- Six new keyframes (fadeUp/dotIn/drawPath/checkPop/chipIn/screenIn) and class selectors (.enter-1..5, .screen-fade) added; all live under the reduced-motion kill ✓
+
 ---
 
 ## Usage-level findings (review round 1)
