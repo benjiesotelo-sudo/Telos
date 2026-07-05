@@ -39,7 +39,7 @@ function Slot({ spec, role, assigned, onRemove, onHoverChange, onTap }: {
       {assigned.map((col) => (
         <div key={col} style={{ marginTop: 5 }}>
           <span className="chip assigned">{col}{' '}
-            <button type="button" aria-label={`remove ${col}`} style={{ border: 0, background: 'none', cursor: 'pointer', color: 'inherit' }}
+            <button type="button" className="chip-x" aria-label={`remove ${col}`} style={{ border: 0, background: 'none', cursor: 'pointer', color: 'inherit' }}
               onClick={(e) => { e.stopPropagation(); onRemove(role.roleId, col) }}>×</button>
           </span>
         </div>

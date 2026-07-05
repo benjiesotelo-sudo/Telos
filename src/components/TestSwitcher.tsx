@@ -8,9 +8,10 @@ export function TestSwitcher({ tests, onGo }: { tests: SwitchTest[]; onGo: (id: 
       {tests.map((t) => (
         <button key={t.id} type="button" className={`tswitch-pill ${t.state}`}
           aria-current={t.state === 'current' ? 'true' : undefined}
+          aria-label={t.state === 'done' ? `${t.n} · ${t.label}, configured` : undefined}
           disabled={!t.enabled || t.state === 'current'}
           onClick={() => onGo(t.id)}>
-          {t.state === 'done' && <span className="tick">✓ </span>}{t.n} · {t.label}
+          {t.state === 'done' && <span className="tick" aria-hidden="true">✓ </span>}{t.n} · {t.label}
         </button>
       ))}
     </div>

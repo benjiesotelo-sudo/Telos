@@ -115,6 +115,8 @@ table.apa.matrix td:empty{color:transparent;}
 /* 24px minimum hit areas (R4) */
 .hintbar-x::after{content:'';position:absolute;inset:-8px;}
 .hintbar-x{position:relative;}
+.chip-x{position:relative;}
+.chip-x::after{content:'';position:absolute;inset:-8px;}
 .credit-line{font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin-top:26px;display:inline-block;}
 /* test switcher (slice 3, R1) */
 .tswitch{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 14px;}

@@ -23,6 +23,7 @@ describe('TestSwitcher (spec R1)', () => {
     expect(html).toContain('tick')
     expect(html).toContain('✓')
     expect(html).toContain('disabled')
+    expect(html).toContain('configured')
   })
   it('renders nothing for a single test', () => {
     expect(renderToStaticMarkup(<TestSwitcher tests={tests.slice(0, 1)} onGo={() => {}} />)).toBe('')
