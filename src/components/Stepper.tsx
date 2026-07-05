@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { useSession } from '../state/session'
 import { railModel, type RailModel } from '../state/stages'
 
@@ -36,8 +35,8 @@ export function StepperUI({ model, onGo }: { model: RailModel; onGo: (step: stri
 
 export function Stepper() {
   const s = useSession()
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => { ref.current?.scrollIntoView({ block: 'nearest' }) }, [s.step])
   if (s.step === 'welcome') return null
-  return <div ref={ref}><StepperUI model={railModel(s)} onGo={(step) => s.goTo(step as never)} /></div>
+  // No wrapper div: .rail is position:sticky, and a same-height wrapper leaves it no room to stick.
+  // (The old scroll-into-view served the horizontally-scrolling stepper; the rail never overflows.)
+  return <StepperUI model={railModel(s)} onGo={(step) => s.goTo(step as never)} />
 }
