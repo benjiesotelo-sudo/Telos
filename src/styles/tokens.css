@@ -103,6 +103,7 @@ table.apa.matrix td:empty{color:transparent;}
 .tswitch{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 14px;}
 .tswitch-pill{font-size:13px;font-family:var(--font-ui);border:1px solid var(--line);border-radius:999px;padding:6px 15px;background:var(--card);color:var(--muted);cursor:pointer;transition:border-color var(--motion) ease-out;}
 .tswitch-pill.done{color:var(--text);}
+.tswitch-pill .tick{color:var(--accent-deep);font-weight:700;}
 .tswitch-pill.current{background:var(--text);border-color:var(--text);color:var(--bg);font-weight:650;cursor:default;}
 .tswitch-pill:disabled:not(.current){opacity:.5;cursor:not-allowed;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}

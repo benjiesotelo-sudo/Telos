@@ -10,7 +10,7 @@ export function TestSwitcher({ tests, onGo }: { tests: SwitchTest[]; onGo: (id: 
           aria-current={t.state === 'current' ? 'true' : undefined}
           disabled={!t.enabled || t.state === 'current'}
           onClick={() => onGo(t.id)}>
-          {t.state === 'done' ? '✓ ' : ''}{t.n} · {t.label}
+          {t.state === 'done' && <span className="tick">✓ </span>}{t.n} · {t.label}
         </button>
       ))}
     </div>

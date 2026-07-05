@@ -20,7 +20,8 @@ describe('TestSwitcher (spec R1)', () => {
   })
   it('done tests carry the check, disabled tests are real disabled buttons', () => {
     const html = h()
-    expect(html).toMatch(/done[^>]*>[^<]*✓/)
+    expect(html).toContain('tick')
+    expect(html).toContain('✓')
     expect(html).toContain('disabled')
   })
   it('renders nothing for a single test', () => {
