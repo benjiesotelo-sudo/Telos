@@ -63,7 +63,7 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await expect(page.locator('#table-t-test')).toContainText('[−16.47, −7.53]')
 
   // Back-edit a LEVEL (earlier-step edit) → result goes stale → re-run (spec Testing §3)
-  await page.getByRole('button', { name: 'Configure data' }).click()
+  await page.getByRole('navigation', { name: 'Progress' }).getByRole('button', { name: 'Data' }).click() // rail stage; a done Data stage lands on configure-data
   await page.getByLabel('level of score').selectOption('interval') // still t-test-compatible: config stays valid, run goes stale
   await page.getByRole('button', { name: 'Results' }).click()      // forward nav via the gates (stepper reads canEnter)
   await expect(page.getByText(/Stale — the configuration changed/)).toBeVisible()

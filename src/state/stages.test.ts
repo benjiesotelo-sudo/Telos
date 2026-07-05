@@ -28,6 +28,14 @@ describe('railModel', () => {
     expect(m.stages[2].state).toBe('todo')
   })
 
+  it('a done Data stage targets configure-data - back-edits land on the editing screen, not the guide', () => {
+    load(); useSession.getState().visitGuide(); useSession.getState().goTo('configure-data')
+    useSession.getState().goTo('pick-tests')
+    const m = railModel(useSession.getState())
+    expect(m.stages[1].state).toBe('done')
+    expect(m.stages[1].firstStep).toBe('configure-data')
+  })
+
   it('per-test sub-dots live in Configure with a plain-words counter', () => {
     load(); useSession.getState().visitGuide(); useSession.getState().toggleSelection('independent-t-test')
     useSession.getState().toggleSelection('one-way-anova')

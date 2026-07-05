@@ -31,7 +31,10 @@ export function railModel(s: SessionState): RailModel {
     const state: Stage['state'] = !idxs.length || cur < idxs[0]
       ? (id === 'upload' && cur <= 0 && (cur === 0 || s.step === 'welcome') ? 'current' : 'todo')
       : cur > idxs[idxs.length - 1] ? 'done' : 'current'
-    const firstEnterable = own.find(([st]) => canEnter(s, st))?.[0] ?? null
+    const enterable = own.filter(([st]) => canEnter(s, st)).map(([st]) => st)
+    // a done stage targets its LAST step: back-edits land on the editing screen (configure-data), not the guide;
+    // current/todo stages keep the forward flow (first enterable step)
+    const firstEnterable = (state === 'done' ? enterable[enterable.length - 1] : enterable[0]) ?? null
     const sub: SubDot[] = id !== 'configure' ? [] : own.map(([st, i]) => ({
       step: st, label: shortName(st.slice(5)),
       state: i < cur ? 'done' : i === cur ? 'current' : 'todo',
