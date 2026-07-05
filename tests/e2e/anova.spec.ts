@@ -60,7 +60,7 @@ test('Journey A: between-subjects — one-way ANOVA + factorial ANOVA + Kruskal-
   await dragChip(page, 'group', 'factor')
   await expect(page.locator('[data-role="factor"] .chip.assigned')).toContainText('group')
   // Assert post-hoc select pill shows 'Tukey HSD' as default
-  await expect(page.getByLabel('post-hoc')).toHaveValue('Tukey HSD')
+  await expect(page.getByLabel('post-hoc', { exact: true })).toHaveValue('Tukey HSD') // the rail's "One-way ANOVA + post-hoc" sub-dot label substring-matches otherwise
 
   // ── Configure Factorial ANOVA: outcome + factors group, gender ──
   await configureStep(page, /Factorial ANOVA/, [
