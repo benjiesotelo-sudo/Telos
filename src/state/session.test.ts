@@ -367,6 +367,71 @@ describe('canvas actions (Sub-slice B)', () => {
   })
 })
 
+describe('moderations', () => {
+  const TEST_ID = 'cb-sem'
+  beforeEach(() => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: [TEST_ID],
+      setups: {
+        [TEST_ID]: {
+          roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent',
+          constructs: [
+            { id: 1, name: 'SN', items: ['sn1', 'sn2', 'sn3', 'sn4'] },
+            { id: 2, name: 'TA', items: ['ta1', 'ta2', 'ta3', 'ta4'] },
+            { id: 3, name: 'TI', items: ['ti1', 'ti2', 'ti3'] },
+          ],
+          paths: [{ from: 1, to: 3 }, { from: 2, to: 3 }],
+        },
+      },
+    })
+  })
+
+  it('addModeration records { id, moderatorId, pathIndex } and assigns a monotonic id starting at 1', () => {
+    useSession.getState().addModeration(TEST_ID, 2, 0)
+    expect(useSession.getState().setups[TEST_ID].moderations).toEqual([{ id: 1, moderatorId: 2, pathIndex: 0 }])
+  })
+
+  it('addModeration ids never reuse after a middle removal (mirrors nextConstructId)', () => {
+    const s = useSession.getState()
+    s.addModeration(TEST_ID, 2, 0)   // id 1
+    s.addModeration(TEST_ID, 1, 1)   // id 2 (SN moderates TA→TI — self-mod guard lives in the CANVAS, not the store)
+    s.removeModeration(TEST_ID, 1)
+    s.addModeration(TEST_ID, 2, 1)
+    expect(useSession.getState().setups[TEST_ID].moderations!.map((m) => m.id)).toEqual([2, 3])
+  })
+
+  it('removeModeration drops the moderation by id (not array index)', () => {
+    const s = useSession.getState()
+    s.addModeration(TEST_ID, 2, 0)
+    s.addModeration(TEST_ID, 1, 1)
+    s.removeModeration(TEST_ID, 1)
+    expect(useSession.getState().setups[TEST_ID].moderations).toEqual([{ id: 2, moderatorId: 1, pathIndex: 1 }])
+  })
+
+  it('removeConstruct drops dangling moderations whose moderatorId was the removed construct', () => {
+    const s = useSession.getState()
+    s.addModeration(TEST_ID, 2, 0)
+    s.removeConstruct(TEST_ID, 2)
+    expect(useSession.getState().setups[TEST_ID].moderations).toEqual([])
+  })
+
+  it('removePath drops moderations pointing at the removed path AND re-indexes pathIndex for the rest (paths array shifts)', () => {
+    const s = useSession.getState()
+    s.addModeration(TEST_ID, 2, 0)  // moderates paths[0] (SN→TI)
+    s.addModeration(TEST_ID, 1, 1)  // moderates paths[1] (TA→TI)
+    s.removePath(TEST_ID, 0)        // paths[1] shifts down to paths[0]
+    expect(useSession.getState().setups[TEST_ID].moderations).toEqual([{ id: 2, moderatorId: 1, pathIndex: 0 }])
+  })
+
+  it('moderations round-trip through serializeSetups/hydrateSetups', () => {
+    useSession.getState().addModeration(TEST_ID, 2, 0)
+    const json = serializeSetups(useSession.getState().setups)
+    const back = hydrateSetups(JSON.parse(json))
+    expect(back[TEST_ID].moderations).toEqual([{ id: 1, moderatorId: 2, pathIndex: 0 }])
+  })
+})
+
 describe('setup round-trip (Sub-slice B)', () => {
   it('freshSetup leaves canvas fields undefined (readers default)', () => {
     const FRESH = '__test-fresh__'

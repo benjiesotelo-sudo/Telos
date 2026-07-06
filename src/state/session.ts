@@ -52,6 +52,8 @@ export interface SessionState {
   toggleConstructItem: (testId: string, id: number, item: string) => void
   addPath: (testId: string, from: number, to: number) => void
   removePath: (testId: string, index: number) => void
+  addModeration: (testId: string, moderatorId: number, pathIndex: number) => void
+  removeModeration: (testId: string, id: number) => void
   moveNode: (testId: string, id: number, x: number, y: number) => void
   setConstructMode: (testId: string, id: number, mode: 'reflective' | 'formative') => void
   goTo: (step: StepId) => void
@@ -144,6 +146,8 @@ export const hydrateSetups = (parsed: Record<string, TestSetup>): Record<string,
 
 /** Next monotonic id for a construct list — max(existing ids, 0) + 1, so ids start at 1 and a middle removal never reuses an id. */
 const nextConstructId = (cs: Construct[]): number => cs.reduce((m, c) => Math.max(m, c.id), 0) + 1
+/** Same discipline for moderation edges — ids start at 1, a middle removal never reuses an id. */
+const nextModerationId = (ms: Moderation[]): number => ms.reduce((m, x) => Math.max(m, x.id), 0) + 1
 
 const freshSetup = (id: string): TestSetup => ({
   roles: Object.fromEntries((SPECS[id]?.constraints.roles ?? []).map((r) => [r.roleId, []])),
@@ -272,8 +276,14 @@ export const useSession = create<SessionState>((set, get) => {
     removeConstruct: (testId, id) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
       const constructs = backfillConstructIds(prev.constructs ?? []).filter((c) => c.id !== id)
-      const paths = (prev.paths ?? []).filter((p) => p.from !== id && p.to !== id) // drop dangling structural paths
-      return { setups: { ...s.setups, [testId]: { ...prev, constructs, paths } } }
+      // drop dangling structural paths, then re-index/drop moderations against the FILTERED paths in the same edit
+      const keptPathIdx = (prev.paths ?? []).map((p, i) => ({ p, i })).filter(({ p }) => p.from !== id && p.to !== id)
+      const paths = keptPathIdx.map(({ p }) => p)
+      const oldToNew = new Map(keptPathIdx.map(({ i }, newI) => [i, newI]))
+      const moderations = (prev.moderations ?? [])
+        .filter((m) => m.moderatorId !== id && oldToNew.has(m.pathIndex))
+        .map((m) => ({ ...m, pathIndex: oldToNew.get(m.pathIndex)! }))
+      return { setups: { ...s.setups, [testId]: { ...prev, constructs, paths, moderations } } }
     }),
     setConstructName: (testId, id, name) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
@@ -296,7 +306,20 @@ export const useSession = create<SessionState>((set, get) => {
     }),
     removePath: (testId, index) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
-      return { setups: { ...s.setups, [testId]: { ...prev, paths: (prev.paths ?? []).filter((_, i) => i !== index) } } }
+      const paths = (prev.paths ?? []).filter((_, i) => i !== index)
+      const moderations = (prev.moderations ?? [])
+        .filter((m) => m.pathIndex !== index)
+        .map((m) => ({ ...m, pathIndex: m.pathIndex > index ? m.pathIndex - 1 : m.pathIndex }))
+      return { setups: { ...s.setups, [testId]: { ...prev, paths, moderations } } }
+    }),
+    addModeration: (testId, moderatorId, pathIndex) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      const ms = prev.moderations ?? []
+      return { setups: { ...s.setups, [testId]: { ...prev, moderations: [...ms, { id: nextModerationId(ms), moderatorId, pathIndex }] } } }
+    }),
+    removeModeration: (testId, id) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      return { setups: { ...s.setups, [testId]: { ...prev, moderations: (prev.moderations ?? []).filter((m) => m.id !== id) } } }
     }),
     moveNode: (testId, id, x, y) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
