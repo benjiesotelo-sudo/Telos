@@ -61,6 +61,10 @@ export function ApaTable(props: ClassicProps | MatrixProps) {
   // column keys); everything after one indents (row-child) until the next `__group` resets it.
   let inGroup = false
   const bodyRows = rows.map((r, i) => {
+    if ('__section' in r) {
+      inGroup = false
+      return <tr key={i} className="row-section"><td colSpan={n}>{r['__section']}</td></tr>
+    }
     if ('__group' in r) {
       inGroup = true
       return <tr key={i} className="row-group">{spec.columns.map((c) => <td key={c.key}>{r[c.key]}</td>)}</tr>

@@ -146,6 +146,35 @@ describe('ApaTable classic - spanning column headers (span.group)', () => {
   })
 })
 
+// ── internal section labels (A6 device 3, 2026-07-06): a `__section` row is a full-width italic
+// label inside the body (Table 5's "Direct paths" / "Indirect effects" / "Moderation" blocks). ──
+describe('ApaTable classic - internal section labels (__section)', () => {
+  const spec: TableSpec = {
+    id: 'structural-paths', title: 'Structural paths', columns: [
+      { key: 'h', label: 'H' }, { key: 'path', label: 'Path' }, { key: 'b', label: 'B' }, { key: 'result', label: 'Result' },
+    ],
+  }
+  const rows: Record<string, string | number>[] = [
+    { __section: 'Direct paths' },
+    { h: 'H1', path: 'Visual → Ability', b: '0.42', result: 'Supported' },
+    { __section: 'Indirect effects' },
+    { h: 'H2', path: 'Visual → Ability → Achievement', b: '0.11', result: 'Supported' },
+  ]
+  const html = renderToStaticMarkup(<ApaTable id="structural-paths" spec={spec} rows={rows} />)
+
+  it('renders a __section row as a full-width class="row-section" cell, text in the first column', () => {
+    expect((html.match(/class="row-section"/g) ?? []).length).toBe(2)
+    expect(html.toLowerCase()).toMatch(/<tr class="row-section"><td colspan="4">direct paths<\/td><\/tr>/)
+    expect(html.toLowerCase()).toContain('<td colspan="4">indirect effects</td>')
+  })
+
+  it('a __section row is NOT treated as a __group (no group-child indenting carries across it)', () => {
+    // The row right after "Indirect effects" must NOT be row-child (no __group is open at that point).
+    const afterSection = html.split('Indirect effects</td></tr>')[1]
+    expect(afterSection.startsWith('<tr><td>H2</td>')).toBe(true)
+  })
+})
+
 // ── MatrixTable renderer (kind:'matrix') ──────────────────────────────────────
 const m3x3: MatrixTable = {
   kind: 'matrix',
