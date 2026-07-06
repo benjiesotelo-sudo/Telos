@@ -223,6 +223,23 @@ const REPS: Rep[] = [
     },
     expect: ['Model is saturated (df = 0)', 'Table 6: Structural paths'],
   },
+
+  // cb-sem moderation: SN/TA/TI matched interaction (spike §2, docs/superpowers/reviews/2026-07-06-moderation-spike.md).
+  // bootstrap reduced to 500 (spike's own count) for the native-R time budget — matches the spike's exact numbers.
+  { id: 'cb-sem', fixture: 'sem-moderation.csv',
+    setup: {
+      roles: {}, options: { estimator: 'ML', nboot: 500, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'latent',
+      constructs: [
+        { id: 1, name: 'SN', items: ['sn1', 'sn2', 'sn3', 'sn4'] },
+        { id: 2, name: 'TA', items: ['ta1', 'ta2', 'ta3', 'ta4'] },
+        { id: 3, name: 'TI', items: ['ti1', 'ti2', 'ti3'] },
+      ],
+      paths: [{ from: 1, to: 3 }, { from: 2, to: 3 }],
+      moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }],
+    },
+    expect: ['slope_lo_1', 'slope_mid_1', 'slope_hi_1'],   // presence of the Table 9 defined-parameter rows
+  },
 ]
 
 describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
@@ -251,4 +268,62 @@ describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
       120_000,
     )
   }
+
+  // Dedicated numeric-precision + Table 6 scoping assertions for the moderation REP above — the plain
+  // string-containment loop doesn't carry decimal precision or row-count, so these get their own `it`s
+  // (mirrors this repo's existing convention for reps that need more than substring presence).
+  it(
+    'cb-sem moderation — interaction path B matches the spike reference to 4 decimals in native R stdout',
+    () => {
+      const ds = parseCsv(readFileSync(join(FIXTURES, 'sem-moderation.csv'), 'utf8'))
+      const rep = REPS.find((r) => r.fixture === 'sem-moderation.csv')!
+      const R = emitRScript([rep.id], { [rep.id]: rep.setup }, SPECS, ds)
+      const csv = toCsv(ds)
+      const dir = mkdtempSync(join(tmpdir(), 'telos-r-mod-'))
+      writeFileSync(join(dir, 'analysis.R'), R)
+      writeFileSync(join(dir, 'cleaned.csv'), csv)
+      const out = execSync('Rscript analysis.R', { cwd: dir, encoding: 'utf8', stdio: 'pipe' })
+      // pull the INTERACTION path's estimate out of the printed parameterEstimates rows for the `pint_1` label
+      // (pint_1 is the interaction term per U2-T4's label scheme; pmod_1 is the moderator's OWN main effect, a
+      // DIFFERENT number - U2-T6's own reference values: pint_1 b=0.25819002, pmod_1 b=0.34369423 - do not
+      // conflate them, as an earlier draft of this test did)
+      const m = out.match(/pint_1[^\n]*?(-?\d+\.\d+)/)
+      expect(m).not.toBeNull()
+      expect(Number(m![1])).toBeCloseTo(0.2582, 3)   // U2-T6's own reference value for pint_1
+    },
+    120_000,
+  )
+
+  // Table 4.4's fix (04e8e25) scoped Table 6 to grepl("^p_", label) so the interaction row (pint_1) and any
+  // auto-injected moderator main-effect covariate (pmod_1) never leak into the structural-paths table under
+  // moderation — they belong to Table 8 (Moderation) / Table 9 (Conditional effects) only. Assert that
+  // contract holds under native R: exactly the 2 DRAWN paths (SN->TI, TA->TI) print in Table 6, and neither
+  // pint_1 nor pmod_1 appears inside that table's block.
+  it('cb-sem moderation — Table 6 contains only the 2 drawn paths, no pint_/pmod_ leakage', () => {
+    const ds = parseCsv(readFileSync(join(FIXTURES, 'sem-moderation.csv'), 'utf8'))
+    const rep = REPS.find((r) => r.fixture === 'sem-moderation.csv')!
+    const R = emitRScript([rep.id], { [rep.id]: rep.setup }, SPECS, ds)
+    const csv = toCsv(ds)
+    const dir = mkdtempSync(join(tmpdir(), 'telos-r-mod-tbl6-'))
+    writeFileSync(join(dir, 'analysis.R'), R)
+    writeFileSync(join(dir, 'cleaned.csv'), csv)
+    const out = execSync('Rscript analysis.R', { cwd: dir, encoding: 'utf8', stdio: 'pipe' })
+
+    const start = out.indexOf('--- Table 6: Structural paths ---')
+    const end = out.indexOf('--- R-square (endogenous) ---')
+    expect(start).toBeGreaterThan(-1)
+    expect(end).toBeGreaterThan(start)
+    const table6Block = out.slice(start, end)
+
+    // No interaction row and no auto-injected moderator-main-effect row inside Table 6's own block.
+    expect(table6Block).not.toContain('pint_1')
+    expect(table6Block).not.toContain('pmod_1')
+    expect(table6Block).not.toContain('INT_1')
+
+    // Exactly the 2 drawn structural paths (p_1_3 SN->TI, p_2_3 TA->TI) — no more, no fewer. Match on the
+    // `label` column token rather than counting printed lines: R's data.frame print wraps onto a second
+    // physical line per row once the column count exceeds the console width, which would otherwise double-count.
+    const labels = new Set(table6Block.match(/\bp_\d+_\d+\b/g) ?? [])
+    expect(labels).toEqual(new Set(['p_1_3', 'p_2_3']))
+  })
 })
