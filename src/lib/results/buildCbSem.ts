@@ -15,32 +15,50 @@ const specTable = (spec: TestSpec, id: string) =>
 export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   const isPath = r.mode === 'path'
   const tables: BuiltTable[] = []
+  let itemSampleNote: string | null = null
 
-  // T3: Measurement model (CFA) — latent only. CFA rows already carry construct + item names.
-  // Row keys MUST match the registry spec's column keys (ApaTable renders row[column.key]) —
-  // the standardized loading renders under 'std' (cbSem.ts spec), not the runner's 'stdLoading'.
+  // T1 (merged, U3-T1): Measurement model (loadings, reliability & item descriptives) — latent only.
+  // Construct rows (__group marker, A6 renderer device) carry ω/α/CR/AVE once; item rows (indented by
+  // the renderer) carry Mean/SD (item descriptives) and the CFA loading (B/SE/z/p/Std. loading), leaving
+  // the construct-level columns blank. Row keys MUST match the registry spec's column keys (ApaTable
+  // renders row[column.key]) — the standardized loading renders under 'std' (cbSem.ts spec), not the
+  // runner's 'stdLoading'.
   if (!isPath && r.cfaLoadings.length) {
-    const rows = r.cfaLoadings.map((row) => ({
-      path: `${row.construct} → ${row.item}`,
-      b: f(Number(row.b)),
-      se: f(Number(row.se)),
-      z: fdf(Number(row.z)),
-      p: fp(Number(row.p)),
-      std: f01(Number(row.stdLoading)),
-    }))
+    const relByConstruct = new Map(r.reliability.map((row) => [String(row.construct), row]))
+    const itemByKey = new Map(r.itemStats.map((s) => [`${s.construct}::${s.item}`, s]))
+    const rows: BuiltTable['rows'] = []
+    let lastConstruct: string | null = null
+    for (const row of r.cfaLoadings) {
+      const construct = String(row.construct)
+      if (construct !== lastConstruct) {
+        const rel = relByConstruct.get(construct)
+        rows.push({
+          __group: construct,
+          path: construct, mean: '', sd: '', b: '', se: '', z: '', p: '', std: '',
+          omega: rel ? f01(Number(rel.omega)) : '—', alpha: rel ? f01(Number(rel.alpha)) : '—',
+          cr: rel ? f01(Number(rel.cr)) : '—', ave: rel ? f01(Number(rel.ave)) : '—',
+        })
+        lastConstruct = construct
+      }
+      const item = itemByKey.get(`${construct}::${row.item}`)
+      rows.push({
+        path: String(row.item), // indented child — CSS/LaTeX render the indent, not the string itself
+        mean: item ? f(item.mean) : '—', sd: item ? f(item.sd) : '—',
+        b: f(Number(row.b)), se: f(Number(row.se)), z: fdf(Number(row.z)), p: fp(Number(row.p)),
+        std: f01(Number(row.stdLoading)), omega: '', alpha: '', cr: '', ave: '',
+      })
+    }
     tables.push({ spec: specTable(spec, 'cfa-loadings'), rows })
-  }
 
-  // T4: Reliability & validity — latent only
-  if (!isPath && r.reliability.length) {
-    const rows = r.reliability.map((row) => ({
-      construct: String(row.construct),
-      cr: f01(Number(row.cr)),
-      ave: f01(Number(row.ave)),
-      omega: f01(Number(row.omega)),
-      alpha: f01(Number(row.alpha)),
-    }))
-    tables.push({ spec: specTable(spec, 'reliability'), rows })
+    // Note text is dynamic per missing-setting (post-review amendment): the item Mean/SD sample depends
+    // on which `missing` option the run actually used, so a static registry sentence can't say this
+    // correctly for both cases. Appended to note.text below (folded into U3-T5's labelled notes once
+    // that task lands).
+    const missingSetting = String(r.missing ?? 'listwise')
+    const itemSampleClause = missingSetting === 'listwise'
+      ? 'the listwise estimation sample (the same N as the model fit)'
+      : "each item's own observed cases (N can vary by item under fiml/mi/pairwise; the model fit itself remains listwise)"
+    itemSampleNote = `Item Mean/SD are computed on ${itemSampleClause}.`
   }
 
   // T5: Fit indices — suppressed when saturated (df==0). One shared predicate from semSaturation.ts.
@@ -94,10 +112,15 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     tables.push({ spec: specTable(spec, 'indirect-effects'), rows })
   }
 
-  // Note: saturation flag wins; else the spec's tableNote.
+  // Note: saturation flag wins; else the spec's tableNote, with the dynamic item-sample clause appended
+  // when the merged Table 1 rendered (U3-T1 post-review amendment).
   const note: CardContent['note'] = saturated
     ? { kind: 'plain', text: SATURATION_NOTE }
-    : (spec.tableNote ?? null)
+    : spec.tableNote
+      ? { ...spec.tableNote, text: itemSampleNote ? `${spec.tableNote.text} ${itemSampleNote}` : spec.tableNote.text }
+      : itemSampleNote
+        ? { kind: 'plain', text: itemSampleNote }
+        : null
 
   // Figure: a placeholder slot so the bundle manifest carries figure_path-diagram.png; the REAL annotated-SVG
   // PNG is layered in ResultsScreen.download() via captureNode (design §4.2), NOT produced here.

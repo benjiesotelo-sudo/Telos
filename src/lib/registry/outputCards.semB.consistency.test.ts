@@ -14,14 +14,13 @@ const theadAfter = (block: string, cap: string) => {
 }
 
 describe('SEM-B output cards carry the §6B amendments (B/SE/z/p, ω, reordered PLS reliability)', () => {
-  it('CB-SEM Table 3 (CFA loadings) = Construct → Item · B · SE · z · p · Std. loading', () => {
-    expect(theadAfter(cb, 'Measurement model (CFA loadings)')).toEqual(
-      ['Construct → Item', 'B', 'SE', 'z', 'p', 'Std. loading'],
-    )
-  })
-  it('CB-SEM Table 4 (reliability) adds ω → Construct · CR · AVE · ω · α', () => {
-    expect(theadAfter(cb, 'Reliability &amp; validity')).toEqual(
-      ['Construct', 'CR', 'AVE', 'ω', 'α'],
+  // U3-T1 (2026-07-07): Table 3 (CFA loadings) and Table 4 (reliability) were merged into ONE grouped
+  // table — construct rows carry ω/α/CR/AVE once, item rows carry Mean/SD/B/SE/z/p/Std. loading. See
+  // cbSem.consistency.test.ts's 'Table 3 (measurement model...)' assertion for the up-to-date check;
+  // this test now confirms the merge kept the pre-existing loading/reliability columns, ω included.
+  it('CB-SEM Table 3 (measurement model, merged) = Construct/Item · Mean · SD · B · SE · z · p · Std. loading · ω · α · CR · AVE', () => {
+    expect(theadAfter(cb, 'Measurement model (loadings, reliability &amp; item descriptives)')).toEqual(
+      ['Construct / Item', 'Mean', 'SD', 'B', 'SE', 'z', 'p', 'Std. loading', 'ω', 'α', 'CR', 'AVE'],
     )
   })
   it('CB-SEM Table 6 (structural paths) adds B → Path · B · SE · z · p · Std. β · 95% CI · R²', () => {

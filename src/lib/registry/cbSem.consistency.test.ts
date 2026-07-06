@@ -29,11 +29,8 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     expect(theadAfter('EFA suitability')).toEqual(tableCols('efa-suitability'))
     expect(theadAfter('EFA rotated factor loadings')).toEqual(tableCols('efa-loadings'))
   })
-  it('Table 3 (CFA loadings) thead matches the spec columns', () => {
-    expect(theadAfter('Measurement model (CFA loadings)')).toEqual(tableCols('cfa-loadings'))
-  })
-  it('Table 4 (reliability) thead matches the spec columns', () => {
-    expect(theadAfter('Reliability &amp; validity')).toEqual(tableCols('reliability'))
+  it('Table 3 (measurement model: loadings, reliability & item descriptives) thead matches the spec columns', () => {
+    expect(theadAfter('Measurement model (loadings, reliability &amp; item descriptives)')).toEqual(tableCols('cfa-loadings'))
   })
   it('Table 5 (fit indices) thead matches the spec columns', () => {
     expect(theadAfter('Fit indices')).toEqual(tableCols('fit-indices'))

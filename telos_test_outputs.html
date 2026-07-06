@@ -1132,10 +1132,9 @@
       <div class="apa-cap"><b>Table 2.</b> EFA rotated factor loadings</div>
       <table class="apa"><thead><tr><th>Item</th><th>Factor 1</th><th>Factor 2</th><th>Communality</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">loading columns expand to the number of retained factors.</p>
-      <div class="apa-cap"><b>Table 3.</b> Measurement model (CFA loadings)</div>
-      <table class="apa"><thead><tr><th>Construct &rarr; Item</th><th>B</th><th>SE</th><th>z</th><th>p</th><th>Std. loading</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 4.</b> Reliability &amp; validity</div>
-      <table class="apa"><thead><tr><th>Construct</th><th>CR</th><th>AVE</th><th>&omega;</th><th>&alpha;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <div class="apa-cap"><b>Table 3.</b> Measurement model (loadings, reliability &amp; item descriptives)</div>
+      <table class="apa"><thead><tr><th>Construct / Item</th><th>Mean</th><th>SD</th><th>B</th><th>SE</th><th>z</th><th>p</th><th>Std. loading</th><th>&omega;</th><th>&alpha;</th><th>CR</th><th>AVE</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">construct rows (italic) carry &omega;/&alpha;/CR/AVE once; item rows carry Mean/SD (on the estimation sample per the missing-data setting) and the CFA loading (B/SE/z/p/Std. loading).</p>
       <div class="apa-cap"><b>Table 5.</b> Fit indices</div>
       <table class="apa"><thead><tr><th>&chi;&sup2; (df, p)</th><th>&chi;&sup2;/df</th><th>CFI</th><th>TLI</th><th>RMSEA [90% CI]</th><th>SRMR</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 6.</b> Structural paths</div>
@@ -1151,7 +1150,7 @@
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The model fit well (CFI=__, RMSEA=__, SRMR=__); the path from X to Y gave &beta;=__, <i>p</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <i>(if EFA stage run)</i> <code>psych::KMO()</code>/<code>cortest.bartlett()</code> &rarr; Table 1 &middot; <code>psych::fa()</code> &rarr; Table 2 &middot; <code>lavaan::sem()</code> (estimator ML/MLR or WLSMV) &rarr; loadings &amp; structural paths &middot; <code>lavaan::fitMeasures()</code> (or <code>summary(fit, fit.measures=TRUE)</code>) &rarr; Table 5 fit indices (&chi;&sup2;/df = chisq/df) &middot; <code>semTools::compRelSEM()</code> / <code>AVE()</code> / <code>psych::alpha()</code> &rarr; CR/AVE/&omega;/&alpha; table &middot; <code>lavInspect(fit, "rsquare")</code> &rarr; Table 6 R&sup2; &middot; defined effects (<code>:=</code> in the lavaan syntax, <code>se="bootstrap"</code>) &rarr; Table 7 indirect effects &middot; <code>semPlot::semPaths()</code> &rarr; diagram</div>
-        <div class="m bundle">table_efa-suitability.png (when EFA stage selected) &middot; table_efa-loadings.png (when EFA stage selected) &middot; table_cfa-loadings.png &middot; table_reliability.png &middot; table_fit-indices.png &middot; table_structural-paths.png (when structural stage selected) &middot; table_indirect-effects.png (when mediation paths drawn) &middot; figure_path-diagram.png</div>
+        <div class="m bundle">table_efa-suitability.png (when EFA stage selected) &middot; table_efa-loadings.png (when EFA stage selected) &middot; table_cfa-loadings.png &middot; table_fit-indices.png &middot; table_structural-paths.png (when structural stage selected) &middot; table_indirect-effects.png (when mediation paths drawn) &middot; figure_path-diagram.png</div>
       </div>
     </div>
   </div>

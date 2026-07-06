@@ -49,6 +49,10 @@ export interface CbSemResult {
     r2: Record<number, number>
   }
   itemStats: ItemStat[]
+  /** The missing-data setting the run actually used (drives Table 1's item Mean/SD sample-size note,
+   *  U3-T1). Optional so existing hand-built CbSemResult fixtures need no change; defaults to
+   *  CB_SEM_DEFAULT_MISSING in the builder. */
+  missing?: string
 }
 
 export interface ItemStat { construct: string; item: string; mean: number; sd: number; n: number }
@@ -431,9 +435,8 @@ export async function runCbSem(
   const rows = listwise(data, usedCols)
   const n = rows.length
   const item_cols_flat = usedCols.flatMap((col) => rows.map((r) => r[col] as number))
-  const itemStats = isPath
-    ? []
-    : computeItemStats(data, constructs, rows, String(setup.options['missing'] ?? CB_SEM_DEFAULT_MISSING))
+  const missingSetting = String(setup.options['missing'] ?? CB_SEM_DEFAULT_MISSING)
+  const itemStats = isPath ? [] : computeItemStats(data, constructs, rows, missingSetting)
 
   // R-side column names: in path mode the model tokens are the SANITIZED construct names, so the data
   // frame columns must carry the same sanitized names; latent mode keeps the raw item columns.
@@ -577,5 +580,6 @@ export async function runCbSem(
       r2: rsquare,
     },
     itemStats,
+    missing: missingSetting,
   }
 }
