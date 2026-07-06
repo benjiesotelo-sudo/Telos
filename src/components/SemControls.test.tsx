@@ -1,7 +1,9 @@
 // src/components/SemControls.test.tsx
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { SemControlsUI, BOOTSTRAP_PRESETS, estBootstrapMinutes } from './SemControls'
+import { SemControlsUI, missingOptionValue, BOOTSTRAP_PRESETS, estBootstrapMinutes } from './SemControls'
+import { CB_SEM_DEFAULT_MISSING } from '../lib/stats/runCbSem'
+import type { TestSetup } from '../state/session'
 
 const noop = () => {}
 
@@ -106,6 +108,28 @@ describe('SemControlsUI — bootstrap control (presets + free entry + time estim
 function html10() {
   return renderUI({ nboot: 5000 })
 }
+
+describe('missingOptionValue — the connected default agrees with the runner (default-value seam, slice-5 review)', () => {
+  it('CB_SEM_DEFAULT_MISSING is listwise (the fit\'s own effective default: lavaan::sem() is called with no missing= arg)', () => {
+    expect(CB_SEM_DEFAULT_MISSING).toBe('listwise')
+  })
+
+  it('an untouched setup.options (no "missing" key -- freshSetup never seeds it, kind:"display" is filtered out) resolves to CB_SEM_DEFAULT_MISSING, NOT the stale "fiml" default', () => {
+    const untouched: TestSetup['options'] = {}
+    expect(missingOptionValue(untouched)).toBe(CB_SEM_DEFAULT_MISSING)
+    expect(missingOptionValue(untouched)).not.toBe('fiml')
+  })
+
+  it('an explicitly-set value passes through unchanged (no silent override of a user choice)', () => {
+    expect(missingOptionValue({ missing: 'fiml' })).toBe('fiml')
+    expect(missingOptionValue({ missing: 'pairwise' })).toBe('pairwise')
+  })
+
+  it('renders into SemControlsUI as the selected option when passed through as the missing prop', () => {
+    const html = renderUI({ missing: missingOptionValue({}) })
+    expect(html).toContain(`value="${CB_SEM_DEFAULT_MISSING}" selected=""`)
+  })
+})
 
 describe('estBootstrapMinutes — spike-calibrated estimate (§5.3)', () => {
   it('CB-SEM 5000 ≈ 2.5 min (mediation 5k spike)', () => {

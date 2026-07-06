@@ -34,10 +34,19 @@ function sampleMeanSd(values: number[]): { mean: number; sd: number } {
   return { mean, sd: Math.sqrt(variance) }
 }
 
+/** The ONLY missing-data handling CB-SEM's fit itself performs today: the R_STATS block below calls
+ *  lavaan::sem() with no `missing=` argument (both here and in the export emitter), so lavaan falls back
+ *  to ITS OWN default -- listwise deletion. This is the single source of truth for that fact: the UI's
+ *  missing-data dropdown default (SemControls.tsx) and computeItemStats' own fallback (below) both read
+ *  this constant, so an untouched dropdown never overstates what the model actually does. Selecting a
+ *  different mode only changes Table 1 item Mean/SD until the fit itself is wired to `missing=`
+ *  (known gap, tracked separately -- not a stats change here). */
+export const CB_SEM_DEFAULT_MISSING = 'listwise'
+
 /** Table 1 item Mean/SD (design §A1). listwise → the SAME estimation-sample rows the model fit uses
  *  (single shared N); fiml/mi/pairwise → each item's own observed (non-null, finite) values from the
  *  RAW dataset, independent per item (N varies by item). Does not change how the model itself is fit
- *  (known gap, tracked separately — the fit is always listwise today regardless of this setting). */
+ *  (known gap, tracked separately -- the fit is always listwise today regardless of this setting). */
 export function computeItemStats(
   data: Dataset,
   constructs: Construct[],
@@ -288,7 +297,7 @@ export async function runCbSem(
   const item_cols_flat = usedCols.flatMap((col) => rows.map((r) => r[col] as number))
   const itemStats = isPath
     ? []
-    : computeItemStats(data, constructs, rows, String(setup.options['missing'] ?? 'listwise'))
+    : computeItemStats(data, constructs, rows, String(setup.options['missing'] ?? CB_SEM_DEFAULT_MISSING))
 
   // R-side column names: in path mode the model tokens are the SANITIZED construct names, so the data
   // frame columns must carry the same sanitized names; latent mode keeps the raw item columns.

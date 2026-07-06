@@ -1,5 +1,7 @@
 // src/components/SemControls.tsx
 import { useSession } from '../state/session'
+import type { TestSetup } from '../state/session'
+import { CB_SEM_DEFAULT_MISSING } from '../lib/stats/runCbSem'
 
 export const BOOTSTRAP_PRESETS = [1000, 5000, 10000] as const
 
@@ -132,6 +134,12 @@ export function SemControlsUI({
   )
 }
 
+/** Single source of truth for the CB-SEM 'missing' dropdown's displayed default. An untouched setup has
+ *  no 'missing' key in setup.options (freshSetup filters kind:'display' registry options out — see
+ *  src/state/session.ts), so the UI must show the SAME value the runner treats as its effective default:
+ *  CB_SEM_DEFAULT_MISSING (runCbSem.ts) — never a value of its own that could drift out of sync. */
+export const missingOptionValue = (o: TestSetup['options']): string => String(o.missing ?? CB_SEM_DEFAULT_MISSING)
+
 /** Store-connected bespoke controls — values persist into setup.options, read by runCbSem/runPlsSem + emitters. */
 export function SemControls({ testId }: { testId: string }) {
   const s = useSession()
@@ -146,7 +154,7 @@ export function SemControls({ testId }: { testId: string }) {
       pipeline={(o.pipeline as 'full' | 'cfa-only') ?? 'full'}
       efa={!!o.efa}
       estimator={String(o.estimator ?? 'ML')}
-      missing={String(o.missing ?? 'fiml')}
+      missing={missingOptionValue(o)}
       nboot={Number(o.nboot ?? 5000)}
       running={s.runStatus === 'running'}
       onSetPipeline={(p) => s.setOption(testId, 'pipeline', p)}

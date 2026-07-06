@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Engine } from '../webr/engine'
-import { runCbSem, computeItemStats } from './runCbSem'
+import { runCbSem, computeItemStats, CB_SEM_DEFAULT_MISSING } from './runCbSem'
 import { isSaturated } from './semSaturation'
 import { loadCsvFixture } from './csvFixture'
 import { join } from 'node:path'
@@ -282,5 +282,31 @@ describe('computeItemStats — item Mean/SD per missing-setting', () => {
     // pairwise buckets with fiml/mi (observed-per-item), not with listwise
     const pairwise = computeItemStats(data, constructs, listwiseRows, 'pairwise')
     expect(pairwise.find((s) => s.item === 'x1')!.n).toBe(296)
+  })
+
+  // Regression (default-value seam, slice-5 review): an untouched setup.options has NO 'missing' key
+  // (freshSetup filters kind:'display' registry options out of setup.options — see src/state/session.ts).
+  // The runner's ONLY fallback for that gap is CB_SEM_DEFAULT_MISSING, the same constant SemControls.tsx
+  // uses for the dropdown's displayed default. This proves the runner's effective value for an untouched
+  // dropdown is 'listwise' — matching what lavaan::sem() itself does (no `missing=` arg → its own
+  // listwise default) — NOT 'fiml' (the stale UI fallback this fix replaces).
+  it('an untouched setup.options (no "missing" key) resolves to CB_SEM_DEFAULT_MISSING, identically to explicit listwise', () => {
+    expect(CB_SEM_DEFAULT_MISSING).toBe('listwise')
+
+    const raw = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/scale.csv'))
+    const data: Dataset = { columns: raw.columns, rows: raw.rows }
+    const constructs: Construct[] = [
+      { id: 1, name: 'visual', items: ['x1', 'x2', 'x3'] },
+      { id: 2, name: 'textual', items: ['x4', 'x5', 'x6'] },
+      { id: 3, name: 'speed', items: ['x7', 'x8', 'x9'] },
+    ]
+    const usedCols = constructs.flatMap((c) => c.items)
+    const listwiseRows = data.rows.filter((r) => usedCols.every((c) => typeof r[c] === 'number' && Number.isFinite(r[c] as number)))
+
+    // Mirrors the exact fallback expression at the runCbSem.ts call site.
+    const untouchedOptions: TestSetup['options'] = {}
+    const untouched = computeItemStats(data, constructs, listwiseRows, String(untouchedOptions['missing'] ?? CB_SEM_DEFAULT_MISSING))
+    const explicitListwise = computeItemStats(data, constructs, listwiseRows, 'listwise')
+    expect(untouched).toEqual(explicitListwise)
   })
 })

@@ -14,7 +14,7 @@ export const CB_SEM: TestSpec = {
   roles: [],
   options: [
     { id: 'estimator', label: 'estimator', value: 'WLSMV (ordinal) / ML / MLR', kind: 'display' },
-    { id: 'missing', label: 'missing', value: 'MI', kind: 'display' },
+    { id: 'missing', label: 'missing', value: 'listwise (default) / FIML / MI / pairwise', kind: 'display' },
     { id: 'bootstrap', label: 'bootstrap', value: '5000', kind: 'display' },
   ],
   constraints: {
