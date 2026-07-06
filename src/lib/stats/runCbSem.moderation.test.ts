@@ -131,5 +131,19 @@ describe('runCbSem — moderation row/slope count invariant (pure, mocked engine
     const result = await runCbSem(engine, data, setup)
     expect(result.moderation!.rows).toHaveLength(1)
     expect(result.moderation!.slopes).toHaveLength(3)
+    // Moderation forces se="bootstrap" -> the result must say so (Table 5 CI-honesty fix round).
+    expect(result.bootstrapped).toBe(true)
+  })
+
+  // Fix round (Table 5 CI honesty): CbSemResult.bootstrapped mirrors the runner's own needsBootstrap
+  // gate (hasIndirect || moderations) — a direct-paths-only model never bootstraps, so the builder must
+  // know NOT to render BC cells or claim bootstrap provenance. Mocked engine: this is a TS-plumbing
+  // test (flag threading), not a stats test; the true-side of the gate is also asserted for free on the
+  // real WebR PoliticalDemocracy run in runCbSem.test.ts.
+  it('direct-paths-only (no indirect chain, no moderation) returns bootstrapped: false', async () => {
+    const directSetup: TestSetup = { ...setup, moderations: [] }
+    const engine = fakeEngine({ ...baseRaw, moderationRows: [], slopeRows: [] })
+    const result = await runCbSem(engine, data, directSetup)
+    expect(result.bootstrapped).toBe(false)
   })
 })

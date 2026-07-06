@@ -111,9 +111,19 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   // Result is Supported/Not supported from the PERCENTILE 95% CI excluding zero, α fixed .05 (design §U3-T3).
   const result = (lo: number, hi: number) => (lo > 0 || hi < 0 ? 'Supported' : 'Not supported')
   const isMerged = spec.id === 'cb-sem'
+  // Fix round (review findings 1+2): a direct-paths-only model never bootstraps (the runner's
+  // needsBootstrap gate = hasIndirect || moderation), so ciBcLower/Upper come back null — they must
+  // render as dashes via fx (the file's null→dash convention), never f01(Number(null)) = ".00" — and
+  // ciPercLower/Upper hold delta-method (Wald) CIs from parameterEstimates, not bootstrap percentile
+  // CIs, so the ciNote below must say so instead of the bootstrap-count (A&B) claim. Defaults to true:
+  // every pre-existing hand-built CbSemResult fixture is bootstrap-shaped. Column headers deliberately
+  // stay "Percentile 95% CI"/"BC 95% CI" (static registry spec) — the note carries the honesty.
+  const bootstrapped = r.bootstrapped !== false
+  // All four CI cells share the fx null→dash guard; a nullish bound renders '—'.
+  const ci = (v: unknown) => fx(v == null ? null : Number(v), f01)
   let r2NoteText: string | null = null
   let disclosureText: string | null = null
-  let abText: string | null = null
+  let ciNoteText: string | null = null
 
   if (isMerged) {
     const rows: BuiltTable['rows'] = []
@@ -127,8 +137,8 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
             ? `${row.fromName} → ${row.toName}`
             : `${row.from} → ${row.to}`,
         b: f(Number(row.b)), beta: f01(Number(row.stdBeta)), p: fp(Number(row.p)),
-        percLower: f01(Number(row.ciPercLower)), percUpper: f01(Number(row.ciPercUpper)),
-        bcLower: f01(Number(row.ciBcLower)), bcUpper: f01(Number(row.ciBcUpper)),
+        percLower: ci(row.ciPercLower), percUpper: ci(row.ciPercUpper),
+        bcLower: ci(row.ciBcLower), bcUpper: ci(row.ciBcUpper),
         result: result(Number(row.ciPercLower), Number(row.ciPercUpper)),
       })
     }
@@ -137,8 +147,8 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       for (const row of r.indirect) rows.push({
         h: `H${h++}`, path: row.pathLabel != null ? String(row.pathLabel) : String(row.label),
         b: f(Number(row.est)), beta: fx(row.stdEst == null ? null : Number(row.stdEst), f01), p: fp(Number(row.p)),
-        percLower: f01(Number(row.ciPercLower)), percUpper: f01(Number(row.ciPercUpper)),
-        bcLower: f01(Number(row.ciBcLower)), bcUpper: f01(Number(row.ciBcUpper)),
+        percLower: ci(row.ciPercLower), percUpper: ci(row.ciPercUpper),
+        bcLower: ci(row.ciBcLower), bcUpper: ci(row.ciBcUpper),
         result: result(Number(row.ciPercLower), Number(row.ciPercUpper)),
       })
     }
@@ -147,8 +157,8 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       for (const row of r.moderation.rows) rows.push({
         h: `H${h++}`, path: `${row.pathLabel} × ${row.moderatorName}`,
         b: f(Number(row.b)), beta: f01(Number(row.stdBeta)), p: fp(Number(row.p)),
-        percLower: f01(Number(row.ciPercLower)), percUpper: f01(Number(row.ciPercUpper)),
-        bcLower: f01(Number(row.ciBcLower)), bcUpper: f01(Number(row.ciBcUpper)),
+        percLower: ci(row.ciPercLower), percUpper: ci(row.ciPercUpper),
+        bcLower: ci(row.ciBcLower), bcUpper: ci(row.ciBcUpper),
         result: result(Number(row.ciPercLower), Number(row.ciPercUpper)),
       })
     }
@@ -171,12 +181,19 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       const disclosures = (r.moderation?.rows ?? []).map((row) => row.disclosure).filter((d): d is string => !!d)
       if (disclosures.length) disclosureText = Array.from(new Set(disclosures)).join(' ')
 
-      // Andrews & Buchinsky (2000) bootstrap-count disclosure (post-review amendment a): BC CIs are more
-      // resample-hungry than percentile CIs; flag when the run used fewer than 7,000 resamples.
-      const nboot = Number(r.nboot ?? 5000)
-      if (nboot < 7000) {
-        abText =
-          'Bias-corrected CIs benefit from ≥7,000 resamples (Andrews & Buchinsky, 2000); consider the 10,000 publication-grade preset for final runs.'
+      // CI provenance note (fix round). Bootstrapped runs keep the Andrews & Buchinsky (2000)
+      // bootstrap-count disclosure (post-review amendment a): BC CIs are more resample-hungry than
+      // percentile CIs; flagged when the run used fewer than 7,000 resamples. Non-bootstrapped runs
+      // (direct paths only — zero resamples were drawn) instead state what the CI columns really hold.
+      if (bootstrapped) {
+        const nboot = Number(r.nboot ?? 5000)
+        if (nboot < 7000) {
+          ciNoteText =
+            'Bias-corrected CIs benefit from ≥7,000 resamples (Andrews & Buchinsky, 2000); consider the 10,000 publication-grade preset for final runs.'
+        }
+      } else {
+        ciNoteText =
+          'CIs are delta-method (Wald) 95% intervals; bootstrap percentile and bias-corrected CIs apply when the model includes indirect or moderation effects.'
       }
     }
   } else {
@@ -215,7 +232,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   // Note: saturation flag wins; else the spec's tableNote, with the dynamic clauses appended (item-sample
   // from U3-T1, R²/disclosure/Andrews-Buchinsky from U3-T3 — folded into U3-T5's labelled notes once that
   // task lands).
-  const noteExtras = [itemSampleNote, r2NoteText, disclosureText, abText].filter((s): s is string => !!s)
+  const noteExtras = [itemSampleNote, r2NoteText, disclosureText, ciNoteText].filter((s): s is string => !!s)
   const note: CardContent['note'] = saturated
     ? { kind: 'plain', text: SATURATION_NOTE }
     : spec.tableNote

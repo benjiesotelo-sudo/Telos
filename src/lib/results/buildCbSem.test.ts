@@ -210,6 +210,63 @@ describe('buildCbSem', () => {
     expect(ids).toContain('structural-paths')
   })
 
+  // Review findings (fix round, U3-T3): direct-paths-only CB-SEM models never bootstrap (no indirect
+  // chain, no moderation), so lavaan's parameterEstimates() never populates ci.lower/upper under
+  // boot.ci.type — ciBcLower/ciBcUpper come back null (NA_real_ -> null over the WebR bridge) AND
+  // ciPercLower/ciPercUpper hold ordinary delta-method (Wald) CIs, not bootstrap percentile CIs.
+  it('non-bootstrapped run (bootstrapped: false): BC CI cells are dashes, not fabricated ".00"', () => {
+    const directOnly: CbSemResult = {
+      ...base,
+      bootstrapped: false,
+      indirect: undefined,
+      moderation: undefined,
+      structural: base.structural!.map((row) => ({ ...row, ciBcLower: null, ciBcUpper: null })),
+    }
+    const c = buildCbSem(SPEC, directOnly)
+    const t5 = c.tables.find((t) => t.spec.id === 'structural-paths')!
+    const dataRows = t5.rows.filter((r) => r.h != null)
+    expect(dataRows.length).toBeGreaterThan(0)
+    for (const row of dataRows) {
+      expect(row.bcLower).toBe('—')
+      expect(row.bcUpper).toBe('—')
+      expect(row.bcLower).not.toBe('.00')
+      expect(row.bcUpper).not.toBe('.00')
+    }
+  })
+
+  it('non-bootstrapped run: table note carries an honest Wald-CI sentence, no Andrews & Buchinsky / Efron claim', () => {
+    const directOnly: CbSemResult = {
+      ...base,
+      bootstrapped: false,
+      nboot: 5000, // even under the default nboot, no bootstrap ran -- A&B must NOT fire
+      indirect: undefined,
+      moderation: undefined,
+      structural: base.structural!.map((row) => ({ ...row, ciBcLower: null, ciBcUpper: null })),
+    }
+    const c = buildCbSem(SPEC, directOnly)
+    expect(c.note?.text).toContain('delta-method')
+    expect(c.note?.text).toContain('Wald')
+    expect(c.note?.text).not.toContain('Andrews & Buchinsky')
+    expect(c.note?.text).not.toContain('Efron')
+  })
+
+  it('bootstrapped run (bootstrapped: true, or field absent): current behavior unchanged -- numeric BC cells, A&B note when nboot<7000', () => {
+    const c = buildCbSem(SPEC, { ...base, bootstrapped: true, nboot: 5000 })
+    const t5 = c.tables.find((t) => t.spec.id === 'structural-paths')!
+    const h1 = t5.rows.find((r) => r.h === 'H1')!
+    expect(h1.bcLower).toBe('.23')
+    expect(h1.bcUpper).toBe('.63')
+    expect(c.note?.text).toContain('Andrews & Buchinsky')
+    expect(c.note?.text).not.toContain('delta-method')
+
+    // field-absent fixtures (every OTHER test in this file) must keep behaving as bootstrapped --
+    // `bootstrapped` is optional so pre-existing hand-built CbSemResult fixtures need no change.
+    const omitted = { ...base }
+    delete (omitted as Partial<CbSemResult>).bootstrapped
+    const c2 = buildCbSem(SPEC, omitted)
+    expect(c2.note?.text).not.toContain('delta-method')
+  })
+
   it('suppresses the Fornell-Larcker/HTMT tables when < 2 constructs (mirrors buildAve.ts)', () => {
     const oneConstruct: CbSemResult = {
       ...base,

@@ -57,6 +57,14 @@ export interface CbSemResult {
    *  disclosure, U3-T3). Optional so existing hand-built CbSemResult fixtures need no change; defaults
    *  to 5000 in the builder (the app's own default). */
   nboot?: number
+  /** Whether the R fit actually used se="bootstrap" -- true iff hasIndirect || moderations present
+   *  (mirrors the runner's own `needsBootstrap` gate below EXACTLY; not recomputed independently).
+   *  Drives Table 5's CI honesty (fix round, U3-T3): a direct-paths-only model never bootstraps, so its
+   *  ciBcLower/ciBcUpper come back null and its ciPercLower/ciPercUpper are delta-method (Wald) CIs, not
+   *  bootstrap percentile CIs -- the builder must not render fabricated BC values or claim a bootstrap
+   *  provenance that never happened. Optional so existing hand-built CbSemResult fixtures need no change;
+   *  defaults to true in the builder (matches every existing fixture, which is always bootstrap-shaped). */
+  bootstrapped?: boolean
 }
 
 export interface ItemStat { construct: string; item: string; mean: number; sd: number; n: number }
@@ -586,5 +594,6 @@ export async function runCbSem(
     itemStats,
     missing: missingSetting,
     nboot,
+    bootstrapped: needsBootstrap,
   }
 }

@@ -80,6 +80,8 @@ describe('runCbSem', () => {
     expect(result.rsquare![3]).toBeCloseTo(0.974, 2)
 
     // --- bootstrapped indirect effect (ind60→dem60→dem65) ---
+    // The chain forces se="bootstrap" -> the result must say so (Table 5 CI-honesty fix round).
+    expect(result.bootstrapped).toBe(true)
     const ie = result.indirect![0]
     expect(Number(ie.est)).toBeCloseTo(1.274, 1)
     expect(ie.ciLower).not.toBeNull()
