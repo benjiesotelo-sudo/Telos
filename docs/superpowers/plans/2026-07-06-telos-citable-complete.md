@@ -60,7 +60,7 @@
 - A6 column spec additions (registry `TableSpec.columns`): `{ key, label, span?: { group: string } }` - adjacent columns sharing `span.group` render under one spanning header labeled `group`.
 - A6 row model additions (builder rows): `{ __group: string }` marks a group-header row (renders italic, indented children follow until next `__group`); `{ __section: string }` marks an internal section-label row. Group-level stats live ON the group row under their column keys.
 - Matrix spec additions: `MatrixProps.diagonalStyle?: 'bold' | 'italic'`, `cellStars?: (string | null)[][]`, `starNote?: string`.
-- Runner → builder (CB-SEM additions to the run result): `itemStats: { item, mean, sd }[]`, `corLvP: number[][]`, `paths[i]: { ..., ciPercLower/Upper, ciBcLower/Upper }`, `indirect[i]` same dual-CI fields, `moderation: { rows: PathLike[], slopes: { level: '-1SD'|'mean'|'+1SD', b, se, p, ciLower, ciUpper }[] }`, `hIds: serialized ordering`.
+- Runner → builder (CB-SEM additions to the run result): `itemStats: { item, mean, sd }[]`, `corLvP: number[][]`, `paths[i]: { ..., ciPercLower/Upper, ciBcLower/Upper }`, `indirect[i]` same dual-CI fields, `moderation: { rows: PathLike[], slopes: { level: '-1SD'|'mean'|'+1SD', b, se, p, z, ciPercLower, ciPercUpper, ciBcLower, ciBcUpper }[] }`. H-ids are NOT a runner field: the builder derives them from the serialized structural order (canvas array order → indirect chain-enumeration order → moderation creation order) at build time.
 - Citation registry: `export interface TestCitations { whyThisTest: { text: string; refs: Ref[] }; statisticalBasis: { claim: string; ref: Ref }[] }`, `export const CITATIONS: Record<TestId, TestCitations>`, `export function citationsTxt(): string`.
 - Explainer registry: `export interface Explainer { term: string; meaning: string; interpret: (v: ResultValues) => string }`, `export const EXPLAINERS: Record<TestId, Explainer[]>`, coverage test asserts every registry column key maps.
 - Canvas state: `moderations: { id: number; moderatorId: number; pathIndex: number }[]` serialized in the run config beside paths.
@@ -2008,7 +2008,7 @@ it('emits the := simple-slope definitions (production design, not the hand-rolle
 
 ### U2-T6 — Moderation runner integration test (native-R-verified, full pipeline)
 
-**Setup:** `cp .superpowers/sdd/spike-moderation-data.csv tests/e2e/fixtures/moderation.csv` (commit
+**Setup:** `cp .superpowers/sdd/spike-moderation-data.csv tests/e2e/fixtures/sem-moderation.csv` (commit
 the fixture — matches the repo's `tests/e2e/fixtures/*.csv` convention used by every other WebR-backed
 runner test). New file `src/lib/stats/runCbSem.moderation.integration.test.ts`.
 
@@ -2058,7 +2058,7 @@ describe('runCbSem — latent moderation (matched, equal indicator counts)', () 
   afterAll(async () => { await engine.close() })
 
   it('matches native-R exactly on the spike-moderation dataset', async () => {
-    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/moderation.csv'))
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/sem-moderation.csv'))
     const result = await runCbSem(engine, data, SETUP)
     const row = result.moderation!.rows[0]
     expect(row.matched).toBe(true)
@@ -2105,7 +2105,7 @@ const UNEQUAL_SETUP: TestSetup = {
 }
 
 it('unequal indicator counts fall back to match=FALSE with a disclosure note', async () => {
-  const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/moderation.csv'))
+  const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/sem-moderation.csv'))
   const result = await runCbSem(engine, data, UNEQUAL_SETUP)
   const row = result.moderation!.rows[0]
   expect(row.matched).toBe(false)
@@ -2118,7 +2118,7 @@ it('unequal indicator counts fall back to match=FALSE with a disclosure note', a
 it('rejects WLSMV + moderation before touching the engine', async () => {
   const engine2 = new Engine()
   const bad: TestSetup = { ...SETUP, options: { ...SETUP.options, estimator: 'WLSMV' } }
-  await expect(runCbSem(engine2, loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/moderation.csv')), bad))
+  await expect(runCbSem(engine2, loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/sem-moderation.csv')), bad))
     .rejects.toThrow(/ML-family estimator/)
 })
 ```
@@ -2223,6 +2223,19 @@ if (!isPath && r.cfaLoadings.length) {
 ```
 (`f`/`f01`/`fp`/`fdf` already imported at the top of `buildCbSem.ts`.)
 
+**Note text is dynamic per missing-setting, not a static registry sentence** (the item-Mean/SD sample
+depends on which `missing` option the run actually used — a static `tableNote.text` cannot say this
+correctly for both cases). Compute the clause in the builder and append it to `note.text` (folded into
+U3-T5's labelled notes once that task lands; for THIS task it is one appended sentence, same pattern as
+U3-T3's R² line):
+```ts
+const missingSetting = String(setup.options['missing'] ?? 'listwise')
+const itemSampleClause = missingSetting === 'listwise'
+  ? 'the listwise estimation sample (the same N as the model fit)'
+  : "each item's own observed cases (N can vary by item under fiml/mi/pairwise; the model fit itself remains listwise)"
+// appended to note.text: `Item Mean/SD are computed on ${itemSampleClause}.`
+```
+
 **Test — `src/lib/results/buildCbSem.test.ts`:** update the mock `SPEC.tables[2]` (`cfa-loadings`) to
 the merged 12-column set; add `itemStats` to the mock `CbSemResult` `base` (two entries matching the
 existing `cfaLoadings` mock rows, e.g. `{ construct: 'ind60', item: 'x1', mean: 5.05, sd: 0.85, n: 75 }`);
@@ -2258,7 +2271,7 @@ before the fit-indices table — captions provisional until U3-T4's renumbering 
 <table class="apa"><thead><tr><th></th><th>C1</th><th>C2</th><th>C3</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
 <div class="apa-cap"><b>Table 5.</b> Discriminant validity (HTMT)</div>
 <table class="apa"><thead><tr><th></th><th>C1</th><th>C2</th><th>C3</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-<p class="tbl-note">Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup. &radic;AVE (italic) sits on the Fornell&ndash;Larcker diagonal; off-diagonal correlations carry significance stars (*p&lt;.05, **p&lt;.01, ***p&lt;.001). HTMT &lt; .85 is the primary discriminant-validity criterion.</p>
+<p class="tbl-note">Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup. &radic;AVE (italic) sits on the Fornell&ndash;Larcker diagonal; off-diagonal correlations carry significance stars (*p&lt;.05, **p&lt;.01, ***p&lt;.001). HTMT &le; .85 is the primary discriminant-validity criterion.</p>
 ```
 
 **Registry — `cbSem.ts`:** add two new `TableSpec` entries (matrix tables carry no `columns`, matching
@@ -2412,6 +2425,29 @@ if (isMerged) {
 R² note: append `note.text` (or a new labelled note once U3-T5 lands) with one line per endogenous
 construct, e.g. `R²(dem60) = .20, R²(dem65) = .97` — built from `r.rsquare` keyed by construct id, joined
 against `r.structural`'s `toName`s for display names.
+
+**Disclosure rendering:** when any moderation row carries a `disclosure` (the unequal-indicator-counts
+note from U2-T4), append it under Table 5 as its own note line (folded into U3-T5's labelled notes once
+that task lands — same pattern as the R² line above):
+```ts
+const disclosures = (r.moderation?.rows ?? []).map((row) => row.disclosure).filter((d): d is string => !!d)
+if (disclosures.length) {
+  // appended to note.text, one line, de-duplicated (every moderation with unequal counts shares the same fixed text):
+  // Array.from(new Set(disclosures)).join(' ')
+}
+```
+
+**Andrews & Buchinsky bootstrap-count disclosure:** when Table 5 is shown with BC columns (i.e.
+`rows.length` above is non-empty) and the run used fewer than 7,000 resamples, append a note advising the
+publication-grade preset — BC (bias-corrected, non-accelerated) CIs are more resample-hungry than
+percentile CIs, and 5,000 (this app's default) is adequate but not ideal for a final, citable run:
+```ts
+const nboot = Number(setup.options['nboot'] ?? 5000)
+if (rows.length && nboot < 7000) {
+  // appended to note.text:
+  // 'Bias-corrected CIs benefit from ≥7,000 resamples (Andrews & Buchinsky, 2000); consider the 10,000 publication-grade preset for final runs.'
+}
+```
 
 **Test — `buildCbSem.test.ts`:** update the mock `SPEC` for the merged `structural-paths` columns; add
 `ciPercLower/Upper`/`ciBcLower/Upper` to the mock `structural`/`indirect` rows; add a `moderation` block
@@ -2573,7 +2609,8 @@ const notes: CardContent['notes'] = saturated
       { label: 'Moderation', text: 'Moderation adds an interaction row to Table 5 when a moderation edge is drawn on the canvas; simple slopes are reported in the conditional-effects table.' },
     ]
 ```
-(the final bullet REPLACES the old "Moderation is planned for a later version" sentence — content is
+(the final bullet REPLACES the old moderation-not-yet-built sentence (see U5-T1 for the exact stale wording
+being retired from the legacy `tableNote` field, if that field survives as a fallback) — content is
 now TRUE per this slice, not merely relabelled; every other bullet is a verbatim clause lift, confirmed
 against `cbSem.ts`'s current `tableNote.text` word-for-word.)
 
@@ -2664,7 +2701,7 @@ than silently pulled in scope.
 
 ---
 
-### Unit 4 — Canvas moderation (4 tasks)
+## Unit 4 — Canvas moderation (4 tasks)
 
 ### Task 4.1 — `moderations` state model, serialization, deterministic ordering
 
@@ -2748,8 +2785,10 @@ Run it (`npx vitest run src/state/session.test.ts`) — fails: `addModeration`/`
 
 **GREEN — `src/state/session.ts`:**
 
+`Moderation` already exists (declared beside `StructuralPath` per U2-T4: `export interface Moderation { id:
+number; moderatorId: number; pathIndex: number }`) — reference it, do not redeclare:
+
 ```ts
-export interface Moderation { id: number; moderatorId: number; pathIndex: number }
 export interface TestSetup {
   roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>
   blocked: string | null; constructs?: Construct[]; paths?: StructuralPath[]
@@ -2834,7 +2873,8 @@ become clickable in Draw mode (today they render `mode === 'delete'`-only).
 **Design (plans against the X3-landed base — `NODE_W`/`NODE_H`/`ITEM_W`/`ITEM_H`/`latentBounds`/`itemGeom`/
 `itemSide(cx, minCx, maxCx)` are exported/available exactly as in `benjie-wip-semcanvas-export-fit`):**
 
-- `SemCanvasUIProps` gains: `moderations: Moderation[]`, `onAddModeration(moderatorId: number, pathIndex: number): void`.
+- `SemCanvasUIProps` gains: `moderations: Moderation[]`, `onAddModeration(moderatorId: number, pathIndex: number): void`,
+  `onRemoveModeration(id: number): void`.
 - `pending: number | null` (existing) is reused as the moderator-candidate too: after clicking a construct in
   Draw mode, the user can complete the gesture EITHER by clicking another node (existing path gesture) OR a
   path midpoint (new moderation gesture) — whichever comes first wins; there is no separate "mode" toggle.
@@ -2846,6 +2886,10 @@ become clickable in Draw mode (today they render `mode === 'delete'`-only).
   midpoint of `paths[m.pathIndex]`, `stroke="var(--accent)"`, `strokeDasharray="6 4"`, its own arrowhead marker
   `sem-arrow-mod` (accent-colored, mirrors `sem-arrow`). Post-run, annotate with the interaction β from the
   NEW `estimates.moderation` overlay field (mirrors the existing `sem-path-label` pattern).
+- Deletable, like structural paths: in `mode === 'delete'`, each moderation arrow gets its own small midpoint
+  handle (`class="sem-mod-delete-target"`, at the arrow's own midpoint — distinct from the path midpoint
+  handle it originates from), clicking it calls `onRemoveModeration(m.id)`. This mirrors the existing
+  path-delete handle exactly, just keyed by moderation id instead of path index.
 
 **RED — append to `src/components/SemCanvas.test.tsx`:**
 
@@ -2884,11 +2928,22 @@ describe('SemCanvasUI — moderation edges (dashed clay arrows)', () => {
     const html = renderLatent({ mode: 'draw' })
     expect(html).not.toContain('class="sem-mod-target"')
   })
+
+  it('delete mode renders a clickable midpoint handle on each moderation arrow', () => {
+    const html = renderLatent({ moderations, mode: 'delete' })
+    expect((html.match(/class="sem-mod-delete-target"/g) ?? []).length).toBe(1)
+  })
+
+  it('draw mode renders no moderation-delete handles (delete-only affordance)', () => {
+    const html = renderLatent({ moderations, mode: 'draw' })
+    expect(html).not.toContain('sem-mod-delete-target')
+  })
 })
 ```
 
-Add `moderations={[]}` and `onAddModeration={noop}` to the `renderLatent` default props block (required prop —
-compile fails otherwise, which is the first RED signal before the markup assertions).
+Add `moderations={[]}`, `onAddModeration={noop}` and `onRemoveModeration={noop}` to the `renderLatent`
+default props block (required props — compile fails otherwise, which is the first RED signal before the
+markup assertions).
 
 **GREEN — `src/components/SemCanvas.tsx` (SemCanvasUI additions):**
 
@@ -2897,6 +2952,7 @@ export interface SemCanvasUIProps {
   // ...unchanged fields...
   moderations: Moderation[]
   onAddModeration(moderatorId: number, pathIndex: number): void
+  onRemoveModeration(id: number): void
 }
 ```
 
@@ -2959,6 +3015,15 @@ ovals visually but over the plain structural lines is fine either order — dash
         stroke="var(--accent)" strokeWidth={2} strokeDasharray="6 4"
         markerEnd="url(#sem-arrow-mod)"
       />
+      {mode === 'delete' && (
+        <circle
+          className="sem-mod-delete-target"
+          cx={(modC.cx + mx) / 2} cy={(modC.cy + my) / 2} r={9}
+          fill="var(--card)" stroke="var(--accent)"
+          style={{ cursor: 'pointer' }}
+          onClick={() => onRemoveModeration(m.id)}
+        />
+      )}
       {beta != null && (
         <text
           className="sem-mod-label"
@@ -2993,6 +3058,7 @@ test above can pass with a hand-built `estimates` object.)
 ```tsx
 moderations={setup.moderations ?? []}
 onAddModeration={(moderatorId, pathIndex) => s.addModeration(testId, moderatorId, pathIndex)}
+onRemoveModeration={(id) => s.removeModeration(testId, id)}
 ```
 
 **Store wiring test** — append to `src/components/SemCanvas.wiring.test.tsx`:
@@ -3179,112 +3245,159 @@ the fixture setup steps are filled in against the real e2e harness helpers alrea
 
 ### Task 4.4 — Config → runner routing (moderations reach `runCbSem`'s `buildModel`; forced-ML)
 
-**Goal:** `setup.moderations` must actually reach the CB-SEM WebR runner and produce a fittable lavaan model:
-double-mean-centered product indicators via `semTools::indProd` (matched when the source/moderator item
-counts are equal, all-products when unequal, per the spike's ruling — not a UI block, a branch), an
-interaction latent construct, and `:=` simple-slope definitions, all inside the SAME single bootstrap fit
-(no re-fitting, no RNG chunking — preserves WebR≡native parity per Global Constraints).
+**Goal:** `setup.moderations` must actually reach the CB-SEM WebR runner and produce a fittable lavaan model.
+U2-T4/T5 already designed and native-R-verified that model (interaction construct `INT_<id>`, labels
+`pint_<id>`=interaction / `pmod_<id>`=moderator main effect / `vmod_<mod.id>`, moderator main-effect
+AUTO-INJECTED, `:=` simple slopes) — this task does NOT re-derive that math. It (a) extracts U2-T4's inline
+guard checks + moderation-line assembly + indProd R snippet out of `buildModel` into a shared, pure module
+`src/lib/stats/moderationModel.ts` (so the SAME text also feeds the `cb-sem` R-script emitter in Task 5.4 —
+export ≡ app, without hand-duplicating the recipe in two files), with `buildModel` delegating to it; and (b)
+wires the actual config→runner routing: `setup.moderations` reaching `buildModel`, the WebR env fields, the
+bootstrap-branch widening (`needsBootstrap = hasIndirect || hasModeration`), the `^ie_` label-filter fix, and
+the (already-true) forced-ML note.
 
 **Files (NEW):** `src/lib/stats/moderationModel.ts`, `src/lib/stats/moderationModel.test.ts`.
-**Files (edited):** `src/lib/stats/runCbSem.ts`, `src/lib/stats/runCbSem.test.ts`.
+**Files (edited):** `src/lib/stats/runCbSem.ts` (delegate + routing), `src/lib/stats/runCbSem.test.ts` (slim
+wiring test only — U2-T6 already owns the full native-R-verified precision assertions; this task does not
+duplicate them).
 
-**Shared R-builder module — `src/lib/stats/moderationModel.ts` (pure, no WebR dependency, unit-tested directly):**
+**Shared module — `src/lib/stats/moderationModel.ts` (pure, no WebR dependency; a literal extraction of
+U2-T4/T5's already-native-R-verified code, not a rewrite):**
 
 ```ts
-import type { Construct, StructuralPath } from '../../state/session'
+import type { Construct, StructuralPath, Moderation } from '../../state/session'
 
-export interface ModerationSpec { id: number; moderatorId: number; pathIndex: number }
-
-export interface ModerationEnv {
-  mod_src_items_flat: string[]; mod_src_items_lens: number[]
-  mod_mod_items_flat: string[]; mod_mod_items_lens: number[]
-  mod_match: boolean[]
-  mod_int_names: string[]
-  mod_path_labels: string[]
-  mod_var_labels: string[]
-  mod_moderator_names: string[]
-  mod_target_names: string[]
-  mod_slope_lo_labels: string[]; mod_slope_mid_labels: string[]; mod_slope_hi_labels: string[]
-  mod_base_path_labels: string[]
-  anyUnequal: boolean
+export interface ModerationDef {
+  id: number; moderatorName: string; pathLabel: string; matched: boolean
+  intLabel: string; modLabel: string; varLabel: string; pathLabel_: string
+  var1: string[]; var2: string[]
 }
 
-/** Deterministic labels/env for the moderation R block (shared by runCbSem.ts and the cb-sem R-script
- *  emitter — export ≡ app). rNameOf must be the SAME sanitizer both call sites already use (lvNames). */
-export function buildModerationEnv(
-  moderations: ModerationSpec[],
+/** Guards from U2-T4 (design §A7): no self-moderation, no duplicate, not in path-analysis (observed-only)
+ *  mode. SAME error messages `buildModel` already threw inline — moved here verbatim. */
+export function validateModerations(moderations: Moderation[], paths: StructuralPath[], isPath: boolean): void {
+  for (const mod of moderations) {
+    const path = paths[mod.pathIndex]
+    if (!path) throw new Error(`Moderation references paths[${mod.pathIndex}], which does not exist.`)
+    if (mod.moderatorId === path.from || mod.moderatorId === path.to) {
+      throw new Error('A construct cannot moderate a path it is already the source or target of.')
+    }
+  }
+  if (isPath && moderations.length) {
+    throw new Error('Latent moderation is not available in path-analysis (observed-only) mode.')
+  }
+  const seen = new Set<string>()
+  for (const mod of moderations) {
+    const key = `${mod.moderatorId}:${mod.pathIndex}`
+    if (seen.has(key)) throw new Error('Duplicate moderation: the same moderator already moderates this path.')
+    seen.add(key)
+  }
+}
+
+/** Per-moderation model lines — U2-T4's interaction construct + auto-injected moderator main effect, plus
+ *  U2-T5's `:=` simple-slope defined parameters. Moved verbatim out of `buildModel`'s inline loop so the
+ *  SAME text is available to the `cb-sem` R-script emitter (Task 5.4). `targetLineExtras` is keyed by
+ *  `pathIndex` — the CALLER (`buildModel`, which already has the base structural lines in scope) splices
+ *  each extra onto its own existing target line, exactly as U2-T4 did inline. */
+export function buildModerationLines(
   constructs: Construct[],
   paths: StructuralPath[],
   rNameOf: (id: number) => string,
-): ModerationEnv {
+  moderations: Moderation[],
+): { lines: string[]; moderationDefs: ModerationDef[]; targetLineExtras: Map<number, string> } {
   const byId = new Map(constructs.map((c) => [c.id, c]))
-  const varLabelByModerator = new Map<number, string>()
-  const env: ModerationEnv = {
-    mod_src_items_flat: [], mod_src_items_lens: [], mod_mod_items_flat: [], mod_mod_items_lens: [],
-    mod_match: [], mod_int_names: [], mod_path_labels: [], mod_var_labels: [], mod_moderator_names: [],
-    mod_target_names: [], mod_slope_lo_labels: [], mod_slope_mid_labels: [], mod_slope_hi_labels: [],
-    mod_base_path_labels: [], anyUnequal: false,
+  const lines: string[] = []
+  const moderationDefs: ModerationDef[] = []
+  const targetLineExtras = new Map<number, string>()
+  for (const mod of moderations) {
+    const path = paths[mod.pathIndex]
+    const source = byId.get(path.from)!
+    const target = byId.get(path.to)!
+    const moderator = byId.get(mod.moderatorId)!
+    const matched = source.items.length === moderator.items.length
+    const intName = `INT_${mod.id}`
+    const modLabel = `pmod_${mod.id}`
+    const intLabel = `pint_${mod.id}`
+    const varLabel = `vmod_${mod.id}`
+
+    const prodNames = matched
+      ? source.items.map((it, i) => `${it}.${moderator.items[i]}`)
+      : source.items.flatMap((a) => moderator.items.map((b) => `${a}.${b}`))
+    lines.push(`${intName} =~ ${prodNames.join(' + ')}`)
+
+    const alreadyPredicts = paths.some((p) => p.from === mod.moderatorId && p.to === path.to)
+    const extra = (alreadyPredicts ? '' : ` + ${modLabel}*${rNameOf(mod.moderatorId)}`) + ` + ${intLabel}*${intName}`
+    targetLineExtras.set(mod.pathIndex, (targetLineExtras.get(mod.pathIndex) ?? '') + extra)
+    lines.push(`${rNameOf(mod.moderatorId)} ~~ ${varLabel}*${rNameOf(mod.moderatorId)}`)
+
+    const pathLabel_ = `p_${path.from}_${path.to}`
+    lines.push(`slope_lo_${mod.id}  := ${pathLabel_} - ${intLabel}*sqrt(${varLabel})`)
+    lines.push(`slope_mid_${mod.id} := ${pathLabel_}`)
+    lines.push(`slope_hi_${mod.id}  := ${pathLabel_} + ${intLabel}*sqrt(${varLabel})`)
+
+    moderationDefs.push({
+      id: mod.id, moderatorName: moderator.name, pathLabel: `${source.name} → ${target.name}`,
+      matched, intLabel, modLabel, varLabel, pathLabel_, var1: source.items, var2: moderator.items,
+    })
   }
-  for (const m of moderations) {
-    const p = paths[m.pathIndex]
-    const source = byId.get(p.from)!, moderator = byId.get(m.moderatorId)!, target = byId.get(p.to)!
-    const match = source.items.length === moderator.items.length
-    if (!match) env.anyUnequal = true
-    env.mod_src_items_flat.push(...source.items); env.mod_src_items_lens.push(source.items.length)
-    env.mod_mod_items_flat.push(...moderator.items); env.mod_mod_items_lens.push(moderator.items.length)
-    env.mod_match.push(match)
-    env.mod_int_names.push(`${rNameOf(source.id)}X${rNameOf(moderator.id)}_${m.id}`)
-    env.mod_path_labels.push(`pmod_${m.id}`)
-    if (!varLabelByModerator.has(moderator.id)) varLabelByModerator.set(moderator.id, `vmod_${moderator.id}`)
-    env.mod_var_labels.push(varLabelByModerator.get(moderator.id)!)
-    env.mod_moderator_names.push(rNameOf(moderator.id))
-    env.mod_target_names.push(rNameOf(target.id))
-    env.mod_slope_lo_labels.push(`slope_lo_${m.id}`)
-    env.mod_slope_mid_labels.push(`slope_mid_${m.id}`)
-    env.mod_slope_hi_labels.push(`slope_hi_${m.id}`)
-    env.mod_base_path_labels.push(`p_${source.id}_${target.id}`)
-  }
-  return env
+  return { lines, moderationDefs, targetLineExtras }
 }
 
-/** The R statements that consume ModerationEnv: indProd per moderation (chained onto `d`), splice the
- *  interaction measurement + structural + variance-label + `:=` slope lines into `model_str`. Runs
- *  BEFORE the `sem()` call, AFTER `d`/`model_str` are bound. Guarded by `has_moderation` at the call site
- *  (no-op string when moderations is empty — never emitted). IDENTICAL text feeds runCbSem.ts's R_STATS
- *  and the cb-sem R-script emitter (export ≡ app) — this is the ONE place this text is written. */
-export const MODERATION_R = String.raw`
-if (has_moderation) {
-  n_mod <- length(mod_int_names)
-  src_start <- 1L; mmod_start <- 1L
-  seen_var_labels <- character(0)
-  for (mi in seq_len(n_mod)) {
-    src_len <- mod_src_items_lens[mi]; mmod_len <- mod_mod_items_lens[mi]
-    src_items <- mod_src_items_flat[src_start:(src_start + src_len - 1L)]; src_start <- src_start + src_len
-    mmod_items <- mod_mod_items_flat[mmod_start:(mmod_start + mmod_len - 1L)]; mmod_start <- mmod_start + mmod_len
-    pi <- semTools::indProd(d, var1 = src_items, var2 = mmod_items,
-                             match = mod_match[mi], meanC = TRUE, doubleMC = TRUE)
-    prod_cols <- setdiff(names(pi), names(d))
-    d <- pi
-    model_str <- paste0(model_str, "\n", mod_int_names[mi], " =~ ", paste(prod_cols, collapse = " + "))
-    model_str <- paste0(model_str, "\n", mod_target_names[mi], " ~ ", mod_path_labels[mi], "*", mod_int_names[mi])
-    if (!(mod_var_labels[mi] %in% seen_var_labels)) {
-      model_str <- paste0(model_str, "\n", mod_moderator_names[mi], " ~~ ", mod_var_labels[mi], "*", mod_moderator_names[mi])
-      seen_var_labels <- c(seen_var_labels, mod_var_labels[mi])
-    }
-    model_str <- paste0(model_str,
-      "\n", mod_slope_lo_labels[mi],  " := ", mod_base_path_labels[mi], " - ", mod_path_labels[mi], "*sqrt(", mod_var_labels[mi], ")",
-      "\n", mod_slope_mid_labels[mi], " := ", mod_base_path_labels[mi],
-      "\n", mod_slope_hi_labels[mi],  " := ", mod_base_path_labels[mi], " + ", mod_path_labels[mi], "*sqrt(", mod_var_labels[mi], ")")
+/** The indProd() data-prep block ONLY — no model-string assembly (the model text, including the moderation
+ *  lines above, is already fully assembled TS-side by `buildModel` before this ever runs; R just needs to
+ *  build the product-indicator columns before the fit). Consumes the flattened env arrays below; identical
+ *  text feeds `runCbSem.ts`'s R_STATS and the cb-sem R-script emitter (export ≡ app). */
+export const INDPROD_R = String.raw`
+if (length(mod_ids) > 0) {
+  suppressMessages(library(semTools))
+  v1_start <- 1L; v2_start <- 1L
+  for (mi in seq_along(mod_ids)) {
+    v1 <- mod_var1_flat[v1_start:(v1_start + mod_var1_lens[mi] - 1L)]; v1_start <- v1_start + mod_var1_lens[mi]
+    v2 <- mod_var2_flat[v2_start:(v2_start + mod_var2_lens[mi] - 1L)]; v2_start <- v2_start + mod_var2_lens[mi]
+    d <- indProd(d, var1 = v1, var2 = v2, match = as.logical(mod_matched[mi]), meanC = TRUE, doubleMC = TRUE)
   }
 }
 `
+
+/** Flattens ModerationDef[] into the R env arrays INDPROD_R consumes — same flattening convention as
+ *  `item_cols_flat` elsewhere in this file. Shared by `runCbSem.ts`'s WebR env object and `latent.ts`'s
+ *  literal R-vector emission (Task 5.4). */
+export function moderationIndProdEnv(defs: ModerationDef[]) {
+  return {
+    mod_ids: defs.map((d) => d.id),
+    mod_var1_flat: defs.flatMap((d) => d.var1), mod_var1_lens: defs.map((d) => d.var1.length),
+    mod_var2_flat: defs.flatMap((d) => d.var2), mod_var2_lens: defs.map((d) => d.var2.length),
+    mod_matched: defs.map((d) => d.matched),
+  }
+}
 ```
 
-**RED — `src/lib/stats/moderationModel.test.ts`:**
+**`buildModel` delegates (U2-T4's function, `runCbSem.ts`) — the ONLY change to its body; signature, return
+shape (`{ model, hasIndirect, indirectDefs, moderationDefs }`), and every test U2-T4/T5/T6 already wrote keep
+passing UNMODIFIED, since the guard messages, label scheme, and generated model text are byte-identical to
+what those tasks native-R-verified — this is a pure refactor, not new behavior:**
+
+```ts
+// Replaces buildModel's own inline guard checks + moderation loop (as originally drafted in U2-T4) with:
+validateModerations(moderations, paths, isPath)
+const { lines: modLines, moderationDefs, targetLineExtras } = buildModerationLines(constructs, paths, rNameOf, moderations)
+for (const [pathIndex, extra] of targetLineExtras) {
+  const path = paths[pathIndex]
+  const targetLineIdx = lines.findIndex((l) => l.startsWith(`${rNameOf(path.to)} ~ `))
+  lines[targetLineIdx] += extra
+}
+lines.push(...modLines)
+```
+
+**RED — `src/lib/stats/moderationModel.test.ts`** (new file; tests the EXTRACTED functions directly. This
+SUPERSEDES the guard/naming assertions U2-T4 drafted inline in `runCbSem.moderation.test.ts` — since those
+assertions now exercise `buildModel`'s unchanged PUBLIC behavior via this shared module, do not keep two
+copies of the same assertion; if U2-T4's own test file duplicates what's below, delete the duplicate there,
+keeping `buildModel`'s black-box behavioral tests and moving the guard/naming internals here):
 
 ```ts
 import { describe, it, expect } from 'vitest'
-import { buildModerationEnv } from './moderationModel'
+import { validateModerations, buildModerationLines, moderationIndProdEnv } from './moderationModel'
 import { lvNames } from './lvName'
 import type { Construct, StructuralPath } from '../../state/session'
 
@@ -3293,293 +3406,162 @@ const constructs: Construct[] = [
   { id: 2, name: 'TA', items: ['ta1', 'ta2', 'ta3', 'ta4'] },
   { id: 3, name: 'TI', items: ['ti1', 'ti2', 'ti3'] },
 ]
-const paths: StructuralPath[] = [{ from: 1, to: 3 }, { from: 2, to: 3 }]
+const paths: StructuralPath[] = [{ from: 1, to: 3 }]
 const rNameOf = (id: number) => { const names = lvNames(constructs.map((c) => c.name)); return names[constructs.findIndex((c) => c.id === id)] }
 
-describe('buildModerationEnv', () => {
-  it('flags match=TRUE for equal source/moderator item counts (SN 4 items, TA 4 items)', () => {
-    const env = buildModerationEnv([{ id: 1, moderatorId: 2, pathIndex: 0 }], constructs, paths, rNameOf)
-    expect(env.mod_match).toEqual([true])
-    expect(env.anyUnequal).toBe(false)
+describe('validateModerations (moved from buildModel, same messages — see U2-T4 for the full guard matrix)', () => {
+  it('throws on self-moderation and on path-analysis mode', () => {
+    expect(() => validateModerations([{ id: 1, moderatorId: 1, pathIndex: 0 }], paths, false)).toThrow(/source or target/)
+    expect(() => validateModerations([{ id: 1, moderatorId: 2, pathIndex: 0 }], paths, true)).toThrow(/path-analysis/)
+  })
+})
+
+describe('buildModerationLines + moderationIndProdEnv', () => {
+  it('produces the same INT_<id>/pint_<id>/pmod_<id>/vmod_<id> labels U2-T4/T5 already native-R-verified', () => {
+    const { lines, moderationDefs } = buildModerationLines(constructs, paths, rNameOf, [{ id: 1, moderatorId: 2, pathIndex: 0 }])
+    expect(lines).toContain('INT_1 =~ sn1.ta1 + sn2.ta2 + sn3.ta3 + sn4.ta4')
+    expect(lines).toContain('slope_lo_1  := p_1_3 - pint_1*sqrt(vmod_1)')
+    expect(moderationDefs[0].matched).toBe(true)
   })
 
-  it('flags match=FALSE when item counts differ (moderator TA truncated to 3 items)', () => {
-    const uneq = [{ ...constructs[1], items: ['ta1', 'ta2', 'ta3'] }, constructs[0], constructs[2]]
-    const env = buildModerationEnv([{ id: 1, moderatorId: 2, pathIndex: 0 }], uneq, paths, rNameOf)
-    expect(env.mod_match).toEqual([false])
-    expect(env.anyUnequal).toBe(true)
-  })
-
-  it('assigns deterministic, unique labels per moderation id', () => {
-    const env = buildModerationEnv([{ id: 1, moderatorId: 2, pathIndex: 0 }], constructs, paths, rNameOf)
-    expect(env.mod_int_names).toEqual(['SNXTA_1'])
-    expect(env.mod_path_labels).toEqual(['pmod_1'])
-    expect(env.mod_base_path_labels).toEqual(['p_1_3'])   // existing direct-path label scheme (source=1, target=3)
-    expect(env.mod_slope_lo_labels).toEqual(['slope_lo_1'])
-    expect(env.mod_slope_mid_labels).toEqual(['slope_mid_1'])
-    expect(env.mod_slope_hi_labels).toEqual(['slope_hi_1'])
-  })
-
-  it('dedupes the moderator variance label across two moderations sharing the same moderator', () => {
-    const twoPaths: StructuralPath[] = [{ from: 1, to: 3 }, { from: 2, to: 3 }]
-    const env = buildModerationEnv(
-      [{ id: 1, moderatorId: 2, pathIndex: 0 }, { id: 2, moderatorId: 2, pathIndex: 1 }],
-      constructs, twoPaths, rNameOf,
-    )
-    // Both moderations share moderator TA (id=2) -> SAME var label so the R block only emits `TA ~~ vmod_2*TA` once.
-    expect(env.mod_var_labels).toEqual(['vmod_2', 'vmod_2'])
+  it('moderationIndProdEnv flattens var1/var2 with the item_cols_flat convention', () => {
+    const { moderationDefs } = buildModerationLines(constructs, paths, rNameOf, [{ id: 1, moderatorId: 2, pathIndex: 0 }])
+    const env = moderationIndProdEnv(moderationDefs)
+    expect(env.mod_var1_flat).toEqual(['sn1', 'sn2', 'sn3', 'sn4'])
+    expect(env.mod_matched).toEqual([true])
   })
 })
 ```
 
-**GREEN:** implement `moderationModel.ts` as spec'd above; this file has no WebR dependency so runs under
-`test:fast` (fast feedback) as well as the WebR suite.
+**GREEN:** implement `moderationModel.ts` as spec'd above (a literal extraction — no new model math); runs
+under `test:fast` (no WebR dependency).
 
-**Wire into `runCbSem.ts`:**
-
-```ts
-import { buildModerationEnv, MODERATION_R } from './moderationModel'
-
-// Append MODERATION_R to R_STATS's model-assembly section (between `d` construction and the
-// set.seed()/sem() fit call) — a single string concatenation, gated by the `has_moderation` env boolean
-// (false/empty moderations -> the if-block never executes, byte-identical to today for the other 47 tests).
-```
-
-Inside `runCbSem()`, after `buildModel(...)`:
+**Config → runner routing (this task's actual job):**
 
 ```ts
+import { validateModerations, buildModerationLines, moderationIndProdEnv, INDPROD_R } from './moderationModel'
+
+// Inside runCbSem(), after buildModel(...) (validateModerations/buildModerationLines already ran INSIDE
+// buildModel per the delegation above — this call site only adds the config-level WLSMV guard):
 const moderations = setup.moderations ?? []
 const hasModeration = moderations.length > 0
-const modEnv = buildModerationEnv(moderations, constructs, paths, rNameOf)
+if (hasModeration && String(setup.options['estimator'] ?? 'ML') === 'WLSMV') {
+  throw new Error('Latent moderation requires an ML-family estimator (ML or MLR); switch off WLSMV or remove the moderation edge.')
+}
 ```
 
-Add `hasModeration`/`modEnv.*` fields to the `env` object passed to `engine.runJson`, and change the
-bootstrap-vs-plain fit branch from `has_indirect` to `has_indirect || has_moderation` (moderation ALWAYS
-needs its own bootstrap SEs/CIs regardless of whether a mediation chain also exists — "FORCES ML + bootstrap
-SE" per spec; lavaan's default `sem()` call already IS ML since no `estimator=`/`ordered=` argument is ever
-passed, so "forced ML" costs nothing further here — it is the ALREADY-true default, made explicit by a
-comment so a future WLSMV implementation does not accidentally reach a moderation model):
+`env` fields passed to `engine.runJson` (flattened via `moderationIndProdEnv(moderationDefs)`, where
+`moderationDefs` is returned alongside `model`/`hasIndirect`/`indirectDefs` from `buildModel`):
+
+```ts
+...moderationIndProdEnv(moderationDefs), has_moderation: hasModeration,
+```
+
+Bootstrap branch widened — moderation ALWAYS bootstraps regardless of whether a mediation chain also exists
+("forces ML + bootstrap SE" per spec; lavaan's default `sem()` call already IS ML since no `estimator=`/
+`ordered=` argument is ever passed, so "forced ML" costs nothing further here — it is the ALREADY-true
+default, made explicit by a comment so a future WLSMV implementation does not accidentally reach a
+moderation model):
 
 ```ts
 const needsBootstrap = hasIndirect || hasModeration
-// ... env.has_indirect renamed conceptually but kept as `has_indirect` for the existing := indirect-effects
-// extraction; add a SEPARATE has_moderation boolean rather than overloading has_indirect, since moderation's
-// := rows (slope_lo/mid/hi) must NOT be swept into the existing ie_*-prefixed indirect-effects table.
+// has_moderation is a SEPARATE env boolean from has_indirect — moderation's := rows (slope_lo/mid/hi)
+// must NOT be swept into the existing ie_*-prefixed indirect-effects table.
 ```
 
-R_STATS changes (inline, right after `d` is assembled, before `set.seed(20260620)`):
+R_STATS: splice `INDPROD_R` once, right after `d` is assembled and BEFORE `set.seed(20260620)` — the model
+text itself (`model_str`) already contains the moderation lines via `buildModel`'s TS-side assembly, so R
+only runs `indProd()` before the fit, never rebuilds the model string:
 
 ```r
-${MODERATION_R}
+${INDPROD_R}
 ```
 
-(the R text imported as a constant and spliced via template literal into `R_STATS`; guard: `if (has_indirect || has_moderation) { fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = ...) } else { ... }` — unchanged branch condition source, just widened).
-
-Also fix the `:=` label filter so moderation slope rows never leak into `indirect_rows` (they share
+Fix the `:=` label filter so moderation slope rows never leak into `indirect_rows` (they share
 `pe$op == ":="` with the existing `ie_*` labels): change the indirect-extraction index from
 `which(pe$op == ":=")` to `which(pe$op == ":=" & grepl("^ie_", pe$lhs))`.
 
-**RED (native-R-verified) — append to `src/lib/stats/runCbSem.test.ts`:**
+**RED — slim verification test, append to `src/lib/stats/runCbSem.test.ts`.** This task introduces NO new
+model math — U2-T6 already native-R-verified the full matched + unequal-counts pipelines end to end.
+Re-deriving a second full-precision integration test here would just re-test U2-T6 with a second,
+easily-drifting set of reference numbers. This test instead proves ONLY the config-routing wiring, reusing
+U2-T6's own setup/fixture/reference values verbatim:
 
 ```ts
-import { loadCsvFixture } from './csvFixture'
-import { join } from 'node:path'
-
-// Reference: docs/superpowers/reviews/2026-07-06-moderation-spike.md §2 (matched model, bootstrap=500,
-// seed=20260706) — SN/TA/TI, n=400, real interaction baked into the DGP. Fixture copied to
-// tests/e2e/fixtures/sem-moderation.csv (Task 5.5 commits the copy; this test reads the SAME file).
-const MOD_SETUP: TestSetup = {
-  roles: {}, options: { estimator: 'ML', nboot: 500 }, props: {}, blocked: null, modelKind: 'latent',
-  constructs: [
-    { id: 1, name: 'SN', items: ['sn1', 'sn2', 'sn3', 'sn4'] },
-    { id: 2, name: 'TA', items: ['ta1', 'ta2', 'ta3', 'ta4'] },
-    { id: 3, name: 'TI', items: ['ti1', 'ti2', 'ti3'] },
-  ],
-  paths: [{ from: 1, to: 3 }, { from: 2, to: 3 }],
-  moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }],   // TA moderates SN→TI
-}
-
-describe('runCbSem — latent moderation (matched, native-R-verified)', () => {
-  it('interaction path (TI ~ SNTA) matches the spike reference values exactly', async () => {
+// SAME setup + fixture + reference values as U2-T6's `runCbSem.moderation.integration.test.ts` —
+// deliberately not re-derived. Exists to prove config-routing wiring (setup.moderations -> buildModel ->
+// env -> back), not to re-verify the model math a second time. If this duplicates a U2-T6 assertion
+// byte-for-byte, prefer deleting the redundant one there over keeping two copies.
+describe('runCbSem — moderation config routing (wiring only; math already verified in U2-T6)', () => {
+  it('setup.moderations reaches buildModel and produces the SAME pint_1 estimate U2-T6 verified', async () => {
     const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/sem-moderation.csv'))
-    const result = await runCbSem(engine, data, MOD_SETUP)
-    const row = result.moderation!.rows[0]
-    expect(row.b).toBeCloseTo(0.25819002, 5)
-    expect(row.se).toBeCloseTo(0.06567043, 5)
-    expect(row.z).toBeCloseTo(3.93160231, 4)
-    expect(row.p).toBeCloseTo(0.00008438, 6)
-    expect(row.ciPercLower).toBeCloseTo(0.13214640, 4)
-    expect(row.ciPercUpper).toBeCloseTo(0.40561818, 4)
-    expect(row.stdBeta).toBeCloseTo(0.23155625, 4)
-  })
-
-  it('simple slopes at -1SD/mean/+1SD of TA match the spike reference values exactly', async () => {
-    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/sem-moderation.csv'))
-    const result = await runCbSem(engine, data, MOD_SETUP)
-    const [lo, mid, hi] = result.moderation!.slopes
-    expect(lo.b).toBeCloseTo(0.258827, 4); expect(lo.ciLower).toBeCloseTo(0.129549, 3); expect(lo.ciUpper).toBeCloseTo(0.395864, 3)
-    expect(mid.b).toBeCloseTo(0.465867, 4); expect(mid.ciLower).toBeCloseTo(0.359732, 3); expect(mid.ciUpper).toBeCloseTo(0.579842, 3)
-    expect(hi.b).toBeCloseTo(0.672907, 4); expect(hi.ciLower).toBeCloseTo(0.523766, 3); expect(hi.ciUpper).toBeCloseTo(0.855240, 3)
-  })
-
-  it('indirect effects (ie_* labels) are unaffected by moderation slope defs sharing op==":="', () => {
-    // With no chained X->M->Y in MOD_SETUP, indirect stays undefined — proves the ^ie_ filter
-    // doesn't accidentally pick up slope_lo/mid/hi as "indirect effects".
-    // (a chained-plus-moderation fixture is exercised in the runs-in-r gate, Task 5.5)
+    const result = await runCbSem(engine, data, SETUP)   // U2-T6's SETUP (matched, moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }])
+    expect(result.moderation!.rows[0].b).toBeCloseTo(0.25819002, 4)   // pint_1, U2-T6's own reference value
   })
 })
-```
-
-Copy the spike CSV into the e2e fixtures dir now (needed by this test, not just Task 5.5's emitter gate):
-
-```bash
-cp .superpowers/sdd/spike-moderation-data.csv tests/e2e/fixtures/sem-moderation.csv
 ```
 
 **Verify:** `npx vitest run src/lib/stats/moderationModel.test.ts` (fast). `npx vitest run src/lib/stats/runCbSem.test.ts`
 (WebR-backed, slow — run in isolation, per repo convention: `--exclude` list already carves this file out of
 `test:fast`). `npx tsc -b`.
 
-**Commit:** `feat(sem): moderation reaches runCbSem — indProd double-mean-centering, interaction construct, := simple slopes (native-R matched)`
+**Commit:** `refactor(sem): extract moderation model-assembly into shared moderationModel.ts; wire config routing (needsBootstrap, ^ie_ filter, WLSMV guard)`
 
 ---
 
-### Unit 5 — A7 reporting + export (5 tasks)
+## Unit 5 — A7 reporting + export (5 tasks)
 
-### Task 5.1 — Table 5 Moderation section rows through `buildCbSem` (H-ids continue)
+### Task 5.1 — Table 5 Moderation section: master-doc markup + consistency test + stale-note retirement
 
-**Goal:** `buildCbSem` renders the interaction-path row(s) under a new "Moderation" `__section` marker in the
-already-merged Table 5 (U3's Direct paths / Indirect effects sections), with H-ids continuing the sequence
-(`structural paths → indirect effects → moderation edges`, all in creation/array order per the Global
-Constraints H-ordering rule) and the SAME Result rule (percentile 95% CI excludes zero).
+**Goal:** There is no runner or builder work left to do here. U2-T4/T5/T6 already wired `CbSemResult.moderation.rows`
+(dual-CI, `stdBeta`, `matched`/`disclosure`) and `.slopes` end to end (native-R-verified), and U3-T3's Table 5
+merge ALREADY renders a "Moderation" `__section` from `r.moderation.rows` using its own single running `h`
+counter (continuing `structural paths → indirect effects → moderation edges`, the Global Constraints
+H-ordering rule) and the SAME Result rule (percentile 95% CI excludes zero) — see U3-T3's builder snippet,
+which already includes the `if (r.moderation?.rows.length) { rows.push({ __section: 'Moderation' }); ... }`
+block. Re-implementing that here (a second runner-R read-back, a second `moderation` type declaration, a
+second builder snippet) would just be a competing, drifting copy of U2/U3's already-verified work. This
+task's ONLY remaining job is bringing the STATIC preview doc and its consistency test in line with what
+U2/U3 already made true, plus retiring one stale sentence.
 
-**Files:** `src/lib/results/buildCbSem.ts`, `src/lib/results/buildCbSem.test.ts`, `src/lib/stats/runCbSem.ts`
-(row shape only), `telos_test_outputs.html` (Moderation section markup), `src/lib/registry/cbSem.consistency.test.ts`
-(assertion additions), `docs/superpowers/reviews/2026-07-06-completeness-audit.md` is NOT touched here (R1's job).
+**Files:** `telos_test_outputs.html` (Moderation-section markup), `src/lib/registry/cbSem.consistency.test.ts`
+(assertion addition), `src/lib/registry/cbSem.ts` (retire the stale sentence — ONLY if U3-T5 kept `tableNote`
+as an inert legacy fallback field per its stated either/or; if U3-T5 removed it entirely, this file needs no
+change here — confirm which before editing). `docs/superpowers/reviews/2026-07-06-completeness-audit.md` is
+NOT touched here (R1's job).
 
-**Runner row shape** (extend the moderation R-extraction in `runCbSem.ts` — this task assumes Task 4.4's
-`MODERATION_R` model-building landed; it adds the READ-BACK of the fitted rows):
+**Master-HTML update:** add a "Moderation" section row + one example interaction row to the CB-SEM card's
+Table 5 in `telos_test_outputs.html`, matching the column set already there (H | Path | B | SE | z | p |
+Std. β | Percentile CI | BC CI | Result) — the consistency test diffs the registry's column *headers*
+against this HTML verbatim, so the header row itself does not change (only the body demonstrates the new
+section, with an `H` value that is simply the next integer after whatever structural/indirect rows precede
+it — no new H-id logic to invent, U3-T3's counter already produces this).
 
-```r
-# ---- Moderation rows (interaction path + slopes) — kept SEPARATE from struct_rows/indirect_rows ----
-mod_rows <- list()
-mod_slopes <- list()
-if (has_moderation) {
-  for (mi in seq_len(length(mod_int_names))) {
-    lbl <- mod_path_labels[mi]
-    gi <- which(ss$op == "~" & ss$rhs == mod_int_names[mi])[1]
-    m  <- which(pe_perc$op == "~" & pe_perc$rhs == mod_int_names[mi])[1]
-    mod_rows[[mi]] <- list(
-      path = paste0(mod_moderator_names[mi], " × ", "(direct path)", " → ", mod_target_names[mi]),
-      b = as.numeric(pe_perc$est[m]), se = as.numeric(pe_perc$se[m]),
-      z = as.numeric(pe_perc$z[m]), p = as.numeric(pe_perc$pvalue[m]),
-      stdBeta = as.numeric(ss$est.std[gi]),
-      ciPercLower = as.numeric(pe_perc$ci.lower[m]), ciPercUpper = as.numeric(pe_perc$ci.upper[m]),
-      ciBcLower = as.numeric(pe_bc$ci.lower[which(pe_bc$op == "~" & pe_bc$rhs == mod_int_names[mi])[1]]),
-      ciBcUpper = as.numeric(pe_bc$ci.upper[which(pe_bc$op == "~" & pe_bc$rhs == mod_int_names[mi])[1]])
-    )
-    for (lv in c("lo", "mid", "hi")) {
-      lvl_label <- get(paste0("mod_slope_", lv, "_labels"))[mi]
-      si <- which(pe_perc$op == ":=" & pe_perc$lhs == lvl_label)[1]
-      mod_slopes[[length(mod_slopes) + 1]] <- list(
-        level = c(lo = "-1SD", mid = "mean", hi = "+1SD")[[lv]],
-        b = as.numeric(pe_perc$est[si]), se = as.numeric(pe_perc$se[si]), p = as.numeric(pe_perc$pvalue[si]),
-        ciLower = as.numeric(pe_perc$ci.lower[si]), ciUpper = as.numeric(pe_perc$ci.upper[si])
-      )
-    }
-  }
-}
-```
-
-(`pe_perc`/`pe_bc` are the dual-CI `parameterEstimates()` calls Task assumed already present from U2 — this
-task only adds the moderation-specific read of them, mirroring the existing `struct_rows`/`indirect_rows`
-extraction style exactly.)
-
-`CbSemResult` gains (append to the interface in `runCbSem.ts`):
+**RED/GREEN — `cbSem.consistency.test.ts`:** add the assertion that the registry text documents the
+Moderation section, so the master doc and the registry stay in lockstep:
 
 ```ts
-moderation?: {
-  rows: Array<Record<string, unknown>>   // same row shape as `structural[]` (dual CI etc.)
-  slopes: Array<{ level: '-1SD' | 'mean' | '+1SD'; b: number; se: number; p: number; ciLower: number; ciUpper: number }>
-}
-```
-
-**RED — `src/lib/results/buildCbSem.test.ts`:**
-
-```ts
-it('Table 5 gets a Moderation section with an H-id continuing after structural + indirect, Result rule applied', () => {
-  const r: CbSemResult = {
-    mode: 'full', saturated: false,
-    cfaLoadings: [], reliability: [],
-    fit: { chisq: 10, df: 5, pvalue: 0.1, cfi: 0.97, tli: 0.96, rmsea: 0.04, rmseaLower: 0.01, rmseaUpper: 0.08, srmr: 0.03 },
-    structural: [{ from: 1, to: 3, fromName: 'SN', toName: 'TI', b: 0.5, se: 0.1, z: 5, p: 0.001, stdBeta: 0.4, ciPercLower: 0.3, ciPercUpper: 0.7, ciBcLower: 0.29, ciBcUpper: 0.71, r2: 0.3 }],
-    rsquare: { 3: 0.37 },
-    moderation: {
-      rows: [{ path: 'TA × SN → TI', b: 0.258, se: 0.066, z: 3.93, p: 0.0001, stdBeta: 0.232, ciPercLower: 0.132, ciPercUpper: 0.406, ciBcLower: 0.130, ciBcUpper: 0.410 }],
-      slopes: [
-        { level: '-1SD', b: 0.2588, se: 0.068, p: 0.0002, ciLower: 0.1295, ciUpper: 0.3959 },
-        { level: 'mean', b: 0.4659, se: 0.056, p: 0.00001, ciLower: 0.3597, ciUpper: 0.5798 },
-        { level: '+1SD', b: 0.6729, se: 0.085, p: 0.00001, ciLower: 0.5238, ciUpper: 0.8552 },
-      ],
-    },
-    estimates: { paths: [], loadings: {}, r2: {} },
-  }
-  const content = buildCbSem(CB_SEM, r)
-  const t5 = content.tables.find((t) => t.spec.id === 'structural-paths')!
-  const modSectionIdx = t5.rows.findIndex((row) => (row as Record<string, unknown>).__section === 'Moderation')
-  expect(modSectionIdx).toBeGreaterThan(-1)
-  const modRow = t5.rows[modSectionIdx + 1] as Record<string, string>
-  expect(modRow.hId).toBe('H2')   // H1 = the one structural path; H2 = the moderation row (no indirect rows here)
-  expect(modRow.result).toBe('Supported')   // percentile CI [.132, .406] excludes zero
-  expect(modRow.beta).toBe('.23')
-})
-
-it('a moderation slope CI that spans zero renders Result = "Not supported"', () => {
-  // ...same fixture with ciPercLower/ciPercUpper straddling 0 on the moderation row -> 'Not supported'
+it('documents the Moderation section (A7)', () => {
+  const text = (CB_SEM.tableNote?.text ?? '') + JSON.stringify(CB_SEM_NOTES ?? [])
+  // CB_SEM_NOTES = whatever U3-T5 named its per-card labelled-notes source (its 'Moderation' label's text);
+  // this assertion is deliberately tolerant of EITHER U3-T5's notes array or a surviving legacy tableNote,
+  // since which one carries the live text was U3-T5's either/or, not this task's call to make.
+  expect(text).toMatch(/Moderation/i)
+  expect(text).not.toMatch(/planned for a later version/i)
 })
 ```
 
-(Exact `t5.rows` shape/H-id field name follow whatever U3 already established for the structural/indirect
-sections — this task's implementation MUST reuse that same row-building helper rather than re-deriving H-ids
-independently, so continue-the-sequence is structural, not coincidental.)
+**Stale-note retirement:** if U3-T5 chose to keep CB-SEM's old single `tableNote` field as an inert legacy
+fallback (its stated either/or — "keep it as a legacy fallback field unread by the builder"), its text still
+contains the pre-this-slice sentence "Moderation is planned for a later version." — update it now to a
+plain, accurate sentence (moderation is live; see U3-T5's own 'Moderation' labelled note for the wording
+already written for the live mechanism, reuse it rather than drafting new prose). If U3-T5 instead removed
+`tableNote` outright, there is nothing to retire here - this step is a no-op, confirmed by checking
+`cbSem.ts` before editing.
 
-**GREEN — `buildCbSem.ts`:** extend the Table-5-row assembly (already emitting Direct-paths + Indirect-effects
-sections per U3) with a third section, appended only when `r.moderation?.rows.length`:
+**Verify:** `npx vitest run src/lib/registry/cbSem.consistency.test.ts`. `npx tsc -b`.
 
-```ts
-if (r.moderation?.rows.length) {
-  rows.push({ __section: 'Moderation' } as unknown as (typeof rows)[number])
-  for (const row of r.moderation.rows) {
-    rows.push(structuralRowOf(row, nextHId()))   // reuse U3's per-row H-id + Result-rule helper
-  }
-}
-```
-
-(`structuralRowOf`/`nextHId` are named per whatever U3's actual implementation calls its shared row-builder —
-implementer confirms the exact names from the U3 diff before writing this task; the row SHAPE and Result rule
-must be reused verbatim, not reimplemented, so the three sections are visually and numerically consistent.)
-
-**Master-HTML update (load-bearing for `cbSem.consistency.test.ts`):** add a "Moderation" section row + one
-example interaction row to the CB-SEM card's Table 5 in `telos_test_outputs.html`, matching the column set
-already there (H | Path | B | SE | z | p | Std. β | Percentile CI | BC CI | Result) — the consistency test
-diffs the registry's column *headers* against this HTML verbatim, so the header row itself does not change
-(only the body demonstrates the new section), but add an assertion to `cbSem.consistency.test.ts` that the
-HTML's Table 5 caption/notes now mention "Moderation" so the master doc and the registry's `tableNote` text
-stay in lockstep:
-
-```ts
-it('tableNote documents the Moderation section (A7)', () => {
-  expect(spec.tableNote!.text).toMatch(/Moderation/i)
-})
-```
-
-Update `cbSem.ts`'s `tableNote` text to mention the Moderation section (replacing the stale "Moderation is
-planned for a later version." sentence with a description of when it appears + the interaction-term citation
-pointer, consistent with A4's later citation work — a plain sentence for now, A4 formalizes the citation).
-
-**Verify:** `npx vitest run src/lib/results/buildCbSem.test.ts src/lib/registry/cbSem.consistency.test.ts`. `npx tsc -b`.
-
-**Commit:** `feat(sem-b): Table 5 Moderation section — H-ids continue, Result rule applies, master doc updated`
+**Commit:** `docs(sem-b): Table 5 Moderation section — master doc + consistency test catch up to U2/U3's already-live rows; retire stale note`
 
 ---
 
@@ -3615,8 +3597,8 @@ if (hasModeration && raw.modSlopes?.length) {
   figModSlopesPng = await engine.capturePlot(slopesBlock, 500, 380, {
     levels: raw.modSlopes.map((s: { level: string }) => s.level),
     bs: raw.modSlopes.map((s: { b: number }) => s.b),
-    los: raw.modSlopes.map((s: { ciLower: number }) => s.ciLower),
-    his: raw.modSlopes.map((s: { ciUpper: number }) => s.ciUpper),
+    los: raw.modSlopes.map((s: { ciPercLower: number }) => s.ciPercLower),
+    his: raw.modSlopes.map((s: { ciPercUpper: number }) => s.ciPercUpper),
   })
 }
 ```
@@ -3657,7 +3639,7 @@ produces it" case.)
 ```ts
 if (r.moderation?.slopes.length) {
   const rows = r.moderation.slopes.map((s) => ({
-    level: s.level, b: f(s.b), se: f(s.se), p: fp(s.p), ci: `[${f01(s.ciLower)}, ${f01(s.ciUpper)}]`,
+    level: s.level, b: f(s.b), se: f(s.se), p: fp(s.p), ci: `[${f01(s.ciPercLower)}, ${f01(s.ciPercUpper)}]`,
   }))
   tables.push({ spec: specTable(spec, 'conditional-effects'), rows })
 }
@@ -3719,6 +3701,19 @@ GREEN — `ResultPreviewCard.tsx`:
 ))}
 ```
 
+**Export-ZIP pickup:** confirm the simple-slopes PNG actually reaches the exported ZIP, not just the live
+card. The export bundler already walks `content.figures[]`/`bundleFiles` generically for every other
+optional figure (e.g. the AVE/CR bar chart) — this is a one-step assertion that the SAME generic pickup
+covers the new `simple-slopes` file, not new bundler code:
+
+```ts
+it('the simple-slopes figure is included in the export bundle when moderation is present', () => {
+  const withMod = buildCbSem(CB_SEM, { ...baseR, moderation: modFixture, figModSlopesPng: new Uint8Array([1, 2, 3]) })
+  const files = bundleFiles(CB_SEM, withMod)   // whatever the existing export-bundle helper is named
+  expect(files.some((f) => f.name.includes('simple-slopes'))).toBe(true)
+})
+```
+
 **Verify:** `npx vitest run src/lib/results/buildCbSem.test.ts src/components/ResultPreviewCard.test.tsx`. `npx tsc -b`.
 
 **Commit:** `feat(sem-b): simple-slopes figure (ggplot2 whiskered CIs) + conditional-effects table; fix multi-figure card rendering`
@@ -3740,10 +3735,14 @@ honestly rather than oversell semPaths' moderation-specific rendering).
 **GREEN — `runCbSem.ts`:** populate the overlay field alongside `estPaths` in the R block:
 
 ```r
+# INT_<id> is the interaction construct's R-side name per moderationModel.ts's buildModerationLines
+# (U2-T4/Task 4.4) — reconstruct it from `mod_ids` (already in the env via moderationIndProdEnv), the
+# SAME id ordering `moderations[]` uses TS-side, so this loop and the TS zip below stay in lockstep.
 est_moderation <- list()
 if (has_moderation) {
-  for (mi in seq_len(length(mod_int_names))) {
-    gi <- which(ss$op == "~" & ss$rhs == mod_int_names[mi])[1]
+  for (mi in seq_along(mod_ids)) {
+    int_name <- paste0("INT_", mod_ids[mi])
+    gi <- which(ss$op == "~" & ss$rhs == int_name)[1]
     est_moderation[[mi]] <- list(moderatorId = NA, pathIndex = NA, beta = as.numeric(ss$est.std[gi]))
   }
 }
@@ -3791,87 +3790,89 @@ out.push(
 
 ---
 
-### Task 5.4 — analysis.R emitters: indProd + `:=` model + dual CIs (export ≡ app)
+### Task 5.4 — analysis.R emitter: indProd data-prep block (export ≡ app)
 
-**Goal:** The `cb-sem` R-script emitter (`latent.ts`) reproduces the SAME indProd + interaction + `:=` model
-as the app runner, using the SAME shared `moderationModel.ts` text (Task 4.4's design decision 1) — so
-`analysis.R` run under native `Rscript` reproduces the app's numbers exactly.
+**Goal:** The `cb-sem` R-script emitter (`latent.ts`) reproduces the SAME model — including the interaction
+construct + `:=` simple slopes — as the app runner. Since `buildModel` (U2-T4, delegating to
+`moderationModel.ts`'s `buildModerationLines` per Task 4.4) already assembles the FULL model text
+TS-side — moderation lines included — the emitter does not need to reconstruct any model-string logic of its
+own for moderation: it already calls `buildModel` (pure, no WebR dependency) to get the base model text for
+export, exactly as before this slice. The ONLY new thing this task adds is emitting the `INDPROD_R`
+data-prep block (indProd calls), so `analysis.R` run under native `Rscript` reproduces the app's numbers
+exactly.
 
 **Files:** `src/lib/export/rScript/emitters/latent.ts`, `src/lib/export/rScript/emitters/latent.cbsem.test.ts`.
 
 **GREEN — `latent.ts`'s `'cb-sem'` emitter:**
 
 ```ts
-import { buildModerationEnv, MODERATION_R } from '../../../stats/moderationModel'
+import { moderationIndProdEnv, INDPROD_R } from '../../../stats/moderationModel'
 
-// ...inside the 'cb-sem' emitter, after building `modelR` (unchanged base model) and BEFORE emitting the
-// `model_str <- "..."` line:
+// ...inside the 'cb-sem' emitter, after the existing `buildModel(...)` call already used to emit `model_str`
+// (unchanged — buildModel's returned `model` text already includes the moderation lines when
+// setup.moderations is non-empty, via its Task 4.4 delegation):
 const moderations = (setup.moderations as { id: number; moderatorId: number; pathIndex: number }[]) ?? []
 const hasModeration = moderations.length > 0
-const modEnv = hasModeration ? buildModerationEnv(moderations, constructs, paths, rNameOf) : null
 ```
 
-Emit the moderation env as literal R vectors (mirrors how `latent.ts`'s other emitters already inline
-`constructItemsFlatR`/`constructItemsLensR` as `c("a","b",...)` literals — no WebR env-binding machinery needed
-in the exported script, since it's a standalone `Rscript`):
+Emit the indProd data-prep block only (mirrors how `latent.ts`'s other emitters already inline
+`constructItemsFlatR`/`constructItemsLensR` as `c("a","b",...)` literals — no WebR env-binding machinery
+needed in the exported script, since it's a standalone `Rscript`; `moderationDefs` is already in scope from
+the SAME `buildModel(...)` call that produced `model_str`):
 
 ```ts
-if (hasModeration && modEnv) {
+if (hasModeration) {
+  const env = moderationIndProdEnv(moderationDefs)
   out.push(
     '',
-    '# ---- Latent moderation: indProd double-mean-centering + interaction construct + := simple slopes ----',
-    `mod_src_items_flat <- c(${modEnv.mod_src_items_flat.map((s) => `"${s}"`).join(', ')})`,
-    `mod_src_items_lens <- c(${modEnv.mod_src_items_lens.join(', ')})`,
-    `mod_mod_items_flat <- c(${modEnv.mod_mod_items_flat.map((s) => `"${s}"`).join(', ')})`,
-    `mod_mod_items_lens <- c(${modEnv.mod_mod_items_lens.join(', ')})`,
-    `mod_match <- c(${modEnv.mod_match.map((b) => (b ? 'TRUE' : 'FALSE')).join(', ')})`,
-    `mod_int_names <- c(${modEnv.mod_int_names.map((s) => `"${s}"`).join(', ')})`,
-    `mod_path_labels <- c(${modEnv.mod_path_labels.map((s) => `"${s}"`).join(', ')})`,
-    `mod_var_labels <- c(${modEnv.mod_var_labels.map((s) => `"${s}"`).join(', ')})`,
-    `mod_moderator_names <- c(${modEnv.mod_moderator_names.map((s) => `"${s}"`).join(', ')})`,
-    `mod_target_names <- c(${modEnv.mod_target_names.map((s) => `"${s}"`).join(', ')})`,
-    `mod_slope_lo_labels <- c(${modEnv.mod_slope_lo_labels.map((s) => `"${s}"`).join(', ')})`,
-    `mod_slope_mid_labels <- c(${modEnv.mod_slope_mid_labels.map((s) => `"${s}"`).join(', ')})`,
-    `mod_slope_hi_labels <- c(${modEnv.mod_slope_hi_labels.map((s) => `"${s}"`).join(', ')})`,
-    `mod_base_path_labels <- c(${modEnv.mod_base_path_labels.map((s) => `"${s}"`).join(', ')})`,
-    'has_moderation <- TRUE',
-    MODERATION_R,
+    '# ---- Latent moderation: indProd double-mean-centering data prep (model_str above already contains',
+    '# the interaction construct + := simple slopes — assembled TS-side by the SAME buildModel() the WebR',
+    '# runner uses; this block only builds the product-indicator columns before the fit) ----',
+    `mod_ids <- c(${env.mod_ids.join(', ')})`,
+    `mod_var1_flat <- c(${env.mod_var1_flat.map((s) => `"${s}"`).join(', ')})`,
+    `mod_var1_lens <- c(${env.mod_var1_lens.join(', ')})`,
+    `mod_var2_flat <- c(${env.mod_var2_flat.map((s) => `"${s}"`).join(', ')})`,
+    `mod_var2_lens <- c(${env.mod_var2_lens.join(', ')})`,
+    `mod_matched <- c(${env.mod_matched.map((b) => (b ? 'TRUE' : 'FALSE')).join(', ')})`,
+    INDPROD_R,
   )
-  if (modEnv.anyUnequal) {
+  if (moderationDefs.some((d) => !d.matched)) {
     out.push(
       '# NOTE: unequal source/moderator indicator counts -> indProd(match=FALSE, all-products, double-mean-centered).',
     )
   }
 } else {
-  out.push('has_moderation <- FALSE')
+  out.push('mod_ids <- integer(0)')   // INDPROD_R's `if (length(mod_ids) > 0)` guard is then a no-op
 }
 ```
 
-(`has_moderation`/`model_str` must be bound BEFORE the existing `set.seed(20260620)` / `sem(...)` call, and the
-existing `hasIndirect` boolean controlling the bootstrap-vs-plain branch must become
+(The existing `hasIndirect` boolean controlling the bootstrap-vs-plain branch must become
 `hasIndirect || hasModeration` here too, matching `runCbSem.ts`'s Task 4.4 change exactly.)
 
 **RED — `latent.cbsem.test.ts`:** append a case asserting the emitted R text contains the indProd call and the
-three `:=` slope lines for a moderation setup (string-containment test, matching this file's existing style):
+three `:=` slope lines for a moderation setup (string-containment test, matching this file's existing style —
+regexes pinned to `pint_1`, the ACTUAL interaction-term label per U2-T4's scheme, not `pmod_1`, which is the
+moderator's own main-effect label and a different number):
 
 ```ts
-it('emits indProd + interaction construct + := simple slopes when setup.moderations is present', () => {
+it('emits the indProd data-prep block + model_str already carrying pint_1/slope_*_1 when setup.moderations is present', () => {
   const R = latentEmitters['cb-sem'](CB_SEM, {
     ...baseSetup,
     constructs: snTaTiConstructs, paths: [{ from: 1, to: 3 }, { from: 2, to: 3 }],
     moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }],
   } as never)
-  expect(R).toContain('semTools::indProd(d, var1 = src_items, var2 = mmod_items')
-  expect(R).toContain('slope_lo_1')
-  expect(R).toContain('slope_mid_1')
-  expect(R).toContain('slope_hi_1')
-  expect(R).toContain('mod_match <- c(TRUE)')   // SN/TA both 4 items -> matched
+  expect(R).toContain('indProd(d, var1 = v1, var2 = v2')
+  expect(R).toContain('pint_1')
+  expect(R).toContain('slope_lo_1  :=')
+  expect(R).toContain('slope_mid_1 :=')
+  expect(R).toContain('slope_hi_1  :=')
+  expect(R).toContain('mod_matched <- c(TRUE)')   // SN/TA both 4 items -> matched
 })
 ```
 
 **Verify:** `npx vitest run src/lib/export/rScript/emitters/latent.cbsem.test.ts`. `npx tsc -b`.
 
-**Commit:** `feat(sem-export): cb-sem emitter reproduces latent moderation — shared moderationModel.ts text (export ≡ app)`
+**Commit:** `feat(sem-export): cb-sem emitter emits the indProd data-prep block — model_str already carries moderation via shared buildModel/moderationModel.ts (export ≡ app)`
 
 ---
 
@@ -3921,10 +3922,13 @@ it('cb-sem moderation — interaction path B matches the spike reference to 4 de
   const dir = mkdtempSync(join(tmpdir(), 'telos-r-mod-'))
   writeFileSync(join(dir, 'analysis.R'), R); writeFileSync(join(dir, 'cleaned.csv'), csv)
   const out = execSync('Rscript analysis.R', { cwd: dir, encoding: 'utf8', stdio: 'pipe' })
-  // pull the interaction path's estimate out of the printed parameterEstimates rows for the `pmod_1` label
-  const m = out.match(/pmod_1[^\n]*?(-?\d+\.\d+)/)
+  // pull the INTERACTION path's estimate out of the printed parameterEstimates rows for the `pint_1` label
+  // (pint_1 is the interaction term per U2-T4's label scheme; pmod_1 is the moderator's OWN main effect, a
+  // DIFFERENT number - U2-T6's own reference values: pint_1 b=0.25819002, pmod_1 b=0.34369423 - do not
+  // conflate them, as an earlier draft of this test did)
+  const m = out.match(/pint_1[^\n]*?(-?\d+\.\d+)/)
   expect(m).not.toBeNull()
-  expect(Number(m![1])).toBeCloseTo(0.258, 2)
+  expect(Number(m![1])).toBeCloseTo(0.2582, 3)   // U2-T6's own reference value for pint_1
 })
 ```
 
@@ -3937,7 +3941,7 @@ excluded from `test:fast` already). `npx tsc -b`.
 
 ---
 
-### Unit 6 — P1 PLS-SEM full parity (6 tasks)
+## Unit 6 — P1 PLS-SEM full parity (6 tasks)
 
 ### Task 6.1 — Measurement table reshape (grouped; construct rows ρC/α/AVE; indicator rows Mean/SD/loading-or-weight)
 
@@ -4016,7 +4020,7 @@ for (const rel of r.reliability) {
   })
   for (const row of r.outer.filter((o) => o.construct === rel.construct)) {
     measurementRows.push({
-      path: `  ${row.item}`,   // A6 group-child indent convention (LaTeX \quad; HTML CSS indent)
+      path: String(row.item),   // indented child — CSS/LaTeX render the indent via __group, not the string itself (same convention as U3-T1's cfa-loadings rows; no hard-coded leading spaces)
       rhoC: '', alpha: '', ave: '',
       mean: f2(row.mean), sd: f2(row.sd),
       loading: fc(row.loading ?? row.weight), t: f2(row.t), p: fpFmt(row.p),
@@ -4209,22 +4213,25 @@ structural row, adding `ciBcLower`/`ciBcUpper` fields to each `structural[]` row
   id: 'structural',
   title: 'Structural paths',
   columns: [
-    { key: 'hId', label: 'H' },
+    { key: 'h', label: 'H' },
     { key: 'path', label: 'Path' },
     { key: 'beta', label: 'β' },
     { key: 'p', label: 'p' },
-    { key: 'ciPerc', label: 'Percentile 95% CI', span: { group: 'ci' } },
-    { key: 'ciPercLo', label: 'Lower', span: { group: 'ci' } },
-    { key: 'ciPercHi', label: 'Upper', span: { group: 'ci' } },
-    { key: 'ciBcLo', label: 'Lower', span: { group: 'bcci' } },
-    { key: 'ciBcHi', label: 'Upper', span: { group: 'bcci' } },
+    { key: 'ciPercLo', label: 'Lower', span: { group: 'Percentile 95% CI' } },
+    { key: 'ciPercHi', label: 'Upper', span: { group: 'Percentile 95% CI' } },
+    { key: 'ciBcLo', label: 'Lower', span: { group: 'BC 95% CI' } },
+    { key: 'ciBcHi', label: 'Upper', span: { group: 'BC 95% CI' } },
     { key: 'result', label: 'Result' },
   ],
 },
 ```
 
-(Column-span shape follows the A6 `span.group` contract from U1 exactly — mirrors whatever U3 already did for
-CB-SEM's Table 5, reused verbatim so the two cards render identically.)
+(No standalone `ciPerc`/`bcci`-group summary column — the A6 `span.group` device already renders the group
+caption from the two `Lower`/`Upper` children sharing a `span.group` value, exactly as CB-SEM's Table 5 does;
+an extra data column for the group label would be a stray, unrendered duplicate. `span.group` here carries
+the actual caption text (`'Percentile 95% CI'`/`'BC 95% CI'`), matching U3-T3's Table 5 convention verbatim —
+same two cards, same column-span shape, reused not reinvented. The `H` column key is `h`, matching CB-SEM's
+Table 5 key exactly (not `hId` — the two cards' merged-table row shape stays interchangeable.)
 
 **Builder — `buildPlsSem.ts`:** add H-ids (creation order — PLS-SEM has no indirect/moderation sections ahead
 of structural in this reshape task; Task 6.4 appends moderation after) and the Result rule (percentile CI
@@ -4232,13 +4239,26 @@ excludes zero, same as CB-SEM):
 
 ```ts
 const t4rows = r.structural.map((row, i) => ({
-  hId: `H${i + 1}`,
+  h: `H${i + 1}`,
   path: String(row.path), beta: fc(row.beta), p: fpFmt(row.p),
   ciPercLo: fc(row.ciLower), ciPercHi: fc(row.ciUpper),
   ciBcLo: fc(row.ciBcLower), ciBcHi: fc(row.ciBcUpper),
   result: (Number(row.ciLower) > 0 || Number(row.ciUpper) < 0) ? 'Supported' : 'Not supported',
-  f2: f2(row.fSquare),
 }))
+```
+
+(`fSquare` is NOT a row column — no `f2` key exists in the columns above, so it does not belong on the row
+object either. Per-path f² joins the R² note line below instead, following the exact CB-SEM R²-note-line
+pattern from U3-T3, rather than becoming a silently-unrendered orphan row key.)
+
+**R²/f² note line** (mirrors U3-T3's CB-SEM R² note-line exactly — append to `note.text`, one line per
+endogenous construct's R², with each incoming path's f² parenthesized alongside its source construct):
+
+```ts
+// e.g. `R²(Satisfaction) = .68 (f² Image=.02, Expectation=.15, Quality=.09, Value=.04); R²(Loyalty) = .56 (...)`
+// built from r.quality (R² per construct) joined against r.structural's fSquare per incoming path — same
+// join-by-target-name approach U3-T3 used for CB-SEM's R² line, extended with the f² parenthetical PLS
+// additionally reports.
 ```
 
 **RED — `buildPlsSem.test.ts`:**
@@ -4250,9 +4270,25 @@ it('structural table carries H-ids, dual CIs, and the Result rule (percentile CI
     { path: 'Complaints → Loyalty', beta: 0.05, p: 0.4, ciLower: -0.1, ciUpper: 0.2, ciBcLower: -0.11, ciBcUpper: 0.21, fSquare: 0.01 },
   ] })
   const table = content.tables.find((t) => t.spec.id === 'structural')!
-  expect(table.rows[0].hId).toBe('H1'); expect(table.rows[0].result).toBe('Supported')
-  expect(table.rows[1].hId).toBe('H2'); expect(table.rows[1].result).toBe('Not supported')
+  expect(table.rows[0].h).toBe('H1'); expect(table.rows[0].result).toBe('Supported')
+  expect(table.rows[1].h).toBe('H2'); expect(table.rows[1].result).toBe('Not supported')
 })
+
+it('the R²/f² note line reports f² per incoming path, not as a silent orphan row key', () => {
+  const content = buildPlsSem(PLS_SEM, fixtureResultWithQualityAndStructural)
+  expect(content.note!.text).toMatch(/R²\(Satisfaction\)/)
+  expect(content.note!.text).toMatch(/f²/i)
+})
+```
+
+**Andrews & Buchinsky bootstrap-count disclosure** (mirrors U3-T3's CB-SEM note exactly — append when the
+run used fewer than 7,000 resamples, since PLS's structural table also shows a BC column):
+
+```ts
+const nboot = Number(setup.options['nboot'] ?? 5000)
+if (nboot < 7000) {
+  // appended to note.text: 'Bias-corrected CIs benefit from ≥7,000 resamples (Andrews & Buchinsky, 2000); consider the 10,000 publication-grade preset for final runs.'
+}
 ```
 
 **Master-HTML + consistency test** — update `telos_test_outputs.html` and `plsSem.consistency.test.ts`'s
@@ -4360,7 +4396,9 @@ interaction coefficient rather than lavaan's `:=` defined parameters (PLS has no
 scale by — the "moderator SD" needed for ±1SD slopes must come from the OBSERVED composite score's SD, per
 Aiken & West applied to the composite/summed-indicator metric, the standard PLS treatment).
 
-**Files:** `src/lib/stats/plsSem.ts`, `src/lib/results/buildPlsSem.ts`, `src/lib/registry/plsSem.ts`.
+**Files:** `src/lib/stats/plsSem.ts`, `src/lib/results/buildPlsSem.ts`, `src/lib/registry/plsSem.ts`,
+`src/lib/stats/simpleSlopesPlot.ts` (NEW), `src/lib/stats/runCbSem.ts` (refactor — imports the extracted
+helper instead of keeping Task 5.2's inline copy).
 
 **GREEN — `plsSem.ts`:** compute the moderator's composite-score SD (`rowMeans` or seminr's own composite
 scores, `pls$construct_scores[, moderatorName]`) and derive the 3 conditional slopes the same closed form as
@@ -4384,6 +4422,11 @@ Return `figModSlopesPng` via `engine.capturePlot`, identical ggplot2 block to Ta
 same whisker treatment) — literally the SAME R string constant, factored into a shared helper
 (`src/lib/stats/simpleSlopesPlot.ts`, exported and imported by both `runCbSem.ts` and `plsSem.ts`, since the
 plotting code has zero CB-SEM/PLS-specific logic — it just takes `{level, b, ciLower, ciUpper}[]`).
+Explicitly: move Task 5.2's inline ggplot2 block (the `slopesBlock` string literal built inline in
+`runCbSem.ts`) OUT into this new file as the exported constant, and change `runCbSem.ts` to import and call
+it instead of keeping its own inline copy — do not leave two copies of the same R text (one inline in
+`runCbSem.ts` from Task 5.2, one new in `simpleSlopesPlot.ts` for `plsSem.ts`); this task's commit touches
+`runCbSem.ts` too, for that reason.
 
 **Builder — `buildPlsSem.ts`:** same conditional-effects table + second figure entry as `buildCbSem.ts`'s
 Task 5.2 pattern (reuse, don't duplicate the row-formatting logic if it can be shared — extract a small
@@ -4395,6 +4438,18 @@ in this task, so its expected numbers are DERIVED, not spike-sourced; the test a
 — figure and table numbers match — plus a native-R comparison run once via `Rscript` to pin the reference
 values before writing `toBeCloseTo` assertions, same discipline as every other native-R-verified runner test
 in this codebase).
+
+**Export-ZIP pickup:** same one-step assertion as CB-SEM's Task 5.2 — confirm the PLS simple-slopes PNG
+reaches the exported ZIP via the SAME generic `bundleFiles`/`figures[]` pickup (no new bundler code, just an
+assertion it covers this file too):
+
+```ts
+it('the simple-slopes figure is included in the PLS export bundle when moderation is present', () => {
+  const withMod = buildPlsSem(PLS_SEM, { ...fixtureResult, moderation: modFixture, figModSlopesPng: new Uint8Array([1, 2, 3]) })
+  const files = bundleFiles(PLS_SEM, withMod)
+  expect(files.some((f) => f.name.includes('simple-slopes'))).toBe(true)
+})
+```
 
 **Verify:** `npx vitest run src/lib/stats/plsSem.test.ts src/lib/results/buildPlsSem.test.ts`. `npx tsc -b`.
 
@@ -4449,7 +4504,10 @@ package's built-in dataset via seminr, already committed):
     // ...existing 7-construct mobi setup...
     moderations: [{ id: 1, moderatorId: 2, pathIndex: 1 }],
   },
-  expect: ['Table 2: Reliability', 'Table 3: HTMT', 'Table 4: Structural paths', 'interaction_term'],
+  // Post-reshape titles (Task 6.1 merged outer-model+reliability into ONE 'Measurement model' table;
+  // Task 6.3 renamed the structural table to 'Structural paths' with H-ids/dual CI) - these are the
+  // emitter's printed section headers, not the pre-Unit-6 titles.
+  expect: ['Table 1: Measurement model', 'Table 2: HTMT', 'Table 3: Structural paths', 'interaction_term'],
 },
 ```
 
@@ -4470,9 +4528,7 @@ quantity — flagged inline in Tasks 6.1/6.5), and export ≡ app is enforced by
 (`moderationModel.ts`, `plsBcCi.ts`, `simpleSlopesPlot.ts`) rather than hand-duplicated R strings in the runner
 and the emitter.
 
-### Unit 7
-
-## U7 - A4 citations (4 tasks)
+## Unit 7 - A4 citations (4 tasks)
 
 Spec: `docs/superpowers/specs/2026-07-06-telos-citable-complete-design.md` section A4.
 Sources for citation text (consolidate only, invent nothing new): `src/lib/export/citations.ts` (current `REFS` dict, the R-package citations already shipping in every export), `docs/superpowers/reviews/2026-06-17-reporting-completeness-ratify.md`, `docs/superpowers/reviews/2026-06-18-sem-reporting-convention.md` (§4/§5, the Track A/B/C citation tables), `docs/superpowers/reviews/2026-07-06-moderation-spike.md` (§4, moderation citations - held for U11/U4-U6, not wired into U7's 48 entries since moderation isn't its own test id).
@@ -4917,9 +4973,7 @@ await expect(page.getByText(/Student \(1908\)/)).toBeVisible()
 
 ---
 
-### Unit 8
-
-## U8 - A5 explainers (4 tasks)
+## Unit 8 - A5 explainers (4 tasks)
 
 Spec: A5 + F1 in the design doc. Owner's R² example is normative: **bold term** → one-sentence meaning → interpretation of THIS run's value with the number woven in.
 
@@ -5149,56 +5203,63 @@ Repeat analogously for the other 5 (t: `run.t`, `run.df`, `run.p`, `run.d`, `run
 - Modify: `src/lib/registry/explainers.ts` (remaining 42 cards' entries)
 - Modify: the corresponding 42 builders (their `values` field, same pattern as Task 3)
 - Modify: `src/lib/registry/explainers.consistency.test.ts` (remove `.skip`)
-- Modify (labelled-notes sweep): `src/lib/registry/ave.ts`, `pathAnalysis.ts`, `pca.ts` `tableNote.text` / `howToRead` (the three longest note-walls found by direct inspection, ranked by combined length: AVE 1624 chars, Path analysis 1474 chars, PCA 1290 chars - see research below); CB-SEM's own wall (966+491 chars) was already the worked example named in the spec, do it FIRST as the template for the other three.
-- Modify: `ResultPreviewCard.tsx` (render labelled notes)
+- Modify (labelled-notes sweep): `src/lib/results/buildAve.ts`, `buildPathAnalysis.ts`, `buildPca.ts` (the three
+  longest note-walls found by direct inspection, ranked by combined length: AVE 1624 chars, Path analysis
+  1474 chars, PCA 1290 chars - see research below). CB-SEM is NOT touched here - it is already the worked
+  example (U3-T5 built the `CardContent.notes` mechanism AND applied it to CB-SEM); this task only reuses
+  that existing mechanism for the other three cards, it does not redo CB-SEM's decomposition.
 
-**Labelled-notes format (from A5):** long note/explainer paragraphs (~3+ lines) become short, labelled one-liners (`Cutoffs:` / `Caution:` / `Scope:` / `Method:` - pick labels per the concern each sentence actually carries, do not force every card into the same four labels). This changes PRESENTATION, not the underlying claims - every sentence currently in a `tableNote.text`/`howToRead` block must still appear somewhere, just decomposed into labelled lines instead of one wall. Since `howToRead` strings are spec-pinned verbatim by `*.consistency.test.ts` (checked against `telos_ui_spec.html`), **do not touch the `howToRead` field's ui-spec-sourced text** - the labelled-notes treatment applies to `tableNote.text` only (which is NOT spec-pinned - confirmed: `tableNote` has no corresponding entry in the ui-spec HTML fixtures, it is registry-only prose). Add a NEW optional field to `TestSpec` for this:
-
-```ts
-// types.ts addition:
-export interface LabelledNote { label: string; text: string }
-export interface TestSpec {
-  // ...unchanged...
-  tableNote?: { kind: 'assume' | 'plain'; text: string; afterTableId?: string } // KEEP as-is for cards not yet swept
-  labelledNotes?: LabelledNote[] // NEW - when present, ResultPreviewCard renders these INSTEAD of tableNote.text (both fields can coexist in TestSpec during the sweep; a card has one or the other active, never both rendered)
-}
-```
+**Labelled-notes format (from A5):** long note/explainer paragraphs (~3+ lines) become short, labelled
+one-liners (`Cutoffs:` / `Caution:` / `Scope:` / `Method:` - pick labels per the concern each sentence
+actually carries, do not force every card into the same four labels). This changes PRESENTATION, not the
+underlying claims - every sentence currently in a `tableNote.text`/`howToRead` block must still appear
+somewhere, just decomposed into labelled lines instead of one wall. Since `howToRead` strings are
+spec-pinned verbatim by `*.consistency.test.ts` (checked against `telos_ui_spec.html`), **do not touch the
+`howToRead` field's ui-spec-sourced text** - the labelled-notes treatment applies to `tableNote.text` only
+(which is NOT spec-pinned - confirmed: `tableNote` has no corresponding entry in the ui-spec HTML fixtures,
+it is registry-only prose). **No new registry field is needed** - U3-T5 already added `notes?: LabelledNote[]`
+to `CardContent` (in `builders.ts`) and already wired `ResultPreviewCard.tsx` to render it in place of
+`content.note` when present; this task's job is purely to make `buildAve.ts`/`buildPathAnalysis.ts`/
+`buildPca.ts` populate `content.notes` the SAME way `buildCbSem.ts` already does, nothing new to build in
+the renderer or in `types.ts`.
 
 - [ ] **Step 1: Un-skip the coverage test** (`describe.skip` → `describe`) - confirm it is RED with the full 42-card offender list (`npx vitest run src/lib/registry/explainers.consistency.test.ts`, capture the printed `offenders` array - this is the authoritative per-card, per-key punch list; work it to `[]`).
 
 - [ ] **Step 2: Work the punch list, one card-family at a time** (same shape as Task 1's 6 entries: one `Explainer` per surfaced non-identifier column key, `meaning` from that card's existing `howToRead`/`tableNote.text` prose reworded into one plain sentence - never a new claim, just decomposed - and `interpret` weaving the live number from `values`). Suggested order (matches the audit's family grouping in U9 T1, so the two units' work interleaves cleanly): remaining group-comparison cards (`one-sample-t-test`, `paired-t-test`, `factorial-anova`, `repeated-measures-anova`, `mixed-anova`, `nested-anova`, `welch-anova`, `ancova`, `manova`, `mancova`, `mann-whitney-u`, `wilcoxon-signed-rank`, `kruskal-wallis`, `friedman`) → remaining association/descriptive (`summary-statistics`, `frequencies-crosstabs`, `distribution-normality`, `spearman`, `kendalls-tau`, `chi-square-independence`, `chi-square-goodness-of-fit`, `fishers-exact`) → remaining regression (`simple-linear-regression`, `logistic-regression`, `poisson-negative-binomial`) → econometrics (`arima-sarima`, `stationarity-tests`, `granger-causality`, `var`, `fixed-effects`, `random-effects`, `hausman-test`, `rdd`, `iv-2sls`, `propensity-score-matching`) → latent family (`cronbachs-alpha`, `ave`, `composite-reliability`, `efa`, `pls-sem`, `path-analysis`, `pca`). After each family, re-run the coverage test and the family's builder tests; do not batch all 42 into one uncheckable commit.
 
-- [ ] **Step 3: Labelled-notes conversion, CB-SEM first (the named worked example), then AVE/Path-analysis/PCA.** CB-SEM's `tableNote.text` (`cbSem.ts:111`) decomposes into (content preserved, just split and labelled):
-```ts
-labelledNotes: [
-  { label: 'Pipeline', text: 'Tables shown follow the stages you ran (EFA → CFA → fit → structural); Tables 1-2 are omitted if EFA was deselected, Tables 6-7 if the structural stage was deselected.' },
-  { label: 'Cutoffs', text: 'Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 - guidelines, not pass/fail gates.' },
-  { label: 'Caution', text: 'RMSEA is unstable at small df / small N - interpret it cautiously for compact models. Use WLSMV for ordinal indicators.' },
-  { label: 'R²', text: 'Filled once per endogenous (outcome) construct.' },
-  { label: 'Saturation', text: 'When the model is saturated (df = 0), the fit-indices table is suppressed and a saturation flag is shown.' },
-  { label: 'Scope', text: 'EFA on the same sample is exploratory - treat it as a diagnostic, not confirmatory evidence.' },
-  { label: 'Mediation', text: 'The indirect-effects table appears only when the drawn structural paths form a chain (X → M → Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI. Moderation is planned for a later version.' },
-],
-```
-Repeat the same decomposition discipline for `ave.ts`, `pathAnalysis.ts`, `pca.ts` (read each file's current `tableNote.text` + `howToRead` in full before splitting - do not paraphrase from memory, split their actual current sentences).
+- [ ] **Step 3: Labelled-notes conversion for AVE, Path-analysis, PCA (CB-SEM was already the template - do
+  not redo it here).** Read each of `ave.ts`'s / `pathAnalysis.ts`'s / `pca.ts`'s CURRENT `tableNote.text` +
+  `howToRead` in full before splitting - do not paraphrase from memory, split their actual current sentences,
+  one labelled note per distinct concern (same discipline U3-T5 used for CB-SEM: content-preserving, nothing
+  dropped, nothing added). Two things to watch for while splitting, since both cards predate this slice's
+  renumbering/moderation work and may carry stale prose:
+  - if a card's note references table numbers, confirm they still match the CURRENT numbering (U1/U3 may have
+    shifted them) - correct any stale number rather than carrying it forward verbatim;
+  - `path-analysis` does not support latent moderation (U2-T4's guard throws in path-analysis mode) - if its
+    current note frames this as a future-tense promise rather than a permanent scope boundary, reword it as
+    a factual scope statement (moderation is a latent-model feature, path-analysis is observed-only) rather
+    than carrying the stale future-tense wording forward (see U5-T1 for the exact stale sentence being
+    retired from the CB-SEM card - the same framing mistake, different card).
 
-Render in `ResultPreviewCard.tsx` (replaces the single `<p>{content.note.text}</p>` block ONLY when `spec.labelledNotes` is present - `content.note` stays the fallback for the other 44 cards until/unless a later slice sweeps them too, which is explicitly out of this task's scope per A5's "the CB-SEM notes wall is the worked example... treatment sweeps all cards" - here scoped to the 4 named cards only, matching the instruction that gave you "AVE, Path analysis, PCA" as the next targets, not "all 48"):
-```tsx
-{labelledNotes && labelledNotes.length > 0 ? (
-  <dl style={{ fontSize: 11, color: 'var(--muted)' }}>
-    {labelledNotes.map((n) => (<div key={n.label}><dt style={{ display: 'inline', fontWeight: 600 }}>{n.label}:</dt> <dd style={{ display: 'inline', margin: 0 }}>{n.text}</dd></div>))}
-  </dl>
-) : content.note && (/* existing single-note render, unchanged */ <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>)}
-```
+  In each builder (mirrors `buildCbSem.ts`'s `notes` assembly from U3-T5 exactly - same field, same shape,
+  same content-preservation rule):
+  ```ts
+  const notes: CardContent['notes'] = [
+    { label: 'Cutoffs', text: '...' },
+    { label: 'Caution', text: '...' },
+    // ...one entry per distinct concern actually present in the card's current tableNote.text/howToRead...
+  ]
+  return { tables, note: null, notes, figures, howToRead: spec.howToRead, apa: ..., nExcluded }
+  ```
+  (`ResultPreviewCard.tsx` already renders `content.notes` in place of `content.note` when present - built in
+  U3-T5, unmodified here.)
 
 - [ ] **Step 4: GREEN** - `npx vitest run src/lib/registry/ src/lib/results/ src/components/` full sweep + `npx tsc --noEmit && npm run build`.
-- [ ] **Step 5: Commit** (split into 2 commits, matching the two kinds of work) - `git add src/lib/registry/explainers.ts src/lib/registry/explainers.consistency.test.ts src/lib/results/build*.ts && git commit -m "feat(citable): explainer entries for the remaining 42 cards (A5 coverage green)"` then `git add src/lib/registry/types.ts src/lib/registry/{ave,pathAnalysis,pca}.ts src/components/ResultPreviewCard.tsx && git commit -m "feat(citable): labelled one-liner notes for AVE/Path-analysis/PCA (A5, CB-SEM was the template)"`
+- [ ] **Step 5: Commit** (split into 2 commits, matching the two kinds of work) - `git add src/lib/registry/explainers.ts src/lib/registry/explainers.consistency.test.ts src/lib/results/build*.ts && git commit -m "feat(citable): explainer entries for the remaining 42 cards (A5 coverage green)"` then `git add src/lib/results/build{Ave,PathAnalysis,Pca}.ts src/lib/results/build{Ave,PathAnalysis,Pca}.test.ts && git commit -m "feat(citable): labelled one-liner notes for AVE/Path-analysis/PCA (A5, reusing CB-SEM's mechanism)"`
 
 ---
 
-### Unit 9
-
-## U9 - R1 audit + F1 readability (4 tasks)
+## Unit 9 - R1 audit + F1 readability (4 tasks)
 
 Spec: R1 + F1 in the design doc.
 
@@ -5306,9 +5367,7 @@ it('standardized beta carries a CI, not just a point estimate', async () => {
 
 ---
 
-### Unit 10
-
-## U10 - X1 spaced item/column names (2 tasks)
+## Unit 10 - X1 spaced item/column names (2 tasks)
 
 Spec: X1 in the design doc. Sanitization primitive already exists and needs no change: `src/lib/stats/lvName.ts` - `lvName(name)` collapses any run of non-alphanumeric characters to one `_`, trims leading/trailing `_`, prefixes `X` if the result starts with a digit or is empty; `lvNames(names)` does the same list-wise with deterministic `_2`/`_3` de-duplication of collisions, in input order. Confirmed current usage: `cfaReliability.ts` and `runCbSem.ts` already sanitize CONSTRUCT/latent names via `lvNames` - this unit extends the SAME primitive to ITEM/observed-column names, which today are NOT sanitized in 3 of the 4 named files (the 4th, `plsSem.ts`, doesn't use `lvName` at all).
 
@@ -5416,9 +5475,7 @@ lines.push(readData(rename.length ? rename : undefined))
 
 ---
 
-### Unit 11
-
-## U11 - Integration + gate (5 tasks)
+## Unit 11 - Integration + gate (5 tasks)
 
 Spec: Testing/gate section of the design doc.
 
@@ -5514,7 +5571,7 @@ Exact commands, run in this order, ALL must be green before U11 T5:
   - `## Gate` - the exact numbers from Task 4.
   - `## What shipped` - one bullet per unit (citations registry + 48-entry coverage; explainer registry + coverage + labelled notes; R1 audit + gap-fixes; X1 spaced-name fix app+export; moderation e2e + docs regen + visual baselines).
   - `## HELD (owner decision required)` - every CONVENTION-disposition finding from U9's audit (Task 1's table), listed explicitly, NOT silently deferred.
-  - `## Notes for your click-through` - flag every judgment call this drafting session made that the owner should specifically eyeball: (a) the ~42 previously-uncited cards now carry FIRST-TIME primary-method citations (Student/Welch/Fisher/Tukey/Pearson/etc.) that go slightly beyond pure "consolidation of existing prose" since most of those cards had zero citation text before this slice - flagged plainly so Benjie can veto or amend any specific one; (b) the CR≥.70/KMO mis-citation-trap fixes from the convention doc were applied to `ave.ts`/`composite-reliability.ts`/`efa.ts` - confirm the fix actually landed correctly during U7 T1's execution, not just noted; (c) the logistic-regression classification-table brief mismatch (Task 3 built accuracy/sensitivity/specificity instead of a table that already existed) - explain plainly, it is a correction of the ORIGINAL BRIEF, not a scope cut; (d) the U11 T1 moderation e2e selectors are best-effort placeholders pending U4-U6's real DOM - flag that this test needs a pass once those units land.
+  - `## Notes for your click-through` - flag every judgment call this drafting session made that the owner should specifically eyeball: (a) the ~42 previously-uncited cards now carry FIRST-TIME primary-method citations (Student/Welch/Fisher/Tukey/Pearson/etc.) that go slightly beyond pure "consolidation of existing prose" since most of those cards had zero citation text before this slice - flagged plainly so Benjie can veto or amend any specific one; (b) the CR≥.70/KMO mis-citation-trap fixes from the convention doc were applied to `ave.ts`/`composite-reliability.ts`/`efa.ts` - confirm the fix actually landed correctly during U7 T1's execution, not just noted; (c) the logistic-regression classification-table brief mismatch (Task 3 built accuracy/sensitivity/specificity instead of a table that already existed) - explain plainly, it is a correction of the ORIGINAL BRIEF, not a scope cut; (d) the U11 T1 moderation e2e selectors are best-effort placeholders pending U4-U6's real DOM - flag that this test needs a pass once those units land; (e) Q² label: current label kept as-is (not renamed to Q²_predict or similar) - resolves the open question from the 2026-06-21 SEM-B build ratify's item 3.
   - `## Acceptance` - Benjie's click-through per the design spec: "CB-SEM with moderation on the spike dataset, PLS with interaction, one regression, one t-test; boards vs reality; baseline diffs approved; then his separate deploy/push words." Point him at `.superpowers/sdd/baseline-diffs/` for the before/after set from Task 3.
 - [ ] **Step 3: Commit.** `git add .superpowers/sdd/progress.md docs/superpowers/reviews/2026-07-06-citable-complete-ratify.md && git commit -m "docs(citable): ledger + ratify doc for slice 5 - your call on HELD items + deploy"`. **Do not push** - per every prior slice's Global Constraint, push/deploy is the owner's separate word.
 
