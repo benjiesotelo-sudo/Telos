@@ -15,7 +15,7 @@ import type { Dataset } from './types'
 
 const SETUP: TestSetup = {
   roles: {},
-  options: { estimator: 'ML', nboot: 50, ciType: 'percentile' },
+  options: { estimator: 'ML', nboot: 200, ciType: 'percentile' },
   props: {},
   blocked: null,
   modelKind: 'latent',
@@ -87,6 +87,32 @@ describe('runCbSem', () => {
     expect(Number(ie.ciLower)).toBeLessThan(Number(ie.est))
     expect(Number(ie.ciUpper)).toBeGreaterThan(Number(ie.est))
 
+    // --- dual CIs (percentile + bca.simple) from ONE bootstrap run. Reference values computed
+    // 2026-07-06 via native Rscript, EXACT model the runner builds (`dem60 ~ p_1_2*ind60`,
+    // `dem65 ~ p_2_3*dem60 + p_1_3*ind60`, `ie_1_2_3 := p_1_2*p_2_3`), `set.seed(20260620)`
+    // (the runner's existing hardcoded seed), `bootstrap=200`, both `boot.ci.type="perc"` and
+    // `"bca.simple"` on the SAME fit:
+    //   p_1_2 (ind60->dem60): est=1.474 · percentile CI [0.769, 2.068] · bca.simple CI [0.772, 2.072]
+    //   p_2_3 (dem60->dem65): est=0.864 · percentile CI [0.677, 1.088] · bca.simple CI [0.659, 1.079]
+    //   p_1_3 (ind60->dem65): est=0.453 · percentile CI [0.013, 0.921] · bca.simple CI [0.023, 0.994]
+    //   ie_1_2_3 (indirect): est=1.274 · percentile CI [0.550, 2.004] · bca.simple CI [0.544, 1.999]
+    const p12b = s.find((r) => r.from === 1 && r.to === 2)!
+    expect(Number(p12b.ciPercLower)).toBeCloseTo(0.769, 2)
+    expect(Number(p12b.ciPercUpper)).toBeCloseTo(2.068, 2)
+    expect(Number(p12b.ciBcLower)).toBeCloseTo(0.772, 2)
+    expect(Number(p12b.ciBcUpper)).toBeCloseTo(2.072, 2)
+    const p23b = s.find((r) => r.from === 2 && r.to === 3)!
+    expect(Number(p23b.ciPercLower)).toBeCloseTo(0.677, 2)
+    expect(Number(p23b.ciBcLower)).toBeCloseTo(0.659, 2)
+    const p13b = s.find((r) => r.from === 1 && r.to === 3)!
+    expect(Number(p13b.ciPercLower)).toBeCloseTo(0.013, 2)
+    expect(Number(p13b.ciBcLower)).toBeCloseTo(0.023, 2)
+    const ieb = result.indirect![0]
+    expect(Number(ieb.ciPercLower)).toBeCloseTo(0.550, 2)
+    expect(Number(ieb.ciPercUpper)).toBeCloseTo(2.004, 2)
+    expect(Number(ieb.ciBcLower)).toBeCloseTo(0.544, 2)
+    expect(Number(ieb.ciBcUpper)).toBeCloseTo(1.999, 2)
+
     // --- estimates block for the canvas overlay (numeric ids) ---
     expect(result.estimates.paths).toHaveLength(3)
     expect(result.estimates.r2[3]).toBeCloseTo(0.974, 2)
@@ -105,6 +131,17 @@ describe('runCbSem', () => {
     expect(result.fornellLarcker).toHaveLength(3)
     expect(result.htmt).toHaveLength(3)
     expect(result.discriminantLabels).toEqual(['ind60', 'dem60', 'dem65'])
+  }, 600_000)
+
+  // Regression for the dead ciType mapping (design §U2-T3): a literal 'bca' string passed to lavaan's
+  // boot.ci.type would raise an R error ('bca' is not a valid lavaan boot.ci.type -- only 'perc' /
+  // 'basic' / 'norm' / 'bca.simple' are). The fixed mapping maps the option's 'bca' value to the valid
+  // 'bca.simple' token, so a run with this option set must NOT throw (dual CI is now unconditional and
+  // no longer gated by ci_type at all, but the option must still round-trip without erroring).
+  it('setup.options.ciType "bca" does not throw (fixed dead mapping -> "bca.simple", a valid lavaan token)', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/polidemocracy.csv'))
+    const bcaSetup: TestSetup = { ...SETUP, options: { ...SETUP.options, ciType: 'bca' } }
+    await expect(runCbSem(engine, data, bcaSetup)).resolves.toBeDefined()
   }, 600_000)
 })
 

@@ -98,11 +98,17 @@ function listwise(data: Dataset, cols: string[]): Record<string, unknown>[] {
 //     original user-typed display names (same order) for every UI-facing name in the returned tables.
 //   has_indirect logical(1): whether any := indirect def exists
 //   nboot        integer: bootstrap resamples (single awaited call)
-//   ci_type      character(1): 'perc' (percentile, default) | 'bca'
+//   ci_type      character(1): unread by the R script below (vestigial -- kept only so the setup option
+//     round-trips without erroring; see the TS call site). Dual CIs (percentile + bca.simple) are now
+//     computed unconditionally from the SAME bootstrap draws whenever has_indirect is true.
 //   is_path      logical(1): observed-only mode (no =~; suppress loadings/reliability)
 //
-// standardizedSolution(): est.std/se/z/pvalue/ci.lower/ci.upper. parameterEstimates(boot.ci.type=ci_type)
-// supplies the bootstrapped indirect CI. lavInspect(fit,'rsquare') gives endogenous R² by latent name.
+// standardizedSolution(): est.std/se/z/pvalue/ci.lower/ci.upper (point-only; unaffected by CI-type
+// choice). parameterEstimates() is called TWICE on the same fitted object -- once with
+// boot.ci.type="perc", once with "bca.simple" -- to supply both CI columns on the UNSTANDARDIZED
+// structural/indirect estimates; this recomputes CIs from the bootstrap draws already stored on
+// fit@boot, so it does not re-run the bootstrap ("ONE bootstrap run" per spec). lavInspect(fit,'rsquare')
+// gives endogenous R² by latent name.
 const R_STATS = String.raw`
 library(lavaan)
 
@@ -115,10 +121,13 @@ gc()
 set.seed(20260620)
 if (has_indirect) {
   fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = as.integer(nboot))
-  pe <- lavaan::parameterEstimates(fit, boot.ci.type = ci_type, level = 0.95)
+  pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)
+  pe_bc   <- lavaan::parameterEstimates(fit, boot.ci.type = "bca.simple", level = 0.95)
+  pe <- pe_perc # pe stays the primary table (est/se/z/p unaffected by CI-type choice)
 } else {
   fit <- lavaan::sem(model_str, data = d)
   pe <- lavaan::parameterEstimates(fit, level = 0.95)
+  pe_bc <- pe # no bootstrap -> no distinct BC column; ci.lower/upper below are simply absent (NA)
 }
 gc()
 
@@ -160,6 +169,7 @@ if (is_path) {
 # --- Structural paths (id-keyed from/to, display order from path_from/path_to) ---
 reg_idx <- which(ss$op == "~")
 pe_reg  <- pe[pe$op == "~", ]
+pe_bc_reg <- pe_bc[pe_bc$op == "~", ]
 rsq <- tryCatch(lavInspect(fit, "rsquare"), error = function(e) numeric(0))
 struct_rows <- lapply(seq_along(path_from), function(k) {
   fid <- as.integer(path_from[k]); tid <- as.integer(path_to[k])
@@ -167,6 +177,7 @@ struct_rows <- lapply(seq_along(path_from), function(k) {
   i <- which(ss$lhs[reg_idx] == tnm & ss$rhs[reg_idx] == fnm)[1]
   gi <- reg_idx[i]
   m <- which(pe_reg$lhs == tnm & pe_reg$rhs == fnm)[1]
+  mb <- which(pe_bc_reg$lhs == tnm & pe_bc_reg$rhs == fnm)[1]
   r2_val <- if (tnm %in% names(rsq)) as.numeric(rsq[tnm]) else NA_real_
   list(
     from = fid, to = tid,
@@ -175,6 +186,9 @@ struct_rows <- lapply(seq_along(path_from), function(k) {
     z = as.numeric(pe_reg$z[m]), p = as.numeric(pe_reg$pvalue[m]),
     stdBeta = as.numeric(ss$est.std[gi]),
     ciLower = as.numeric(ss$ci.lower[gi]), ciUpper = as.numeric(ss$ci.upper[gi]),
+    ciPercLower = as.numeric(pe_reg$ci.lower[m]), ciPercUpper = as.numeric(pe_reg$ci.upper[m]),
+    ciBcLower = if (has_indirect) as.numeric(pe_bc_reg$ci.lower[mb]) else NA_real_,
+    ciBcUpper = if (has_indirect) as.numeric(pe_bc_reg$ci.upper[mb]) else NA_real_,
     r2 = r2_val
   )
 })
@@ -185,12 +199,14 @@ for (nm in names(rsq)) {
   if (nm %in% names(name2id)) rsq_ids[[as.character(name2id[[nm]])]] <- as.numeric(rsq[nm])
 }
 
-# --- Indirect effects (:= defined; bootstrap percentile CI) ---
+# --- Indirect effects (:= defined; bootstrap percentile + bca.simple CIs from the same run) ---
 ind_idx <- which(pe$op == ":=")
 ss_def  <- ss[ss$op == ":=", ]
+pe_bc_def <- pe_bc[pe_bc$op == ":=", ]
 indirect_rows <- lapply(ind_idx, function(i) {
   lbl <- pe$lhs[i]
   sm <- which(ss_def$lhs == lbl)[1]
+  mb <- which(pe_bc_def$lhs == lbl)[1]
   list(
     label = lbl,
     est = as.numeric(pe$est[i]),
@@ -198,6 +214,9 @@ indirect_rows <- lapply(ind_idx, function(i) {
     se = as.numeric(pe$se[i]),
     ciLower = as.numeric(pe$ci.lower[i]),
     ciUpper = as.numeric(pe$ci.upper[i]),
+    ciPercLower = as.numeric(pe$ci.lower[i]), ciPercUpper = as.numeric(pe$ci.upper[i]),
+    ciBcLower = if (has_indirect) as.numeric(pe_bc_def$ci.lower[mb]) else NA_real_,
+    ciBcUpper = if (has_indirect) as.numeric(pe_bc_def$ci.upper[mb]) else NA_real_,
     p = as.numeric(pe$pvalue[i])
   )
 })
@@ -311,7 +330,11 @@ export async function runCbSem(
 
   const { model, hasIndirect, indirectDefs } = buildModel(constructs, paths, isPath, rNameOf)
   const nboot = Number(setup.options['nboot'] ?? 5000)
-  const ci_type = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'
+  // was: const ci_type = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'   // 'bca' is not a valid
+  // lavaan boot.ci.type -- dead code, would error if ever reached (design §A2 fix).
+  const ci_type = setup.options['ciType'] === 'bca' ? 'bca.simple' : 'perc' // vestigial: dual CI (below)
+  // is now computed unconditionally whenever has_indirect; ci_type is kept only so the option round-trips
+  // without erroring, not to gate which CI type is present.
 
   onProgress?.({
     message: hasIndirect
