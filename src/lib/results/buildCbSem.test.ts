@@ -52,6 +52,10 @@ const base: CbSemResult = {
     { label: 'ie_1_2_3', pathLabel: 'ind60 → dem60 → dem65', est: 1.274, stdEst: 0.41, se: 0.359, ciLower: 0.55, ciUpper: 2.004, p: 0 },
   ],
   estimates: { paths: [{ from: 1, to: 2, beta: 0.448 }], loadings: { x1: 0.92, x2: 0.973 }, r2: { 2: 0.201, 3: 0.974 } },
+  itemStats: [
+    { construct: 'ind60', item: 'x1', mean: 5.05, sd: 1.14, n: 75 },
+    { construct: 'ind60', item: 'x2', mean: 4.79, sd: 1.29, n: 75 },
+  ],
 }
 
 describe('buildCbSem', () => {

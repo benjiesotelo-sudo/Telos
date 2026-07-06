@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Engine } from '../webr/engine'
-import { runCbSem } from './runCbSem'
+import { runCbSem, computeItemStats } from './runCbSem'
 import { isSaturated } from './semSaturation'
 import { loadCsvFixture } from './csvFixture'
 import { join } from 'node:path'
-import type { TestSetup } from '../../state/session'
+import type { TestSetup, Construct } from '../../state/session'
+import type { Dataset } from './types'
 
 // Reference values: native R 4.6.0 / lavaan 0.6.21 on lavaan's PoliticalDemocracy (Bollen industrialization→democracy).
 // Model: ind60=~x1+x2+x3 · dem60=~y1+y2+y3+y4 · dem65=~y5+y6+y7+y8 · dem60~ind60 · dem65~dem60+ind60 · ind_ie:=a*b.
@@ -90,6 +91,10 @@ describe('runCbSem', () => {
     expect(result.estimates.paths).toHaveLength(3)
     expect(result.estimates.r2[3]).toBeCloseTo(0.974, 2)
     expect(result.estimates.loadings['x2']).toBeCloseTo(0.973, 2)
+
+    // --- item Mean/SD (Table 1; complete-case fixture so listwise/fiml agree) ---
+    expect(result.itemStats).toHaveLength(11)
+    expect(result.itemStats.find((s) => s.item === 'x2')!.mean).toBeGreaterThan(0)
   }, 600_000)
 })
 
@@ -231,4 +236,51 @@ describe('runCbSem — observed-only path mode (modelKind:path)', () => {
     expect(Number.isFinite(Number(ie.ciLower))).toBe(true)
     expect(Number.isFinite(Number(ie.ciUpper))).toBe(true)
   }, 600_000)
+})
+
+describe('computeItemStats — item Mean/SD per missing-setting', () => {
+  // Fixture: tests/e2e/fixtures/scale.csv (HolzingerSwineford x1..x9, n=301, complete) with 5 rows of
+  // x1 and 5 (different, non-overlapping) rows of x4 blanked to null — exercises listwise (shared N,
+  // rows with ANY blank dropped) vs fiml/mi/pairwise (each item's own N). Reference values computed
+  // 2026-07-06 via native Rscript (blank d$x1[1:5], d$x4[11:15]; sd() is n-1 sample SD, matching
+  // sampleMeanSd here):
+  //   observed-per-item: x1 N=296 mean=4.940315 sd=1.172826 · x4 N=296 mean=3.055180 sd=1.162647
+  //                       x2 (untouched) N=301 mean=6.088040 sd=1.177451
+  //   listwise (rows with ANY of x1..x9 blank dropped, N=291):
+  //                       x1 mean=4.932417 sd=1.175751 · x4 mean=3.072165 sd=1.162202 · x2 mean=6.097079 sd=1.180400
+  it('fiml/mi/pairwise use each item\'s own observed N; listwise uses the shared estimation-sample N', async () => {
+    const raw = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/scale.csv'))
+    const rows = raw.rows.map((r) => ({ ...r }))
+    for (let i = 0; i < 5; i++) rows[i] = { ...rows[i], x1: null }
+    for (let i = 10; i < 15; i++) rows[i] = { ...rows[i], x4: null }
+    const data: Dataset = { columns: raw.columns, rows }
+    const constructs: Construct[] = [
+      { id: 1, name: 'visual', items: ['x1', 'x2', 'x3'] },
+      { id: 2, name: 'textual', items: ['x4', 'x5', 'x6'] },
+      { id: 3, name: 'speed', items: ['x7', 'x8', 'x9'] },
+    ]
+    const usedCols = constructs.flatMap((c) => c.items)
+    const listwiseRows = data.rows.filter((r) => usedCols.every((c) => typeof r[c] === 'number' && Number.isFinite(r[c] as number)))
+    expect(listwiseRows.length).toBe(291)
+
+    const fiml = computeItemStats(data, constructs, listwiseRows, 'fiml')
+    const x1f = fiml.find((s) => s.item === 'x1')!
+    const x4f = fiml.find((s) => s.item === 'x4')!
+    const x2f = fiml.find((s) => s.item === 'x2')!
+    expect(x1f.n).toBe(296); expect(x1f.mean).toBeCloseTo(4.940315, 5); expect(x1f.sd).toBeCloseTo(1.172826, 5)
+    expect(x4f.n).toBe(296); expect(x4f.mean).toBeCloseTo(3.055180, 5); expect(x4f.sd).toBeCloseTo(1.162647, 5)
+    expect(x2f.n).toBe(301); expect(x2f.mean).toBeCloseTo(6.088040, 5); expect(x2f.sd).toBeCloseTo(1.177451, 5)
+
+    const listwise = computeItemStats(data, constructs, listwiseRows, 'listwise')
+    const x1l = listwise.find((s) => s.item === 'x1')!
+    const x4l = listwise.find((s) => s.item === 'x4')!
+    const x2l = listwise.find((s) => s.item === 'x2')!
+    expect(x1l.n).toBe(291); expect(x1l.mean).toBeCloseTo(4.932417, 5); expect(x1l.sd).toBeCloseTo(1.175751, 5)
+    expect(x4l.n).toBe(291); expect(x4l.mean).toBeCloseTo(3.072165, 5); expect(x4l.sd).toBeCloseTo(1.162202, 5)
+    expect(x2l.n).toBe(291); expect(x2l.mean).toBeCloseTo(6.097079, 5); expect(x2l.sd).toBeCloseTo(1.180400, 5)
+
+    // pairwise buckets with fiml/mi (observed-per-item), not with listwise
+    const pairwise = computeItemStats(data, constructs, listwiseRows, 'pairwise')
+    expect(pairwise.find((s) => s.item === 'x1')!.n).toBe(296)
+  })
 })

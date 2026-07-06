@@ -22,6 +22,40 @@ export interface CbSemResult {
     loadings: Record<string, number>
     r2: Record<number, number>
   }
+  itemStats: ItemStat[]
+}
+
+export interface ItemStat { construct: string; item: string; mean: number; sd: number; n: number }
+
+function sampleMeanSd(values: number[]): { mean: number; sd: number } {
+  const n = values.length
+  const mean = values.reduce((a, b) => a + b, 0) / n
+  const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1) // matches R's sd() (n-1)
+  return { mean, sd: Math.sqrt(variance) }
+}
+
+/** Table 1 item Mean/SD (design §A1). listwise → the SAME estimation-sample rows the model fit uses
+ *  (single shared N); fiml/mi/pairwise → each item's own observed (non-null, finite) values from the
+ *  RAW dataset, independent per item (N varies by item). Does not change how the model itself is fit
+ *  (known gap, tracked separately — the fit is always listwise today regardless of this setting). */
+export function computeItemStats(
+  data: Dataset,
+  constructs: Construct[],
+  listwiseRows: Record<string, unknown>[],
+  missing: string,
+): ItemStat[] {
+  const useListwise = missing === 'listwise'
+  return constructs.flatMap((c) =>
+    c.items.map((item) => {
+      const values = useListwise
+        ? (listwiseRows.map((r) => r[item]) as number[])
+        : (data.rows.map((r) => r[item]).filter(
+            (v): v is number => typeof v === 'number' && Number.isFinite(v),
+          ))
+      const { mean, sd } = sampleMeanSd(values)
+      return { construct: c.name, item, mean, sd, n: values.length }
+    }),
+  )
 }
 
 // Resolve the structural mode (design §3.4). EFA toggling lives in the builder/emitter; the stats core
@@ -252,6 +286,9 @@ export async function runCbSem(
   const rows = listwise(data, usedCols)
   const n = rows.length
   const item_cols_flat = usedCols.flatMap((col) => rows.map((r) => r[col] as number))
+  const itemStats = isPath
+    ? []
+    : computeItemStats(data, constructs, rows, String(setup.options['missing'] ?? 'listwise'))
 
   // R-side column names: in path mode the model tokens are the SANITIZED construct names, so the data
   // frame columns must carry the same sanitized names; latent mode keeps the raw item columns.
@@ -321,5 +358,6 @@ export async function runCbSem(
       loadings: raw.estLoadings,
       r2: rsquare,
     },
+    itemStats,
   }
 }
