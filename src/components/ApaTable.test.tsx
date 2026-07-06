@@ -45,6 +45,52 @@ describe('ApaTable coef rendering (design 2026-06-16)', () => {
     expect(h).toContain('class="apa"'); expect(h).not.toContain('coef')
     expect(h).toContain('>1<')
   })
+  it('a table with no __group/_kind rows renders BYTE-IDENTICAL html (A6 regression pin)', () => {
+    const plain: TableSpec = { id: 'c', title: 'X', columns: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }] }
+    const h = renderToStaticMarkup(<ApaTable id="c" spec={plain} rows={[{ a: '1', b: '2' }]} />)
+    expect(h).toBe('<div style="overflow-x:auto"><table id="c" class="apa"><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table></div>')
+  })
+})
+
+// ── grouped rows (A6 device 1, 2026-07-06): a `__group` row (all columns filled, group-level stats
+// live on it) renders italic; rows that follow indent their first cell until the next `__group`. ──
+describe('ApaTable classic - grouped rows (__group)', () => {
+  // Faithful to Table 1's post-merge shape (A1): construct rows carry CR/AVE/ω/α once; item rows
+  // carry Mean/SD/B/SE/z/p/Std. loading (buildCbSem.ts wires this up in a later unit).
+  const spec: TableSpec = {
+    id: 'cfa-loadings', title: 'Measurement model', columns: [
+      { key: 'path', label: 'Construct → Item' }, { key: 'mean', label: 'M' }, { key: 'sd', label: 'SD' },
+      { key: 'b', label: 'B' }, { key: 'se', label: 'SE' }, { key: 'z', label: 'z' }, { key: 'p', label: 'p' },
+      { key: 'std', label: 'Std. loading' }, { key: 'cr', label: 'CR' }, { key: 'ave', label: 'AVE' },
+      { key: 'omega', label: 'ω' }, { key: 'alpha', label: 'α' },
+    ],
+  }
+  const rows: Record<string, string | number>[] = [
+    { __group: 'Visual', path: 'Visual', mean: '', sd: '', b: '', se: '', z: '', p: '', std: '', cr: '.83', ave: '.62', omega: '.85', alpha: '.81' },
+    { path: 'Visual → x1', mean: '4.94', sd: '1.17', b: '1.00', se: '', z: '', p: '', std: '.77' },
+    { path: 'Visual → x2', mean: '6.09', sd: '1.17', b: '0.55', se: '0.06', z: '9.31', p: '<.001', std: '.42' },
+    { __group: 'Textual', path: 'Textual', mean: '', sd: '', b: '', se: '', z: '', p: '', std: '', cr: '.87', ave: '.70', omega: '.87', alpha: '.85' },
+    { path: 'Textual → x4', mean: '3.06', sd: '1.16', b: '1.00', se: '', z: '', p: '', std: '.85' },
+  ]
+  const html = renderToStaticMarkup(<ApaTable id="cfa-loadings" spec={spec} rows={rows} />)
+
+  it('renders a __group row as class="row-group" carrying its own column values (construct name + CR/AVE/ω/α)', () => {
+    expect(html).toContain('class="row-group"')
+    expect((html.match(/class="row-group"/g) ?? []).length).toBe(2) // Visual + Textual
+    expect(html).toMatch(/class="row-group"><td>Visual<\/td>.*?<td>\.83<\/td><td>\.62<\/td><td>\.85<\/td><td>\.81<\/td>/)
+  })
+
+  it('indents rows following a __group as class="row-child", resetting at the next __group', () => {
+    // 2 item rows under Visual, 1 under Textual - 3 row-child rows total.
+    expect((html.match(/class="row-child"/g) ?? []).length).toBe(3)
+    expect(html).toContain('<tr class="row-child"><td>Visual → x1</td>')
+  })
+
+  it('a __group row never carries the row-child class (it is the header, not a child)', () => {
+    const groupRowMatch = html.match(/<tr class="row-group"[^>]*>/g) ?? []
+    expect(groupRowMatch.length).toBe(2)
+    for (const m of groupRowMatch) expect(m).not.toContain('row-child')
+  })
 })
 
 // ── MatrixTable renderer (kind:'matrix') ──────────────────────────────────────
