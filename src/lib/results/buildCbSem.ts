@@ -241,11 +241,23 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   // Conditional-effects table (U5-T2): same `moderation.slopes[]` numbers as the whiskered simple-slopes
   // figure (runCbSem.ts) — percentile CI only (binding contract), independent of the isMerged/isPath
   // branching above (moderation never appears in path-analysis mode, design §A7).
+  // Fix round (multi-moderation regression): with 2+ moderation edges, slopes holds 3 rows PER edge, all
+  // sharing the same 3 `level` values — indistinguishable without the edge identity. Single-moderation
+  // (the common case, and the one the master HTML/consistency test pin) keeps the EXACT static 5-column
+  // registry spec unchanged (same spec object, same columns array — byte-identical to today). Only when
+  // >1 distinct moderation is present does the builder clone the spec with a prepended 'Moderation'
+  // column (dynamic-columns-in-the-builder approach, since the registry spec is static per test id).
   if (r.moderation?.slopes.length) {
+    const isMultiMod = new Set(r.moderation.slopes.map((s) => s.modId)).size > 1
     const rows = r.moderation.slopes.map((s) => ({
+      ...(isMultiMod ? { moderation: s.label } : {}),
       level: s.level, b: f(s.b), se: f(s.se), p: fp(s.p), ci: `[${f01(s.ciPercLower)}, ${f01(s.ciPercUpper)}]`,
     }))
-    tables.push({ spec: specTable(spec, 'conditional-effects'), rows })
+    const baseSpec = specTable(spec, 'conditional-effects')
+    const tableSpec = isMultiMod
+      ? { ...baseSpec, columns: [{ key: 'moderation', label: 'Moderation' }, ...baseSpec.columns] }
+      : baseSpec
+    tables.push({ spec: tableSpec, rows })
   }
 
   // Notes (U3-T5): CB-SEM (isMerged) is the labelled-notes worked example for A5 — the single giant

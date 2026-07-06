@@ -394,10 +394,12 @@ describe('buildCbSem', () => {
   })
 
   // U5-T2: conditional-effects table + second (simple-slopes) figure entry.
+  // modId/label (fix round, multi-moderation regression): all 3 rows belong to the SAME edge here, so
+  // the single-moderation tests below stay on the "today's exact shape" code path.
   const SLOPES: NonNullable<CbSemResult['moderation']>['slopes'] = [
-    { level: '-1SD', b: 0.26, se: 0.07, p: 0.0002, z: 3.71, ciPercLower: 0.13, ciPercUpper: 0.40, ciBcLower: 0.14, ciBcUpper: 0.41 },
-    { level: 'mean', b: 0.47, se: 0.06, p: 0.00001, z: 7.83, ciPercLower: 0.36, ciPercUpper: 0.58, ciBcLower: 0.36, ciBcUpper: 0.59 },
-    { level: '+1SD', b: 0.67, se: 0.09, p: 0.000005, z: 7.44, ciPercLower: 0.52, ciPercUpper: 0.86, ciBcLower: 0.52, ciBcUpper: 0.85 },
+    { level: '-1SD', modId: 1, label: 'ind60 → dem60 × age', b: 0.26, se: 0.07, p: 0.0002, z: 3.71, ciPercLower: 0.13, ciPercUpper: 0.40, ciBcLower: 0.14, ciBcUpper: 0.41 },
+    { level: 'mean', modId: 1, label: 'ind60 → dem60 × age', b: 0.47, se: 0.06, p: 0.00001, z: 7.83, ciPercLower: 0.36, ciPercUpper: 0.58, ciBcLower: 0.36, ciBcUpper: 0.59 },
+    { level: '+1SD', modId: 1, label: 'ind60 → dem60 × age', b: 0.67, se: 0.09, p: 0.000005, z: 7.44, ciPercLower: 0.52, ciPercUpper: 0.86, ciBcLower: 0.52, ciBcUpper: 0.85 },
   ]
 
   it('emits the conditional-effects table with the SAME numbers as moderation.slopes', () => {
@@ -424,6 +426,41 @@ describe('buildCbSem', () => {
     const withoutMod: CbSemResult = { ...base, moderation: undefined }
     const contentWithoutMod = buildCbSem(SPEC, withoutMod)
     expect(contentWithoutMod.figures).toHaveLength(1)
+  })
+
+  // Fix round (multi-moderation regression, reviewer-verified in real R): with 2 legal moderation edges
+  // (guards only block exact duplicates), moderation.slopes held 6 rows with 3 duplicated `level` labels
+  // per edge -- the OLD ggplot factor() call threw ("factor level [4] is duplicated"), and even setting
+  // that aside, the table rendered 6 indistinguishable rows with no way to tell which edge a row belongs
+  // to. Fix: disambiguate via modId + a prepended 'Moderation' column, not a cap on moderation count.
+  it('2 distinct moderation edges: prepends a Moderation column and labels every row by its edge', () => {
+    const edge2 = 'dem60 → dem65 × income'
+    const twoMod: NonNullable<CbSemResult['moderation']>['slopes'] = [
+      ...SLOPES,
+      { level: '-1SD', modId: 2, label: edge2, b: 0.10, se: 0.05, p: 0.04, z: 2.0, ciPercLower: 0.01, ciPercUpper: 0.20, ciBcLower: 0.0, ciBcUpper: 0.19 },
+      { level: 'mean', modId: 2, label: edge2, b: 0.20, se: 0.05, p: 0.001, z: 4.0, ciPercLower: 0.10, ciPercUpper: 0.30, ciBcLower: 0.09, ciBcUpper: 0.29 },
+      { level: '+1SD', modId: 2, label: edge2, b: 0.30, se: 0.06, p: 0.0001, z: 5.0, ciPercLower: 0.18, ciPercUpper: 0.42, ciBcLower: 0.17, ciBcUpper: 0.41 },
+    ]
+    const r: CbSemResult = { ...base, moderation: { rows: base.moderation!.rows, slopes: twoMod } }
+    const content = buildCbSem(SPEC, r)
+    const table = content.tables.find((t) => t.spec.id === 'conditional-effects')!
+
+    expect(table.spec.columns.map((c) => c.key)).toEqual(['moderation', 'level', 'b', 'se', 'p', 'ci'])
+    expect(table.rows).toHaveLength(6)
+    expect(table.rows[0]).toMatchObject({ moderation: 'ind60 → dem60 × age', level: '-1SD' })
+    expect(table.rows[2]).toMatchObject({ moderation: 'ind60 → dem60 × age', level: '+1SD' })
+    expect(table.rows[3]).toMatchObject({ moderation: edge2, level: '-1SD' })
+    expect(table.rows[5]).toMatchObject({ moderation: edge2, level: '+1SD' })
+  })
+
+  it('single moderation keeps the EXACT static column shape (the real registry spec object, untouched)', () => {
+    const r: CbSemResult = { ...base, moderation: { rows: base.moderation!.rows, slopes: SLOPES } }
+    const content = buildCbSem(SPEC, r)
+    const table = content.tables.find((t) => t.spec.id === 'conditional-effects')!
+    // Same object reference as the registry spec -- proves the single-moderation path never clones/
+    // mutates it, so the master HTML / consistency-test column pin (5 columns, no 'Moderation') stays true.
+    expect(table.spec).toBe(SPEC.tables.find((t) => t.id === 'conditional-effects'))
+    expect(table.spec.columns.map((c) => c.key)).toEqual(['level', 'b', 'se', 'p', 'ci'])
   })
 })
 

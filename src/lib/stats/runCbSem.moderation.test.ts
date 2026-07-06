@@ -228,3 +228,78 @@ describe('runCbSem — config routing (setup.moderations reaches buildModel; U4-
     expect(env.model_str).not.toContain('INT_')
   })
 })
+
+describe('runCbSem — TWO moderation edges (fix round: multi-moderation regression, pure/mocked)', () => {
+  // Two DIFFERENT moderators on the SAME path -- fully legal (validateModerations only rejects an exact
+  // moderatorId+pathIndex duplicate, self-moderation, or path-analysis mode). Before the fix, this shape
+  // produced 6 moderation.slopes rows with 3 duplicated `level` labels per edge, which crashed the
+  // ggplot factor() call in runCbSem.ts's figure block ("factor level [4] is duplicated") and rendered
+  // an indistinguishable 6-row conditional-effects table. This test proves the TS seam: each slope row
+  // now carries `modId` + a human `label` ("<pathLabel> × <moderatorName>") so the figure/table can
+  // disambiguate -- see runCbSem.moderation.integration.test.ts / buildCbSem.test.ts for the rest.
+  const items = { sn: ['sn1', 'sn2', 'sn3', 'sn4'], ta: ['ta1', 'ta2', 'ta3', 'ta4'], ti: ['ti1', 'ti2', 'ti3'], inc: ['inc1', 'inc2'] }
+  const data: Dataset = {
+    columns: [...items.sn, ...items.ta, ...items.ti, ...items.inc],
+    rows: Array.from({ length: 10 }, (_, i) =>
+      Object.fromEntries([...items.sn, ...items.ta, ...items.ti, ...items.inc].map((c, j) => [c, i + j + 1])),
+    ),
+  }
+  const setup: TestSetup = {
+    roles: {}, options: { estimator: 'ML', nboot: 500, ciType: 'percentile' }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'SN', items: items.sn },
+      { id: 2, name: 'TA', items: items.ta },
+      { id: 3, name: 'TI', items: items.ti },
+      { id: 4, name: 'INC', items: items.inc },
+    ],
+    paths: [{ from: 1, to: 3 }],
+    // Two edges moderating the SAME path (pathIndex 0), by two different moderators -- legal (not a
+    // duplicate: the guard key is moderatorId:pathIndex, and 2:0 !== 4:0).
+    moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }, { id: 2, moderatorId: 4, pathIndex: 0 }],
+  }
+  const modRow = (id: number) => ({ id, b: 0.1, se: 0.1, z: 1, p: 0.3, stdBeta: 0.1, ciPercLower: -0.1, ciPercUpper: 0.3, ciBcLower: -0.1, ciBcUpper: 0.3 })
+  const slopeRow = (modId: number, level: 'lo' | 'mid' | 'hi') => ({
+    modId, level, est: 0.1, se: 0.1, z: 1, p: 0.3, ciPercLower: -0.1, ciPercUpper: 0.3, ciBcLower: -0.1, ciBcUpper: 0.3,
+  })
+  const cfaResult = {
+    perConstruct: [
+      { name: 'SN', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'TA', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'TI', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'INC', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+    ],
+    fornellLarcker: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+    htmt: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+    labels: ['SN', 'TA', 'TI', 'INC'],
+    corLvP: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+  }
+  const baseRaw = {
+    fit: {}, df: 1, cfaLoadings: [], structural: [], rsquareIds: { 3: 0.4 }, indirect: [],
+    estLoadings: {}, estPaths: [],
+    moderationRows: [modRow(1), modRow(2)],
+    slopeRows: [
+      slopeRow(1, 'lo'), slopeRow(1, 'mid'), slopeRow(1, 'hi'),
+      slopeRow(2, 'lo'), slopeRow(2, 'mid'), slopeRow(2, 'hi'),
+    ],
+  }
+
+  it('threads modId + a disambiguating "<pathLabel> × <moderatorName>" label onto every slope row (no crash, no dedup/cap)', async () => {
+    const runJson = vi.fn().mockResolvedValueOnce(baseRaw).mockResolvedValueOnce(cfaResult)
+    const capturePlot = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]))
+    const engine = { runJson, capturePlot } as unknown as Engine
+    const result = await runCbSem(engine, data, setup)
+
+    expect(result.moderation!.rows).toHaveLength(2)
+    expect(result.moderation!.slopes).toHaveLength(6) // all 6 rows kept -- no cap, no silent drop
+
+    const [lo1, mid1, hi1, lo2, mid2, hi2] = result.moderation!.slopes
+    expect(lo1.modId).toBe(1); expect(mid1.modId).toBe(1); expect(hi1.modId).toBe(1)
+    expect(lo2.modId).toBe(2); expect(mid2.modId).toBe(2); expect(hi2.modId).toBe(2)
+    // pathLabel_ construction mirrors ModerationRow.pathLabel: "<source> → <target> × <moderator>".
+    expect(lo1.label).toBe('SN → TI × TA')
+    expect(lo2.label).toBe('SN → TI × INC')
+    // The figure still ran (capturePlot called) -- proves the ggplot factor-duplication path is gone.
+    expect(capturePlot).toHaveBeenCalledTimes(1)
+  })
+})

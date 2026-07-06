@@ -20,9 +20,15 @@ export interface ModerationRow {
 }
 
 /** Simple slope at one of the three Aiken & West (1991) probing levels, from the `:=` defined
- *  parameter fit inside the SAME bootstrap run as the interaction term (design §A7 / U2-T5). */
+ *  parameter fit inside the SAME bootstrap run as the interaction term (design §A7 / U2-T5).
+ *  `modId`/`label` disambiguate rows across MULTIPLE moderation edges (fix round, U5-T2 regression):
+ *  with 2+ moderations, `moderation.slopes` holds 3 rows PER edge, all sharing the same 3 `level`
+ *  values -- modId groups them back to their edge and label ("<pathLabel> × <moderatorName>", same
+ *  convention as ModerationRow.pathLabel above) is what the figure facets on / the table shows when
+ *  disambiguation is needed. Single-moderation callers ignore both fields (still just 3 rows). */
 export interface SlopeRow {
   level: '-1SD' | 'mean' | '+1SD'
+  modId: number; label: string
   b: number; se: number; p: number; z: number
   ciPercLower: number; ciPercUpper: number; ciBcLower: number; ciBcUpper: number
 }
@@ -571,12 +577,16 @@ export async function runCbSem(
             ...(def.matched ? {} : { disclosure: MODERATION_DISCLOSURE }),
           }
         }),
-        slopes: raw.slopeRows.map((row): SlopeRow => ({
-          level: SLOPE_LEVEL[row.level],
-          b: row.est, se: row.se, p: row.p, z: row.z,
-          ciPercLower: row.ciPercLower, ciPercUpper: row.ciPercUpper,
-          ciBcLower: row.ciBcLower, ciBcUpper: row.ciBcUpper,
-        })),
+        slopes: raw.slopeRows.map((row): SlopeRow => {
+          const def = modDefById.get(row.modId)!
+          return {
+            level: SLOPE_LEVEL[row.level],
+            modId: row.modId, label: `${def.pathLabel} × ${def.moderatorName}`,
+            b: row.est, se: row.se, p: row.p, z: row.z,
+            ciPercLower: row.ciPercLower, ciPercUpper: row.ciPercUpper,
+            ciBcLower: row.ciBcLower, ciBcUpper: row.ciBcUpper,
+          }
+        }),
       }
     : undefined
 
@@ -585,22 +595,41 @@ export async function runCbSem(
   // pipeline efa.ts's scree plot and latent.ts's AVE/CR bar charts already use. Fed from moderation.slopes
   // (already TS-shaped above), so the figure and the conditional-effects table (buildCbSem.ts) render the
   // SAME numbers from the SAME array.
+  //
+  // Fix round (multi-moderation regression): with 2+ moderation edges, moderation.slopes holds 3 rows
+  // PER edge, so `level` repeats ("-1SD","mean","+1SD","-1SD",...) — the old `factor(levels, levels =
+  // levels)` used the (duplicated) data vector itself as the level SET, which lavaan/base R rejects
+  // ("factor level [4] is duplicated"), crashing capturePlot and failing the ENTIRE run. Fix: fix the
+  // level set to the 3 canonical labels (always unique, regardless of row count) and, when >1 distinct
+  // moderation is present, facet one panel per edge (`mods` label, same convention as
+  // ModerationRow.pathLabel) so the 6 rows are visually disambiguated instead of overplotted at the
+  // same 3 x-positions. Single-moderation runs take the SAME code path but length(unique(mods)) == 1,
+  // so no facet_wrap is added — pixel-identical to the pre-fix single-moderation figure.
   let figModSlopesPng: Uint8Array | undefined
   if (moderation?.slopes.length) {
+    const distinctMods = new Set(moderation.slopes.map((s) => s.modId)).size
     const slopesBlock = [
       'library(ggplot2)',
-      'df_plot <- data.frame(level = factor(levels, levels = levels), b = bs, lo = los, hi = his)',
-      'print(',
-      '  ggplot2::ggplot(df_plot, ggplot2::aes(x = level, y = b)) +',
+      'df_plot <- data.frame(',
+      '  level = factor(levels, levels = c("-1SD", "mean", "+1SD")),',
+      '  moderation = factor(mods, levels = unique(mods)),',
+      '  b = bs, lo = los, hi = his',
+      ')',
+      'p_slopes <- ggplot2::ggplot(df_plot, ggplot2::aes(x = level, y = b)) +',
       '  ggplot2::geom_point(size = 3, colour = "#d97757") +',
       '  ggplot2::geom_errorbar(ggplot2::aes(ymin = lo, ymax = hi), width = 0.15, colour = "#d97757") +',
       '  ggplot2::geom_hline(yintercept = 0, linetype = "dotted", colour = "#888") +',
       '  ggplot2::labs(x = NULL, y = "Conditional effect (simple slope)") +',
       '  ggplot2::theme_minimal(base_size = 11)',
-      ')',
+      'if (length(unique(mods)) > 1) p_slopes <- p_slopes + ggplot2::facet_wrap(~ moderation, ncol = 1)',
+      'print(p_slopes)',
     ].join('\n')
-    figModSlopesPng = await engine.capturePlot(slopesBlock, 500, 380, {
+    // Height grows with facet count so stacked panels (ncol=1) stay legible; single-moderation keeps
+    // the original 380px (no facet strip, byte-for-byte the old look).
+    const height = distinctMods > 1 ? 220 * distinctMods + 60 : 380
+    figModSlopesPng = await engine.capturePlot(slopesBlock, 500, height, {
       levels: moderation.slopes.map((s) => s.level),
+      mods: moderation.slopes.map((s) => s.label),
       bs: moderation.slopes.map((s) => s.b),
       los: moderation.slopes.map((s) => s.ciPercLower),
       his: moderation.slopes.map((s) => s.ciPercUpper),
