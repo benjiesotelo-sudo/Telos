@@ -6,8 +6,17 @@ import type { Construct, StructuralPath, Moderation } from '../../state/session'
 export interface ModerationDef {
   id: number; moderatorName: string; pathLabel: string; matched: boolean
   intLabel: string; modLabel: string; varLabel: string; pathLabel_: string
-  var1: string[]; var2: string[]
+  var1: string[]; var2: string[]; targetName: string
 }
+
+/** Fixed disclosure text (design §A7 / U2-T4 brief) shown on a moderation row ONLY when the moderator
+ *  and the moderated path's source construct have unequal indicator counts, so `indProd(match=FALSE)`
+ *  (all-possible product indicators) ran instead of the matched-pairs default. Exported so the
+ *  export emitter reuses the SAME string (app ≡ export). */
+export const MODERATION_DISCLOSURE =
+  "Moderator and the path's source construct have unequal indicator counts; product indicators use " +
+  'all possible pairs (match=FALSE, double mean-centered) rather than matched pairs — see Marsh, Wen ' +
+  '& Hau (2004) for the matched-pairs method used when counts are equal.'
 
 /** Guards (design §A7): no self-moderation, no duplicate, not in path-analysis (observed-only) mode.
  *  Same error messages `buildModel` threw inline before this extraction. */
@@ -57,6 +66,7 @@ export function buildModerationLines(
     const modLabel = `pmod_${mod.id}`
     const intLabel = `pint_${mod.id}`
     const varLabel = `vmod_${mod.id}`
+    const pathLabel_ = `p_${path.from}_${path.to}`
 
     // Product-indicator naming REPLICATES semTools::indProd exactly (var1[i].var2[j], match=TRUE:
     // i==j pairs only, match=FALSE: all i,j pairs) — the R side calls indProd() with the SAME
@@ -72,10 +82,18 @@ export function buildModerationLines(
     targetLineExtras.set(mod.pathIndex, (targetLineExtras.get(mod.pathIndex) ?? '') + extra)
     lines.push(`${rNameOf(mod.moderatorId)} ~~ ${varLabel}*${rNameOf(mod.moderatorId)}`)
 
+    // Simple slopes at -1SD/mean/+1SD (Aiken & West 1991), defined INSIDE the model (production design
+    // per the moderation spike §2b(3)) so bootstrap CIs fall out of the SAME single run and correctly
+    // propagate the moderator-SD uncertainty per resample -- NOT the hand-rolled post-hoc arithmetic the
+    // spike's original (non-`:=`) script used.
+    lines.push(`slope_lo_${mod.id}  := ${pathLabel_} - ${intLabel}*sqrt(${varLabel})`)
+    lines.push(`slope_mid_${mod.id} := ${pathLabel_}`)
+    lines.push(`slope_hi_${mod.id}  := ${pathLabel_} + ${intLabel}*sqrt(${varLabel})`)
+
     moderationDefs.push({
       id: mod.id, moderatorName: moderator.name, pathLabel: `${source.name} → ${target.name}`,
-      matched, intLabel, modLabel, varLabel, pathLabel_: `p_${path.from}_${path.to}`,
-      var1: source.items, var2: moderator.items,
+      matched, intLabel, modLabel, varLabel, pathLabel_,
+      var1: source.items, var2: moderator.items, targetName: rNameOf(path.to),
     })
   }
   return { lines, moderationDefs, targetLineExtras }
@@ -87,6 +105,15 @@ export function buildModerationLines(
  *  `moderationIndProdEnv` produces below; the SAME text is meant to feed both `runCbSem.ts`'s R_STATS
  *  block and the `cb-sem` R-script export emitter (export ≡ app; wiring lands in a later task). */
 export const INDPROD_R = String.raw`
+# Defensive defaults: the WebR call site (runCbSem.ts) deliberately OMITS these vars from the env
+# object on a non-moderation run rather than sending empty JS arrays -- webr's JS->R env marshalling
+# misdetects an empty array as tabular "array of row-objects" data (Array.prototype.every is vacuously
+# true on []) and crashes converting it to a data.frame. R defines its own empty typed vectors instead.
+if (!exists('mod_ids', inherits = FALSE)) {
+  mod_ids <- integer(0); mod_var1_flat <- character(0); mod_var1_lens <- integer(0)
+  mod_var2_flat <- character(0); mod_var2_lens <- integer(0); mod_matched <- logical(0)
+  mod_target <- character(0)
+}
 if (length(mod_ids) > 0) {
   suppressMessages(library(semTools))
   v1_start <- 1L; v2_start <- 1L
@@ -107,5 +134,6 @@ export function moderationIndProdEnv(defs: ModerationDef[]) {
     mod_var1_flat: defs.flatMap((d) => d.var1), mod_var1_lens: defs.map((d) => d.var1.length),
     mod_var2_flat: defs.flatMap((d) => d.var2), mod_var2_lens: defs.map((d) => d.var2.length),
     mod_matched: defs.map((d) => d.matched),
+    mod_target: defs.map((d) => d.targetName),
   }
 }

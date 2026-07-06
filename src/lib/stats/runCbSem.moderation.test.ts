@@ -45,4 +45,11 @@ describe('buildModel — moderation guards + naming (pure, no WebR)', () => {
     expect(model).not.toContain('INT_')
     expect(moderationDefs).toEqual([])
   })
+  it('emits the := simple-slope definitions (production design, not the hand-rolled spike variant)', () => {
+    const { model } = buildModel(constructs, paths, false, rNameOf, [{ id: 1, moderatorId: 2, pathIndex: 0 }])
+    expect(model).toContain('TA ~~ vmod_1*TA')
+    expect(model).toContain('slope_lo_1  := p_1_3 - pint_1*sqrt(vmod_1)')
+    expect(model).toContain('slope_mid_1 := p_1_3')
+    expect(model).toContain('slope_hi_1  := p_1_3 + pint_1*sqrt(vmod_1)')
+  })
 })

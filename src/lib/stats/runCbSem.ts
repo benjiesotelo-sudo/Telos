@@ -5,7 +5,27 @@ import type { RunProgress } from '../results/builders'
 import { runCfaReliability, type CfaConstructResult } from './cfaReliability'
 import { isSaturated } from './semSaturation'
 import { lvNames } from './lvName'
-import { validateModerations, buildModerationLines, type ModerationDef } from './moderationModel'
+import {
+  validateModerations, buildModerationLines, moderationIndProdEnv, INDPROD_R,
+  MODERATION_DISCLOSURE, type ModerationDef,
+} from './moderationModel'
+
+/** One interaction-term row per moderation (design §A7). `disclosure` is populated ONLY when
+ *  `matched` is false (unequal indicator counts -> indProd(match=FALSE), see MODERATION_DISCLOSURE). */
+export interface ModerationRow {
+  moderatorName: string; pathLabel: string
+  b: number; se: number; z: number; p: number; stdBeta: number
+  ciPercLower: number; ciPercUpper: number; ciBcLower: number; ciBcUpper: number
+  matched: boolean; disclosure?: string
+}
+
+/** Simple slope at one of the three Aiken & West (1991) probing levels, from the `:=` defined
+ *  parameter fit inside the SAME bootstrap run as the interaction term (design §A7 / U2-T5). */
+export interface SlopeRow {
+  level: '-1SD' | 'mean' | '+1SD'
+  b: number; se: number; p: number; z: number
+  ciPercLower: number; ciPercUpper: number; ciBcLower: number; ciBcUpper: number
+}
 
 export interface CbSemResult {
   mode: 'full' | 'cfa-only' | 'path'
@@ -18,6 +38,7 @@ export interface CbSemResult {
   structural?: Array<Record<string, unknown>>
   rsquare?: Record<number, number>
   indirect?: Array<Record<string, unknown>>
+  moderation?: { rows: ModerationRow[]; slopes: SlopeRow[] }
   fornellLarcker: number[][]
   htmt: number[][]
   corLvP: number[][]
@@ -97,12 +118,15 @@ function listwise(data: Dataset, cols: string[]): Record<string, unknown>[] {
 //   con_ids / con_names   integer / character: construct id↔name map (for id-keyed rsquare + structural rows).
 //     con_names are SANITIZED R identifiers (lvName) matching the model tokens; con_display carries the
 //     original user-typed display names (same order) for every UI-facing name in the returned tables.
-//   has_indirect logical(1): whether any := indirect def exists
+//   has_indirect logical(1): whether bootstrap SE/CI is needed -- true when a := indirect def exists
+//     OR when any moderation is present (moderation ALWAYS bootstraps, design §A7; the TS call site
+//     widens this beyond a literal "has an indirect chain" reading, name kept for minimal diff)
 //   nboot        integer: bootstrap resamples (single awaited call)
 //   ci_type      character(1): unread by the R script below (vestigial -- kept only so the setup option
 //     round-trips without erroring; see the TS call site). Dual CIs (percentile + bca.simple) are now
 //     computed unconditionally from the SAME bootstrap draws whenever has_indirect is true.
 //   is_path      logical(1): observed-only mode (no =~; suppress loadings/reliability)
+//   mod_ids etc. numeric/character: moderation env (see moderationIndProdEnv) -- empty on non-moderation runs
 //
 // standardizedSolution(): est.std/se/z/pvalue/ci.lower/ci.upper (point-only; unaffected by CI-type
 // choice). parameterEstimates() is called TWICE on the same fitted object -- once with
@@ -116,6 +140,10 @@ library(lavaan)
 p_all <- length(all_cols)
 d <- as.data.frame(lapply(seq_len(p_all), function(i) item_cols_flat[((i - 1) * n + 1):(i * n)]))
 colnames(d) <- all_cols
+
+# Latent moderation (design §A7): fold double-mean-centered product-indicator columns into d BEFORE
+# the fit, one indProd() call per moderation edge. No-op (mod_ids empty) on every non-moderation run.
+${INDPROD_R}
 
 # Single awaited fit with bootstrap SE/CI for mediation (no RNG chunking — preserves WebR≡native parity).
 gc()
@@ -201,7 +229,9 @@ for (nm in names(rsq)) {
 }
 
 # --- Indirect effects (:= defined; bootstrap percentile + bca.simple CIs from the same run) ---
-ind_idx <- which(pe$op == ":=")
+# Filtered to the "ie_" label prefix ONLY -- moderation's own := defs ("slope_lo_<id>" etc., extracted
+# separately below into moderation.slopes) must NOT be conflated into this table (design §A7/U2-T5).
+ind_idx <- which(pe$op == ":=" & grepl("^ie_", pe$lhs))
 ss_def  <- ss[ss$op == ":=", ]
 pe_bc_def <- pe_bc[pe_bc$op == ":=", ]
 indirect_rows <- lapply(ind_idx, function(i) {
@@ -222,6 +252,44 @@ indirect_rows <- lapply(ind_idx, function(i) {
   )
 })
 
+# --- Moderation: one interaction-term row per moderation edge, plus its three := simple-slope rows
+# (-1SD/mean/+1SD, design §A7/U2-T5). Matched by structural NAME (target/predictor), same convention
+# as struct_rows above -- NOT by lavaan label, matching the existing struct_rows lookup style. Bootstrap
+# columns (pe/pe_bc) are indexed by structural name here too, never by ParTable row position (the
+# moderation spike's real footgun -- see docs/superpowers/reviews/2026-07-06-moderation-spike.md §5.3).
+mod_rows <- list()
+slope_rows <- list()
+if (length(mod_ids) > 0) {
+  for (mi in seq_along(mod_ids)) {
+    mid <- mod_ids[mi]
+    tnm <- mod_target[mi]
+    intnm <- paste0("INT_", mid)
+    gi <- which(ss$lhs == tnm & ss$rhs == intnm & ss$op == "~")[1]
+    m  <- which(pe$lhs == tnm & pe$rhs == intnm & pe$op == "~")[1]
+    mb <- which(pe_bc$lhs == tnm & pe_bc$rhs == intnm & pe_bc$op == "~")[1]
+    mod_rows[[mi]] <- list(
+      id = as.integer(mid),
+      b = as.numeric(pe$est[m]), se = as.numeric(pe$se[m]),
+      z = as.numeric(pe$z[m]), p = as.numeric(pe$pvalue[m]),
+      stdBeta = as.numeric(ss$est.std[gi]),
+      ciPercLower = as.numeric(pe$ci.lower[m]), ciPercUpper = as.numeric(pe$ci.upper[m]),
+      ciBcLower = as.numeric(pe_bc$ci.lower[mb]), ciBcUpper = as.numeric(pe_bc$ci.upper[mb])
+    )
+    for (lvl in c("lo", "mid", "hi")) {
+      lbl <- paste0("slope_", lvl, "_", mid)
+      i  <- which(pe$lhs == lbl & pe$op == ":=")[1]
+      ib <- which(pe_bc$lhs == lbl & pe_bc$op == ":=")[1]
+      if (!is.na(i)) slope_rows[[length(slope_rows) + 1]] <- list(
+        modId = as.integer(mid), level = lvl,
+        est = as.numeric(pe$est[i]), se = as.numeric(pe$se[i]),
+        z = as.numeric(pe$z[i]), p = as.numeric(pe$pvalue[i]),
+        ciPercLower = as.numeric(pe$ci.lower[i]), ciPercUpper = as.numeric(pe$ci.upper[i]),
+        ciBcLower = as.numeric(pe_bc$ci.lower[ib]), ciBcUpper = as.numeric(pe_bc$ci.upper[ib])
+      )
+    }
+  }
+}
+
 # --- Estimates block for the canvas overlay (loadings keyed by item name) ---
 est_loadings <- list()
 if (!is_path) {
@@ -236,6 +304,8 @@ list(
   structural = struct_rows,
   rsquareIds = rsq_ids,
   indirect = indirect_rows,
+  moderationRows = mod_rows,
+  slopeRows = slope_rows,
   estLoadings = est_loadings,
   estPaths = est_paths
 )
@@ -303,6 +373,16 @@ export function buildModel(
   return { model: lines.join('\n'), hasIndirect: indirectDefs.length > 0, indirectDefs, moderationDefs }
 }
 
+interface RawModerationRow {
+  id: number; b: number; se: number; z: number; p: number; stdBeta: number
+  ciPercLower: number; ciPercUpper: number; ciBcLower: number; ciBcUpper: number
+}
+interface RawSlopeRow {
+  modId: number; level: 'lo' | 'mid' | 'hi'
+  est: number; se: number; z: number; p: number
+  ciPercLower: number; ciPercUpper: number; ciBcLower: number; ciBcUpper: number
+}
+
 interface RawResult {
   fit: Record<string, number>
   df: number
@@ -310,9 +390,13 @@ interface RawResult {
   structural: Array<Record<string, unknown>>
   rsquareIds: Record<string, number>
   indirect: Array<Record<string, unknown>>
+  moderationRows: RawModerationRow[]
+  slopeRows: RawSlopeRow[]
   estLoadings: Record<string, number>
   estPaths: Array<{ from: number; to: number; beta: number }>
 }
+
+const SLOPE_LEVEL: Record<RawSlopeRow['level'], SlopeRow['level']> = { lo: '-1SD', mid: 'mean', hi: '+1SD' }
 
 export async function runCbSem(
   engine: Engine,
@@ -320,6 +404,15 @@ export async function runCbSem(
   setup: TestSetup,
   onProgress?: RunProgress,
 ): Promise<CbSemResult> {
+  // Latent moderation FORCES ML estimation (design §A7): the indProd product-indicator approach assumes
+  // continuous indicators, so it is incompatible with WLSMV/ordinal. Synchronous, ahead of any engine
+  // call, so a bad combination never reaches WebR/R at all.
+  if ((setup.moderations?.length ?? 0) > 0 && setup.options['estimator'] === 'WLSMV') {
+    throw new Error(
+      'Latent moderation requires an ML-family estimator (ML or MLR); switch off WLSMV or remove the moderation edge.',
+    )
+  }
+
   const mode = resolveMode(setup)
   const isPath = mode === 'path'
   const constructs = setup.constructs ?? []
@@ -348,7 +441,7 @@ export async function runCbSem(
     ? usedCols.map((col) => rNameOf(constructs.find((c) => c.name === col)!.id))
     : usedCols
 
-  const { model, hasIndirect, indirectDefs } = buildModel(constructs, paths, isPath, rNameOf, setup.moderations ?? [])
+  const { model, hasIndirect, indirectDefs, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, setup.moderations ?? [])
   const nboot = Number(setup.options['nboot'] ?? 5000)
   // was: const ci_type = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'   // 'bca' is not a valid
   // lavaan boot.ci.type -- dead code, would error if ever reached (design §A2 fix).
@@ -356,11 +449,18 @@ export async function runCbSem(
   // is now computed unconditionally whenever has_indirect; ci_type is kept only so the option round-trips
   // without erroring, not to gate which CI type is present.
 
+  // Moderation ALWAYS bootstraps (design §A7), independent of whether an indirect-effect chain exists --
+  // widens the R script's bootstrap gate (`has_indirect`, see R_STATS comment) beyond a literal reading.
+  const needsBootstrap = hasIndirect || moderationDefs.length > 0
+  const bootstrapLabel = hasIndirect && moderationDefs.length > 0
+    ? 'indirect effects and moderation slopes'
+    : moderationDefs.length > 0 ? 'moderation slopes' : 'indirect effects'
+
   onProgress?.({
-    message: hasIndirect
-      ? `Fitting CB-SEM and bootstrapping indirect effects (${nboot.toLocaleString()} resamples)…`
+    message: needsBootstrap
+      ? `Fitting CB-SEM and bootstrapping ${bootstrapLabel} (${nboot.toLocaleString()} resamples)…`
       : 'Fitting CB-SEM…',
-    estMs: hasIndirect ? Math.round((nboot / 5000) * 162_000) : undefined, // spike: 5k mediation ≈ 2.7 min
+    estMs: needsBootstrap ? Math.round((nboot / 5000) * 162_000) : undefined, // spike: 5k mediation ≈ 2.7 min
   })
 
   const env = {
@@ -373,10 +473,14 @@ export async function runCbSem(
     con_ids: constructs.map((c) => c.id),
     con_names: rNames,
     con_display: constructs.map((c) => c.name),
-    has_indirect: hasIndirect,
+    has_indirect: needsBootstrap,
     nboot,
     ci_type,
     is_path: isPath,
+    // Only sent when non-empty: an empty JS array crashes webR's env marshalling (it misdetects []
+    // as tabular "array of row-objects" data -- see the guard comment in moderationModel.ts's
+    // INDPROD_R, which defines these as R empty vectors itself when they're absent from the env).
+    ...(moderationDefs.length ? moderationIndProdEnv(moderationDefs) : {}),
   }
 
   const raw = await engine.runJson<RawResult>(R_STATS, env)
@@ -408,6 +512,33 @@ export async function runCbSem(
     ? raw.indirect.map((row) => ({ ...row, pathLabel: labelToChain.get(String(row.label)) }))
     : undefined
 
+  // Moderation: one interaction-term row per moderation edge (b/se/z/p/stdBeta + dual CIs), keyed back
+  // to its ModerationDef by id for moderatorName/pathLabel/matched/disclosure (design §A7). `disclosure`
+  // is populated ONLY when `!matched` (unequal indicator counts -> indProd(match=FALSE), U2-T4 ruling).
+  const modDefById = new Map(moderationDefs.map((d) => [d.id, d]))
+  const moderation = moderationDefs.length
+    ? {
+        rows: raw.moderationRows.map((row): ModerationRow => {
+          const def = modDefById.get(row.id)!
+          return {
+            moderatorName: def.moderatorName,
+            pathLabel: `${def.pathLabel} × ${def.moderatorName}`,
+            b: row.b, se: row.se, z: row.z, p: row.p, stdBeta: row.stdBeta,
+            ciPercLower: row.ciPercLower, ciPercUpper: row.ciPercUpper,
+            ciBcLower: row.ciBcLower, ciBcUpper: row.ciBcUpper,
+            matched: def.matched,
+            ...(def.matched ? {} : { disclosure: MODERATION_DISCLOSURE }),
+          }
+        }),
+        slopes: raw.slopeRows.map((row): SlopeRow => ({
+          level: SLOPE_LEVEL[row.level],
+          b: row.est, se: row.se, p: row.p, z: row.z,
+          ciPercLower: row.ciPercLower, ciPercUpper: row.ciPercUpper,
+          ciBcLower: row.ciBcLower, ciBcUpper: row.ciBcUpper,
+        })),
+      }
+    : undefined
+
   return {
     mode,
     saturated: isSaturated(raw.df),
@@ -417,6 +548,7 @@ export async function runCbSem(
     structural: raw.structural,
     rsquare,
     indirect,
+    moderation,
     fornellLarcker,
     htmt,
     corLvP,
