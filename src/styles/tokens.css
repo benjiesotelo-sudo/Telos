@@ -129,8 +129,11 @@ table.apa.matrix td:empty{color:transparent;}
 /* first-run hint + rail affordances (slice 3, R2) */
 .hintbar{display:flex;align-items:center;gap:10px;max-width:640px;margin:0 auto 10px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--card);padding:8px 13px;font-size:12.5px;}
 .hintbar-x{margin-left:auto;border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 6px;}
-.stage-btn:not(:disabled):hover .lbl,.stage-btn:focus-visible .lbl{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--accent);}
-.stage-btn:not(:disabled):hover .node{transform:translateY(-1px);}
+.stage-btn:focus-visible .lbl{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--accent);}
+@media (hover: hover){
+  .stage-btn:not(:disabled):hover .lbl{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--accent);}
+  .stage-btn:not(:disabled):hover .node{transform:translateY(-1px);}
+}
 .stage-btn .node{transition:transform var(--motion) ease-out,background var(--motion) ease-out,box-shadow var(--motion) ease-out;}
 /* motion register (slice 3, R3) — all dies under the reduced-motion block below */
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
