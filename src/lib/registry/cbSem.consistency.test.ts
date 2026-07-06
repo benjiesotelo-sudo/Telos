@@ -44,18 +44,30 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     expect(spec.inputKind).toBe('sem-canvas')
     expect(spec.roles).toHaveLength(0)
   })
-  it('Table 1/2 (EFA suitability + rotated loadings) theads match the spec columns', () => {
+  // U3-T4: EFA is a PREAMBLE stage — captions "Table E1./Table E2." (never counted into the card's
+  // canonical Table 1-5 run), so both a captionStyle/preambleLabel check and a literal-caption check earn
+  // their keep here (theadAfter alone, by title text, wouldn't catch a caption-numbering regression).
+  it('Tables E1/E2 (EFA suitability + rotated loadings) are preamble tables (not counted in canonical numbering)', () => {
+    expect(spec.tables.find((t) => t.id === 'efa-suitability')).toMatchObject({ captionStyle: 'preamble', preambleLabel: 'E1' })
+    expect(spec.tables.find((t) => t.id === 'efa-loadings')).toMatchObject({ captionStyle: 'preamble', preambleLabel: 'E2' })
     expect(theadAfter('EFA suitability')).toEqual(tableCols('efa-suitability'))
     expect(theadAfter('EFA rotated factor loadings')).toEqual(tableCols('efa-loadings'))
+    expect(card).toContain('<div class="apa-cap"><b>Table E1.</b> EFA suitability</div>')
+    expect(card).toContain('<div class="apa-cap"><b>Table E2.</b> EFA rotated factor loadings</div>')
   })
-  it('Table 3 (measurement model: loadings, reliability & item descriptives) thead matches the spec columns', () => {
+  it('Table 1 (measurement model: loadings, reliability & item descriptives) thead matches the spec columns', () => {
     expect(theadAfter('Measurement model (loadings, reliability &amp; item descriptives)')).toEqual(tableCols('cfa-loadings'))
+    expect(card).toContain('<div class="apa-cap"><b>Table 1.</b> Measurement model (loadings, reliability &amp; item descriptives)</div>')
   })
-  it('Table 4/5 (Fornell-Larcker/HTMT) captions and note text match', () => {
+  it('Table 2 (fit indices) thead matches the spec columns', () => {
+    expect(theadAfter('Fit indices')).toEqual(tableCols('fit-indices'))
+    expect(card).toContain('<div class="apa-cap"><b>Table 2.</b> Fit indices</div>')
+  })
+  it('Table 3/4 (Fornell-Larcker/HTMT) captions and note text match', () => {
     const flTitle = spec.tables.find((t) => t.id === 'fornell-larcker')!.title
     const htmtTitle = spec.tables.find((t) => t.id === 'htmt')!.title
-    const flCap = strip(card.match(/<div class="apa-cap"><b>Table 4\.<\/b>(.*?)<\/div>/s)![1])
-    const htmtCap = strip(card.match(/<div class="apa-cap"><b>Table 5\.<\/b>(.*?)<\/div>/s)![1])
+    const flCap = strip(card.match(/<div class="apa-cap"><b>Table 3\.<\/b>(.*?)<\/div>/s)![1])
+    const htmtCap = strip(card.match(/<div class="apa-cap"><b>Table 4\.<\/b>(.*?)<\/div>/s)![1])
     expect(flCap).toBe(flTitle)
     expect(htmtCap).toBe(htmtTitle)
     const crossRef =
@@ -63,14 +75,21 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     expect(spec.tableNote!.text).toContain(crossRef)
     expect(strip(card)).toContain(crossRef)
   })
-  it('Table 5 (fit indices) thead matches the spec columns', () => {
-    expect(theadAfter('Fit indices')).toEqual(tableCols('fit-indices'))
-  })
   // U3-T3: structural paths + indirect effects + moderation merged into ONE H-numbered, dual-CI,
   // Result-ruled table with a two-row spanning header (Percentile 95% CI / BC 95% CI). theadAfter
   // flattens <th> text regardless of rowspan/colspan, so this compares the FLATTENED leaf column list.
-  it('Table 6 (structural paths, indirect effects & moderation) thead flattens to the spec columns', () => {
+  it('Table 5 (structural paths, indirect effects & moderation) thead flattens to the spec columns', () => {
     expect(theadAfter('Structural paths, indirect effects &amp; moderation')).toEqual(tableCols('structural-paths'))
+    expect(card).toContain('<div class="apa-cap"><b>Table 5.</b> Structural paths, indirect effects &amp; moderation</div>')
+  })
+  it('canonical Table 1-5 order matches the reordered registry (measurement, fit, Fornell-Larcker, HTMT, structural)', () => {
+    expect(spec.tables.map((t) => t.id)).toEqual([
+      'efa-suitability', 'efa-loadings', 'cfa-loadings', 'fit-indices', 'fornell-larcker', 'htmt', 'structural-paths',
+    ])
+  })
+  it('tableNote reflects the E1/E2 preamble + single merged Table 5 (structural) omission wording', () => {
+    expect(spec.tableNote!.text).toContain('if EFA was deselected, Tables E1–E2 are omitted')
+    expect(spec.tableNote!.text).toContain('if the structural stage was deselected, Table 5 is omitted')
   })
   it('question matches', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/)![1])).toBe(spec.question)

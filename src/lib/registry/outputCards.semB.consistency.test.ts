@@ -32,17 +32,20 @@ const theadAfter = (block: string, cap: string) => {
 describe('SEM-B output cards carry the §6B amendments (B/SE/z/p, ω, reordered PLS reliability)', () => {
   // U3-T1 (2026-07-07): Table 3 (CFA loadings) and Table 4 (reliability) were merged into ONE grouped
   // table — construct rows carry ω/α/CR/AVE once, item rows carry Mean/SD/B/SE/z/p/Std. loading. See
-  // cbSem.consistency.test.ts's 'Table 3 (measurement model...)' assertion for the up-to-date check;
+  // cbSem.consistency.test.ts's 'Table 1 (measurement model...)' assertion for the up-to-date check;
   // this test now confirms the merge kept the pre-existing loading/reliability columns, ω included.
-  it('CB-SEM Table 3 (measurement model, merged) = Construct/Item · Mean · SD · B · SE · z · p · Std. loading · ω · α · CR · AVE', () => {
+  // U3-T4 (2026-07-07): renumbered Table 3 → Table 1 in the final canonical Table 1-5 pass (EFA now
+  // captions as preamble Tables E1/E2, ahead of the canonical run).
+  it('CB-SEM Table 1 (measurement model, merged) = Construct/Item · Mean · SD · B · SE · z · p · Std. loading · ω · α · CR · AVE', () => {
     expect(theadAfter(cb, 'Measurement model (loadings, reliability &amp; item descriptives)')).toEqual(
       ['Construct / Item', 'Mean', 'SD', 'B', 'SE', 'z', 'p', 'Std. loading', 'ω', 'α', 'CR', 'AVE'],
     )
   })
   // U3-T3 (2026-07-07): Table 6/7 (structural paths / indirect effects) were merged into ONE
   // H-numbered, dual-CI (percentile + BC), Result-ruled table. See cbSem.consistency.test.ts's
-  // 'Table 6 (structural paths, indirect effects & moderation)' assertion for the up-to-date check.
-  it('CB-SEM Table 6 (merged structural/indirect/moderation) flattens to H · Path · B · Std. β · p · Lower · Upper (perc) · Lower · Upper (BC) · Result', () => {
+  // 'Table 5 (structural paths, indirect effects & moderation)' assertion for the up-to-date check.
+  // U3-T4 (2026-07-07): renumbered Table 6 → Table 5 in the final canonical Table 1-5 pass.
+  it('CB-SEM Table 5 (merged structural/indirect/moderation) flattens to H · Path · B · Std. β · p · Lower · Upper (perc) · Lower · Upper (BC) · Result', () => {
     expect(theadAfter(cb, 'Structural paths')).toEqual(
       ['H', 'Path', 'B', 'Std. β', 'p', 'Lower', 'Upper', 'Lower', 'Upper', 'Result'],
     )
@@ -57,7 +60,7 @@ describe('SEM-B output cards carry the §6B amendments (B/SE/z/p, ω, reordered 
     expect(rmap).not.toContain('plspm')
     expect(rmap).toContain('seminr')
   })
-  it('CB-SEM R map reliability output includes ω (matches Table 4)', () => {
+  it('CB-SEM R map reliability output includes ω (matches Table 1)', () => {
     const cbRmap = cb.match(/<b>R map:<\/b>([\s\S]*?)<\/div>/g)!.join(' ')
     expect(strip(cbRmap)).toContain('ω')
     expect(strip(cbRmap)).toContain('CR/AVE/ω/α')

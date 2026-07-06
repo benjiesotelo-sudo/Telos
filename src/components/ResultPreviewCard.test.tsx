@@ -27,6 +27,25 @@ describe('chassis renders each card shape (design §5)', () => {
     const two = { ...base, figures: [{ caption: 'Shape', type: 'histogram', png }, { caption: 'Shape', type: 'qq', png }] }
     expect(render(two).match(/<b>Figure\.<\/b>/g)).toHaveLength(2)
   })
+  it('preamble tables (EFA E1/E2) caption by their fixed label; canonical numbering starts at 1 on the next table (U3-T4)', () => {
+    const content: CardContent = { tables: [
+      { spec: { id: 'efa-suitability', title: 'EFA suitability', columns: [], captionStyle: 'preamble', preambleLabel: 'E1' }, rows: [] },
+      { spec: { id: 'efa-loadings', title: 'EFA rotated factor loadings', columns: [], captionStyle: 'preamble', preambleLabel: 'E2' }, rows: [] },
+      { spec: { id: 'cfa-loadings', title: 'Measurement model', columns: [] }, rows: [] },
+      { spec: { id: 'fit-indices', title: 'Fit indices', columns: [] }, rows: [] },
+    ], note: null, figures: [], howToRead: '', apa: '', nExcluded: 0 }
+    const html = render(content)
+    expect(html).toContain('<b>Table E1.</b> EFA suitability')
+    expect(html).toContain('<b>Table E2.</b> EFA rotated factor loadings')
+    expect(html).toContain('<b>Table 1.</b> Measurement model') // cfa-loadings, first CANONICAL table
+    expect(html).toContain('<b>Table 2.</b> Fit indices')
+  })
+  it('canonical numbering starts at 1 even when no preamble tables are present (EFA deselected)', () => {
+    const content: CardContent = { tables: [
+      { spec: { id: 'cfa-loadings', title: 'Measurement model', columns: [] }, rows: [] },
+    ], note: null, figures: [], howToRead: '', apa: '', nExcluded: 0 }
+    expect(render(content)).toContain('<b>Table 1.</b> Measurement model')
+  })
   it('ColumnDef.suffix renders after the sub in the table header', () => {
     const withSuffix: CardContent = { ...base, tables: [{
       spec: { id: 'one', title: 'Only table', columns: [{ key: 'a', label: 'M', sub: 'diff', suffix: ' (adj.)' }] },
