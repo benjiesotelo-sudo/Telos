@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { SemCanvasUI, pathNodeCenter, latentBounds, NODE_W, NODE_H, ITEM_W, ITEM_H } from './SemCanvas'
+import { SemCanvasUI, moderationGuardReason, pathNodeCenter, latentBounds, NODE_W, NODE_H, ITEM_W, ITEM_H } from './SemCanvas'
 import type { Construct, StructuralPath, Moderation } from '../state/session'
 
 const noop = () => {}
@@ -376,5 +376,56 @@ describe('SemCanvasUI — moderation edges (dashed clay arrows)', () => {
   it('draw mode renders no moderation-delete handles (delete-only affordance)', () => {
     const html = renderLatent({ moderations, mode: 'draw' })
     expect(html).not.toContain('sem-mod-delete-target')
+  })
+})
+
+const snTaTiConstructs: Construct[] = [
+  { id: 1, name: 'SN', items: ['sn1', 'sn2', 'sn3', 'sn4'] },
+  { id: 2, name: 'TA', items: ['ta1', 'ta2', 'ta3', 'ta4'] },
+  { id: 3, name: 'TI', items: ['ti1', 'ti2', 'ti3'] },
+]
+const snTiPath: StructuralPath[] = [{ from: 1, to: 3 }]
+
+describe('moderationGuardReason — pure validation (unit-tested directly, no simulated clicks)', () => {
+  it('allows a valid moderation (moderator not in the path, no duplicate, ML estimator, latent mode)', () => {
+    expect(moderationGuardReason({
+      moderatorId: 2, pathIndex: 0, constructs: snTaTiConstructs, paths: snTiPath,
+      moderations: [], estimator: 'ML', modelKind: 'latent',
+    })).toBeNull()
+  })
+
+  it('blocks self-moderation when the moderator IS the path source', () => {
+    expect(moderationGuardReason({
+      moderatorId: 1, pathIndex: 0, constructs: snTaTiConstructs, paths: snTiPath,
+      moderations: [], estimator: 'ML', modelKind: 'latent',
+    })).toMatch(/cannot moderate its own path|source or target/i)
+  })
+
+  it('blocks self-moderation when the moderator IS the path target', () => {
+    expect(moderationGuardReason({
+      moderatorId: 3, pathIndex: 0, constructs: snTaTiConstructs, paths: snTiPath,
+      moderations: [], estimator: 'ML', modelKind: 'latent',
+    })).toMatch(/cannot moderate its own path|source or target/i)
+  })
+
+  it('blocks a duplicate (same moderator, same path already recorded)', () => {
+    expect(moderationGuardReason({
+      moderatorId: 2, pathIndex: 0, constructs: snTaTiConstructs, paths: snTiPath,
+      moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }], estimator: 'ML', modelKind: 'latent',
+    })).toMatch(/already moderates|duplicate/i)
+  })
+
+  it('blocks under a WLSMV (ordinal) estimator', () => {
+    expect(moderationGuardReason({
+      moderatorId: 2, pathIndex: 0, constructs: snTaTiConstructs, paths: snTiPath,
+      moderations: [], estimator: 'WLSMV', modelKind: 'latent',
+    })).toMatch(/WLSMV|ordinal|ML/i)
+  })
+
+  it('blocks in path-analysis (observed-only) mode', () => {
+    expect(moderationGuardReason({
+      moderatorId: 2, pathIndex: 0, constructs: snTaTiConstructs, paths: snTiPath,
+      moderations: [], estimator: 'ML', modelKind: 'path',
+    })).toMatch(/path.analysis|observed-only/i)
   })
 })

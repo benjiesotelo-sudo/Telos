@@ -87,12 +87,39 @@ export interface SemCanvasUIProps {
   running: boolean
   viewBox?: ViewBox
   moderations: Moderation[]
+  /** Model estimator (e.g. 'ML', 'WLSMV'); moderation is blocked under WLSMV/ordinal. Defaults to 'ML'. */
+  estimator?: string
   onAddPath(from: number, to: number): void
   onRemovePath(index: number): void
   onMoveNode(id: number, x: number, y: number): void
   onSetMode(m: 'draw' | 'move' | 'delete'): void
   onAddModeration(moderatorId: number, pathIndex: number): void
   onRemoveModeration(id: number): void
+}
+
+export interface ModerationGuardArgs {
+  moderatorId: number
+  pathIndex: number
+  constructs: Construct[]
+  paths: StructuralPath[]
+  moderations: Moderation[]
+  estimator: string
+  modelKind: 'latent' | 'path'
+}
+
+/** Pure validation for the moderation gesture (A7 guards) — returns null when the gesture is valid,
+ *  else a plain-language reason to show the user. Called BEFORE onAddModeration fires so an invalid
+ *  gesture never reaches the store. Order matches the spec's guard list: mode -> estimator -> self -> dup. */
+export function moderationGuardReason(a: ModerationGuardArgs): string | null {
+  if (a.modelKind === 'path') return 'Moderation is not available in path-analysis (observed-only) mode.'
+  if (a.estimator === 'WLSMV') return 'Moderation requires an ML-family estimator; switch off WLSMV (ordinal) to draw a moderation edge.'
+  const p = a.paths[a.pathIndex]
+  if (!p) return null   // stale index — no-op, not a user-facing guard
+  if (a.moderatorId === p.from || a.moderatorId === p.to) return 'A construct cannot moderate its own path (it is already the source or target).'
+  if (a.moderations.some((m) => m.moderatorId === a.moderatorId && m.pathIndex === a.pathIndex)) {
+    return 'That construct already moderates this path.'
+  }
+  return null
 }
 
 /** A canvas node: latent constructs are id-addressed; path-mode columns use their array index as id. */
@@ -161,12 +188,14 @@ export function pathNodeCenter(idx: number, count: number, W: number, H: number)
 /** Pure presentational canvas — testable with renderToStaticMarkup. */
 export function SemCanvasUI({
   testId, constructs, columns, paths, modelKind, mode, estimates, running,
-  viewBox: vbProp, moderations,
+  viewBox: vbProp, moderations, estimator = 'ML',
   onAddPath, onRemovePath, onMoveNode: _onMoveNode, onSetMode,
   onAddModeration, onRemoveModeration,
 }: SemCanvasUIProps) {
   // pending draw source (click source → target); cancel when same node re-clicked
   const [pending, setPending] = useState<number | null>(null)
+  // last-blocked-gesture explanation (A7 guards); cleared on the next valid gesture
+  const [modGuard, setModGuard] = useState<string | null>(null)
 
   const isPath = modelKind === 'path'
   const nodes = nodesOf({ constructs, columns, modelKind })
@@ -199,6 +228,11 @@ export function SemCanvasUI({
   // clicked into an existing path's midpoint handle, records a moderation edge instead of a path.
   function clickPathMidpoint(pathIndex: number) {
     if (running || mode !== 'draw' || pending === null) return
+    const reason = moderationGuardReason({
+      moderatorId: pending, pathIndex, constructs, paths, moderations, estimator, modelKind,
+    })
+    if (reason) { setModGuard(reason); setPending(null); return }
+    setModGuard(null)
     onAddModeration(pending, pathIndex)
     setPending(null)
   }
@@ -223,6 +257,9 @@ export function SemCanvasUI({
         {toolBtn('move', 'Move')}
         {toolBtn('delete', 'Delete')}
       </div>
+      {modGuard && (
+        <p className="hint" role="alert" style={{ color: 'var(--error-tx)', marginTop: 4 }}>{modGuard}</p>
+      )}
       {empty && (
         <p className="hint" role="status" style={{ padding: 12 }}>
           {isPath ? 'Assign columns to draw paths.' : 'Add a construct to start the diagram.'}
@@ -545,6 +582,7 @@ export function SemCanvas({ testId }: { testId: string }) {
           running={running}
           viewBox={vb}
           moderations={setup.moderations ?? []}
+          estimator={String(setup.options['estimator'] ?? 'ML')}
           onAddPath={(from, to) => s.addPath(testId, from, to)}
           onRemovePath={(i) => s.removePath(testId, i)}
           onMoveNode={(id, x, y) => s.moveNode(testId, id, x, y)}

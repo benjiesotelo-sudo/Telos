@@ -401,6 +401,13 @@ describe('moderations', () => {
     expect(useSession.getState().setups[TEST_ID].moderations!.map((m) => m.id)).toEqual([2, 3])
   })
 
+  it('addModeration is a no-op on a duplicate (same moderatorId + pathIndex) — double-adding is impossible at the store level', () => {
+    const s = useSession.getState()
+    s.addModeration(TEST_ID, 2, 0)
+    s.addModeration(TEST_ID, 2, 0)
+    expect(useSession.getState().setups[TEST_ID].moderations).toEqual([{ id: 1, moderatorId: 2, pathIndex: 0 }])
+  })
+
   it('removeModeration drops the moderation by id (not array index)', () => {
     const s = useSession.getState()
     s.addModeration(TEST_ID, 2, 0)

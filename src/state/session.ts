@@ -315,6 +315,9 @@ export const useSession = create<SessionState>((set, get) => {
     addModeration: (testId, moderatorId, pathIndex) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
       const ms = prev.moderations ?? []
+      // Dedup at the store seam: the canvas guard explains a duplicate to the user, but the store
+      // is the last line of defence — double-adding the same moderator+path must be impossible.
+      if (ms.some((m) => m.moderatorId === moderatorId && m.pathIndex === pathIndex)) return {}
       return { setups: { ...s.setups, [testId]: { ...prev, moderations: [...ms, { id: nextModerationId(ms), moderatorId, pathIndex }] } } }
     }),
     removeModeration: (testId, id) => edit((s) => {
