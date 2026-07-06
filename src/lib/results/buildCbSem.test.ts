@@ -213,6 +213,18 @@ describe('buildCbSem', () => {
     expect(c.notes!.find((n) => n.label === 'Moderation')!.text).not.toContain(MODERATION_DISCLOSURE)
   })
 
+  // Fix round (U3-T5 review findings, item 1): the Moderation note dropped a methodological clause
+  // ("each an interaction-term effect from the same bootstrap run" -- present in the pre-split
+  // tableNote, lost when U3-T5 split it into labelled notes) and added a false forward-reference to a
+  // conditional-effects table that Unit 5 hasn't built yet. Static text must (a) restore the bootstrap-
+  // provenance clause and (b) not claim a table that doesn't exist.
+  it('Moderation note restores the bootstrap-provenance clause and drops the premature conditional-effects-table reference', () => {
+    const c = buildCbSem(SPEC, base)
+    const mod = c.notes!.find((n) => n.label === 'Moderation')!.text
+    expect(mod).toContain('each an interaction-term effect from the same bootstrap run')
+    expect(mod).not.toContain('conditional-effects table')
+  })
+
   it('suppresses the fit table and flags saturation when df==0 (single Saturation note, in notes[0])', () => {
     const sat: CbSemResult = { ...base, saturated: true, fit: { ...base.fit!, df: 0 } }
     const c = buildCbSem(SPEC, sat)
@@ -256,6 +268,40 @@ describe('buildCbSem', () => {
     expect(h1.result).toBe('—')
     expect(h1.result).not.toBe('Supported')
     expect(h1.result).not.toBe('Not supported')
+  })
+
+  // Fix round (review finding 2): the shared result() dash rule was only pinned on the direct-paths row
+  // above -- pin it on the Indirect effects and Moderation sections too, since they call the exact same
+  // result(row.ciPercLower, row.ciPercUpper) helper.
+  it('Result column renders a dash, not a fabricated verdict, on the Indirect effects row when either CI bound is nullish', () => {
+    const nullBound: CbSemResult = {
+      ...base,
+      moderation: undefined,
+      indirect: [{ ...base.indirect![0], ciPercLower: null as unknown as number, ciPercUpper: -0.2 }],
+    }
+    const c = buildCbSem(SPEC, nullBound)
+    const t5 = c.tables.find((t) => t.spec.id === 'structural-paths')!
+    const indirectRow = t5.rows.find((r) => r.__section == null && r.path === 'ind60 → dem60 → dem65')!
+    expect(indirectRow.result).toBe('—')
+    expect(indirectRow.result).not.toBe('Supported')
+    expect(indirectRow.result).not.toBe('Not supported')
+  })
+
+  it('Result column renders a dash, not a fabricated verdict, on the Moderation row when either CI bound is nullish', () => {
+    const nullBound: CbSemResult = {
+      ...base,
+      indirect: undefined,
+      moderation: {
+        rows: [{ ...base.moderation!.rows[0], ciPercLower: null as unknown as number, ciPercUpper: -0.2 }],
+        slopes: [],
+      },
+    }
+    const c = buildCbSem(SPEC, nullBound)
+    const t5 = c.tables.find((t) => t.spec.id === 'structural-paths')!
+    const modRow = t5.rows.find((r) => r.__section == null && r.path === 'ind60 → dem60 × age')!
+    expect(modRow.result).toBe('—')
+    expect(modRow.result).not.toBe('Supported')
+    expect(modRow.result).not.toBe('Not supported')
   })
 
   it('suppresses measurement tables in path mode', () => {

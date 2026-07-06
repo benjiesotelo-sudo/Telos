@@ -251,8 +251,13 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       notes = [{ label: 'Saturation', text: SATURATION_NOTE }]
     } else {
       const r2Static = 'R² is filled once per endogenous (outcome) construct.'
+      // Fix round (U3-T5 review findings, item 1): restore the dropped bootstrap-provenance clause
+      // ("each an interaction-term effect from the same bootstrap run", present in the pre-split
+      // tableNote) and drop the false forward-reference to a conditional-effects table that Unit 5
+      // hasn't built yet -- simple slopes are estimated (as `:=` defined parameters) now, but they are
+      // not yet surfaced in a dedicated table.
       const modStatic =
-        'Moderation adds an interaction row to Table 5 when a moderation edge is drawn on the canvas; simple slopes are reported in the conditional-effects table.'
+        'Moderation edges appear only when drawn on the canvas, each an interaction-term effect from the same bootstrap run; simple slopes at -1 SD / mean / +1 SD are estimated as defined parameters.'
       notes = [
         { label: 'Scope', text: 'Tables shown follow the pipeline stages you ran (EFA → CFA → fit → structural); if EFA was deselected, the E1/E2 preamble is omitted; if the structural stage was deselected, Table 5 is omitted.' },
         { label: 'Cutoffs', text: 'Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 — guidelines, not pass/fail gates; RMSEA is unstable at small df / small N, so interpret it cautiously for compact models.' },
