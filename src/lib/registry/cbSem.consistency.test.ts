@@ -114,6 +114,13 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     expect(text).toContain('if EFA was deselected')
     expect(text).toContain('the structural stage was deselected, Table 5 is omitted')
   })
+  it('documents the Moderation section (A7)', () => {
+    // U5-T1: verify that the registry documents moderation (either in the legacy tableNote or in the
+    // built labelled notes), and that no stale "planned for a later version" sentence remains.
+    const text = (spec.tableNote?.text ?? '') + JSON.stringify(buildCbSem(spec, staticNotesFixture).notes ?? [])
+    expect(text).toMatch(/Moderation/i)
+    expect(text).not.toMatch(/planned for a later version/i)
+  })
   it('question matches', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/)![1])).toBe(spec.question)
   })
