@@ -14,7 +14,9 @@ export type StepId = 'welcome' | 'upload' | 'guide' | 'configure-data' | 'pick-t
 export interface FileInfo { name: string; rows: number; cols: number; encoding: string }
 export interface Construct { id: number; name: string; items: string[]; mode?: 'reflective' | 'formative'; x?: number; y?: number }
 export interface StructuralPath { from: number; to: number }
-export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>; blocked: string | null; constructs?: Construct[]; paths?: StructuralPath[]; modelKind?: 'latent' | 'path' }
+// moderatorId: construct id of the moderator · pathIndex: index into `paths` of the edge being moderated
+export interface Moderation { id: number; moderatorId: number; pathIndex: number }
+export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>; blocked: string | null; constructs?: Construct[]; paths?: StructuralPath[]; modelKind?: 'latent' | 'path'; moderations?: Moderation[] }
 export interface TestRun { result: unknown; stale: boolean }
 
 export interface SessionState {

@@ -1,10 +1,11 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
-import type { TestSetup, Construct, StructuralPath } from '../../state/session'
+import type { TestSetup, Construct, StructuralPath, Moderation } from '../../state/session'
 import type { RunProgress } from '../results/builders'
 import { runCfaReliability, type CfaConstructResult } from './cfaReliability'
 import { isSaturated } from './semSaturation'
 import { lvNames } from './lvName'
+import { validateModerations, buildModerationLines, type ModerationDef } from './moderationModel'
 
 export interface CbSemResult {
   mode: 'full' | 'cfa-only' | 'path'
@@ -243,12 +244,18 @@ list(
 /** Build the full lavaan model string: =~ measurement (latent only) + ~ structural + auto := indirect defs.
  *  rNameOf gives the SANITIZED lavaan identifier per construct id (display names with spaces are illegal
  *  `=~`/`~` tokens); chainNames stay DISPLAY names — they feed the UI-facing indirect-effect labels only. */
-function buildModel(
+export function buildModel(
   constructs: Construct[],
   paths: StructuralPath[],
   isPath: boolean,
   rNameOf: (id: number) => string,
-): { model: string; hasIndirect: boolean; indirectDefs: Array<{ label: string; chainNames: string[] }> } {
+  moderations: Moderation[] = [],
+): {
+  model: string
+  hasIndirect: boolean
+  indirectDefs: Array<{ label: string; chainNames: string[] }>
+  moderationDefs: ModerationDef[]
+} {
   const byId = new Map(constructs.map((c) => [c.id, c]))
   const nameOf = (id: number) => byId.get(id)!.name
   const lines: string[] = []
@@ -280,7 +287,20 @@ function buildModel(
     }
   }
 
-  return { model: lines.join('\n'), hasIndirect: indirectDefs.length > 0, indirectDefs }
+  // Latent moderation (design §A7): guards from moderationModel.ts, then the interaction construct +
+  // auto-injected moderator main effect + variance lines, spliced onto the existing structural target
+  // lines assembled above. `buildModel` delegates to the shared module so the SAME text also feeds the
+  // cb-sem R-script export emitter later (export ≡ app, one source of truth).
+  validateModerations(moderations, paths, isPath)
+  const { lines: modLines, moderationDefs, targetLineExtras } = buildModerationLines(constructs, paths, rNameOf, moderations)
+  for (const [pathIndex, extra] of targetLineExtras) {
+    const path = paths[pathIndex]
+    const targetLineIdx = lines.findIndex((l) => l.startsWith(`${rNameOf(path.to)} ~ `))
+    lines[targetLineIdx] += extra
+  }
+  lines.push(...modLines)
+
+  return { model: lines.join('\n'), hasIndirect: indirectDefs.length > 0, indirectDefs, moderationDefs }
 }
 
 interface RawResult {
@@ -328,7 +348,7 @@ export async function runCbSem(
     ? usedCols.map((col) => rNameOf(constructs.find((c) => c.name === col)!.id))
     : usedCols
 
-  const { model, hasIndirect, indirectDefs } = buildModel(constructs, paths, isPath, rNameOf)
+  const { model, hasIndirect, indirectDefs } = buildModel(constructs, paths, isPath, rNameOf, setup.moderations ?? [])
   const nboot = Number(setup.options['nboot'] ?? 5000)
   // was: const ci_type = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'   // 'bca' is not a valid
   // lavaan boot.ci.type -- dead code, would error if ever reached (design §A2 fix).
