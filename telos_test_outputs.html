@@ -1142,12 +1142,12 @@
       <p class="tbl-note">Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup. &radic;AVE (italic) sits on the Fornell&ndash;Larcker diagonal; off-diagonal correlations carry significance stars (*p&lt;.05, **p&lt;.01, ***p&lt;.001). HTMT &le; .85 is the primary discriminant-validity criterion.</p>
       <div class="apa-cap"><b>Table 5.</b> Fit indices</div>
       <table class="apa"><thead><tr><th>&chi;&sup2; (df, p)</th><th>&chi;&sup2;/df</th><th>CFI</th><th>TLI</th><th>RMSEA [90% CI]</th><th>SRMR</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 6.</b> Structural paths</div>
-      <table class="apa"><thead><tr><th>Path</th><th>B</th><th>SE</th><th>z</th><th>p</th><th>Std. &beta;</th><th>95% CI</th><th>R&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">good fit guideline: CFI/TLI &ge; .95, RMSEA &le; .06, SRMR &le; .08; use WLSMV for ordinal indicators. R&sup2; is filled once per endogenous (outcome) construct. EFA on the same sample is exploratory &mdash; treat it as a diagnostic, not confirmatory evidence.</p>
-      <div class="apa-cap"><b>Table 7.</b> Indirect effects (mediation)</div>
-      <table class="apa"><thead><tr><th>Path</th><th>Estimate</th><th>SE</th><th>boot 95% CI</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">appears only when the drawn structural paths form a chain (X &rarr; M &rarr; Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI. Moderation is planned for a later version.</p>
+      <div class="apa-cap"><b>Table 6.</b> Structural paths, indirect effects &amp; moderation</div>
+      <table class="apa"><thead>
+        <tr><th rowspan="2">H</th><th rowspan="2">Path</th><th rowspan="2">B</th><th rowspan="2">Std. &beta;</th><th rowspan="2">p</th><th colspan="2">Percentile 95% CI</th><th colspan="2">BC 95% CI</th><th rowspan="2">Result</th></tr>
+        <tr><th>Lower</th><th>Upper</th><th>Lower</th><th>Upper</th></tr>
+      </thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">Direct paths / Indirect effects / Moderation sections appear only when applicable. Both CI pairs bound the unstandardized B from ONE bootstrap run; Std. &beta; is point-only (delta-method CIs not shown). BC = bias-corrected, non-accelerated (lavaan boot.ci.type=&quot;bca.simple&quot;, Efron 1987); true BCa (jackknife acceleration) is out of scope. Result is Supported/Not supported from the percentile 95% CI excluding zero (&alpha;=.05); the BC column is comparative context. H numbering: structural paths in canvas order, then indirect effects in chain-enumeration order, then moderation edges in creation order. R&sup2; per endogenous construct is noted below the table.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Model</div><div class="ftype">type: <b>path diagram</b> (constructs, loadings, structural paths)</div></div>
       <div class="zlabel">How to read this test</div>
@@ -1155,7 +1155,7 @@
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The model fit well (CFI=__, RMSEA=__, SRMR=__); the path from X to Y gave &beta;=__, <i>p</i>=__.&rdquo;</div>
         <div class="m"><b>R map:</b> <i>(if EFA stage run)</i> <code>psych::KMO()</code>/<code>cortest.bartlett()</code> &rarr; Table 1 &middot; <code>psych::fa()</code> &rarr; Table 2 &middot; <code>lavaan::sem()</code> (estimator ML/MLR or WLSMV) &rarr; loadings &amp; structural paths &middot; <code>lavaan::fitMeasures()</code> (or <code>summary(fit, fit.measures=TRUE)</code>) &rarr; Table 5 fit indices (&chi;&sup2;/df = chisq/df) &middot; <code>semTools::compRelSEM()</code> / <code>AVE()</code> / <code>psych::alpha()</code> &rarr; CR/AVE/&omega;/&alpha; table &middot; <code>lavInspect(fit, "rsquare")</code> &rarr; Table 6 R&sup2; &middot; defined effects (<code>:=</code> in the lavaan syntax, <code>se="bootstrap"</code>) &rarr; Table 7 indirect effects &middot; <code>semPlot::semPaths()</code> &rarr; diagram</div>
-        <div class="m bundle">table_efa-suitability.png (when EFA stage selected) &middot; table_efa-loadings.png (when EFA stage selected) &middot; table_cfa-loadings.png &middot; table_fit-indices.png &middot; table_structural-paths.png (when structural stage selected) &middot; table_indirect-effects.png (when mediation paths drawn) &middot; figure_path-diagram.png</div>
+        <div class="m bundle">table_efa-suitability.png (when EFA stage selected) &middot; table_efa-loadings.png (when EFA stage selected) &middot; table_cfa-loadings.png &middot; table_fornell-larcker.png &middot; table_htmt.png &middot; table_fit-indices.png &middot; table_structural-paths.png (when structural stage selected) &middot; figure_path-diagram.png</div>
       </div>
     </div>
   </div>

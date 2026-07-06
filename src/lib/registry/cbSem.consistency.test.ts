@@ -9,11 +9,30 @@ const card = outputsHtml.slice(
   outputsHtml.indexOf('PLS-SEM</span>'),
 )
 
+// Flattens a <thead> to its LEAF column labels in visual left-to-right order, regardless of
+// rowspan/colspan (U3-T3 spanned dual-CI header): with a single header <tr> this is just the <th>
+// texts; with two header <tr>s (a spanned header), each row-1 <th colspan="n"> is a GROUP label (not a
+// leaf) and is replaced by the next n leaves pulled from row 2, while a row-1 <th rowspan="2"> (or any
+// row-1 <th> without a colspan) IS a leaf and is kept in place — reconstructing the same left-to-right
+// order the ApaTable renderer (and a reader's eye) would see.
 const theadAfter = (cap: string) => {
   const at = card.indexOf(cap)
   const th = card.indexOf('<thead>', at)
   const end = card.indexOf('</thead>', th)
-  return [...card.slice(th, end).matchAll(/<th>(.*?)<\/th>/gs)].map((m) => strip(m[1]))
+  const theadHtml = card.slice(th, end)
+  const trs = [...theadHtml.matchAll(/<tr>(.*?)<\/tr>/gs)].map((m) => m[1])
+  if (trs.length < 2) {
+    return [...theadHtml.matchAll(/<th[^>]*>(.*?)<\/th>/gs)].map((m) => strip(m[1]))
+  }
+  const row2Leaves = [...trs[1].matchAll(/<th[^>]*>(.*?)<\/th>/gs)].map((m) => strip(m[1]))
+  let row2i = 0
+  const leaves: string[] = []
+  for (const m of trs[0].matchAll(/<th([^>]*)>(.*?)<\/th>/gs)) {
+    const colspan = m[1].match(/colspan="(\d+)"/)
+    if (colspan) { for (let i = 0; i < Number(colspan[1]); i++) leaves.push(row2Leaves[row2i++]) }
+    else leaves.push(strip(m[2]))
+  }
+  return leaves
 }
 const tableCols = (id: string) => {
   const t = spec.tables.find((x) => x.id === id)!
@@ -47,11 +66,11 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
   it('Table 5 (fit indices) thead matches the spec columns', () => {
     expect(theadAfter('Fit indices')).toEqual(tableCols('fit-indices'))
   })
-  it('Table 6 (structural paths) thead matches the spec columns', () => {
-    expect(theadAfter('Structural paths')).toEqual(tableCols('structural-paths'))
-  })
-  it('Table 7 (indirect effects) thead matches the spec columns', () => {
-    expect(theadAfter('Indirect effects (mediation)')).toEqual(tableCols('indirect-effects'))
+  // U3-T3: structural paths + indirect effects + moderation merged into ONE H-numbered, dual-CI,
+  // Result-ruled table with a two-row spanning header (Percentile 95% CI / BC 95% CI). theadAfter
+  // flattens <th> text regardless of rowspan/colspan, so this compares the FLATTENED leaf column list.
+  it('Table 6 (structural paths, indirect effects & moderation) thead flattens to the spec columns', () => {
+    expect(theadAfter('Structural paths, indirect effects &amp; moderation')).toEqual(tableCols('structural-paths'))
   })
   it('question matches', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/)![1])).toBe(spec.question)

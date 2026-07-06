@@ -6,11 +6,27 @@ const html = readFileSync('telos_test_outputs.html', 'utf8')
 const cb = html.slice(html.indexOf('CB-SEM</span>'), html.indexOf('PLS-SEM</span>'))
 const pls = html.slice(html.indexOf('PLS-SEM</span>'), html.indexOf('FAMILY 7'))
 
+// Flattens a <thead> to its LEAF column labels in visual left-to-right order, regardless of
+// rowspan/colspan (U3-T3 spanned dual-CI header) — see cbSem.consistency.test.ts's theadAfter for the
+// full rationale: a row-1 <th colspan="n"> is a GROUP label, replaced by the next n leaves from row 2.
 const theadAfter = (block: string, cap: string) => {
   const at = block.indexOf(cap)
   const th = block.indexOf('<thead>', at)
   const end = block.indexOf('</thead>', th)
-  return [...block.slice(th, end).matchAll(/<th>(.*?)<\/th>/gs)].map((m) => strip(m[1]))
+  const theadHtml = block.slice(th, end)
+  const trs = [...theadHtml.matchAll(/<tr>(.*?)<\/tr>/gs)].map((m) => m[1])
+  if (trs.length < 2) {
+    return [...theadHtml.matchAll(/<th[^>]*>(.*?)<\/th>/gs)].map((m) => strip(m[1]))
+  }
+  const row2Leaves = [...trs[1].matchAll(/<th[^>]*>(.*?)<\/th>/gs)].map((m) => strip(m[1]))
+  let row2i = 0
+  const leaves: string[] = []
+  for (const m of trs[0].matchAll(/<th([^>]*)>(.*?)<\/th>/gs)) {
+    const colspan = m[1].match(/colspan="(\d+)"/)
+    if (colspan) { for (let i = 0; i < Number(colspan[1]); i++) leaves.push(row2Leaves[row2i++]) }
+    else leaves.push(strip(m[2]))
+  }
+  return leaves
 }
 
 describe('SEM-B output cards carry the §6B amendments (B/SE/z/p, ω, reordered PLS reliability)', () => {
@@ -23,9 +39,12 @@ describe('SEM-B output cards carry the §6B amendments (B/SE/z/p, ω, reordered 
       ['Construct / Item', 'Mean', 'SD', 'B', 'SE', 'z', 'p', 'Std. loading', 'ω', 'α', 'CR', 'AVE'],
     )
   })
-  it('CB-SEM Table 6 (structural paths) adds B → Path · B · SE · z · p · Std. β · 95% CI · R²', () => {
+  // U3-T3 (2026-07-07): Table 6/7 (structural paths / indirect effects) were merged into ONE
+  // H-numbered, dual-CI (percentile + BC), Result-ruled table. See cbSem.consistency.test.ts's
+  // 'Table 6 (structural paths, indirect effects & moderation)' assertion for the up-to-date check.
+  it('CB-SEM Table 6 (merged structural/indirect/moderation) flattens to H · Path · B · Std. β · p · Lower · Upper (perc) · Lower · Upper (BC) · Result', () => {
     expect(theadAfter(cb, 'Structural paths')).toEqual(
-      ['Path', 'B', 'SE', 'z', 'p', 'Std. β', '95% CI', 'R²'],
+      ['H', 'Path', 'B', 'Std. β', 'p', 'Lower', 'Upper', 'Lower', 'Upper', 'Result'],
     )
   })
   it('PLS Table 2 (reliability) final order = Construct · α · ρA · CR (ρC) · AVE', () => {

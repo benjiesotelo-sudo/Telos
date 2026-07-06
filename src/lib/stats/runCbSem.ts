@@ -53,6 +53,10 @@ export interface CbSemResult {
    *  U3-T1). Optional so existing hand-built CbSemResult fixtures need no change; defaults to
    *  CB_SEM_DEFAULT_MISSING in the builder. */
   missing?: string
+  /** The bootstrap resample count the run actually used (drives Table 5's Andrews & Buchinsky <7,000
+   *  disclosure, U3-T3). Optional so existing hand-built CbSemResult fixtures need no change; defaults
+   *  to 5000 in the builder (the app's own default). */
+  nboot?: number
 }
 
 export interface ItemStat { construct: string; item: string; mean: number; sd: number; n: number }
@@ -581,5 +585,6 @@ export async function runCbSem(
     },
     itemStats,
     missing: missingSetting,
+    nboot,
   }
 }
