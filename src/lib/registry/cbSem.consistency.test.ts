@@ -120,6 +120,51 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     const text = (spec.tableNote?.text ?? '') + JSON.stringify(buildCbSem(spec, staticNotesFixture).notes ?? [])
     expect(text).toMatch(/Moderation/i)
     expect(text).not.toMatch(/planned for a later version/i)
+
+    // U5-T1: strengthen the test to verify the HTML structure: parse Table 5's Moderation section row
+    // and the data row that follows it, then assert:
+    // (a) the section row colspan equals the leaf-column count (10)
+    // (b) the data row has exactly 10 tds
+    // (c) the Result cell (last td) is 'Supported'
+    // (d) the bounded cells (Std. β and CI bounds) use the stripped format (regex /^\.\d{2}$/)
+
+    // Find Table 5 in the card
+    const table5Match = card.match(/<div class="apa-cap"><b>Table 5\.<\/b>.*?<table class="apa">.*?<\/table>/s)
+    expect(table5Match).toBeTruthy()
+    const table5Html = table5Match![0]
+
+    // Find tbody and the Moderation section
+    const tbodyMatch = table5Html.match(/<tbody>(.*?)<\/tbody>/s)
+    expect(tbodyMatch).toBeTruthy()
+    const tbodyHtml = tbodyMatch![1]
+
+    // Find the row-section row (Moderation) and extract colspan
+    const rowSectionMatch = tbodyHtml.match(/<tr class="row-section"><td colspan="(\d+)">Moderation<\/td><\/tr>/)
+    expect(rowSectionMatch).toBeTruthy()
+    const moderationColspan = Number(rowSectionMatch![1])
+
+    // Assert (a): colspan should equal 10 (the leaf-column count)
+    expect(moderationColspan).toBe(10)
+
+    // Find the data row after Moderation (should be the next <tr>)
+    const dataRowMatch = tbodyHtml.match(/<tr class="row-section"><td colspan="\d+">Moderation<\/td><\/tr><tr>(.*?)<\/tr>/)
+    expect(dataRowMatch).toBeTruthy()
+    const dataRowHtml = dataRowMatch![1]
+
+    // Extract all <td>s from the data row
+    const tds = [...dataRowHtml.matchAll(/<td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
+
+    // Assert (b): exactly 10 tds
+    expect(tds).toHaveLength(10)
+
+    // Assert (c): Result cell (last td) is 'Supported'
+    expect(tds[9]).toBe('Supported')
+
+    // Assert (d): bounded cells (Std. β at index 3, and CI bounds at indices 5, 6, 7, 8) use stripped format
+    const boundedIndices = [3, 5, 6, 7, 8]
+    for (const idx of boundedIndices) {
+      expect(tds[idx]).toMatch(/^\.\d{2}$/)
+    }
   })
   it('question matches', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/)![1])).toBe(spec.question)
