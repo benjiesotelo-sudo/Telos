@@ -95,6 +95,12 @@ async function documentTest(page: Page, c: Case) {
     else if (s.action === 'select') await el.selectOption(s.value!)
     else await el.check()
   }
+  // Canvas tests: the config canvas mounts before constructs are added, so fit the diagram to its
+  // content before capturing — otherwise the outermost construct's item boxes sit off-view.
+  if (c.constructs || c.nodePaths) {
+    await page.getByRole('button', { name: 'Fit' }).click()
+    await page.waitForTimeout(200)
+  }
   await page.screenshot({ path: join(folder, '1-input-config.png'), fullPage: true })
 
   // run
@@ -110,7 +116,7 @@ async function documentTest(page: Page, c: Case) {
 
   // PDF piece — the app's print-to-PDF (print stylesheet hides nav/export chrome)
   await page.emulateMedia({ media: 'print' })
-  await page.pdf({ path: join(folder, '3-report.pdf'), printBackground: true })
+  await page.pdf({ path: join(folder, '3-pdf-report.pdf'), printBackground: true })
   await page.emulateMedia({ media: 'screen' })
 
   // LaTeX + R export — the real bundle

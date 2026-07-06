@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { SemCanvasUI, pathNodeCenter, NODE_W, NODE_H } from './SemCanvas'
+import { SemCanvasUI, pathNodeCenter, latentBounds, NODE_W, NODE_H, ITEM_W, ITEM_H } from './SemCanvas'
 import type { Construct, StructuralPath } from '../state/session'
 
 const noop = () => {}
@@ -166,6 +166,44 @@ describe('SemCanvasUI — adaptive item-side placement', () => {
     const ys = yMatches.map((m) => parseFloat(m[1]))
     // At least some items must be below Satisfy's oval bottom (y > 192)
     expect(ys.some((y) => y > 192)).toBe(true)
+  })
+})
+
+// ── latent content-fit viewBox: the exported figure must contain every item ──
+// Regression (export/documentation bug): with the fixed BASE_VB (720×320) the rightmost
+// construct's item boxes (cx in the right third → items drawn to the RIGHT at x≈744–800)
+// ran past the viewBox width of 720 and were CLIPPED in the captured PNG/PDF. latentBounds
+// must size the viewBox to the real content so nothing clips.
+describe('SemCanvasUI — latent content-fit viewBox (no item clipping)', () => {
+  // Mirror the CB-SEM/PLS-SEM documentation fixture: 3 constructs × 3 items, default layout.
+  const cons: Construct[] = [
+    { id: 1, name: 'visual',  items: ['x1', 'x2', 'x3'], x: 80,  y: 70 },
+    { id: 2, name: 'textual', items: ['x4', 'x5', 'x6'], x: 332, y: 70 },
+    { id: 3, name: 'speed',   items: ['x7', 'x8', 'x9'], x: 584, y: 70 },
+  ]
+
+  it('the latentBounds viewBox contains every item box (rightmost construct no longer clips)', () => {
+    const vb = latentBounds(cons)
+    const html = renderLatent({ constructs: cons, paths: [], viewBox: vb })
+    const items = [...html.matchAll(/class="sem-item" x="([^"]+)" y="([^"]+)"/g)]
+    expect(items.length).toBe(9)
+    for (const m of items) {
+      const x = parseFloat(m[1]); const y = parseFloat(m[2])
+      expect(x, `item left ${x} must be ≥ vb.x ${vb.x}`).toBeGreaterThanOrEqual(vb.x)
+      expect(x + ITEM_W, `item right ${x + ITEM_W} must be ≤ vb right ${vb.x + vb.w}`).toBeLessThanOrEqual(vb.x + vb.w)
+      expect(y, `item top ${y} must be ≥ vb.y ${vb.y}`).toBeGreaterThanOrEqual(vb.y)
+      expect(y + ITEM_H, `item bottom ${y + ITEM_H} must be ≤ vb bottom ${vb.y + vb.h}`).toBeLessThanOrEqual(vb.y + vb.h)
+    }
+  })
+
+  it('the latentBounds viewBox also contains every construct oval', () => {
+    const vb = latentBounds(cons)
+    // ovals are centered at nodeCenter; the canonical layout centers are 146 / 398 / 650
+    // each oval spans cx ± NODE_W/2 horizontally and cy ± NODE_H/2 vertically
+    for (const cx of [146, 398, 650]) {
+      expect(cx - NODE_W / 2).toBeGreaterThanOrEqual(vb.x)
+      expect(cx + NODE_W / 2).toBeLessThanOrEqual(vb.x + vb.w)
+    }
   })
 })
 
