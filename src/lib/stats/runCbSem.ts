@@ -485,6 +485,24 @@ export async function runCbSem(
 
   const raw = await engine.runJson<RawResult>(R_STATS, env)
 
+  // Integrity guard (U2-T6, reviewer-recommended): a requested moderation must never silently vanish.
+  // The R side always pushes one mod_rows entry per mod_ids element and up to 3 slope_rows per moderation
+  // (dropped only if a `:=` label lookup misses, see the R comment above) -- either count drifting from
+  // moderationDefs means a moderation or one of its simple slopes was silently lost between R and TS.
+  // Checked here, fail-fast, before the (unrelated) CFA reliability round-trip below.
+  if (moderationDefs.length > 0) {
+    if (raw.moderationRows.length !== moderationDefs.length) {
+      throw new Error(
+        `Moderation runner integrity: expected ${moderationDefs.length} moderation row(s), got ${raw.moderationRows.length} -- a requested moderation edge vanished.`,
+      )
+    }
+    if (raw.slopeRows.length !== moderationDefs.length * 3) {
+      throw new Error(
+        `Moderation runner integrity: expected ${moderationDefs.length * 3} simple-slope row(s) (-1SD/mean/+1SD per moderation), got ${raw.slopeRows.length}.`,
+      )
+    }
+  }
+
   // CFA reliability (ω/α/AVE/CR) — reuse Slice A; skipped in path mode (no measurement model).
   let reliability: Array<Record<string, unknown>> = []
   let fornellLarcker: number[][] = []
