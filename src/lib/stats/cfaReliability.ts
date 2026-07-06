@@ -1,5 +1,6 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
+import { lvNames } from './lvName'
 
 export interface CfaConstructResult {
   name: string
@@ -20,7 +21,10 @@ export interface CfaReliabilityResult {
 //
 // Env bindings:
 //   model_str   character(1): the lavaan measurement model string (one line per construct)
-//   construct_names  character vector: construct names (k of them)
+//   construct_names  character vector: SANITIZED construct identifiers (lvName; k of them) — these match
+//     the model tokens and index every fitted object. display_names (same order) carry the original
+//     user-typed names for the UI-facing perConstruct/labels fields.
+//   display_names    character vector: original display names (k of them, construct order)
 //   item_cols_flat   numeric vector: all item columns concatenated column-major over ALL items (union)
 //   all_items   character vector: item names for all_cols_flat (same order)
 //   n           integer: number of cases after listwise deletion
@@ -72,12 +76,12 @@ for (ci in seq_len(k)) diag(fl)[ci] <- sqrt(ave_ordered[ci])
 htmt_mat <- semTools::htmt(model_str, data = d_all)
 htmt_ordered <- htmt_mat[construct_names, construct_names]
 
-# per-construct list
+# per-construct list (name = the ORIGINAL display name; nm indexes the fitted objects)
 per_construct <- lapply(seq_len(k), function(ci) {
   nm <- construct_names[ci]
   omega_val <- as.numeric(cr_vec[nm])
   list(
-    name  = nm,
+    name  = display_names[ci],
     ave   = as.numeric(ave_ordered[nm]),
     cr    = omega_val,
     omega = omega_val,
@@ -93,7 +97,7 @@ list(
   perConstruct   = per_construct,
   fornellLarcker = fl_rows,
   htmt           = htmt_rows,
-  labels         = as.character(construct_names)
+  labels         = as.character(display_names)
 )
 `
 
@@ -104,9 +108,10 @@ function listwise(data: Dataset, items: string[]): Record<string, unknown>[] {
   )
 }
 
-/** Build the lavaan measurement model string from constructs. */
-function buildModel(constructs: { name: string; items: string[] }[]): string {
-  return constructs.map((c) => `${c.name} =~ ${c.items.join(' + ')}`).join('\n')
+/** Build the lavaan measurement model string from constructs, using the SANITIZED identifiers
+ *  (display names with spaces are illegal lavaan `=~` tokens). */
+function buildModel(constructs: { items: string[] }[], rNames: string[]): string {
+  return constructs.map((c, i) => `${rNames[i]} =~ ${c.items.join(' + ')}`).join('\n')
 }
 
 export async function runCfaReliability(
@@ -125,9 +130,12 @@ export async function runCfaReliability(
   const construct_items_flat = constructs.flatMap((c) => c.items)
   const construct_items_lens = constructs.map((c) => c.items.length)
 
+  const rNames = lvNames(constructs.map((c) => c.name))
+
   const env = {
-    model_str: buildModel(constructs),
-    construct_names: constructs.map((c) => c.name),
+    model_str: buildModel(constructs, rNames),
+    construct_names: rNames,
+    display_names: constructs.map((c) => c.name),
     item_cols_flat,
     all_items: allItems,
     n,

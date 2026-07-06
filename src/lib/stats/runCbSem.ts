@@ -4,6 +4,7 @@ import type { TestSetup, Construct, StructuralPath } from '../../state/session'
 import type { RunProgress } from '../results/builders'
 import { runCfaReliability, type CfaConstructResult } from './cfaReliability'
 import { isSaturated } from './semSaturation'
+import { lvNames } from './lvName'
 
 export interface CbSemResult {
   mode: 'full' | 'cfa-only' | 'path'
@@ -45,7 +46,9 @@ function listwise(data: Dataset, cols: string[]): Record<string, unknown>[] {
 //   all_cols     character: column names matching item_cols_flat order
 //   n            integer: rows after listwise deletion
 //   path_from / path_to   integer: structural path construct-ids (parallel; one per ~ path), display order
-//   con_ids / con_names   integer / character: construct id↔name map (for id-keyed rsquare + structural rows)
+//   con_ids / con_names   integer / character: construct id↔name map (for id-keyed rsquare + structural rows).
+//     con_names are SANITIZED R identifiers (lvName) matching the model tokens; con_display carries the
+//     original user-typed display names (same order) for every UI-facing name in the returned tables.
 //   has_indirect logical(1): whether any := indirect def exists
 //   nboot        integer: bootstrap resamples (single awaited call)
 //   ci_type      character(1): 'perc' (percentile, default) | 'bca'
@@ -98,7 +101,7 @@ if (is_path) {
     lhs <- ss$lhs[i]; rhs <- ss$rhs[i]
     m <- which(pe_load$lhs == lhs & pe_load$rhs == rhs)[1]
     list(
-      construct = lhs, item = rhs,
+      construct = con_display[match(lhs, con_names)], item = rhs,
       b = as.numeric(pe_load$est[m]), se = as.numeric(pe_load$se[m]),
       z = as.numeric(pe_load$z[m]), p = as.numeric(pe_load$pvalue[m]),
       stdLoading = as.numeric(ss$est.std[i]),
@@ -120,7 +123,7 @@ struct_rows <- lapply(seq_along(path_from), function(k) {
   r2_val <- if (tnm %in% names(rsq)) as.numeric(rsq[tnm]) else NA_real_
   list(
     from = fid, to = tid,
-    fromName = fnm, toName = tnm,
+    fromName = con_display[match(fid, con_ids)], toName = con_display[match(tid, con_ids)],
     b = as.numeric(pe_reg$est[m]), se = as.numeric(pe_reg$se[m]),
     z = as.numeric(pe_reg$z[m]), p = as.numeric(pe_reg$pvalue[m]),
     stdBeta = as.numeric(ss$est.std[gi]),
@@ -171,11 +174,14 @@ list(
 )
 `
 
-/** Build the full lavaan model string: =~ measurement (latent only) + ~ structural + auto := indirect defs. */
+/** Build the full lavaan model string: =~ measurement (latent only) + ~ structural + auto := indirect defs.
+ *  rNameOf gives the SANITIZED lavaan identifier per construct id (display names with spaces are illegal
+ *  `=~`/`~` tokens); chainNames stay DISPLAY names — they feed the UI-facing indirect-effect labels only. */
 function buildModel(
   constructs: Construct[],
   paths: StructuralPath[],
   isPath: boolean,
+  rNameOf: (id: number) => string,
 ): { model: string; hasIndirect: boolean; indirectDefs: Array<{ label: string; chainNames: string[] }> } {
   const byId = new Map(constructs.map((c) => [c.id, c]))
   const nameOf = (id: number) => byId.get(id)!.name
@@ -183,7 +189,7 @@ function buildModel(
 
   // Measurement model (latent mode only; path mode regresses observed columns directly)
   if (!isPath) {
-    for (const c of constructs) lines.push(`${c.name} =~ ${c.items.join(' + ')}`)
+    for (const c of constructs) lines.push(`${rNameOf(c.id)} =~ ${c.items.join(' + ')}`)
   }
 
   // Structural model: one regression per endogenous target, predictors labeled for := defs.
@@ -191,8 +197,8 @@ function buildModel(
   const targets = [...new Set(paths.map((p) => p.to))]
   for (const t of targets) {
     const preds = paths.filter((p) => p.to === t)
-    const rhs = preds.map((p) => `p_${p.from}_${p.to}*${nameOf(p.from)}`).join(' + ')
-    lines.push(`${nameOf(t)} ~ ${rhs}`)
+    const rhs = preds.map((p) => `p_${p.from}_${p.to}*${rNameOf(p.from)}`).join(' + ')
+    lines.push(`${rNameOf(t)} ~ ${rhs}`)
   }
 
   // Auto indirect defs: every chained A→B→C (a path whose target is itself a source) → := a*b.
@@ -233,6 +239,12 @@ export async function runCbSem(
   const constructs = setup.constructs ?? []
   const paths = setup.paths ?? []
 
+  // Sanitized R identifiers per construct (display names with spaces are illegal lavaan tokens);
+  // deduped deterministically in construct order. Display names stay UI-only (con_display below).
+  const rNames = lvNames(constructs.map((c) => c.name))
+  const rNameById = new Map(constructs.map((c, i) => [c.id, rNames[i]]))
+  const rNameOf = (id: number) => rNameById.get(id)!
+
   // Used columns: items in latent mode; the construct "names" ARE the observed columns in path mode.
   const usedCols = isPath
     ? [...new Set(constructs.map((c) => c.name))]
@@ -241,7 +253,13 @@ export async function runCbSem(
   const n = rows.length
   const item_cols_flat = usedCols.flatMap((col) => rows.map((r) => r[col] as number))
 
-  const { model, hasIndirect, indirectDefs } = buildModel(constructs, paths, isPath)
+  // R-side column names: in path mode the model tokens are the SANITIZED construct names, so the data
+  // frame columns must carry the same sanitized names; latent mode keeps the raw item columns.
+  const rCols = isPath
+    ? usedCols.map((col) => rNameOf(constructs.find((c) => c.name === col)!.id))
+    : usedCols
+
+  const { model, hasIndirect, indirectDefs } = buildModel(constructs, paths, isPath, rNameOf)
   const nboot = Number(setup.options['nboot'] ?? 5000)
   const ci_type = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'
 
@@ -255,12 +273,13 @@ export async function runCbSem(
   const env = {
     model_str: model,
     item_cols_flat,
-    all_cols: usedCols,
+    all_cols: rCols,
     n,
     path_from: paths.map((p) => p.from),
     path_to: paths.map((p) => p.to),
     con_ids: constructs.map((c) => c.id),
-    con_names: constructs.map((c) => c.name),
+    con_names: rNames,
+    con_display: constructs.map((c) => c.name),
     has_indirect: hasIndirect,
     nboot,
     ci_type,

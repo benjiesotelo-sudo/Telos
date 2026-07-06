@@ -2,6 +2,7 @@ import type { Emitter } from './index'
 import type { Construct } from '../../../../state/session'
 import { MAKECLUSTER_SHIM } from '../../../webr/parallelShim'
 import { R_SATURATED_PREDICATE } from '../../../stats/semSaturation'
+import { lvNames } from '../../../stats/lvName'
 
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim — same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
@@ -19,8 +20,11 @@ export const latentEmitters: Record<string, Emitter> = {
     const k = constructs.length
     if (k === 0) return '# No constructs defined — nothing to run for AVE.'
 
-    const constructNamesR = `c(${constructs.map((c) => `"${c.name}"`).join(', ')})`
-    const modelLines = constructs.map((c) => `${c.name} =~ ${c.items.join(' + ')}`).join('\n')
+    // Sanitized identifiers (lvNames) — display names with spaces are illegal lavaan `=~` tokens,
+    // and every fitted object below is indexed by construct_names (same fix as cfaReliability.ts).
+    const rNames = lvNames(constructs.map((c) => c.name))
+    const constructNamesR = `c(${rNames.map((n) => `"${n}"`).join(', ')})`
+    const modelLines = constructs.map((c, i) => `${rNames[i]} =~ ${c.items.join(' + ')}`).join('\n')
     const constructItemsFlat = constructs.flatMap((c) => c.items)
     const constructItemsFlatR = `c(${constructItemsFlat.map((v) => `"${v}"`).join(', ')})`
     const constructItemsLensR = `c(${constructs.map((c) => c.items.length).join(', ')})`
@@ -170,8 +174,10 @@ export const latentEmitters: Record<string, Emitter> = {
     const k = constructs.length
     if (k === 0) return '# No constructs defined — nothing to run for Composite Reliability.'
 
-    const constructNamesR = `c(${constructs.map((c) => `"${c.name}"`).join(', ')})`
-    const modelLines = constructs.map((c) => `${c.name} =~ ${c.items.join(' + ')}`).join('\n')
+    // Sanitized identifiers (lvNames) — same rationale as the 'ave' emitter above.
+    const rNames = lvNames(constructs.map((c) => c.name))
+    const constructNamesR = `c(${rNames.map((n) => `"${n}"`).join(', ')})`
+    const modelLines = constructs.map((c, i) => `${rNames[i]} =~ ${c.items.join(' + ')}`).join('\n')
     const constructItemsFlat = constructs.flatMap((c) => c.items)
     const constructItemsFlatR = `c(${constructItemsFlat.map((v) => `"${v}"`).join(', ')})`
     const constructItemsLensR = `c(${constructs.map((c) => c.items.length).join(', ')})`
@@ -330,18 +336,22 @@ export const latentEmitters: Record<string, Emitter> = {
     const isPath = setup.modelKind === 'path' || spec?.modelKind === 'path'
     if (constructs.length === 0) return '# No constructs defined — nothing to run for CB-SEM.'
 
-    const nameOf = (id: number) => constructs.find((c) => c.id === id)!.name
+    // Sanitized lavaan identifiers per construct (display names with spaces are illegal `=~`/`~`
+    // tokens) — the SAME lvNames the app runner (runCbSem.ts) uses, so export ≡ app.
+    const rNames = lvNames(constructs.map((c) => c.name))
+    const rNameById = new Map(constructs.map((c, i) => [c.id, rNames[i]]))
+    const rNameOf = (id: number) => rNameById.get(id)!
     const nboot = Number(setup.options['nboot'] ?? 5000)
     const ciType = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'
 
     // Model lines: measurement (latent only) + structural + auto indirect defs.
     const lines: string[] = []
-    if (!isPath) for (const c of constructs) lines.push(`${c.name} =~ ${c.items.join(' + ')}`)
+    if (!isPath) for (const c of constructs) lines.push(`${rNameOf(c.id)} =~ ${c.items.join(' + ')}`)
     const targets = [...new Set(paths.map((p) => p.to))]
     for (const t of targets) {
       const rhs = paths.filter((p) => p.to === t)
-        .map((p) => `p_${p.from}_${p.to}*${nameOf(p.from)}`).join(' + ')
-      lines.push(`${nameOf(t)} ~ ${rhs}`)
+        .map((p) => `p_${p.from}_${p.to}*${rNameOf(p.from)}`).join(' + ')
+      lines.push(`${rNameOf(t)} ~ ${rhs}`)
     }
     const sources = new Set(paths.map((p) => p.from))
     let hasIndirect = false

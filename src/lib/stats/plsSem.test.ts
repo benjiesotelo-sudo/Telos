@@ -126,6 +126,45 @@ describe('plsSem', () => {
     expect(Number(q['Satisfaction'].q2)).toBeCloseTo(0.0312, 2)
   }, 600_000)
 
+  // seminr takes construct names as quoted R strings (composite("Name", ...), paths(from = "Name")) and
+  // uses them as matrix dimnames — never as bare formula tokens — so spaced display names must work
+  // NATIVELY without sanitization. This test PROVES that (same mobi sub-model as above, spaced names;
+  // renaming constructs does not change the point estimates, so the reference values are reused).
+  const SPACED_SETUP: TestSetup = {
+    ...REFLECTIVE_SETUP,
+    options: { nboot: 100, missing: 'mean-replacement' },
+    constructs: [
+      { id: 1, name: 'Brand Image', mode: 'reflective', items: ['IMAG1', 'IMAG2', 'IMAG3', 'IMAG4', 'IMAG5'] },
+      { id: 2, name: 'Customer Expectation', mode: 'reflective', items: ['CUEX1', 'CUEX2', 'CUEX3'] },
+      { id: 3, name: 'Customer Satisfaction', mode: 'reflective', items: ['CUSA1', 'CUSA2', 'CUSA3'] },
+    ],
+  }
+
+  it('construct names with spaces run natively through seminr and keep the ORIGINAL spaced names', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
+    const r = await runPlsSem(engine, data, SPACED_SETUP)
+
+    // labels/tables carry the original spaced display names
+    expect(r.htmt.labels).toEqual(['Brand Image', 'Customer Expectation', 'Customer Satisfaction'])
+    const byName = Object.fromEntries(r.reliability.map((row) => [row.construct, row]))
+    expect(Number(byName['Brand Image'].alpha)).toBeCloseTo(0.7228, 3)
+    expect(Number(byName['Customer Satisfaction'].cr)).toBeCloseTo(0.8714, 3)
+
+    // estimates unchanged by the rename (bootstrap-independent point estimates)
+    const pImEx = r.estimates.paths.find((p) => p.from === 1 && p.to === 2)!
+    expect(pImEx.beta).toBeCloseTo(0.5095, 2)
+    const q = Object.fromEntries(r.quality.map((row) => [row.construct, row]))
+    expect(Number(q['Customer Satisfaction'].r2)).toBeCloseTo(0.5172, 3)
+
+    // structural + indirect path labels use the spaced display names
+    expect(r.structural.map((row) => row.path)).toContain('Brand Image → Customer Expectation')
+    const ind = (r.indirect ?? []).find(
+      (row) => row.path === 'Brand Image → Customer Expectation → Customer Satisfaction',
+    )
+    expect(ind).toBeDefined()
+    expect(Number(ind!.est)).toBeCloseTo(0.1104, 2)
+  }, 600_000)
+
   it('mixed reflective/formative model suppresses AVE for the formative construct and reports weights', async () => {
     const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
     const r = await runPlsSem(engine, data, MIXED_SETUP)

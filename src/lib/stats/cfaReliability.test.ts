@@ -91,4 +91,36 @@ describe('cfaReliability', () => {
     expect(result.htmt[0][2]).toBeCloseTo(result.htmt[2][0], 6)
     expect(result.htmt[1][2]).toBeCloseTo(result.htmt[2][1], 6)
   }, 600_000)
+
+  // Same HolzingerSwineford model/data, only the construct DISPLAY NAMES carry spaces (the reported
+  // launch blocker: a raw spaced name is illegal lavaan `=~` syntax, so `cor_lv[construct_names, ...]`
+  // goes out of bounds because the fitted model never had that literal latent name). Renaming a
+  // construct does not change the fitted numbers, so this reuses the reference values above.
+  const SPACED_CONSTRUCTS = [
+    { name: 'Visual Perception', items: ['x1', 'x2', 'x3'] },
+    { name: 'Verbal Ability', items: ['x4', 'x5', 'x6'] },
+    { name: 'Processing Speed', items: ['x7', 'x8', 'x9'] },
+  ]
+
+  it('a construct name with spaces runs successfully and returns the ORIGINAL spaced name', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/scale.csv'))
+    const result = await runCfaReliability(engine, data, SPACED_CONSTRUCTS)
+
+    expect(result.labels).toEqual(['Visual Perception', 'Verbal Ability', 'Processing Speed'])
+    expect(result.perConstruct).toHaveLength(3)
+
+    const [vis, ver, spd] = result.perConstruct
+    expect(vis.name).toBe('Visual Perception')
+    expect(ver.name).toBe('Verbal Ability')
+    expect(spd.name).toBe('Processing Speed')
+
+    expect(vis.ave).toBeCloseTo(0.3706, 3)
+    expect(ver.ave).toBeCloseTo(0.7210, 3)
+    expect(spd.ave).toBeCloseTo(0.4245, 3)
+    expect(vis.omega).toBeCloseTo(0.6120, 3)
+    expect(vis.alpha).toBeCloseTo(0.6261, 3)
+
+    expect(result.fornellLarcker[0][0]).toBeCloseTo(0.6087, 3)
+    expect(result.htmt[0][1]).toBeCloseTo(0.3841, 3)
+  }, 600_000)
 })

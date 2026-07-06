@@ -119,6 +119,56 @@ const PATH_SETUP: TestSetup = {
   ],
 }
 
+describe('runCbSem — construct names with spaces', () => {
+  const engine = new Engine()
+  beforeAll(async () => { await engine.init() }, 600_000)
+  afterAll(async () => { await engine.close() })
+
+  // Same Bollen PoliticalDemocracy model/data as above, only the construct DISPLAY NAMES carry spaces
+  // (the reported launch blocker: "ESG Perception"-style names crash `cor_lv[construct_names, ...]`
+  // because the raw name is illegal lavaan `=~` syntax). Since renaming a construct does not change the
+  // fitted numbers, this reuses the exact reference values from the unspaced test above.
+  const SPACED_SETUP: TestSetup = {
+    ...SETUP,
+    constructs: [
+      { id: 1, name: 'Industrialization 1960', items: ['x1', 'x2', 'x3'] },
+      { id: 2, name: 'Democracy 1960', items: ['y1', 'y2', 'y3', 'y4'] },
+      { id: 3, name: 'Democracy 1965', items: ['y5', 'y6', 'y7', 'y8'] },
+    ],
+  }
+
+  it('a construct name with spaces runs successfully and the returned tables carry the ORIGINAL spaced name', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/polidemocracy.csv'))
+    const result = await runCbSem(engine, data, SPACED_SETUP)
+
+    expect(result.mode).toBe('full')
+    expect(result.saturated).toBe(false)
+    expect(result.fit!.df).toBe(41)
+    expect(result.fit!.chisq).toBeCloseTo(72.462, 1)
+
+    // --- CFA loadings carry the ORIGINAL spaced construct name, not a sanitized R token ---
+    const x2 = result.cfaLoadings.find((r) => r.rhs === 'x2')!
+    expect(x2.construct).toBe('Industrialization 1960')
+    expect(Number(x2.stdLoading)).toBeCloseTo(0.973, 2)
+
+    // --- reliability table carries the ORIGINAL spaced construct name ---
+    const relInd = result.reliability.find((r) => r.construct === 'Industrialization 1960')
+    expect(relInd).toBeDefined()
+
+    // --- structural paths: fromName/toName are the ORIGINAL spaced names ---
+    const s = result.structural!
+    const p12 = s.find((r) => r.from === 1 && r.to === 2)!
+    expect(p12.fromName).toBe('Industrialization 1960')
+    expect(p12.toName).toBe('Democracy 1960')
+    expect(Number(p12.stdBeta)).toBeCloseTo(0.448, 2)
+
+    // --- indirect effect chain label uses ORIGINAL spaced names ---
+    const ie = result.indirect![0]
+    expect(String(ie.pathLabel)).toBe('Industrialization 1960 → Democracy 1960 → Democracy 1965')
+    expect(Number(ie.est)).toBeCloseTo(1.274, 1)
+  }, 600_000)
+})
+
 describe('runCbSem — observed-only path mode (modelKind:path)', () => {
   const engine = new Engine()
   beforeAll(async () => { await engine.init() }, 600_000)
