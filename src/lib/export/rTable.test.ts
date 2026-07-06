@@ -196,3 +196,123 @@ describe('escaping is applied to cell + label text', () => {
     expect(tex).not.toContain('pre_post')
   })
 })
+
+// ── A6 device 1 (grouped rows) + device 3 (section labels) LaTeX twins, 2026-07-06 ──
+// Table 1's post-merge shape (A1): construct rows (italic, full row, NOT \multirow) carry CR/AVE/
+// ω/α; item rows indent their first cell with \quad.
+const groupedTable: BuiltTable = {
+  spec: {
+    id: 'cfa-loadings', title: 'Measurement model',
+    columns: [{ key: 'path', label: 'Construct → Item' }, { key: 'std', label: 'Std. loading' }, { key: 'cr', label: 'CR' }],
+  },
+  rows: [
+    { __group: 'Visual', path: 'Visual', std: '', cr: '.83' },
+    { path: 'Visual → x1', std: '.77', cr: '' },
+    { path: 'Visual → x2', std: '.42', cr: '' },
+  ],
+}
+
+describe('classicToLatex - grouped rows (__group, A6 device 1)', () => {
+  const tex = classicToLatex(groupedTable)
+  it('renders the __group row as a full-width ITALIC row (every column wrapped, not \\multicolumn)', () => {
+    expect(tex).toMatch(/\\textit\{Visual\} & \\textit\{\} & \\textit\{\.83\} \\\\/)
+    expect(tex).not.toContain('\\multirow')
+  })
+  it('indents the child rows\' first cell with \\quad, leaving other cells untouched', () => {
+    expect(tex).toContain('\\quad Visual $\\rightarrow$ x1 & .77 & ')
+    expect(tex).toContain('\\quad Visual $\\rightarrow$ x2 & .42 & ')
+  })
+})
+
+const sectionedTable: BuiltTable = {
+  spec: { id: 'structural-paths', title: 'Structural paths', columns: [{ key: 'h', label: 'H' }, { key: 'path', label: 'Path' }] },
+  rows: [
+    { __section: 'Direct paths' },
+    { h: 'H1', path: 'Visual → Ability' },
+    { __section: 'Indirect effects' },
+    { h: 'H2', path: 'Visual → Ability → Achievement' },
+  ],
+}
+
+describe('classicToLatex - internal section labels (__section, A6 device 3)', () => {
+  const tex = classicToLatex(sectionedTable)
+  it('renders a __section row as a full-width \\multicolumn italic label', () => {
+    expect(tex).toContain('\\multicolumn{2}{l}{\\textit{Direct paths}} \\\\')
+    expect(tex).toContain('\\multicolumn{2}{l}{\\textit{Indirect effects}} \\\\')
+  })
+  it('a __section row is not itself indented, and does not leave the following row indented', () => {
+    expect(tex).toContain('H1 & Visual $\\rightarrow$ Ability \\\\')
+    expect(tex).not.toContain('\\quad H1')
+  })
+})
+
+// ── A6 device 2 (spanning headers) LaTeX twin - Table 5's two CI groups, 2026-07-06 ──
+const spannedTable: BuiltTable = {
+  spec: {
+    id: 'structural-paths', title: 'Structural paths',
+    columns: [
+      { key: 'h', label: 'H' }, { key: 'path', label: 'Path' },
+      { key: 'percLo', label: 'Lower', span: { group: 'Percentile 95% CI' } },
+      { key: 'percHi', label: 'Upper', span: { group: 'Percentile 95% CI' } },
+      { key: 'bcLo', label: 'Lower', span: { group: 'BC 95% CI' } },
+      { key: 'bcHi', label: 'Upper', span: { group: 'BC 95% CI' } },
+      { key: 'result', label: 'Result' },
+    ],
+  },
+  rows: [{ h: 'H1', path: 'Visual → Ability', percLo: '.30', percHi: '.55', bcLo: '.29', bcHi: '.54', result: 'Supported' }],
+}
+
+describe('classicToLatex - spanning column headers (span.group, A6 device 2)', () => {
+  const tex = classicToLatex(spannedTable)
+  it('emits a 3-line header: group row (\\multicolumn, % escaped), \\cmidrule per group, then sub-labels', () => {
+    // "95% CI" escapes to "95\% CI" - an unescaped % would start a LaTeX comment.
+    expect(tex).toContain('H & Path & \\multicolumn{2}{c}{Percentile 95\\% CI} & \\multicolumn{2}{c}{BC 95\\% CI} & Result \\\\')
+    expect(tex).toContain('\\cmidrule(lr){3-4} \\cmidrule(lr){5-6}')
+    expect(tex).toContain(' &  & Lower & Upper & Lower & Upper &  \\\\')
+  })
+  it('a table with no spanned columns keeps the single-line header (byte-identical, classic path)', () => {
+    const tex2 = classicToLatex(classic)
+    expect(tex2.split('\n')[2]).toBe('Source & SS & p \\\\')
+  })
+})
+
+// ── A6 device 4 (matrix upgrades) LaTeX twin, 2026-07-06 ──
+const flStarred: BuiltTable = {
+  spec: { id: 'fornell-larcker', title: 'Discriminant validity (Fornell-Larcker)', columns: [] },
+  rows: [],
+  matrix: {
+    kind: 'matrix', id: 'fornell-larcker', caption: 'Discriminant validity (Fornell-Larcker)',
+    rowLabels: ['visual', 'textual'], colLabels: ['visual', 'textual'],
+    cells: [['.83', null], ['.42', '.79']],
+    diagonalStyle: 'italic', lowerOnly: true,
+    cellStars: [[null, null], ['***', null]],
+    starNote: '*p<.05, **p<.01, ***p<.001',
+  },
+}
+
+describe('matrixToLatex - devices (diagonalStyle, cellStars, starNote, A6 device 4)', () => {
+  it('diagonalStyle:italic wraps the diagonal in \\textit, not \\textbf', () => {
+    const tex = matrixToLatex(flStarred)
+    expect(tex).toContain('\\textit{.83}')
+    expect(tex).not.toContain('\\textbf')
+  })
+  it('diagonalStyle:bold behaves like the legacy diagonal:bold', () => {
+    const tex = matrixToLatex({ ...flStarred, matrix: { ...flStarred.matrix!, diagonalStyle: 'bold' } })
+    expect(tex).toContain('\\textbf{.83}')
+  })
+  it('appends the cellStars suffix directly after the cell value', () => {
+    const tex = matrixToLatex(flStarred)
+    expect(tex).toContain('.42***')
+  })
+  it('prints starNote as an italic line after \\end{tabular} (not inside the tabular)', () => {
+    const tex = matrixToLatex(flStarred)
+    const lines = tex.split('\n')
+    expect(lines[lines.length - 2]).toBe('\\end{tabular}')
+    expect(lines[lines.length - 1]).toContain('\\textit{*p$<$.05, **p$<$.01, ***p$<$.001}')
+  })
+  it('a matrix with none of the new fields renders exactly as before (byte-identical legacy path)', () => {
+    expect(matrixToLatex(flMatrix)).toBe(
+      '\\begin{tabular}{lccc}\n\\toprule\n & visual & textual & R\\&D \\\\\n\\midrule\nvisual & \\textbf{.74} &  &  \\\\\ntextual & .45 & \\textbf{.77} &  \\\\\nR\\&D & .30 & .52 & \\textbf{.71} \\\\\n\\bottomrule\n\\end{tabular}',
+    )
+  })
+})
