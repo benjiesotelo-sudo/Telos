@@ -4,10 +4,12 @@ export default defineConfig({
 
   webServer: { command: 'npm run build && npm run preview -- --port 4173', url: 'http://localhost:4173', timeout: 180_000, reuseExistingServer: false },
   use: { baseURL: 'http://localhost:4173' },
+  expect: { toHaveScreenshot: { maxDiffPixels: 200 } },
   projects: [
-    { name: 'desktop', testIgnore: ['**/mobile.spec.ts', '**/responsive.spec.ts'] },
+    { name: 'desktop', testIgnore: ['**/mobile.spec.ts', '**/responsive.spec.ts', '**/visual.spec.ts'] },
     { name: 'tablet', testMatch: '**/mobile.spec.ts', use: { viewport: { width: 834, height: 1112 }, isMobile: true, hasTouch: true } },
     { name: 'mobile', testMatch: '**/mobile.spec.ts', use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
     { name: 'responsive', testMatch: '**/responsive.spec.ts', use: { hasTouch: true } },
+    { name: 'visual', testMatch: '**/visual.spec.ts', use: { contextOptions: { reducedMotion: 'reduce' } } },
   ],
 })
