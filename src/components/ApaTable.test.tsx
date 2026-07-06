@@ -93,6 +93,59 @@ describe('ApaTable classic - grouped rows (__group)', () => {
   })
 })
 
+// ── spanning column headers (A6 device 2, 2026-07-06): a two-level <thead> when any column ──
+// carries `span`; plain columns keep their single label via rowSpan; adjacent same-group columns
+// merge under one colSpan header.
+describe('ApaTable classic - spanning column headers (span.group)', () => {
+  // Table 5's post-merge shape (A3): two CI groups (Percentile / BC), everything else plain.
+  const spec: TableSpec = {
+    id: 'structural-paths', title: 'Structural paths', columns: [
+      { key: 'h', label: 'H' }, { key: 'path', label: 'Path' }, { key: 'b', label: 'B' },
+      { key: 'percLo', label: 'Lower', span: { group: 'Percentile 95% CI' } },
+      { key: 'percHi', label: 'Upper', span: { group: 'Percentile 95% CI' } },
+      { key: 'bcLo', label: 'Lower', span: { group: 'BC 95% CI' } },
+      { key: 'bcHi', label: 'Upper', span: { group: 'BC 95% CI' } },
+      { key: 'result', label: 'Result' },
+    ],
+  }
+  const rows: Record<string, string | number>[] = [
+    { h: 'H1', path: 'Visual → Ability', b: '0.42', percLo: '0.30', percHi: '0.55', bcLo: '0.29', bcHi: '0.54', result: 'Supported' },
+  ]
+  const html = renderToStaticMarkup(<ApaTable id="structural-paths" spec={spec} rows={rows} />)
+
+  it('renders TWO header rows (span present) and marks the table class="apa spanned"', () => {
+    expect(html).toContain('class="apa spanned"')
+    const theadTrs = html.match(/<thead>.*?<\/thead>/s)![0].match(/<tr>/g) ?? []
+    expect(theadTrs.length).toBe(2)
+  })
+
+  it('row 1 has a colSpan=2 cell per group, labeled with the group name', () => {
+    // renderToStaticMarkup emits the JSX prop casing (colSpan/rowSpan), not the lowercase HTML wire
+    // name - same convention the existing coef-row test uses (html.toLowerCase() before matching).
+    expect(html.toLowerCase()).toContain('colspan="2"')
+    expect(html).toMatch(/<th colSpan="2"[^>]*>Percentile 95% CI<\/th>/)
+    expect(html).toMatch(/<th colSpan="2"[^>]*>BC 95% CI<\/th>/)
+  })
+
+  it('row 1 gives ungrouped columns rowSpan=2 so their label prints once', () => {
+    expect((html.match(/rowSpan="2"/g) ?? []).length).toBe(4) // H, Path, B, Result
+  })
+
+  it('row 2 carries ONLY the spanned sub-column labels (Lower/Upper × 2), nothing for plain columns', () => {
+    const rows2 = html.match(/<thead>.*?<\/thead>/s)![0].match(/<tr>(.*?)<\/tr>/gs) ?? []
+    const row2 = rows2[1]
+    expect((row2.match(/<th>Lower<\/th>/g) ?? []).length).toBe(2)
+    expect((row2.match(/<th>Upper<\/th>/g) ?? []).length).toBe(2)
+    expect(row2.match(/<th/g)?.length).toBe(4) // exactly the 4 spanned sub-columns, no cells for H/Path/B/Result
+  })
+
+  it('a table with no span columns keeps the single-row header (byte-identical, class="apa")', () => {
+    const plain: TableSpec = { id: 'x', title: 'X', columns: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }] }
+    const h = renderToStaticMarkup(<ApaTable id="x" spec={plain} rows={[{ a: '1', b: '2' }]} />)
+    expect(h).toBe('<div style="overflow-x:auto"><table id="x" class="apa"><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table></div>')
+  })
+})
+
 // ── MatrixTable renderer (kind:'matrix') ──────────────────────────────────────
 const m3x3: MatrixTable = {
   kind: 'matrix',

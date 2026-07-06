@@ -1,4 +1,5 @@
 import type { TableSpec } from '../lib/registry/types'
+import { headerGroups } from '../lib/registry/types'
 import type { MatrixTable } from '../lib/results/types'
 
 // Classic tables (27 tests) render unchanged: one <td> per column, no row classes.
@@ -50,6 +51,12 @@ export function ApaTable(props: ClassicProps | MatrixProps) {
   const { id, spec, rows } = props
   const n = spec.columns.length
   const firstKey = spec.columns[0]?.key
+  // Spanning column headers (A6 device 2, 2026-07-06): only when at least one column carries `span`
+  // do we render a two-row <thead> - every other table keeps its original single-row header
+  // (byte-identical). Plain (ungrouped) columns get rowSpan=2 so their label prints once.
+  const groups = headerGroups(spec.columns)
+  const hasSpan = groups.some((g) => g.group != null)
+  const tableClass = spec.kind === 'coef' ? 'apa coef' : hasSpan ? 'apa spanned' : 'apa'
   // `__group` rows are their own italic header (group-level stats live on them, under their normal
   // column keys); everything after one indents (row-child) until the next `__group` resets it.
   let inGroup = false
@@ -66,8 +73,20 @@ export function ApaTable(props: ClassicProps | MatrixProps) {
   })
   return (
     <div style={{ overflowX: 'auto' }}>
-      <table id={id} className={spec.kind === 'coef' ? 'apa coef' : 'apa'}>
-        <thead><tr>{spec.columns.map((c) => <th key={c.key}>{c.label}{c.sub && <sub>{c.sub}</sub>}{c.suffix}</th>)}</tr></thead>
+      <table id={id} className={tableClass}>
+        <thead>{hasSpan ? (
+          <>
+            <tr>{groups.map((g) => g.group != null
+              ? <th key={g.key} colSpan={g.cols.length} className="span-group">{g.group}</th>
+              : <th key={g.key} rowSpan={2}>{g.cols[0].label}{g.cols[0].sub && <sub>{g.cols[0].sub}</sub>}{g.cols[0].suffix}</th>)}
+            </tr>
+            <tr>{groups.flatMap((g) => g.group == null ? [] :
+              g.cols.map((c) => <th key={c.key}>{c.label}{c.sub && <sub>{c.sub}</sub>}{c.suffix}</th>))}
+            </tr>
+          </>
+        ) : (
+          <tr>{spec.columns.map((c) => <th key={c.key}>{c.label}{c.sub && <sub>{c.sub}</sub>}{c.suffix}</th>)}</tr>
+        )}</thead>
         <tbody>{bodyRows}</tbody>
       </table>
     </div>

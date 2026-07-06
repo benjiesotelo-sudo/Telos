@@ -67,6 +67,13 @@ table.apa.matrix td:empty{color:transparent;}
 table.apa .row-group td{font-style:italic;}
 table.apa .row-child td:first-child{padding-left:20px;}
 table.apa .row-section td{font-style:italic;color:var(--muted);padding-top:7px;}
+/* A6 device 2: two-row spanning header (Percentile 95% CI / BC 95% CI over Lower/Upper, etc.).
+   The base `table.apa thead th` rule already puts a top rule + bottom rule on EVERY th; a rowSpan=2
+   cell's border-bottom naturally lands at the bottom of its merged (2-row-tall) box, so it lines up
+   with row 2's own bottom rule with no extra CSS. The only thing to suppress is row 2's top rule
+   (it would otherwise draw a stray line between the two header rows). */
+table.apa.spanned thead th.span-group{text-align:center;}
+table.apa.spanned thead tr:last-child th{border-top:none;}
 .shelf{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);transition:opacity var(--motion) ease-out;}
 .eyebrow + .shelf{margin-top:6px;padding-top:0;border-top:0;}
 .shelf-head{font-size:11px;color:var(--text);text-transform:uppercase;letter-spacing:.09em;font-weight:700;}

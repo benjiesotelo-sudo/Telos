@@ -1,4 +1,4 @@
-export interface ColumnDef { key: string; label: string; sub?: string; suffix?: string } // sub renders as <sub> — e.g. { label: 'M', sub: 'diff' } → M<sub>diff</sub> · suffix renders after the sub, e.g. M<sub>diff</sub> (adj.)
+export interface ColumnDef { key: string; label: string; sub?: string; suffix?: string; span?: { group: string } } // sub renders as <sub> - e.g. { label: 'M', sub: 'diff' } → M<sub>diff</sub> · suffix renders after the sub, e.g. M<sub>diff</sub> (adj.) · span (A6 device 2, 2026-07-06): adjacent columns sharing span.group render under one two-row spanning header labeled `group` (e.g. Lower/Upper under "Percentile 95% CI")
 export interface ModelCol { key: string; label: string } // coef table: one per side-by-side model column ((1) / 'Fixed effects' / 'Odds ratio (OR)' …); single-model tests have exactly one
 export interface GofRow { key: string; label: string } // coef table: a goodness-of-fit footer row; label is verbatim so consistency tests still match registry ↔ drawn card
 // coef tables (regression/econometrics, design 2026-06-16): kind:'coef' → the builder emits stacked rows (term → est, then a muted (SE) row, then a muted [lo,hi] CI row), a rule, then the gof footer rows. Each built row carries a `_kind` field ('coef'|'se'|'ci'|'rule'|'gof'|'span') that ApaTable styles. columns = [{key:'term',label:''}, ...models as columns, ...extraCols]; models/gof drive the builder + consistency test. extraCols = kept per-term columns (e.g. multiple-linear β, VIF). spanCols (Hausman χ²) render as a full-width row.
@@ -29,3 +29,19 @@ export interface TestSpec {
   constraints: TestConstraints
 }
 export const figuresOf = (s: TestSpec): FigureSpec[] => s.figures ?? (s.figure ? [s.figure] : [])
+
+// A6 device 2 (2026-07-06): group adjacent columns that share the same `span.group` into one header
+// cell. A column with no `span` (or whose group differs from the previous column's) starts its own
+// ungrouped entry (`group` undefined, `cols.length === 1`) - the renderer gives that one cell a
+// rowSpan across both header rows so it prints its label ONCE. Shared by ApaTable.tsx (HTML) and
+// rTable.ts (LaTeX \multicolumn + \cmidrule) so the two renderers can never disagree on the grouping.
+export interface HeaderGroup { key: string; group?: string; cols: ColumnDef[] }
+export function headerGroups(columns: ColumnDef[]): HeaderGroup[] {
+  const groups: HeaderGroup[] = []
+  for (const c of columns) {
+    const last = groups[groups.length - 1]
+    if (c.span && last?.group === c.span.group) { last.cols.push(c); continue }
+    groups.push({ key: c.span ? `span-${c.span.group}-${groups.length}` : c.key, group: c.span?.group, cols: [c] })
+  }
+  return groups
+}
