@@ -377,6 +377,21 @@ describe('SemCanvasUI — moderation edges (dashed clay arrows)', () => {
     const html = renderLatent({ moderations, mode: 'draw' })
     expect(html).not.toContain('sem-mod-delete-target')
   })
+
+  // Regression: in the default left-to-right layout, a 3-construct chain's SN->TI midpoint sits
+  // exactly under the middle construct's (TA) oval — cx=398 for both. If the handle circle painted
+  // (and thus DOM-ordered/hit-tested) BEFORE the nodes layer, TA's oval would intercept every click
+  // meant for the SN->TI handle. Assert DOM order instead of firing a click: renderToStaticMarkup
+  // has no live event dispatch, but SVG paints/hit-tests in document order, so "later in the markup"
+  // is equivalent to "on top" for same-position siblings.
+  it('renders path-midpoint handles AFTER all nodes in DOM order, so a covering oval never intercepts the click', () => {
+    const html = renderLatent({ constructs: snTaTiConstructs, paths: snTiPath, mode: 'delete' })
+    const lastNodeIdx = html.lastIndexOf('data-node-id')
+    const handleIdx = html.indexOf('data-path-index="0"')
+    expect(lastNodeIdx).toBeGreaterThan(-1)
+    expect(handleIdx).toBeGreaterThan(-1)
+    expect(handleIdx).toBeGreaterThan(lastNodeIdx)
+  })
 })
 
 const snTaTiConstructs: Construct[] = [

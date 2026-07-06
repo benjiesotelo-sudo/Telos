@@ -22,11 +22,12 @@ test('CB-SEM canvas: moderation gesture draws a dashed clay edge; guards block i
   // three ovals appear on the canvas
   await expect(page.locator('ellipse[data-node-id]')).toHaveCount(3)
 
-  // Draw SN -> TA (Draw tool is default): click source oval then target oval.
-  // ADJACENT nodes on purpose: the default layout is left-to-right, so an SN->TI path's midpoint
-  // would sit exactly under TA's oval (nodes render above the midpoint handle and intercept the click).
+  // Draw SN -> TI (Draw tool is default): click source oval then target oval.
+  // NON-adjacent on purpose: the default left-to-right layout puts SN->TI's midpoint exactly under
+  // TA's oval (cx=398 for both). This is the case the midpoint-handles-paint-above-nodes fix targets
+  // (SemCanvas.tsx renders the active handle circles after the nodes layer) - it must be clickable.
   await page.locator('[data-node-id]').first().click()
-  await page.locator('[data-node-id]').nth(1).click()
+  await page.locator('[data-node-id]').nth(2).click()
   await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(1)
 
   // Self-moderation guard: click SN (the path's own source) then its own path midpoint.
@@ -34,13 +35,14 @@ test('CB-SEM canvas: moderation gesture draws a dashed clay edge; guards block i
   await page.locator('[data-path-index="0"]').click()
   await expect(page.getByRole('alert')).toContainText(/cannot moderate its own path/i)
 
-  // Valid gesture: click TI (not in the path) then the SN->TA midpoint.
-  await page.locator('[data-node-id]').nth(2).click()
+  // Valid gesture: click TA (not in the path, and whose oval sits on top of the SN->TI midpoint)
+  // then the SN->TI midpoint.
+  await page.locator('[data-node-id]').nth(1).click()
   await page.locator('[data-path-index="0"]').click()
   await expect(page.locator('.sem-mod-arrow')).toHaveCount(1)
 
   // Duplicate guard: same moderator, same path again.
-  await page.locator('[data-node-id]').nth(2).click()
+  await page.locator('[data-node-id]').nth(1).click()
   await page.locator('[data-path-index="0"]').click()
   await expect(page.getByRole('alert')).toContainText(/already moderates/i)
 })

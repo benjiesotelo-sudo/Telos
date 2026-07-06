@@ -308,17 +308,6 @@ export function SemCanvasUI({
                   {`β = ${fmtCoef(beta)}`}
                 </text>
               )}
-              {(mode === 'delete' || (mode === 'draw' && pending !== null)) && (
-                <circle
-                  className={mode === 'delete' ? undefined : 'sem-mod-target'}
-                  data-path-index={i}
-                  cx={mx} cy={my} r={mode === 'delete' ? 9 : 7}
-                  fill="var(--card)"
-                  stroke={mode === 'delete' ? BLUE : 'var(--accent)'}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => (mode === 'delete' ? (!running && onRemovePath(i)) : clickPathMidpoint(i))}
-                />
-              )}
             </g>
           )
         })}
@@ -346,14 +335,6 @@ export function SemCanvasUI({
                 stroke="var(--accent)" strokeWidth={2} strokeDasharray="6 4"
                 markerEnd="url(#sem-arrow-mod)"
               />
-              {mode === 'delete' && (
-                <circle
-                  className="sem-mod-delete-target"
-                  cx={hx} cy={hy} r={9}
-                  fill="var(--card)" stroke="var(--accent)" style={{ cursor: 'pointer' }}
-                  onClick={() => !running && onRemoveModeration(m.id)}
-                />
-              )}
               {beta != null && (
                 <text
                   className="sem-mod-label"
@@ -458,6 +439,51 @@ export function SemCanvasUI({
                 </text>
               )}
             </g>
+          )
+        })}
+
+        {/* Active midpoint handles — rendered AFTER the nodes layer (above) so a covering node oval/rect
+         *  never intercepts the click. A default 3-construct chain lays SN-TI's midpoint exactly under
+         *  TA's oval, so painting/hit-testing this layer earlier made that path un-clickable. Lines and
+         *  β-labels stay in their layer above; only the clickable handle circles move. */}
+        {paths.map((p, i) => {
+          if (!(mode === 'delete' || (mode === 'draw' && pending !== null))) return null
+          const a = centers.get(p.from)
+          const b = centers.get(p.to)
+          if (!a || !b) return null
+          const mx = (a.cx + b.cx) / 2
+          const my = (a.cy + b.cy) / 2
+          return (
+            <circle
+              key={`path-handle-${i}`}
+              className={mode === 'delete' ? undefined : 'sem-mod-target'}
+              data-path-index={i}
+              cx={mx} cy={my} r={mode === 'delete' ? 9 : 7}
+              fill="var(--card)"
+              stroke={mode === 'delete' ? BLUE : 'var(--accent)'}
+              style={{ cursor: 'pointer' }}
+              onClick={() => (mode === 'delete' ? (!running && onRemovePath(i)) : clickPathMidpoint(i))}
+            />
+          )
+        })}
+        {mode === 'delete' && moderations.map((m) => {
+          const modC = centers.get(m.moderatorId)
+          const p = paths[m.pathIndex]
+          const a = p ? centers.get(p.from) : undefined
+          const b = p ? centers.get(p.to) : undefined
+          if (!modC || !a || !b) return null
+          const mx = (a.cx + b.cx) / 2
+          const my = (a.cy + b.cy) / 2
+          const hx = (modC.cx + mx) / 2
+          const hy = (modC.cy + my) / 2
+          return (
+            <circle
+              key={`mod-handle-${m.id}`}
+              className="sem-mod-delete-target"
+              cx={hx} cy={hy} r={9}
+              fill="var(--card)" stroke="var(--accent)" style={{ cursor: 'pointer' }}
+              onClick={() => !running && onRemoveModeration(m.id)}
+            />
           )
         })}
       </svg>
