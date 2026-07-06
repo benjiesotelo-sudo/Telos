@@ -36,19 +36,44 @@ const ZOOM_STEP = 1.2
 // Layout geometry (static; interactions move x/y in Unit 3b).
 export const NODE_W = 132   // oval / rectangle width
 export const NODE_H = 64    // oval / rectangle height
-const ITEM_W = 56
-const ITEM_H = 22
+export const ITEM_W = 56
+export const ITEM_H = 22
 const ITEM_GAP = 6
 const ITEM_SIDE_GAP = 28  // gap between oval edge and item stack
 const DEFAULT_X = 80
 const DEFAULT_Y = 70
 const GRID_GAP = 28   // min horizontal gap between path-mode grid columns (used to pick cols-per-row)
 
-/** Choose which side item boxes sit on, based on cx relative to the canvas width W. */
-function itemSide(cx: number, W: number): 'left' | 'right' | 'below' {
-  if (cx < W * 0.34) return 'left'
-  if (cx > W * 0.66) return 'right'
+/** Which side a construct's item boxes sit on, from its center's position WITHIN the span of all
+ *  construct centers — viewBox-INDEPENDENT, so zoom/pan/fit never reflow the items (and the
+ *  content-fitting viewBox can contain them): leftmost third → left, rightmost third → right,
+ *  middle → below. A single (or colocated) construct has no span, so its items sit below. */
+function itemSide(cx: number, minCx: number, maxCx: number): 'left' | 'right' | 'below' {
+  const span = maxCx - minCx
+  if (span < 1) return 'below'
+  if (cx <= minCx + span / 3) return 'left'
+  if (cx >= maxCx - span / 3) return 'right'
   return 'below'
+}
+
+interface Center { cx: number; cy: number; left: number; top: number }
+interface ItemGeom { ix: number; iy: number; lx1: number; ly1: number; labelX: number; labelAnchor: 'start' | 'middle' | 'end' }
+
+/** Geometry of item box k (of ni) for a construct centered at c, given its chosen side. Shared by the
+ *  renderer and latentBounds so the drawn boxes and the fitted viewBox can never disagree. */
+function itemGeom(side: 'left' | 'right' | 'below', c: Center, ni: number, k: number): ItemGeom {
+  const stackY = c.cy - ((ni - 1) / 2) * (ITEM_H + ITEM_GAP) + k * (ITEM_H + ITEM_GAP) - ITEM_H / 2
+  if (side === 'left') {
+    const ix = c.left - ITEM_SIDE_GAP - ITEM_W
+    return { ix, iy: stackY, lx1: ix + ITEM_W, ly1: stackY + ITEM_H / 2, labelX: ix - 4, labelAnchor: 'end' }
+  }
+  if (side === 'right') {
+    const ix = c.left + NODE_W + ITEM_SIDE_GAP
+    return { ix, iy: stackY, lx1: ix, ly1: stackY + ITEM_H / 2, labelX: ix + ITEM_W + 4, labelAnchor: 'start' }
+  }
+  const ix = c.cx + (k - (ni - 1) / 2) * (ITEM_W + 12) - ITEM_W / 2
+  const iy = c.top + NODE_H + ITEM_SIDE_GAP
+  return { ix, iy, lx1: ix + ITEM_W / 2, ly1: iy, labelX: ix + ITEM_W / 2, labelAnchor: 'middle' }
 }
 
 export interface SemCanvasUIProps {
@@ -76,6 +101,34 @@ export function nodesOf(p: Pick<SemCanvasUIProps, 'constructs' | 'columns' | 'mo
     return p.columns.map((name, i) => ({ id: i, name, items: [], x: undefined, y: undefined }))
   }
   return p.constructs
+}
+
+/** Content-fitting viewBox for the latent (Full-AMOS) figure: the bounding box of every construct
+ *  oval and every item box, plus padding for the loading / R² labels. Used as the canvas's initial
+ *  viewBox and the "Fit" target so the captured/exported figure always contains the whole diagram
+ *  (fixes the export clip where the outermost constructs' item boxes ran off a fixed viewBox). */
+export function latentBounds(constructs: Construct[]): ViewBox {
+  if (!constructs.length) return BASE_VB
+  const centers = constructs.map((n, i) => nodeCenter(n, i))
+  const cxs = centers.map((c) => c.cx)
+  const minCx = Math.min(...cxs)
+  const maxCx = Math.max(...cxs)
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  const grow = (x: number, y: number, w = 0, h = 0) => {
+    minX = Math.min(minX, x); minY = Math.min(minY, y)
+    maxX = Math.max(maxX, x + w); maxY = Math.max(maxY, y + h)
+  }
+  constructs.forEach((n, i) => {
+    const c = centers[i]
+    grow(c.left, c.top, NODE_W, NODE_H)            // construct oval
+    const side = itemSide(c.cx, minCx, maxCx)
+    n.items.forEach((_, k) => {
+      const g = itemGeom(side, c, n.items.length, k)
+      grow(g.ix, g.iy, ITEM_W, ITEM_H)             // each item box
+    })
+  })
+  const PAD = 30   // room for measurement (loading) labels beside items + R² labels above the ovals
+  return { x: minX - PAD, y: minY - PAD, w: (maxX - minX) + 2 * PAD, h: (maxY - minY) + 2 * PAD }
 }
 
 /** Center of a latent node given its (top-left) x/y, with a left-to-right default for unplaced nodes. */
@@ -122,6 +175,10 @@ export function SemCanvasUI({
   const centers = new Map<number, ReturnType<typeof nodeCenter>>()
   nodes.forEach((n, i) =>
     centers.set(n.id, isPath ? pathNodeCenter(i, nodes.length, vbW, vbH) : nodeCenter(n, i)))
+  // Span of construct centers → viewBox-independent item-side selection (latent only).
+  const latentCxs = isPath ? [] : nodes.map((n) => centers.get(n.id)!.cx)
+  const minCx = latentCxs.length ? Math.min(...latentCxs) : 0
+  const maxCx = latentCxs.length ? Math.max(...latentCxs) : 0
 
   function clickNode(id: number) {
     if (running) return
@@ -241,30 +298,12 @@ export function SemCanvasUI({
             )
           }
           const tooFew = n.items.length < 2
-          const W = vbProp ? vbProp.w : 760
-          const side = itemSide(c.cx, W)
+          const side = itemSide(c.cx, minCx, maxCx)
           const ni = n.items.length
           return (
             <g key={`node-${n.id}`}>
               {n.items.map((item, k) => {
-                let ix: number, iy: number, lx1: number, ly1: number, labelX: number, labelAnchor: 'start' | 'middle' | 'end'
-                if (side === 'left') {
-                  ix = c.left - ITEM_SIDE_GAP - ITEM_W
-                  iy = c.cy - ((ni - 1) / 2) * (ITEM_H + ITEM_GAP) + k * (ITEM_H + ITEM_GAP) - ITEM_H / 2
-                  lx1 = ix + ITEM_W; ly1 = iy + ITEM_H / 2
-                  labelX = ix - 4; labelAnchor = 'end'
-                } else if (side === 'right') {
-                  ix = c.left + NODE_W + ITEM_SIDE_GAP
-                  iy = c.cy - ((ni - 1) / 2) * (ITEM_H + ITEM_GAP) + k * (ITEM_H + ITEM_GAP) - ITEM_H / 2
-                  lx1 = ix; ly1 = iy + ITEM_H / 2
-                  labelX = ix + ITEM_W + 4; labelAnchor = 'start'
-                } else {
-                  // below
-                  ix = c.cx + (k - (ni - 1) / 2) * (ITEM_W + 12) - ITEM_W / 2
-                  iy = c.top + NODE_H + ITEM_SIDE_GAP
-                  lx1 = ix + ITEM_W / 2; ly1 = iy
-                  labelX = ix + ITEM_W / 2; labelAnchor = 'middle'
-                }
+                const { ix, iy, lx1, ly1, labelX, labelAnchor } = itemGeom(side, c, ni, k)
                 const load = estimates?.loadings[item]
                 return (
                   <g key={`item-${k}`}>
@@ -326,13 +365,23 @@ export function SemCanvasUI({
   )
 }
 
+/** The canvas's default/"Fit" viewBox: content-fitted to the constructs in latent mode (so the
+ *  exported figure contains the whole diagram); the fixed BASE_VB in path mode (the column grid
+ *  auto-fits BASE_VB) and as the empty/loading fallback. */
+function defaultVb(setup: { modelKind?: 'latent' | 'path'; constructs?: Construct[] } | undefined): ViewBox {
+  if (setup && (setup.modelKind ?? 'latent') === 'latent' && setup.constructs && setup.constructs.length) {
+    return latentBounds(setup.constructs)
+  }
+  return BASE_VB
+}
+
 /** Store-connected canvas: useSession wiring + pointer-drag move + viewBox zoom/pan + resize grip.
  *  Items "keep their side" for free — SemCanvasUI draws item boxes relative to the (moved) node centre. */
 export function SemCanvas({ testId }: { testId: string }) {
   const s = useSession()
   const setup = s.setups[testId]
   const [mode, setMode] = useState<'draw' | 'move' | 'delete'>('draw')
-  const [vb, setVb] = useState<ViewBox>(BASE_VB)
+  const [vb, setVb] = useState<ViewBox>(() => defaultVb(s.setups[testId]))
   const [height, setHeight] = useState(360)
   const wrapRef = useRef<HTMLDivElement | null>(null)
   // active gesture: dragging a node (move tool) or panning the canvas (any tool, blank-space drag)
@@ -407,7 +456,7 @@ export function SemCanvas({ testId }: { testId: string }) {
       const w = v.w / factor; const h = v.h / factor
       return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w, h }   // zoom about the centre
     })
-  const fit = () => setVb(BASE_VB)
+  const fit = () => setVb(defaultVb(setup))
 
   return (
     <div ref={wrapRef}>
