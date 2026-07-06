@@ -2,6 +2,23 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { CB_SEM as spec } from './cbSem'
 import { strip } from './specHtml'
+import { buildCbSem } from '../results/buildCbSem'
+import type { CbSemResult } from '../stats/runCbSem'
+
+// U3-T5: CB-SEM's single giant tableNote is superseded by labelled notes (content.notes) for the live
+// card; CB_SEM.tableNote itself survives only as an unread legacy fallback field. A minimal, non-
+// saturated, no-dynamic-triggers CbSemResult fixture (no cfaLoadings/rsquare/moderation, bootstrapped
+// with nboot>=7000) yields exactly the STATIC labelled notes, so the content-preservation checks below
+// compare against the concatenation of those notes' text rather than spec.tableNote!.text.
+const staticNotesFixture: CbSemResult = {
+  mode: 'full', saturated: false, cfaLoadings: [], reliability: [], itemStats: [],
+  fit: { chisq: 1, df: 1, pvalue: 1, cfi: 1, tli: 1, rmsea: 0, rmseaLower: 0, rmseaUpper: 0, srmr: 0 },
+  structural: [{ from: 1, to: 2, b: 1, se: 1, z: 1, p: 1, stdBeta: 1, ciLower: 1, ciUpper: 1, ciPercLower: 1, ciPercUpper: 1, ciBcLower: 1, ciBcUpper: 1 }],
+  bootstrapped: true, nboot: 10000,
+  fornellLarcker: [], htmt: [], corLvP: [], discriminantLabels: [],
+  estimates: { paths: [], loadings: {}, r2: {} },
+} as unknown as CbSemResult
+const staticNotesText = () => buildCbSem(spec, staticNotesFixture).notes!.map((n) => n.text).join(' ')
 
 const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(
@@ -72,7 +89,9 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     expect(htmtCap).toBe(htmtTitle)
     const crossRef =
       'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.'
-    expect(spec.tableNote!.text).toContain(crossRef)
+    // U3-T5: this sentence now lives in the labelled notes (label 'Discriminant validity'), not the
+    // legacy spec.tableNote -- content-preservation guard, not byte-verbatim (see file header).
+    expect(staticNotesText()).toContain(crossRef)
     expect(strip(card)).toContain(crossRef)
   })
   // U3-T3: structural paths + indirect effects + moderation merged into ONE H-numbered, dual-CI,
@@ -87,9 +106,13 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
       'efa-suitability', 'efa-loadings', 'cfa-loadings', 'fit-indices', 'fornell-larcker', 'htmt', 'structural-paths',
     ])
   })
-  it('tableNote reflects the E1/E2 preamble + single merged Table 5 (structural) omission wording', () => {
-    expect(spec.tableNote!.text).toContain('if EFA was deselected, Tables E1–E2 are omitted')
-    expect(spec.tableNote!.text).toContain('if the structural stage was deselected, Table 5 is omitted')
+  it('labelled notes (the live card) reflect the E1/E2 preamble + single merged Table 5 (structural) omission wording', () => {
+    // U3-T5: superseded from a byte-verbatim spec.tableNote!.text check to a content-preservation guard
+    // against the built labelled notes (the "Scope" label carries this content now; wording may legally
+    // differ in small ways -- e.g. "the E1/E2 preamble" vs "Tables E1-E2" -- by design, not byte-verbatim).
+    const text = staticNotesText()
+    expect(text).toContain('if EFA was deselected')
+    expect(text).toContain('the structural stage was deselected, Table 5 is omitted')
   })
   it('question matches', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/)![1])).toBe(spec.question)

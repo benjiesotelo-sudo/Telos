@@ -156,21 +156,38 @@ describe('buildCbSem', () => {
     expect(t5.rows.find((r) => r.h === 'H2')!.path).toBe('ie_1_2_3')
   })
 
+  // U3-T5: CB-SEM is the labelled-notes worked example — content.notes (LabelledNote[]) replaces the
+  // single giant content.note for this card. Content-preserving: every fact from the old tableNote.text
+  // survives, split and labelled; nothing dropped.
+  it('labelled notes: canonical label set + order (static notes, no dynamic triggers)', () => {
+    const clean: CbSemResult = { ...base, cfaLoadings: [], reliability: [], rsquare: undefined, moderation: undefined, indirect: undefined, bootstrapped: true, nboot: 10000 }
+    const c = buildCbSem(SPEC, clean)
+    expect(c.notes!.map((n) => n.label)).toEqual(['Scope', 'Cutoffs', 'Estimator', 'R²', 'Caution', 'Discriminant validity', 'Indirect effects', 'Moderation'])
+    expect(c.notes!.find((n) => n.label === 'Cutoffs')!.text).toContain('CFI/TLI ≥ .95')
+    expect(c.notes!.find((n) => n.label === 'Discriminant validity')).toMatchObject({
+      text: 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.',
+      afterTableId: 'htmt',
+    })
+    expect(c.note).toBeNull() // CB-SEM renders notes, not the legacy single note
+  })
+
   it('R² note: one line per endogenous construct, keyed by construct id and named via structural toName', () => {
     const c = buildCbSem(SPEC, base)
-    expect(c.note?.text).toContain('R²(dem60) = .20')
-    expect(c.note?.text).toContain('R²(dem65) = .97')
+    const r2 = c.notes!.find((n) => n.label === 'R²')!.text
+    expect(r2).toContain('R²(dem60) = .20')
+    expect(r2).toContain('R²(dem65) = .97')
   })
 
   it('Andrews & Buchinsky (2000) bootstrap-count disclosure when nboot < 7000 (post-review amendment a)', () => {
     const c = buildCbSem(SPEC, { ...base, nboot: 5000 })
-    expect(c.note?.text).toContain('Andrews & Buchinsky')
-    expect(c.note?.text).toContain('≥7,000 resamples')
+    const ci = c.notes!.find((n) => n.label === 'CIs')!.text
+    expect(ci).toContain('Andrews & Buchinsky')
+    expect(ci).toContain('≥7,000 resamples')
   })
 
-  it('omits the Andrews & Buchinsky disclosure when nboot >= 7000', () => {
+  it('omits the Andrews & Buchinsky disclosure (and the CIs note entirely) when nboot >= 7000', () => {
     const c = buildCbSem(SPEC, { ...base, nboot: 10000 })
-    expect(c.note?.text).not.toContain('Andrews & Buchinsky')
+    expect(c.notes!.find((n) => n.label === 'CIs')).toBeUndefined()
   })
 
   it('match=FALSE disclosure renders as a de-duplicated note under Table 5 (post-review amendment b)', () => {
@@ -185,21 +202,60 @@ describe('buildCbSem', () => {
       },
     }
     const c = buildCbSem(SPEC, withDisclosure)
-    expect(c.note?.text).toContain(MODERATION_DISCLOSURE)
+    const mod = c.notes!.find((n) => n.label === 'Moderation')!.text
+    expect(mod).toContain(MODERATION_DISCLOSURE)
     // de-duplicated: the shared disclosure text appears exactly once even with 2 unequal-count moderations
-    expect(c.note!.text.split(MODERATION_DISCLOSURE)).toHaveLength(2)
+    expect(mod.split(MODERATION_DISCLOSURE)).toHaveLength(2)
   })
 
   it('omits the disclosure note when every moderation row is matched (no disclosure)', () => {
     const c = buildCbSem(SPEC, base)
-    expect(c.note?.text ?? '').not.toContain(MODERATION_DISCLOSURE)
+    expect(c.notes!.find((n) => n.label === 'Moderation')!.text).not.toContain(MODERATION_DISCLOSURE)
   })
 
-  it('suppresses the fit table and flags saturation when df==0', () => {
+  it('suppresses the fit table and flags saturation when df==0 (single Saturation note, in notes[0])', () => {
     const sat: CbSemResult = { ...base, saturated: true, fit: { ...base.fit!, df: 0 } }
     const c = buildCbSem(SPEC, sat)
     expect(c.tables.some((t) => t.spec.id === 'fit-indices')).toBe(false)
-    expect(c.note?.text).toContain('saturated')
+    expect(c.notes![0]).toMatchObject({ label: 'Saturation' })
+    expect(c.notes![0].text).toContain('saturated')
+  })
+
+  it('item-sample note (labelled "Item sample", placed after the cfa-loadings table) states the missing-data-dependent sample', () => {
+    const c = buildCbSem(SPEC, base)
+    const itemSample = c.notes!.find((n) => n.label === 'Item sample')!
+    expect(itemSample.afterTableId).toBe('cfa-loadings')
+    expect(itemSample.text).toContain('the listwise estimation sample (the same N as the model fit)')
+  })
+
+  it('item-sample note states the per-item-N caveat when missing is not listwise', () => {
+    const c = buildCbSem(SPEC, { ...base, missing: 'fiml' })
+    const itemSample = c.notes!.find((n) => n.label === 'Item sample')!
+    expect(itemSample.text).toContain('N can vary by item under fiml/mi/pairwise')
+  })
+
+  it('omits the "Item sample" note when there are no CFA loadings (path mode)', () => {
+    const c = buildCbSem(SPEC, { ...base, mode: 'path', cfaLoadings: [], reliability: [] })
+    expect(c.notes!.find((n) => n.label === 'Item sample')).toBeUndefined()
+  })
+
+  // T3 review follow-up (a): a missing/non-finite CI bound must never fabricate a Supported/Not-supported
+  // verdict -- render a dash instead. Before this fix, Number(null) coerced to 0, so a row with a null
+  // lower bound and a negative-but-present upper bound would wrongly read "Supported" (0 > 0 is false,
+  // hi < 0 true) or "Not supported" depending on the other bound, neither of which is a real verdict.
+  it('Result column renders a dash, not a fabricated verdict, when either CI bound is nullish', () => {
+    const nullBound: CbSemResult = {
+      ...base,
+      indirect: undefined,
+      moderation: undefined,
+      structural: [{ ...base.structural![0], ciPercLower: null as unknown as number, ciPercUpper: -0.2 }],
+    }
+    const c = buildCbSem(SPEC, nullBound)
+    const t5 = c.tables.find((t) => t.spec.id === 'structural-paths')!
+    const h1 = t5.rows.find((r) => r.h === 'H1')!
+    expect(h1.result).toBe('—')
+    expect(h1.result).not.toBe('Supported')
+    expect(h1.result).not.toBe('Not supported')
   })
 
   it('suppresses measurement tables in path mode', () => {
@@ -234,7 +290,7 @@ describe('buildCbSem', () => {
     }
   })
 
-  it('non-bootstrapped run: table note carries an honest Wald-CI sentence, no Andrews & Buchinsky / Efron claim', () => {
+  it('non-bootstrapped run: labelled "CIs" note carries an honest Wald-CI sentence + Result-derivation wording, no Andrews & Buchinsky / Efron claim', () => {
     const directOnly: CbSemResult = {
       ...base,
       bootstrapped: false,
@@ -244,10 +300,13 @@ describe('buildCbSem', () => {
       structural: base.structural!.map((row) => ({ ...row, ciBcLower: null, ciBcUpper: null })),
     }
     const c = buildCbSem(SPEC, directOnly)
-    expect(c.note?.text).toContain('delta-method')
-    expect(c.note?.text).toContain('Wald')
-    expect(c.note?.text).not.toContain('Andrews & Buchinsky')
-    expect(c.note?.text).not.toContain('Efron')
+    const ci = c.notes!.find((n) => n.label === 'CIs')!.text
+    expect(ci).toContain('delta-method')
+    expect(ci).toContain('Wald')
+    // T3 review follow-up (a): the Wald note gains this sentence so Result is understood as CI-derived.
+    expect(ci).toContain('Result is derived from these intervals.')
+    expect(ci).not.toContain('Andrews & Buchinsky')
+    expect(ci).not.toContain('Efron')
   })
 
   it('bootstrapped run (bootstrapped: true, or field absent): current behavior unchanged -- numeric BC cells, A&B note when nboot<7000', () => {
@@ -256,15 +315,16 @@ describe('buildCbSem', () => {
     const h1 = t5.rows.find((r) => r.h === 'H1')!
     expect(h1.bcLower).toBe('.23')
     expect(h1.bcUpper).toBe('.63')
-    expect(c.note?.text).toContain('Andrews & Buchinsky')
-    expect(c.note?.text).not.toContain('delta-method')
+    const ci = c.notes!.find((n) => n.label === 'CIs')!.text
+    expect(ci).toContain('Andrews & Buchinsky')
+    expect(ci).not.toContain('delta-method')
 
     // field-absent fixtures (every OTHER test in this file) must keep behaving as bootstrapped --
     // `bootstrapped` is optional so pre-existing hand-built CbSemResult fixtures need no change.
     const omitted = { ...base }
     delete (omitted as Partial<CbSemResult>).bootstrapped
     const c2 = buildCbSem(SPEC, omitted)
-    expect(c2.note?.text).not.toContain('delta-method')
+    expect(c2.notes!.find((n) => n.label === 'CIs')!.text).not.toContain('delta-method')
   })
 
   it('suppresses the Fornell-Larcker/HTMT tables when < 2 constructs (mirrors buildAve.ts)', () => {

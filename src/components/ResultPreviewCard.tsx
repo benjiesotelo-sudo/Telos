@@ -41,26 +41,38 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
                   {/* domId from the spec (Task-33 collision override) keeps the matrix table's DOM id in
                       sync with the exporter's captureNode(`table-${spec.domId ?? spec.id}`) lookup. */}
                   <ApaTable matrix={t.matrix} domId={t.spec.domId} />
-                  {content.note && content.note.afterTableId === t.matrix.id && (
-                    <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
-                  )}
+                  {content.notes
+                    ? content.notes.filter((n) => n.afterTableId === t.matrix!.id).map((n, i) => (
+                        <p key={i} style={{ fontSize: 11, color: 'var(--muted)' }}><b>{n.label}:</b> {n.text}</p>
+                      ))
+                    : content.note && content.note.afterTableId === t.matrix.id && (
+                        <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
+                      )}
                 </>
               )
               : (
                 <>
                   <p><b>{caption}</b> {t.spec.title}</p>
                   <ApaTable id={`table-${t.spec.domId ?? t.spec.id}`} spec={t.spec} rows={t.rows} />
-                  {content.note && content.note.afterTableId === t.spec.id && (
-                    <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
-                  )}
+                  {content.notes
+                    ? content.notes.filter((n) => n.afterTableId === t.spec.id).map((n, i) => (
+                        <p key={i} style={{ fontSize: 11, color: 'var(--muted)' }}><b>{n.label}:</b> {n.text}</p>
+                      ))
+                    : content.note && content.note.afterTableId === t.spec.id && (
+                        <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
+                      )}
                 </>
               )}
           </div>
         )
       })}
-      {content.note && !content.tables.some((t) => (t.matrix ? t.matrix.id : t.spec.id) === content.note!.afterTableId) && (
-        <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
-      )}
+      {content.notes
+        ? content.notes.filter((n) => !n.afterTableId).map((n, i) => (
+            <p key={i} style={{ fontSize: 11, color: 'var(--muted)' }}><b>{n.label}:</b> {n.text}</p>
+          ))
+        : content.note && !content.tables.some((t) => (t.matrix ? t.matrix.id : t.spec.id) === content.note!.afterTableId) && (
+            <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
+          )}
       {content.nExcluded > 0 && <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.nExcluded} rows excluded (missing values)</p>}
       {/* sem-canvas tests draw the figure live (the annotated path diagram is the export source —
           captureNode rasters it from this DOM node), so the slot replaces the placeholder <img>. */}

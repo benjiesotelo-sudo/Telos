@@ -106,9 +106,15 @@ export const alternativeOf = (setup: TestSetup): string =>
   ({ 'one-tailed (greater)': 'greater', 'one-tailed (less)': 'less' }[String(setup.options['tails'] ?? 'two-tailed')] ?? 'two.sided')
 
 export interface BuiltTable { spec: TableSpec; rows: Record<string, string | number>[]; matrix?: MatrixTable }
+// U3-T5: labelled notes are THE generic mechanism for splitting a card's one-liner prose into several
+// bold-labelled sentences (label: "Cutoffs", "Caution", ...). CB-SEM is the pilot; A5 (Unit 8) sweeps
+// this across every other card. `afterTableId` places a note inline right after that table, same
+// convention as the single `note` field below (omit to render in the general notes area at the end).
+export interface LabelledNote { label: string; text: string; afterTableId?: string }
 export interface CardContent {
   tables: BuiltTable[]
   note: { kind: 'assume' | 'plain'; text: string; afterTableId?: string } | null // afterTableId: render the note inline after that table (else after all tables)
+  notes?: LabelledNote[] // NEW (U3-T5) — when present, RENDERS INSTEAD OF `note` (opt-in; CB-SEM is the pilot)
   figures: { caption: string; type: string; file?: string; png: Uint8Array }[] // file: zip slug when the card bundle name differs from the type
   howToRead: string
   apa: string

@@ -46,6 +46,29 @@ describe('chassis renders each card shape (design §5)', () => {
     ], note: null, figures: [], howToRead: '', apa: '', nExcluded: 0 }
     expect(render(content)).toContain('<b>Table 1.</b> Measurement model')
   })
+  it('U3-T5: content.notes (labelled) renders INSTEAD OF content.note when present, bold label prefix', () => {
+    const withNotes: CardContent = {
+      ...base,
+      note: { kind: 'plain', text: 'legacy note text — must not render' },
+      notes: [{ label: 'Scope', text: 'Scope sentence.' }, { label: 'Caution', text: 'Caution sentence.' }],
+    }
+    const html = render(withNotes)
+    expect(html).toContain('<b>Scope:</b> Scope sentence.')
+    expect(html).toContain('<b>Caution:</b> Caution sentence.')
+    expect(html).not.toContain('legacy note text')
+  })
+  it('U3-T5: a labelled note with afterTableId renders inline right after that table, not in the general area', () => {
+    const content: CardContent = {
+      tables: [{ spec: { id: 'one', title: 'Only table', columns: [{ key: 'a', label: 'A' }] }, rows: [{ a: '1' }] }],
+      note: null, figures: [], howToRead: 'How.', apa: 'APA.', nExcluded: 0,
+      notes: [{ label: 'Inline', text: 'Right after the table.', afterTableId: 'one' }, { label: 'General', text: 'At the end.' }],
+    }
+    const html = render(content)
+    expect(html).toContain('<b>Inline:</b> Right after the table.')
+    expect(html).toContain('<b>General:</b> At the end.')
+    // the inline note appears before the "How to read" heading, and specifically right after the table
+    expect(html.indexOf('Right after the table.')).toBeLessThan(html.indexOf('How to read this test'))
+  })
   it('ColumnDef.suffix renders after the sub in the table header', () => {
     const withSuffix: CardContent = { ...base, tables: [{
       spec: { id: 'one', title: 'Only table', columns: [{ key: 'a', label: 'M', sub: 'diff', suffix: ' (adj.)' }] },

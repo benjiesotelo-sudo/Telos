@@ -109,7 +109,14 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   // 'structural-paths' + 'indirect-effects', single '95% CI' column, no H/spans/sections/Result) —
   // branch on spec.id, the only discriminator available here since both share the runner's row shape.
   // Result is Supported/Not supported from the PERCENTILE 95% CI excluding zero, α fixed .05 (design §U3-T3).
-  const result = (lo: number, hi: number) => (lo > 0 || hi < 0 ? 'Supported' : 'Not supported')
+  // Fix round (review follow-up a, U3-T5): a nullish/non-finite bound must render a dash, never a
+  // fabricated verdict — Number(null) coerces to 0 (finite!), so converting BEFORE the nullish check let
+  // a missing bound masquerade as "the CI touches zero" and print "Not supported". Check nullish first.
+  const result = (lo: unknown, hi: unknown) => {
+    const loN = lo == null ? NaN : Number(lo)
+    const hiN = hi == null ? NaN : Number(hi)
+    return !Number.isFinite(loN) || !Number.isFinite(hiN) ? '—' : loN > 0 || hiN < 0 ? 'Supported' : 'Not supported'
+  }
   const isMerged = spec.id === 'cb-sem'
   // Fix round (review findings 1+2): a direct-paths-only model never bootstraps (the runner's
   // needsBootstrap gate = hasIndirect || moderation), so ciBcLower/Upper come back null — they must
@@ -139,7 +146,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         b: f(Number(row.b)), beta: f01(Number(row.stdBeta)), p: fp(Number(row.p)),
         percLower: ci(row.ciPercLower), percUpper: ci(row.ciPercUpper),
         bcLower: ci(row.ciBcLower), bcUpper: ci(row.ciBcUpper),
-        result: result(Number(row.ciPercLower), Number(row.ciPercUpper)),
+        result: result(row.ciPercLower, row.ciPercUpper),
       })
     }
     if (r.indirect?.length) {
@@ -149,7 +156,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         b: f(Number(row.est)), beta: fx(row.stdEst == null ? null : Number(row.stdEst), f01), p: fp(Number(row.p)),
         percLower: ci(row.ciPercLower), percUpper: ci(row.ciPercUpper),
         bcLower: ci(row.ciBcLower), bcUpper: ci(row.ciBcUpper),
-        result: result(Number(row.ciPercLower), Number(row.ciPercUpper)),
+        result: result(row.ciPercLower, row.ciPercUpper),
       })
     }
     if (r.moderation?.rows.length) {
@@ -159,7 +166,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         b: f(Number(row.b)), beta: f01(Number(row.stdBeta)), p: fp(Number(row.p)),
         percLower: ci(row.ciPercLower), percUpper: ci(row.ciPercUpper),
         bcLower: ci(row.ciBcLower), bcUpper: ci(row.ciBcUpper),
-        result: result(Number(row.ciPercLower), Number(row.ciPercUpper)),
+        result: result(row.ciPercLower, row.ciPercUpper),
       })
     }
     if (rows.length) {
@@ -192,8 +199,10 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
             'Bias-corrected CIs benefit from ≥7,000 resamples (Andrews & Buchinsky, 2000); consider the 10,000 publication-grade preset for final runs.'
         }
       } else {
+        // Review follow-up (b, U3-T5): make explicit that the Result column is still derived from these
+        // (Wald, not bootstrap) intervals -- the Result rule itself doesn't change under this branch.
         ciNoteText =
-          'CIs are delta-method (Wald) 95% intervals; bootstrap percentile and bias-corrected CIs apply when the model includes indirect or moderation effects.'
+          'CIs are delta-method (Wald) 95% intervals; bootstrap percentile and bias-corrected CIs apply when the model includes indirect or moderation effects. Result is derived from these intervals.'
       }
     }
   } else {
@@ -229,17 +238,46 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     }
   }
 
-  // Note: saturation flag wins; else the spec's tableNote, with the dynamic clauses appended (item-sample
-  // from U3-T1, R²/disclosure/Andrews-Buchinsky from U3-T3 — folded into U3-T5's labelled notes once that
-  // task lands).
-  const noteExtras = [itemSampleNote, r2NoteText, disclosureText, ciNoteText].filter((s): s is string => !!s)
-  const note: CardContent['note'] = saturated
-    ? { kind: 'plain', text: SATURATION_NOTE }
-    : spec.tableNote
-      ? { ...spec.tableNote, text: noteExtras.length ? `${spec.tableNote.text} ${noteExtras.join(' ')}` : spec.tableNote.text }
-      : noteExtras.length
-        ? { kind: 'plain', text: noteExtras.join(' ') }
-        : null
+  // Notes (U3-T5): CB-SEM (isMerged) is the labelled-notes worked example for A5 — the single giant
+  // tableNote is replaced by several bold-labelled one-liners, content-preserving (every clause from
+  // CB_SEM's old tableNote.text maps to exactly one labelled note; nothing dropped, nothing added).
+  // PATH_ANALYSIS (legacy shape) is UNCHANGED: it still consumes spec.tableNote via the single `note`
+  // field (its dynamic extras are always empty in practice, since itemSampleNote/r2NoteText/
+  // disclosureText/ciNoteText are only ever populated inside the isMerged/!isPath branches above).
+  let note: CardContent['note'] = null
+  let notes: CardContent['notes']
+  if (isMerged) {
+    if (saturated) {
+      notes = [{ label: 'Saturation', text: SATURATION_NOTE }]
+    } else {
+      const r2Static = 'R² is filled once per endogenous (outcome) construct.'
+      const modStatic =
+        'Moderation adds an interaction row to Table 5 when a moderation edge is drawn on the canvas; simple slopes are reported in the conditional-effects table.'
+      notes = [
+        { label: 'Scope', text: 'Tables shown follow the pipeline stages you ran (EFA → CFA → fit → structural); if EFA was deselected, the E1/E2 preamble is omitted; if the structural stage was deselected, Table 5 is omitted.' },
+        { label: 'Cutoffs', text: 'Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 — guidelines, not pass/fail gates; RMSEA is unstable at small df / small N, so interpret it cautiously for compact models.' },
+        { label: 'Estimator', text: 'Use WLSMV for ordinal indicators.' },
+        { label: 'R²', text: r2NoteText ? `${r2Static} ${r2NoteText}` : r2Static },
+        { label: 'Caution', text: 'EFA on the same sample is exploratory — treat it as a diagnostic, not confirmatory evidence.' },
+        // Cross-references buildAve.ts's dedicated card, verbatim clause lift from the pre-T5 tableNote.
+        { label: 'Discriminant validity', text: 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.', afterTableId: 'htmt' },
+      ]
+      if (itemSampleNote) notes.push({ label: 'Item sample', text: itemSampleNote, afterTableId: 'cfa-loadings' })
+      notes.push({ label: 'Indirect effects', text: 'The indirect-effects section of Table 5 appears only when the drawn structural paths form a chain (X → M → Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI.', afterTableId: 'structural-paths' })
+      if (ciNoteText) notes.push({ label: 'CIs', text: ciNoteText, afterTableId: 'structural-paths' })
+      notes.push({ label: 'Moderation', text: disclosureText ? `${modStatic} ${disclosureText}` : modStatic })
+    }
+  } else {
+    // PATH_ANALYSIS legacy shape — UNCHANGED from today: single note, spec-driven.
+    const noteExtras = [itemSampleNote, r2NoteText, disclosureText, ciNoteText].filter((s): s is string => !!s)
+    note = saturated
+      ? { kind: 'plain', text: SATURATION_NOTE }
+      : spec.tableNote
+        ? { ...spec.tableNote, text: noteExtras.length ? `${spec.tableNote.text} ${noteExtras.join(' ')}` : spec.tableNote.text }
+        : noteExtras.length
+          ? { kind: 'plain', text: noteExtras.join(' ') }
+          : null
+  }
 
   // Figure: a placeholder slot so the bundle manifest carries figure_path-diagram.png; the REAL annotated-SVG
   // PNG is layered in ResultsScreen.download() via captureNode (design §4.2), NOT produced here.
@@ -251,6 +289,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   return {
     tables,
     note,
+    notes,
     figures,
     howToRead: spec.howToRead,
     apa: spec.apaTemplate,
