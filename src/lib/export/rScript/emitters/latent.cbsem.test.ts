@@ -77,6 +77,89 @@ describe("latentEmitters['cb-sem'] — construct names with spaces", () => {
   })
 })
 
+describe("latentEmitters['cb-sem'] — latent moderation (export ≡ app, U5-T4)", () => {
+  const MOD_SETUP: TestSetup = {
+    roles: {}, options: { estimator: 'ML', nboot: 500, ciType: 'percentile' }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'SN', items: ['sn1', 'sn2', 'sn3', 'sn4'] },
+      { id: 2, name: 'TA', items: ['ta1', 'ta2', 'ta3', 'ta4'] },
+      { id: 3, name: 'TI', items: ['ti1', 'ti2', 'ti3'] },
+    ],
+    paths: [{ from: 1, to: 3 }, { from: 2, to: 3 }],
+    moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }],
+  }
+  const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, MOD_SETUP, { columns: [], rows: [] } as never)
+
+  it('emits the indProd data-prep block + model_str already carrying pint_1/slope_*_1 (buildModel is the same fn runCbSem.ts calls)', () => {
+    expect(r).toContain('indProd(d, var1 = v1, var2 = v2')
+    expect(r).toContain('pint_1')
+    expect(r).toContain('slope_lo_1  :=')
+    expect(r).toContain('slope_mid_1 :=')
+    expect(r).toContain('slope_hi_1  :=')
+    expect(r).toContain('mod_matched <- c(TRUE)') // SN/TA both 4 items -> matched
+  })
+
+  it('forces bootstrap (moderation widens the gate regardless of any indirect chain) and emits DUAL CI (perc + bca.simple)', () => {
+    expect(r).toContain('se = "bootstrap"')
+    expect(r).toContain('boot.ci.type = "perc"')
+    expect(r).toContain('boot.ci.type = "bca.simple"')
+    expect(r).not.toContain('boot.ci.type = "bca"') // never the invalid literal (only "bca.simple" is valid)
+  })
+
+  it('prints a Table 8 Moderation table and a Table 9 Conditional effects (simple slopes) table', () => {
+    expect(r).toContain('--- Table 8: Moderation ---')
+    expect(r).toContain('--- Table 9: Conditional effects (simple slopes) ---')
+  })
+
+  it('the semPaths note is scoped to moderation being present', () => {
+    expect(r).toContain('semPaths draws the interaction construct')
+  })
+
+  it('registers its packages unchanged', () => {
+    expect(latentPackages['cb-sem']).toEqual(
+      expect.arrayContaining(['lavaan', 'semTools', 'psych', 'semPlot']),
+    )
+  })
+})
+
+describe("latentEmitters['cb-sem'] — moderation with unequal indicator counts (match=FALSE disclosure)", () => {
+  const UNEQ_SETUP: TestSetup = {
+    roles: {}, options: { estimator: 'ML', nboot: 500, ciType: 'percentile' }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'SN', items: ['sn1', 'sn2', 'sn3', 'sn4'] },
+      { id: 2, name: 'TA3', items: ['ta1', 'ta2', 'ta3'] },
+      { id: 3, name: 'TI', items: ['ti1', 'ti2', 'ti3'] },
+    ],
+    paths: [{ from: 1, to: 3 }],
+    moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }],
+  }
+  const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, UNEQ_SETUP, { columns: [], rows: [] } as never)
+
+  it('uses match=FALSE and emits the disclosure comment', () => {
+    expect(r).toContain('mod_matched <- c(FALSE)')
+    expect(r).toContain('all possible pairs')
+  })
+})
+
+describe("latentEmitters['cb-sem'] — no moderation (regression guard, U5-T4)", () => {
+  const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, SETUP, { columns: [], rows: [] } as never)
+
+  it('never emits moderation-only text when no moderation is drawn', () => {
+    expect(r).not.toContain('pint_')
+    expect(r).not.toContain('INT_')
+    expect(r).not.toContain('indProd(')
+    expect(r).not.toContain('--- Table 8: Moderation ---')
+    expect(r).not.toContain('semPaths draws the interaction construct')
+  })
+
+  it('still emits dual CI on the (non-moderation, indirect) structural/indirect tables', () => {
+    expect(r).toContain('boot.ci.type = "perc"')
+    expect(r).toContain('boot.ci.type = "bca.simple"')
+  })
+})
+
 describe("latentEmitters['ave'] / ['composite-reliability'] — construct names with spaces", () => {
   const SPACED_CFA: TestSetup = {
     roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent',

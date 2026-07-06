@@ -549,6 +549,15 @@ export async function runCbSem(
         `Moderation runner integrity: expected ${moderationDefs.length * 3} simple-slope row(s) (-1SD/mean/+1SD per moderation), got ${raw.slopeRows.length}.`,
       )
     }
+    // Same guard, extended to the canvas-overlay array (Task 5.3's estModeration): a mismatched count
+    // would otherwise index out-of-bounds silently below (moderationDefs.map -> raw.estModeration![i]).
+    // Only checked when the field is present at all -- older/mocked RawResult fixtures that predate
+    // Task 5.3 legitimately omit it and degrade to `undefined` (see the estModeration derivation below).
+    if (raw.estModeration !== undefined && raw.estModeration.length !== moderationDefs.length) {
+      throw new Error(
+        `Moderation runner integrity: expected ${moderationDefs.length} estModeration canvas-overlay entry(ies), got ${raw.estModeration.length}.`,
+      )
+    }
   }
 
   // CFA reliability (ω/α/AVE/CR) — reuse Slice A; skipped in path mode (no measurement model).

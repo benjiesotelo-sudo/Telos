@@ -282,6 +282,10 @@ describe('runCbSem — TWO moderation edges (fix round: multi-moderation regress
       slopeRow(1, 'lo'), slopeRow(1, 'mid'), slopeRow(1, 'hi'),
       slopeRow(2, 'lo'), slopeRow(2, 'mid'), slopeRow(2, 'hi'),
     ],
+    // Task 5.3's canvas-overlay array: one entry per moderation edge, in mod_ids order (same order as
+    // moderationDefs/moderations[]) -- U5-T4 adds the runner integrity guard for THIS array (mirroring the
+    // moderationRows/slopeRows guards above), so a real 2-edge fixture must carry a matching 2-entry array.
+    estModeration: [{ beta: 0.21 }, { beta: 0.34 }],
   }
 
   it('threads modId + a disambiguating "<pathLabel> × <moderatorName>" label onto every slope row (no crash, no dedup/cap)', async () => {
@@ -301,5 +305,21 @@ describe('runCbSem — TWO moderation edges (fix round: multi-moderation regress
     expect(lo2.label).toBe('SN → TI × INC')
     // The figure still ran (capturePlot called) -- proves the ggplot factor-duplication path is gone.
     expect(capturePlot).toHaveBeenCalledTimes(1)
+    // Canvas moderation-arrow overlay: both edges survive, keyed back to their own moderatorId/pathIndex.
+    expect(result.estimates.moderation).toEqual([
+      { moderatorId: 2, pathIndex: 0, beta: 0.21 },
+      { moderatorId: 4, pathIndex: 0, beta: 0.34 },
+    ])
   })
+
+  it('runner integrity: throws when estModeration is short (mirrors the moderationRows/slopeRows guards)', async () => {
+    const engine = fakeEngineFor({ ...baseRaw, estModeration: [{ beta: 0.21 }] })
+    await expect(runCbSem(engine, data, setup)).rejects.toThrow(/estModeration canvas-overlay entry/)
+  })
+
+  function fakeEngineFor(mainStats: Record<string, unknown>): Engine {
+    const runJson = vi.fn().mockResolvedValueOnce(mainStats).mockResolvedValueOnce(cfaResult)
+    const capturePlot = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]))
+    return { runJson, capturePlot } as unknown as Engine
+  }
 })

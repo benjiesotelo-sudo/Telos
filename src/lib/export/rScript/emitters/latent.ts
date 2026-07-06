@@ -3,6 +3,8 @@ import type { Construct } from '../../../../state/session'
 import { MAKECLUSTER_SHIM } from '../../../webr/parallelShim'
 import { R_SATURATED_PREDICATE } from '../../../stats/semSaturation'
 import { lvNames } from '../../../stats/lvName'
+import { buildModel } from '../../../stats/runCbSem'
+import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE } from '../../../stats/moderationModel'
 
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim — same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
@@ -324,8 +326,12 @@ export const latentEmitters: Record<string, Emitter> = {
     return lines.join('\n')
   },
 
-  // lavaan::sem from constructs (=~) + structural paths (~) + auto := indirect defs.
-  // Single bootstrap fit for mediation (percentile CI, design D7/D10 — no RNG chunking). Diagram = semPlot::semPaths.
+  // lavaan::sem from constructs (=~) + structural paths (~) + auto := indirect defs + latent moderation
+  // (interaction construct + := simple slopes, design §A7/U5-T4). buildModel is the SAME function
+  // runCbSem.ts calls — one source of truth for the full model string, so export ≡ app without
+  // re-deriving any model-assembly logic here.
+  // Single bootstrap fit for mediation/moderation (percentile + bias-corrected CI from the SAME draws,
+  // design D7/D10/§A2/§A7 — no RNG chunking). Diagram = semPlot::semPaths.
   // Fit table suppressed strictly when fitMeasures(fit,"df") == 0 (shared df==0 predicate; design §3.6/§5.1).
   'cb-sem': (spec, setup) => {
     const constructs: { id: number; name: string; items: string[] }[] =
@@ -342,50 +348,77 @@ export const latentEmitters: Record<string, Emitter> = {
     const rNameById = new Map(constructs.map((c, i) => [c.id, rNames[i]]))
     const rNameOf = (id: number) => rNameById.get(id)!
     const nboot = Number(setup.options['nboot'] ?? 5000)
-    const ciType = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'
+    const moderations = setup.moderations ?? []
 
-    // Model lines: measurement (latent only) + structural + auto indirect defs.
-    const lines: string[] = []
-    if (!isPath) for (const c of constructs) lines.push(`${rNameOf(c.id)} =~ ${c.items.join(' + ')}`)
-    const targets = [...new Set(paths.map((p) => p.to))]
-    for (const t of targets) {
-      const rhs = paths.filter((p) => p.to === t)
-        .map((p) => `p_${p.from}_${p.to}*${rNameOf(p.from)}`).join(' + ')
-      lines.push(`${rNameOf(t)} ~ ${rhs}`)
-    }
-    const sources = new Set(paths.map((p) => p.from))
-    let hasIndirect = false
-    for (const ab of paths) {
-      if (!sources.has(ab.to)) continue
-      for (const bc of paths.filter((p) => p.from === ab.to)) {
-        lines.push(`ie_${ab.from}_${ab.to}_${bc.to} := p_${ab.from}_${ab.to}*p_${bc.from}_${bc.to}`)
-        hasIndirect = true
-      }
-    }
-    const modelR = lines.join('\\n')
+    // Model text (measurement + structural + auto indirect defs + moderation, already spliced onto its
+    // target's structural line) + moderationDefs (needed for the indProd data-prep block below). Guards
+    // (self/duplicate/path-mode) live in validateModerations, called by buildModel itself — a bad
+    // moderation setup throws here exactly like it would in the app runner, never reaching a bad script.
+    const { model, hasIndirect, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, moderations)
+    const hasModeration = moderationDefs.length > 0
+    // Moderation ALWAYS bootstraps (design §A7), independent of any indirect-effect chain — same widened
+    // gate as runCbSem.ts's `needsBootstrap` (Task 4.4).
+    const needsBootstrap = hasIndirect || hasModeration
+    const modelR = model.replace(/\n/g, '\\n')
 
     const out: string[] = [
-      '# ---- CB-SEM via lavaan::sem (measurement + structural + indirect) ----',
+      '# ---- CB-SEM via lavaan::sem (measurement + structural + indirect + moderation) ----',
       `model_str <- "${modelR}"`,
+    ]
+
+    // Latent moderation (design §A7): indProd double-mean-centered product-indicator columns, built
+    // BEFORE the fit. model_str above already carries the interaction construct + := simple-slope defs
+    // (assembled by the SAME buildModel() the WebR runner uses); this block only builds the data.
+    if (hasModeration) {
+      const env = moderationIndProdEnv(moderationDefs)
+      out.push(
+        '',
+        '# ---- Latent moderation: indProd double-mean-centering data prep ----',
+        `mod_ids <- c(${env.mod_ids.join(', ')})`,
+        `mod_var1_flat <- c(${env.mod_var1_flat.map((s) => `"${s}"`).join(', ')})`,
+        `mod_var1_lens <- c(${env.mod_var1_lens.join(', ')})`,
+        `mod_var2_flat <- c(${env.mod_var2_flat.map((s) => `"${s}"`).join(', ')})`,
+        `mod_var2_lens <- c(${env.mod_var2_lens.join(', ')})`,
+        `mod_matched <- c(${env.mod_matched.map((b) => (b ? 'TRUE' : 'FALSE')).join(', ')})`,
+        INDPROD_R,
+      )
+      if (moderationDefs.some((d) => !d.matched)) out.push(`# ${MODERATION_DISCLOSURE}`)
+    }
+
+    out.push(
       '',
-      '# Single awaited bootstrap fit for mediation (no RNG chunking — preserves WebR≡native parity).',
+      '# Single awaited bootstrap fit for mediation/moderation (no RNG chunking — preserves WebR≡native parity).',
       'gc()',
       'set.seed(20260620)',
-    ]
-    if (hasIndirect) {
+    )
+    if (needsBootstrap) {
       out.push(
         `fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = ${nboot})`,
-        `pe  <- lavaan::parameterEstimates(fit, boot.ci.type = "${ciType}", level = 0.95)`,
+        '# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws — both recompute CIs off',
+        '# fit@boot without re-running the bootstrap (design §A2; matches runCbSem.ts exactly).',
+        'pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)',
+        'pe_bc   <- lavaan::parameterEstimates(fit, boot.ci.type = "bca.simple", level = 0.95)',
+        'pe <- pe_perc',
       )
     } else {
       out.push(
         'fit <- lavaan::sem(model_str, data = d)',
         'pe  <- lavaan::parameterEstimates(fit, level = 0.95)',
+        '# No bootstrap -> no BC column; keep pe_bc shaped the same as pe but with the CI blanked out',
+        '# (never fabricate a bias-corrected interval that was never bootstrapped).',
+        'pe_bc <- pe; pe_bc$ci.lower <- NA_real_; pe_bc$ci.upper <- NA_real_',
       )
     }
     out.push(
       'gc()',
       'ss <- lavaan::standardizedSolution(fit)',
+      '',
+      '# Row alignment by (lhs, rhs) key WITHIN an op-filtered subset, never by row position -- pe/pe_bc',
+      '# are TWO separate parameterEstimates() calls (perc vs bca.simple); the moderation spike (docs/',
+      '# superpowers/reviews/2026-07-06-moderation-spike.md §5.3) found position drift is not safe to',
+      '# assume across them. Scoped to a single op (e.g. "~") so the key is unique -- keying the FULL',
+      '# table would collide on every unlabeled row (label == "" for most non-structural parameters).',
+      'pair_key <- function(dfr) paste(dfr$lhs, dfr$rhs, sep = "\\u0001")',
       '',
     )
 
@@ -417,9 +450,19 @@ export const latentEmitters: Record<string, Emitter> = {
       '  cat("\\n--- Model is saturated (df = 0): fit indices not reported ---\\n")',
       '}',
       '',
-      '# ---- Table 6: Structural paths (standardized β + 95% CI + R²) ----',
+      '# ---- Table 6: Structural paths (B / SE / z / p / std.β + dual 95% CI: percentile & bias-corrected) ----',
+      'pe_reg <- pe[pe$op == "~", ]; pe_bc_reg <- pe_bc[pe_bc$op == "~", ]; ss_reg <- ss[ss$op == "~", ]',
+      'reg_key <- pair_key(pe_reg)',
+      'rownames(pe_bc_reg) <- pair_key(pe_bc_reg); rownames(ss_reg) <- pair_key(ss_reg)',
+      'struct_tab <- data.frame(',
+      '  lhs = pe_reg$lhs, rhs = pe_reg$rhs, label = pe_reg$label,',
+      '  est = pe_reg$est, se = pe_reg$se, z = pe_reg$z, pvalue = pe_reg$pvalue,',
+      '  std = ss_reg[reg_key, "est.std"],',
+      '  perc.lower = pe_reg$ci.lower, perc.upper = pe_reg$ci.upper,',
+      '  bc.lower = pe_bc_reg[reg_key, "ci.lower"], bc.upper = pe_bc_reg[reg_key, "ci.upper"]',
+      ')',
       'cat("\\n--- Table 6: Structural paths ---\\n")',
-      'print(ss[ss$op == "~", c("lhs","rhs","est.std","se","z","pvalue","ci.lower","ci.upper")])',
+      'print(struct_tab)',
       'cat("\\n--- R-square (endogenous) ---\\n")',
       'print(round(lavInspect(fit, "rsquare"), 3))',
     )
@@ -427,9 +470,47 @@ export const latentEmitters: Record<string, Emitter> = {
     if (hasIndirect) {
       out.push(
         '',
-        '# ---- Table 7: Indirect effects (bootstrap percentile 95% CI) ----',
+        '# ---- Table 7: Indirect effects (bootstrap percentile + bias-corrected 95% CI) ----',
+        '# := defs have no free-parameter label -- their lhs (e.g. "ie_1_2_3") is itself the unique key.',
+        'pe_def <- pe[pe$op == ":=" & grepl("^ie_", pe$lhs), ]',
+        'pe_bc_def <- pe_bc[pe_bc$op == ":=" & grepl("^ie_", pe_bc$lhs), ]',
+        'rownames(pe_bc_def) <- pe_bc_def$lhs',
+        'indirect_tab <- data.frame(',
+        '  lhs = pe_def$lhs, est = pe_def$est, se = pe_def$se, pvalue = pe_def$pvalue,',
+        '  perc.lower = pe_def$ci.lower, perc.upper = pe_def$ci.upper,',
+        '  bc.lower = pe_bc_def[pe_def$lhs, "ci.lower"], bc.upper = pe_bc_def[pe_def$lhs, "ci.upper"]',
+        ')',
         'cat("\\n--- Table 7: Indirect effects ---\\n")',
-        'print(pe[pe$op == ":=", c("lhs","est","se","ci.lower","ci.upper","pvalue")])',
+        'print(indirect_tab)',
+      )
+    }
+
+    if (hasModeration) {
+      out.push(
+        '',
+        '# ---- Table 8: Moderation (interaction-term B / SE / z / p / std.β + dual 95% CI) ----',
+        'pe_mod <- pe[pe$op == "~" & grepl("^INT_", pe$rhs), ]',
+        'pe_bc_mod <- pe_bc[pe_bc$op == "~" & grepl("^INT_", pe_bc$rhs), ]',
+        'ss_mod <- ss[ss$op == "~" & grepl("^INT_", ss$rhs), ]',
+        'mod_key <- pair_key(pe_mod)',
+        'rownames(pe_bc_mod) <- pair_key(pe_bc_mod); rownames(ss_mod) <- pair_key(ss_mod)',
+        'mod_tab <- data.frame(',
+        '  lhs = pe_mod$lhs, rhs = pe_mod$rhs, label = pe_mod$label,',
+        '  est = pe_mod$est, se = pe_mod$se, z = pe_mod$z, pvalue = pe_mod$pvalue,',
+        '  std = ss_mod[mod_key, "est.std"],',
+        '  perc.lower = pe_mod$ci.lower, perc.upper = pe_mod$ci.upper,',
+        '  bc.lower = pe_bc_mod[mod_key, "ci.lower"], bc.upper = pe_bc_mod[mod_key, "ci.upper"]',
+        ')',
+        'cat("\\n--- Table 8: Moderation ---\\n")',
+        'print(mod_tab)',
+        '',
+        '# ---- Table 9: Conditional effects (simple slopes at -1SD/mean/+1SD, percentile 95% CI) ----',
+        '# Percentile CI only (binding contract, matches the app\'s conditional-effects table exactly).',
+        'slope_tab <- pe[pe$op == ":=" & grepl("^slope_", pe$lhs), c("lhs", "est", "se", "pvalue", "ci.lower", "ci.upper")]',
+        'names(slope_tab)[names(slope_tab) == "ci.lower"] <- "perc.lower"',
+        'names(slope_tab)[names(slope_tab) == "ci.upper"] <- "perc.upper"',
+        'cat("\\n--- Table 9: Conditional effects (simple slopes) ---\\n")',
+        'print(slope_tab)',
       )
     }
 
@@ -439,9 +520,18 @@ export const latentEmitters: Record<string, Emitter> = {
       'semPlot::semPaths(fit, what = "std", layout = "tree", edge.label.cex = 0.9,',
       '                  nodeLabels = NULL, residuals = FALSE, intercepts = FALSE)',
       '',
-      '# Note: semPaths draws the interaction construct\'s own path like any other structural path (no',
-      '# distinct "moderation" edge style) -- this is the closest reproducible native-R rendering; the app\'s',
-      '# live canvas draws it as a dashed clay arrow (see figure_path-diagram.png from the app export).',
+    )
+    out.push(
+      ...(hasModeration
+        ? [
+            '# Note: semPaths draws the interaction construct\'s own path like any other structural path (no',
+            '# distinct "moderation" edge style) -- this is the closest reproducible native-R rendering; the app\'s',
+            '# live canvas draws it as a dashed clay arrow (see figure_path-diagram.png from the app export).',
+          ]
+        : [
+            '# Note: this is the closest reproducible native-R rendering of the path diagram; the app\'s live',
+            '# canvas draws the same structural paths (see figure_path-diagram.png from the app export).',
+          ]),
     )
 
     return out.join('\n')
