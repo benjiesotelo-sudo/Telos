@@ -32,6 +32,18 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
   it('Table 3 (measurement model: loadings, reliability & item descriptives) thead matches the spec columns', () => {
     expect(theadAfter('Measurement model (loadings, reliability &amp; item descriptives)')).toEqual(tableCols('cfa-loadings'))
   })
+  it('Table 4/5 (Fornell-Larcker/HTMT) captions and note text match', () => {
+    const flTitle = spec.tables.find((t) => t.id === 'fornell-larcker')!.title
+    const htmtTitle = spec.tables.find((t) => t.id === 'htmt')!.title
+    const flCap = strip(card.match(/<div class="apa-cap"><b>Table 4\.<\/b>(.*?)<\/div>/s)![1])
+    const htmtCap = strip(card.match(/<div class="apa-cap"><b>Table 5\.<\/b>(.*?)<\/div>/s)![1])
+    expect(flCap).toBe(flTitle)
+    expect(htmtCap).toBe(htmtTitle)
+    const crossRef =
+      'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.'
+    expect(spec.tableNote!.text).toContain(crossRef)
+    expect(strip(card)).toContain(crossRef)
+  })
   it('Table 5 (fit indices) thead matches the spec columns', () => {
     expect(theadAfter('Fit indices')).toEqual(tableCols('fit-indices'))
   })

@@ -3,6 +3,7 @@ import { figuresOf } from '../registry/types'
 import type { CbSemResult } from '../stats/runCbSem'
 import { isSaturated } from '../stats/semSaturation'
 import type { CardContent, BuiltTable } from './builders'
+import type { MatrixTable } from './types'
 import { f, f01, fp, fdf, fx } from '../format/apa'
 
 const SATURATION_NOTE =
@@ -59,6 +60,32 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       ? 'the listwise estimation sample (the same N as the model fit)'
       : "each item's own observed cases (N can vary by item under fiml/mi/pairwise; the model fit itself remains listwise)"
     itemSampleNote = `Item Mean/SD are computed on ${itemSampleClause}.`
+  }
+
+  // T4/T5 (U3-T2): Discriminant validity — Fornell-Larcker (italic √AVE diagonal, starred off-diagonal
+  // latent correlations from corLvP) + HTMT; mirrors buildAve.ts's matrix construction, suppressed below
+  // 2 constructs (same rule as the AVE card). corLvP's diagonal is R's NA_real_ -> null (never NaN), but
+  // it is never read here: cellStars only touches the strict lower triangle (j < i).
+  if (!isPath && r.fornellLarcker.length >= 2) {
+    const stars = (p: number) => (p < 0.001 ? '***' : p < 0.01 ? '**' : p < 0.05 ? '*' : '')
+    const flCells = r.fornellLarcker.map((row, i) => row.map((val, j) => (j > i ? null : f01(val))))
+    const cellStars = r.fornellLarcker.map((row, i) =>
+      row.map((_, j) => (j >= i ? null : stars(r.corLvP[i][j]))),
+    )
+    const flMatrix: MatrixTable = {
+      kind: 'matrix', id: 'fornell-larcker', caption: specTable(spec, 'fornell-larcker').title,
+      rowLabels: r.discriminantLabels, colLabels: r.discriminantLabels, cells: flCells,
+      diagonalStyle: 'italic', lowerOnly: true, cellStars,
+      starNote: '*p<.05, **p<.01, ***p<.001',
+    }
+    tables.push({ spec: specTable(spec, 'fornell-larcker'), rows: [], matrix: flMatrix })
+
+    const htmtCells = r.htmt.map((row, i) => row.map((val, j) => (j >= i ? null : f01(val))))
+    const htmtMatrix: MatrixTable = {
+      kind: 'matrix', id: 'htmt', caption: specTable(spec, 'htmt').title,
+      rowLabels: r.discriminantLabels, colLabels: r.discriminantLabels, cells: htmtCells, lowerOnly: true,
+    }
+    tables.push({ spec: specTable(spec, 'htmt'), rows: [], matrix: htmtMatrix })
   }
 
   // T5: Fit indices — suppressed when saturated (df==0). One shared predicate from semSaturation.ts.

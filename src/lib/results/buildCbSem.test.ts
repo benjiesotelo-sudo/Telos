@@ -17,6 +17,8 @@ const SPEC = {
       { key: 'b', label: 'B' }, { key: 'se', label: 'SE' },
       { key: 'z', label: 'z' }, { key: 'p', label: 'p' }, { key: 'std', label: 'Std. loading' },
       { key: 'omega', label: 'ω' }, { key: 'alpha', label: 'α' }, { key: 'cr', label: 'CR' }, { key: 'ave', label: 'AVE' } ] },
+    { id: 'fornell-larcker', title: 'Discriminant validity (Fornell–Larcker)', columns: [] },
+    { id: 'htmt', title: 'Discriminant validity (HTMT)', columns: [] },
     { id: 'fit-indices', title: 'Fit indices', columns: [] },
     { id: 'structural-paths', title: 'Structural paths', columns: [
       { key: 'path', label: 'Path' }, { key: 'b', label: 'B' }, { key: 'se', label: 'SE' },
@@ -50,10 +52,26 @@ const base: CbSemResult = {
   indirect: [
     { label: 'ie_1_2_3', pathLabel: 'ind60 → dem60 → dem65', est: 1.274, stdEst: 0.41, se: 0.359, ciLower: 0.55, ciUpper: 2.004, p: 0 },
   ],
-  fornellLarcker: [],
-  htmt: [],
-  corLvP: [],
-  discriminantLabels: [],
+  // 3-construct discriminant-validity matrices, reusing the HolzingerSwineford reference values from
+  // cfaReliability.test.ts (native R 4.6.0): Fornell-Larcker diagonal = sqrt(AVE), off-diagonal = latent
+  // correlations; HTMT off-diagonals; corLvP all < .0001 (diagonal null, not NaN — R's NA_real_ round-trip,
+  // never read by the builder since stars are only computed strictly below the diagonal).
+  fornellLarcker: [
+    [0.6087, 0.4585, 0.4705],
+    [0.4585, 0.8491, 0.2830],
+    [0.4705, 0.2830, 0.6515],
+  ],
+  htmt: [
+    [1, 0.3841, 0.3868],
+    [0.3841, 1, 0.2797],
+    [0.3868, 0.2797, 1],
+  ],
+  corLvP: [
+    [null, 0.00001, 0.00001],
+    [0.00001, null, 0.00001],
+    [0.00001, 0.00001, null],
+  ] as unknown as number[][],
+  discriminantLabels: ['visual', 'textual', 'speed'],
   estimates: { paths: [{ from: 1, to: 2, beta: 0.448 }], loadings: { x1: 0.92, x2: 0.973 }, r2: { 2: 0.201, 3: 0.974 } },
   itemStats: [
     { construct: 'ind60', item: 'x1', mean: 5.05, sd: 1.14, n: 75 },
@@ -65,7 +83,9 @@ describe('buildCbSem', () => {
   it('emits CFA, reliability, fit, structural, indirect tables (full mode)', () => {
     const c = buildCbSem(SPEC, base)
     const ids = c.tables.map((t) => t.spec.id)
-    expect(ids).toEqual(['cfa-loadings', 'fit-indices', 'structural-paths', 'indirect-effects'])
+    expect(ids).toEqual([
+      'cfa-loadings', 'fornell-larcker', 'htmt', 'fit-indices', 'structural-paths', 'indirect-effects',
+    ])
 
     const t1 = c.tables.find((t) => t.spec.id === 'cfa-loadings')!
     expect(t1.rows[0]).toMatchObject({ __group: 'ind60', omega: '.95', alpha: '.94' }) // group row
@@ -86,6 +106,20 @@ describe('buildCbSem', () => {
     expect(String(ind.rows[0].ci)).toBe('[0.55, 2.00]')
     // construct-name chain in the indirect Path cell (render-faithfully extension)
     expect(ind.rows[0].path).toBe('ind60 → dem60 → dem65')
+
+    // Fornell-Larcker: italic √AVE diagonal, starred off-diagonal latent correlations (U3-T2)
+    const fl = c.tables.find((t) => t.spec.id === 'fornell-larcker')!
+    expect(fl.matrix!.diagonalStyle).toBe('italic')
+    expect(fl.matrix!.cells[0][0]).toBe('.61') // √AVE diagonal
+    expect(fl.matrix!.cells[1][0]).toBe('.46') // off-diagonal correlation
+    expect(fl.matrix!.cellStars![1][0]).toBe('***')
+    expect(fl.matrix!.cellStars![0][0]).toBeNull() // no star on the diagonal
+    expect(fl.matrix!.starNote).toBe('*p<.05, **p<.01, ***p<.001')
+
+    // HTMT: lower-triangle only, no stars/diagonal styling
+    const htmt = c.tables.find((t) => t.spec.id === 'htmt')!
+    expect(htmt.matrix!.cells[1][0]).toBe('.38') // visual-textual
+    expect(htmt.matrix!.cells[0][0]).toBeNull() // diagonal suppressed
   })
 
   it('falls back to numeric ids / lavaan label when name fields are absent', () => {
@@ -114,6 +148,20 @@ describe('buildCbSem', () => {
     const ids = c.tables.map((t) => t.spec.id)
     expect(ids).not.toContain('cfa-loadings')
     expect(ids).toContain('structural-paths')
+  })
+
+  it('suppresses the Fornell-Larcker/HTMT tables when < 2 constructs (mirrors buildAve.ts)', () => {
+    const oneConstruct: CbSemResult = {
+      ...base,
+      fornellLarcker: [[0.6087]],
+      htmt: [[1]],
+      corLvP: [[null]] as unknown as number[][],
+      discriminantLabels: ['visual'],
+    }
+    const c = buildCbSem(SPEC, oneConstruct)
+    const ids = c.tables.map((t) => t.spec.id)
+    expect(ids).not.toContain('fornell-larcker')
+    expect(ids).not.toContain('htmt')
   })
 })
 

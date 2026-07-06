@@ -62,6 +62,18 @@ export const CB_SEM: TestSpec = {
       ],
     },
     {
+      id: 'fornell-larcker',
+      domId: 'cb-sem-fornell-larcker',
+      title: 'Discriminant validity (Fornell–Larcker)',
+      columns: [],
+    },
+    {
+      id: 'htmt',
+      domId: 'cb-sem-htmt',
+      title: 'Discriminant validity (HTMT)',
+      columns: [],
+    },
+    {
       id: 'fit-indices',
       title: 'Fit indices',
       columns: [
@@ -103,7 +115,7 @@ export const CB_SEM: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'Tables shown follow the pipeline stages you ran (EFA → CFA → fit → structural); if EFA was deselected, Tables 1–2 are omitted; if the structural stage was deselected, Tables 6–7 are omitted. Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 — guidelines, not pass/fail gates; RMSEA is unstable at small df / small N, so interpret it cautiously for compact models. Use WLSMV for ordinal indicators. R² is filled once per endogenous (outcome) construct. When the model is saturated (df = 0, e.g. a just-identified path model), the fit-indices table is suppressed and a saturation flag is shown. EFA on the same sample is exploratory — treat it as a diagnostic, not confirmatory evidence. The indirect-effects table appears only when the drawn structural paths form a chain (X → M → Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI. Moderation is planned for a later version.',
+    text: 'Tables shown follow the pipeline stages you ran (EFA → CFA → fit → structural); if EFA was deselected, Tables 1–2 are omitted; if the structural stage was deselected, Tables 6–7 are omitted. Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 — guidelines, not pass/fail gates; RMSEA is unstable at small df / small N, so interpret it cautiously for compact models. Use WLSMV for ordinal indicators. R² is filled once per endogenous (outcome) construct. When the model is saturated (df = 0, e.g. a just-identified path model), the fit-indices table is suppressed and a saturation flag is shown. EFA on the same sample is exploratory — treat it as a diagnostic, not confirmatory evidence. The indirect-effects table appears only when the drawn structural paths form a chain (X → M → Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI. Moderation is planned for a later version. Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.',
     afterTableId: 'indirect-effects',
   },
   figures: [
