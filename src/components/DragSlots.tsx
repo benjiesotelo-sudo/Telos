@@ -7,6 +7,11 @@ import { slotCompatibility } from '../lib/eligibility/eligibility'
 import { buildShelves, roleAcceptsLevel, type Shelf } from '../lib/eligibility/poolShelves'
 import { POOL_TEACH } from '../content/copy'
 
+// R2: hover-only cues follow the INPUT, not the width - a touch-only device (iPad) never fires
+// mouseenter/mouseleave, so a slot's hover echo would arm on the first tap and never clear (stuck
+// highlight between taps). Computed once at module load; SSR/node has no window → false, no handlers.
+const CAN_HOVER = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches
+
 function Chip({ name, disabled, reason, assigned, badges, armed, onTap }: {
   name: string; disabled: boolean; reason: string | null; assigned: boolean; badges: string[]
   armed: boolean; onTap: () => void
@@ -31,7 +36,8 @@ function Slot({ spec, role, assigned, onRemove, onHoverChange, onTap }: {
   const display = spec.roles.find((r) => r.id === role.roleId)!
   return (
     <div ref={setNodeRef} className={`slot${isOver ? ' over' : ''}`} data-role={role.roleId}
-      onMouseEnter={() => onHoverChange(role.roleId)} onMouseLeave={() => onHoverChange(null)}
+      onMouseEnter={CAN_HOVER ? () => onHoverChange(role.roleId) : undefined}
+      onMouseLeave={CAN_HOVER ? () => onHoverChange(null) : undefined}
       onFocus={() => onHoverChange(role.roleId)} onBlur={() => onHoverChange(null)}
       onClick={() => onTap(role.roleId)}>
       {display.label} <span className="hint">{display.levels} · {display.arity}</span>

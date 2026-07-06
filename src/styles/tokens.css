@@ -15,6 +15,9 @@
   --disabled:#57554e; --error-bg:#3a2620; --error-line:#7a3a24; --error-tx:#f0b9a0; } }
 *{box-sizing:border-box;} html{scroll-padding-top:76px;}
 body{margin:0;font-family:var(--font-ui);background:var(--bg);color:var(--text);line-height:1.55;}
+/* R1: the results-screen figure sets a fixed `width` attribute (its native raster size) - without this
+   it stays that wide below the breakpoint and forces the whole page to side-scroll. */
+img{max-width:100%;height:auto;}
 a{color:var(--accent-deep);}
 a:visited{color:var(--accent-deep);}
 .theme-select{position:fixed;top:10px;right:12px;z-index:30;font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-family:var(--font-ui);}

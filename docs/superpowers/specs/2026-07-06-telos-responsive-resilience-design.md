@@ -24,6 +24,7 @@ Not device buckets: one fluid design that adapts continuously, with touch behavi
 ## Out of scope
 
 Stats, engine, exports, print; any layout REDESIGN beyond what the R1 audit shows as broken; results-screen baselines (above); CI runners (baselines are generated and compared on the owner's machine - single-dev project, recorded caveat).
+Baselines pin the reduced-motion resting frame: an animation whose `fill-mode` leaves the wrong end state under `prefers-reduced-motion: reduce` would only show up as a bug on the animated path, which is outside baseline coverage (recorded limitation, not fixed by this slice).
 
 ## Testing
 

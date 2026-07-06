@@ -24,14 +24,16 @@ test('touch journey: upload → configure → pick → tap-to-assign → run gat
   // compact rail: one line, no visible sub-dots under 560px (they're display:none, not absent from the
   // DOM - toHaveCount(0) on .subdot would fail since Playwright counts hidden nodes too), fraction visible
   const { width } = page.viewportSize()!
-  if (width < 560) {
+  if (width <= 560) {
     await expect(page.locator('.subdot').first()).not.toBeVisible()
   } else {
     // subdots ARE visible at wider widths (like 834px tablet)
     await expect(page.locator('.subdot').first()).toBeVisible()
   }
-  if (width < 560) {
+  if (width <= 560) {
     await expect(page.locator('.thread-frac')).toBeVisible()
   }
-  await page.screenshot({ path: 'test-results/mobile-config.png' })
+  // Minor: mobile + tablet projects both run this file - a shared filename would let one project's
+  // screenshot clobber the other's when run together.
+  await page.screenshot({ path: `test-results/${test.info().project.name}-config.png` })
 })

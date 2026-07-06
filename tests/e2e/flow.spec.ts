@@ -60,6 +60,15 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await expect(page.getByText('How to read this test')).toBeVisible()
   await expect(page.getByRole('img', { name: /boxplot/i })).toBeVisible()
 
+  // R1: the results screen joins the overflow audit - resize needs no re-run
+  for (const w of [320, 390, 560, 680, 834, 1024, 1280]) {
+    await page.setViewportSize({ width: w, height: 900 })
+    await page.waitForTimeout(120)
+    const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(over, `results overflows by ${over}px at ${w}px`).toBeLessThanOrEqual(0)
+  }
+  await page.setViewportSize({ width: 1280, height: 720 }) // restore for the rest of the journey
+
   // Back-edit via the stepper: toggle equal variance → re-run → pooled
   await page.getByRole('button', { name: /t-test/ }).click() // stepper step (accessible name includes the dot glyph)
   await page.getByLabel(/equal variance/).check()

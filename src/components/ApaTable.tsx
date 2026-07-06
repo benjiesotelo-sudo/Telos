@@ -18,38 +18,44 @@ export function ApaTable(props: ClassicProps | MatrixProps) {
   if (props.matrix) {
     const { id, colLabels, rowLabels, cells, diagonal, lowerOnly } = props.matrix
     return (
-      <table id={`table-${props.domId ?? id}`} className="apa matrix">
-        <thead><tr>
-          <th />
-          {colLabels.map((label, j) => <th key={j}>{label}</th>)}
-        </tr></thead>
-        <tbody>{rowLabels.map((rowLabel, i) => (
-          <tr key={i}>
-            <th>{rowLabel}</th>
-            {colLabels.map((_, j) => {
-              const isUpper = lowerOnly && j > i
-              if (isUpper || cells[i][j] == null) return <td key={j}></td>
-              const val = cells[i][j]
-              const content = (diagonal === 'bold' && j === i) ? <strong>{val}</strong> : val
-              return <td key={j}>{content}</td>
-            })}
-          </tr>
-        ))}</tbody>
-      </table>
+      // R1: overflow-x wrapper only - the id stays on the <table> so #table-* locators (e2e) and
+      // captureNode(`table-${domId ?? id}`) (PNG export) still find the same element.
+      <div style={{ overflowX: 'auto' }}>
+        <table id={`table-${props.domId ?? id}`} className="apa matrix">
+          <thead><tr>
+            <th />
+            {colLabels.map((label, j) => <th key={j}>{label}</th>)}
+          </tr></thead>
+          <tbody>{rowLabels.map((rowLabel, i) => (
+            <tr key={i}>
+              <th>{rowLabel}</th>
+              {colLabels.map((_, j) => {
+                const isUpper = lowerOnly && j > i
+                if (isUpper || cells[i][j] == null) return <td key={j}></td>
+                const val = cells[i][j]
+                const content = (diagonal === 'bold' && j === i) ? <strong>{val}</strong> : val
+                return <td key={j}>{content}</td>
+              })}
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
     )
   }
   const { id, spec, rows } = props
   const n = spec.columns.length
   const firstKey = spec.columns[0]?.key
   return (
-    <table id={id} className={spec.kind === 'coef' ? 'apa coef' : 'apa'}>
-      <thead><tr>{spec.columns.map((c) => <th key={c.key}>{c.label}{c.sub && <sub>{c.sub}</sub>}{c.suffix}</th>)}</tr></thead>
-      <tbody>{rows.map((r, i) => {
-        const kind = r['_kind'] as string | undefined
-        if (kind === 'rule') return <tr key={i} className="gofrule"><td colSpan={n} /></tr>
-        if (kind === 'span') return <tr key={i} className="row-span"><td colSpan={n}>{r[firstKey]}</td></tr>
-        return <tr key={i} className={kind ? `row-${kind}` : undefined}>{spec.columns.map((c) => <td key={c.key}>{r[c.key]}</td>)}</tr>
-      })}</tbody>
-    </table>
+    <div style={{ overflowX: 'auto' }}>
+      <table id={id} className={spec.kind === 'coef' ? 'apa coef' : 'apa'}>
+        <thead><tr>{spec.columns.map((c) => <th key={c.key}>{c.label}{c.sub && <sub>{c.sub}</sub>}{c.suffix}</th>)}</tr></thead>
+        <tbody>{rows.map((r, i) => {
+          const kind = r['_kind'] as string | undefined
+          if (kind === 'rule') return <tr key={i} className="gofrule"><td colSpan={n} /></tr>
+          if (kind === 'span') return <tr key={i} className="row-span"><td colSpan={n}>{r[firstKey]}</td></tr>
+          return <tr key={i} className={kind ? `row-${kind}` : undefined}>{spec.columns.map((c) => <td key={c.key}>{r[c.key]}</td>)}</tr>
+        })}</tbody>
+      </table>
+    </div>
   )
 }

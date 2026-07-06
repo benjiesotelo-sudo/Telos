@@ -10,13 +10,16 @@ const VIEWPORTS = [
 const THEMES = ['light', 'dark'] as const
 
 async function setTheme(page: Page, theme: string) {
-  await page.locator('.theme-select').selectOption(theme === 'light' ? 'light' : 'dark')
+  await page.locator('.theme-select').selectOption(theme)
   await page.waitForTimeout(150)
 }
 
 for (const vp of VIEWPORTS) for (const theme of THEMES) {
   test(`baselines: ${vp.name} ${theme}`, async ({ page }) => {
     await page.setViewportSize({ width: vp.width, height: vp.height })
+    // Belt-and-braces, deliberate: playwright.config.ts sets reducedMotion at the context level for
+    // this project, and this per-page emulateMedia call reasserts it - either alone should suffice,
+    // but keeping both guards against either layer silently regressing.
     await page.emulateMedia({ reducedMotion: 'reduce' })
     const snap = (label: string) =>
       expect(page).toHaveScreenshot(`${label}-${vp.name}-${theme}.png`, { fullPage: true })
