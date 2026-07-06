@@ -20,8 +20,9 @@ const estimates: CbSemResult['estimates'] = {
 const base: SemCanvasUIProps = {
   testId: 'cb-sem-estimates-test',
   constructs, columns: [], paths, modelKind: 'latent', mode: 'draw',
-  estimates: null, running: false,
+  estimates: null, running: false, moderations: [],
   onAddPath: () => {}, onRemovePath: () => {}, onMoveNode: () => {}, onSetMode: () => {},
+  onAddModeration: () => {}, onRemoveModeration: () => {},
 }
 
 describe('SemCanvasUI — post-run estimates overlay', () => {

@@ -28,8 +28,9 @@ describe('SemCanvas — numeric id typing (regression: no string/number === mism
       <SemCanvasUI
         testId="t"
         constructs={[C(7, 'Lat', ['q1', 'q2'])]} columns={[]} paths={[]}
-        modelKind="latent" mode="draw" estimates={null} running={false}
+        modelKind="latent" mode="draw" estimates={null} running={false} moderations={[]}
         onAddPath={() => {}} onRemovePath={() => {}} onMoveNode={() => {}} onSetMode={() => {}}
+        onAddModeration={() => {}} onRemoveModeration={() => {}}
       />,
     )
     expect(html).toContain('data-node-id="7"')

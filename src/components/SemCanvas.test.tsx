@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SemCanvasUI, pathNodeCenter, latentBounds, NODE_W, NODE_H, ITEM_W, ITEM_H } from './SemCanvas'
-import type { Construct, StructuralPath } from '../state/session'
+import type { Construct, StructuralPath, Moderation } from '../state/session'
 
 const noop = () => {}
 
@@ -27,10 +27,13 @@ function renderLatent(over: Partial<React.ComponentProps<typeof SemCanvasUI>> = 
       mode="draw"
       estimates={null}
       running={false}
+      moderations={[]}
       onAddPath={noop}
       onRemovePath={noop}
       onMoveNode={noop}
       onSetMode={noop}
+      onAddModeration={noop}
+      onRemoveModeration={noop}
       {...over}
     />
   )
@@ -326,5 +329,52 @@ describe('SemCanvasUI — estimates overlay (post-run)', () => {
     const html = renderLatent({ estimates: null })
     expect(html).not.toContain('class="sem-path-label"')
     expect(html).not.toContain('class="sem-r2-label"')
+  })
+})
+
+// ── moderation edges (dashed clay arrows) ──────────────────────────────────
+const moderations: Moderation[] = [{ id: 1, moderatorId: 2, pathIndex: 0 }]
+
+describe('SemCanvasUI — moderation edges (dashed clay arrows)', () => {
+  it('renders one dashed moderation arrow per moderations entry, in the accent color', () => {
+    const html = renderLatent({ moderations })
+    expect((html.match(/class="sem-mod-arrow"/g) ?? []).length).toBe(1)
+    expect(html).toContain('var(--accent)')
+    expect(html).toContain('stroke-dasharray="6 4"')
+  })
+
+  it('draws no moderation arrows when moderations is empty', () => {
+    const html = renderLatent({ moderations: [] })
+    expect(html).not.toContain('sem-mod-arrow')
+  })
+
+  it('moderation arrows reference their own arrowhead marker (distinct from the structural sem-arrow)', () => {
+    const html = renderLatent({ moderations })
+    expect(html).toContain('id="sem-arrow-mod"')
+    expect(html).toContain('marker-end="url(#sem-arrow-mod)"')
+  })
+
+  it('annotates a moderation arrow with its interaction beta when estimates.moderation is present (post-run)', () => {
+    const html = renderLatent({
+      moderations,
+      estimates: { ...estimates, moderation: [{ moderatorId: 2, pathIndex: 0, beta: 0.23 }] },
+    })
+    expect(html).toContain('.23')
+    expect((html.match(/class="sem-mod-label"/g) ?? []).length).toBe(1)
+  })
+
+  it('idle Draw mode (no pending moderator) renders no path-midpoint targets — unchanged idle look', () => {
+    const html = renderLatent({ mode: 'draw' })
+    expect(html).not.toContain('class="sem-mod-target"')
+  })
+
+  it('delete mode renders a clickable midpoint handle on each moderation arrow', () => {
+    const html = renderLatent({ moderations, mode: 'delete' })
+    expect((html.match(/class="sem-mod-delete-target"/g) ?? []).length).toBe(1)
+  })
+
+  it('draw mode renders no moderation-delete handles (delete-only affordance)', () => {
+    const html = renderLatent({ moderations, mode: 'draw' })
+    expect(html).not.toContain('sem-mod-delete-target')
   })
 })

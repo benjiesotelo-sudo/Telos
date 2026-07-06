@@ -47,6 +47,10 @@ export interface CbSemResult {
     paths: Array<{ from: number; to: number; beta: number }>
     loadings: Record<string, number>
     r2: Record<number, number>
+    /** Canvas moderation-arrow overlay only (distinct from the top-level `moderation` reporting
+     *  field above): one interaction beta per drawn moderation edge, keyed by moderatorId +
+     *  pathIndex so SemCanvas can annotate the dashed arrow post-run. Populated by Task 5.3. */
+    moderation?: Array<{ moderatorId: number; pathIndex: number; beta: number }>
   }
   itemStats: ItemStat[]
   /** The missing-data setting the run actually used (drives Table 1's item Mean/SD sample-size note,

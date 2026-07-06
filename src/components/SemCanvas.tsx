@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useSession } from '../state/session'
-import type { Construct, StructuralPath } from '../state/session'
+import type { Construct, StructuralPath, Moderation } from '../state/session'
 import type { CbSemResult } from '../lib/stats/cbSem'
 
 const BLUE = 'var(--info)'
@@ -86,10 +86,13 @@ export interface SemCanvasUIProps {
   estimates?: CbSemResult['estimates'] | null
   running: boolean
   viewBox?: ViewBox
+  moderations: Moderation[]
   onAddPath(from: number, to: number): void
   onRemovePath(index: number): void
   onMoveNode(id: number, x: number, y: number): void
   onSetMode(m: 'draw' | 'move' | 'delete'): void
+  onAddModeration(moderatorId: number, pathIndex: number): void
+  onRemoveModeration(id: number): void
 }
 
 /** A canvas node: latent constructs are id-addressed; path-mode columns use their array index as id. */
@@ -158,8 +161,9 @@ export function pathNodeCenter(idx: number, count: number, W: number, H: number)
 /** Pure presentational canvas — testable with renderToStaticMarkup. */
 export function SemCanvasUI({
   testId, constructs, columns, paths, modelKind, mode, estimates, running,
-  viewBox: vbProp,
+  viewBox: vbProp, moderations,
   onAddPath, onRemovePath, onMoveNode: _onMoveNode, onSetMode,
+  onAddModeration, onRemoveModeration,
 }: SemCanvasUIProps) {
   // pending draw source (click source → target); cancel when same node re-clicked
   const [pending, setPending] = useState<number | null>(null)
@@ -188,6 +192,14 @@ export function SemCanvasUI({
     if (pending === id) { setPending(null); return }   // cancel on same node
     const dup = paths.some((p) => p.from === pending && p.to === id)
     if (!dup) onAddPath(pending, id)                   // dedupe: never add an existing directed edge
+    setPending(null)
+  }
+
+  // Completes the OTHER half of the same draw-mode gesture: a pending moderator-candidate node,
+  // clicked into an existing path's midpoint handle, records a moderation edge instead of a path.
+  function clickPathMidpoint(pathIndex: number) {
+    if (running || mode !== 'draw' || pending === null) return
+    onAddModeration(pending, pathIndex)
     setPending(null)
   }
 
@@ -227,6 +239,9 @@ export function SemCanvasUI({
           <marker id="sem-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill={BLUE} />
           </marker>
+          <marker id="sem-arrow-mod" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+          </marker>
         </defs>
 
         {/* Structural path arrows + (post-run) β label at the midpoint. */}
@@ -256,13 +271,61 @@ export function SemCanvasUI({
                   {`β = ${fmtCoef(beta)}`}
                 </text>
               )}
+              {(mode === 'delete' || (mode === 'draw' && pending !== null)) && (
+                <circle
+                  className={mode === 'delete' ? undefined : 'sem-mod-target'}
+                  data-path-index={i}
+                  cx={mx} cy={my} r={mode === 'delete' ? 9 : 7}
+                  fill="var(--card)"
+                  stroke={mode === 'delete' ? BLUE : 'var(--accent)'}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => (mode === 'delete' ? (!running && onRemovePath(i)) : clickPathMidpoint(i))}
+                />
+              )}
+            </g>
+          )
+        })}
+
+        {/* Moderation edges: dashed clay arrow from the moderator's oval to the moderated path's
+         *  midpoint, with a delete-mode handle of its own and a post-run interaction-β label. */}
+        {moderations.map((m) => {
+          const modC = centers.get(m.moderatorId)
+          const p = paths[m.pathIndex]
+          const a = p ? centers.get(p.from) : undefined
+          const b = p ? centers.get(p.to) : undefined
+          if (!modC || !a || !b) return null
+          const mx = (a.cx + b.cx) / 2
+          const my = (a.cy + b.cy) / 2
+          const beta = estimates?.moderation?.find(
+            (e) => e.moderatorId === m.moderatorId && e.pathIndex === m.pathIndex,
+          )?.beta
+          const hx = (modC.cx + mx) / 2
+          const hy = (modC.cy + my) / 2
+          return (
+            <g key={`mod-${m.id}`}>
+              <line
+                className="sem-mod-arrow"
+                x1={modC.cx} y1={modC.cy} x2={mx} y2={my}
+                stroke="var(--accent)" strokeWidth={2} strokeDasharray="6 4"
+                markerEnd="url(#sem-arrow-mod)"
+              />
               {mode === 'delete' && (
                 <circle
-                  data-path-index={i}
-                  cx={mx} cy={my} r={9}
-                  fill="var(--card)" stroke={BLUE} style={{ cursor: 'pointer' }}
-                  onClick={() => !running && onRemovePath(i)}
+                  className="sem-mod-delete-target"
+                  cx={hx} cy={hy} r={9}
+                  fill="var(--card)" stroke="var(--accent)" style={{ cursor: 'pointer' }}
+                  onClick={() => !running && onRemoveModeration(m.id)}
                 />
+              )}
+              {beta != null && (
+                <text
+                  className="sem-mod-label"
+                  x={hx} y={hy - 6}
+                  textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--accent)"
+                  style={{ paintOrder: 'stroke', stroke: 'var(--fill)', strokeWidth: 3 }}
+                >
+                  {`β = ${fmtCoef(beta)}`}
+                </text>
               )}
             </g>
           )
@@ -481,10 +544,13 @@ export function SemCanvas({ testId }: { testId: string }) {
           estimates={(s.runs[testId]?.result as { estimates?: CbSemResult['estimates'] } | undefined)?.estimates ?? null}
           running={running}
           viewBox={vb}
+          moderations={setup.moderations ?? []}
           onAddPath={(from, to) => s.addPath(testId, from, to)}
           onRemovePath={(i) => s.removePath(testId, i)}
           onMoveNode={(id, x, y) => s.moveNode(testId, id, x, y)}
           onSetMode={setMode}
+          onAddModeration={(moderatorId, pathIndex) => s.addModeration(testId, moderatorId, pathIndex)}
+          onRemoveModeration={(id) => s.removeModeration(testId, id)}
         />
         <div
           aria-label="Resize canvas"

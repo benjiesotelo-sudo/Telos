@@ -17,10 +17,13 @@ const baseProps: SemCanvasUIProps = {
   mode: 'draw',
   estimates: null,
   running: false,
+  moderations: [],
   onAddPath: noop,
   onRemovePath: noop,
   onMoveNode: noop,
   onSetMode: noop,
+  onAddModeration: noop,
+  onRemoveModeration: noop,
 }
 
 function render(over: Partial<typeof baseProps>) {

@@ -61,6 +61,14 @@ describe('SemCanvas store wiring', () => {
     useSession.getState().setConstructMode(TEST_ID, 1, 'formative')
     expect(useSession.getState().setups[TEST_ID].constructs!.find((x) => x.id === 1)!.mode).toBe('formative')
   })
+
+  it('addModeration/removeModeration round-trip through the store (same pattern as addPath/removePath)', () => {
+    useSession.getState().addPath(TEST_ID, 1, 2)
+    useSession.getState().addModeration(TEST_ID, 2, 0)
+    expect(useSession.getState().setups[TEST_ID].moderations).toEqual([{ id: 1, moderatorId: 2, pathIndex: 0 }])
+    useSession.getState().removeModeration(TEST_ID, 1)
+    expect(useSession.getState().setups[TEST_ID].moderations).toEqual([])
+  })
 })
 
 describe('screenToViewBox — drag coordinate mapping', () => {
