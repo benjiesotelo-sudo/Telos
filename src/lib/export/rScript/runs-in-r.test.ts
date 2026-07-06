@@ -242,6 +242,29 @@ const REPS: Rep[] = [
   },
 ]
 
+// Second moderation config, deliberately NOT added to REPS above: the REP there always draws TA->TI as
+// its own structural path, so `alreadyPredicts` (moderationModel.ts's buildModerationLines) is TRUE and
+// pmod_1 (the auto-injected moderator main-effect covariate) is NEVER generated for it — its own Table 6
+// "no pmod_1 leakage" assertion is vacuous, since there is no pmod_1 anywhere to leak. This config mirrors
+// the app's e2e journey where a construct is picked purely as a MODERATOR and never wired as its own drawn
+// path (paths: only SN->TI; TA is moderator-only) — that's what makes alreadyPredicts FALSE and actually
+// exercises the auto-injection branch. Kept out of the generic exit-0 loop (and its own REPS entry) so its
+// assertions below can share a single Rscript run rather than paying for a second execSync.
+const MODERATION_MODERATOR_ONLY_REP: Rep = {
+  id: 'cb-sem', fixture: 'sem-moderation.csv',
+  setup: {
+    roles: {}, options: { estimator: 'ML', nboot: 500, ciType: 'percentile' }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'SN', items: ['sn1', 'sn2', 'sn3', 'sn4'] },
+      { id: 2, name: 'TA', items: ['ta1', 'ta2', 'ta3', 'ta4'] },
+      { id: 3, name: 'TI', items: ['ti1', 'ti2', 'ti3'] },
+    ],
+    paths: [{ from: 1, to: 3 }], // ONLY SN->TI drawn — TA is moderator-only, never its own path
+    moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }],
+  },
+}
+
 describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
   for (const rep of REPS) {
     const label = rep.expect?.length
@@ -273,7 +296,7 @@ describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
   // string-containment loop doesn't carry decimal precision or row-count, so these get their own `it`s
   // (mirrors this repo's existing convention for reps that need more than substring presence).
   it(
-    'cb-sem moderation — interaction path B matches the spike reference to 4 decimals in native R stdout',
+    'cb-sem moderation — interaction path B matches the spike reference to 6 decimals in native R stdout',
     () => {
       const ds = parseCsv(readFileSync(join(FIXTURES, 'sem-moderation.csv'), 'utf8'))
       const rep = REPS.find((r) => r.fixture === 'sem-moderation.csv')!
@@ -289,17 +312,26 @@ describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
       // conflate them, as an earlier draft of this test did)
       const m = out.match(/pint_1[^\n]*?(-?\d+\.\d+)/)
       expect(m).not.toBeNull()
-      expect(Number(m![1])).toBeCloseTo(0.2582, 3)   // U2-T6's own reference value for pint_1
+      // Native-R verified 2026-07-07 (Rscript 4.6.0, this exact config): mod_tab$est[1] = 0.25819002 to 8dp —
+      // sprintf("%.8f", ...) needled directly, bypassing R's default 7-sig-fig print truncation. Matches
+      // runCbSem.moderation.integration.test.ts's own pin (toBeCloseTo(0.25819002, 4)) exactly — this is the
+      // TRUE point estimate (bootstrap SE fits still report the analytic ML estimate, not a bootstrap-draw
+      // average, so it is seed-independent and safe to pin tighter than the SE/CI columns).
+      expect(Number(m![1])).toBeCloseTo(0.25819002, 6)
     },
     120_000,
   )
 
   // Table 4.4's fix (04e8e25) scoped Table 6 to grepl("^p_", label) so the interaction row (pint_1) and any
   // auto-injected moderator main-effect covariate (pmod_1) never leak into the structural-paths table under
-  // moderation — they belong to Table 8 (Moderation) / Table 9 (Conditional effects) only. Assert that
-  // contract holds under native R: exactly the 2 DRAWN paths (SN->TI, TA->TI) print in Table 6, and neither
-  // pint_1 nor pmod_1 appears inside that table's block.
-  it('cb-sem moderation — Table 6 contains only the 2 drawn paths, no pint_/pmod_ leakage', () => {
+  // moderation. This REP (SN->TI and TA->TI BOTH drawn) genuinely exercises the pint_1 half of that contract
+  // — pint_1 is always present under moderation, so its absence from Table 6 here is a real assertion.
+  // It does NOT exercise the pmod_1 half: because TA is already a drawn path into TI, buildModerationLines'
+  // `alreadyPredicts` guard (moderationModel.ts) is TRUE and pmod_1 is never generated at all for this
+  // config — there is no pmod_1 term anywhere in the fitted model, so checking Table 6 doesn't contain it
+  // is vacuously true and proves nothing. The genuine auto-injected-pmod_1 exclusion is proven by the
+  // dedicated test below, using a config where the moderator is NOT itself a drawn path.
+  it('cb-sem moderation — Table 6 contains only the 2 drawn paths, no pint_ leakage (pmod_1 never generated for this REP)', () => {
     const ds = parseCsv(readFileSync(join(FIXTURES, 'sem-moderation.csv'), 'utf8'))
     const rep = REPS.find((r) => r.fixture === 'sem-moderation.csv')!
     const R = emitRScript([rep.id], { [rep.id]: rep.setup }, SPECS, ds)
@@ -326,4 +358,57 @@ describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
     const labels = new Set(table6Block.match(/\bp_\d+_\d+\b/g) ?? [])
     expect(labels).toEqual(new Set(['p_1_3', 'p_2_3']))
   })
+
+  // Genuine auto-injected-pmod_1 coverage (the test above's pmod_1 check is vacuous — see its comment).
+  // With TA moderator-only (not drawn as its own path into TI), `alreadyPredicts` is FALSE, so buildModel
+  // really does splice ` + pmod_1*TA` onto TI's structural line (moderationModel.ts:81). Confirm at the
+  // native-R level, in ONE shared Rscript run, that: (1) the model actually fits with that term present —
+  // a harness `cat(model_str, ...)` line appended AFTER the fit call proves it (if pmod_1's syntax were
+  // bad, lavaan::sem() would already have thrown before the harness line ever ran); (2) Table 6 still
+  // contains exactly the ONE drawn path (p_1_3) and nothing else; (3) pint_1 reaches Table 8 and Table 8
+  // only. Bootstrap kept at 500 (matches the spike's own count) for the native-R time budget.
+  it('cb-sem moderation, moderator-only (not drawn as its own path) — pmod_1 really is in the fitted model but stays out of Table 6; pint_1 lands in Table 8 only', () => {
+    const ds = parseCsv(readFileSync(join(FIXTURES, MODERATION_MODERATOR_ONLY_REP.fixture), 'utf8'))
+    const R = emitRScript(
+      [MODERATION_MODERATOR_ONLY_REP.id],
+      { [MODERATION_MODERATOR_ONLY_REP.id]: MODERATION_MODERATOR_ONLY_REP.setup },
+      SPECS,
+      ds,
+    )
+    const csv = toCsv(ds)
+    const dir = mkdtempSync(join(tmpdir(), 'telos-r-mod-unpred-'))
+    // Test-only harness line appended to the EMITTED script (production emitter is untouched) — prints the
+    // runtime model_str AFTER the model has already fit successfully, so the harness output is proof the
+    // fitted model (not just the JS-generated source text) really contained pmod_1*TA.
+    const harnessed = `${R}\ncat("\\n--- MODEL_STR (test harness) ---\\n"); cat(model_str, "\\n")`
+    writeFileSync(join(dir, 'analysis.R'), harnessed)
+    writeFileSync(join(dir, 'cleaned.csv'), csv)
+
+    // execSync THROWS on a non-zero exit — a clean run (no throw) reaching the harness line below IS the
+    // "model fits" assertion (it fits WITH the pmod_1 term, since that term is part of model_str already).
+    const out = execSync('Rscript analysis.R', { cwd: dir, encoding: 'utf8', stdio: 'pipe' })
+
+    // (1) pmod_1*TA really is in the model the R engine fit, not just the pre-execution JS string.
+    expect(out).toContain('pmod_1*TA')
+
+    const t6start = out.indexOf('--- Table 6: Structural paths ---')
+    const t6end = out.indexOf('--- R-square (endogenous) ---')
+    const t8start = out.indexOf('--- Table 8: Moderation ---')
+    const t8end = out.indexOf('--- Table 9: Conditional effects (simple slopes) ---')
+    expect(t6start).toBeGreaterThan(-1)
+    expect(t6end).toBeGreaterThan(t6start)
+    expect(t8start).toBeGreaterThan(t6end)
+    expect(t8end).toBeGreaterThan(t8start)
+    const table6Block = out.slice(t6start, t6end)
+    const table8Block = out.slice(t8start, t8end)
+
+    // (2) Table 6 = exactly the one drawn path (p_1_3) — the genuine pmod_1 exclusion this REP was built for.
+    const labels = new Set(table6Block.match(/\bp_\d+_\d+\b/g) ?? [])
+    expect(labels).toEqual(new Set(['p_1_3']))
+    expect(table6Block).not.toContain('pmod_1')
+    expect(table6Block).not.toContain('pint_1')
+
+    // (3) pint_1 (the interaction term) reaches Table 8 — its only home.
+    expect(table8Block).toContain('pint_1')
+  }, 120_000)
 })
