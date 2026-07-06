@@ -59,3 +59,17 @@ test('no horizontal overflow at 320px with long column names', async ({ page }) 
     'customer_satisfaction_composite_score_quarter_3',
   )
 })
+
+test('the rail stays stuck to the top when a tall screen scrolls (R4)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 600 }) // short viewport forces scrolling on test-config
+  await walkToConfig(page, async () => {})
+  await page.mouse.wheel(0, 2000)
+  await page.waitForTimeout(200)
+  const rail = page.getByRole('navigation', { name: 'Progress' })
+  await expect(rail).toBeVisible()
+  const box = (await rail.boundingBox())!
+  expect(box.y, 'rail must remain pinned at the top while scrolled').toBeGreaterThanOrEqual(-1)
+  expect(box.y).toBeLessThanOrEqual(40)
+  const scrolled = await page.evaluate(() => window.scrollY)
+  expect(scrolled, 'the page must actually have scrolled for this test to mean anything').toBeGreaterThan(100)
+})
