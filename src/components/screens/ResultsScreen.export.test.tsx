@@ -136,6 +136,30 @@ describe('buildExportFiles (Task 10)', () => {
     expect(s.setups['path-analysis'].constructs).toEqual([])
   })
 
+  // U5-T2 (post-review): the export bundler's figure pickup (line ~43 above) walks content.figures[]
+  // GENERICALLY for every test — no new bundler code was written for the simple-slopes figure. This
+  // proves the SAME generic pickup that already covers e.g. the AVE/CR bar chart covers this new one too.
+  it('the simple-slopes figure is included in the export bundle when moderation is present', () => {
+    const s = {
+      selection: ['cb-sem'],
+      setups: { 'cb-sem': { roles: {}, options: {}, props: {}, blocked: null, constructs: [], paths: [] } },
+      runs: { 'cb-sem': { result: {
+        mode: 'cfa-only', saturated: true,
+        cfaLoadings: [], reliability: [], fornellLarcker: [], htmt: [], corLvP: [], discriminantLabels: [],
+        estimates: { paths: [], loadings: {}, r2: {} }, itemStats: [],
+        moderation: { rows: [], slopes: [
+          { level: '-1SD', b: 0.26, se: 0.07, p: 0.0002, z: 3.71, ciPercLower: 0.13, ciPercUpper: 0.40, ciBcLower: 0.14, ciBcUpper: 0.41 },
+        ] },
+        figModSlopesPng: new Uint8Array([1, 2, 3]),
+      }, stale: false } },
+      raw: { columns: ['x1'], rows: [{ x1: 1 }] },
+      columns: [],
+      missingPolicy: 'leave',
+    } as unknown as SessionState
+    const files = buildExportFiles(s, { tables: false, figures: true, pdf: false, latex: false, r: false })
+    expect(Object.keys(files).some((k) => k.includes('figure_simple-slopes.png'))).toBe(true)
+  })
+
   it('report.tex figure NN matches the figure PNG NN when an earlier selected test is not fresh', () => {
     const s = session()
     // Self-contained runs (the shared fixture is mutated by sibling tests): A has NO run, B is fresh.

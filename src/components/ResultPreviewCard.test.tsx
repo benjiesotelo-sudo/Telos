@@ -27,6 +27,20 @@ describe('chassis renders each card shape (design §5)', () => {
     const two = { ...base, figures: [{ caption: 'Shape', type: 'histogram', png }, { caption: 'Shape', type: 'qq', png }] }
     expect(render(two).match(/<b>Figure\.<\/b>/g)).toHaveLength(2)
   })
+  it('sem-canvas cards with 2 figures use figureSlot ONLY for figure 0 (path diagram); figure 1 renders its own <img>', () => {
+    const content = {
+      ...base,
+      figures: [
+        { caption: 'Model', type: 'path diagram', png: new Uint8Array(0) },
+        { caption: 'Simple slopes', type: 'conditional-effects plot', png: new Uint8Array([137, 80, 78, 71]) },
+      ],
+    } as CardContent
+    const html = renderToStaticMarkup(
+      <ResultPreviewCard index={1} name="CB-SEM" question="q" content={content} stale={false} running={false}
+        onRerun={() => {}} figureSlot={<div data-testid="canvas-slot" />} />,
+    )
+    expect((html.match(/data-testid="canvas-slot"/g) ?? []).length).toBe(1) // NOT duplicated for figure 1
+  })
   it('preamble tables (EFA E1/E2) caption by their fixed label; canonical numbering starts at 1 on the next table (U3-T4)', () => {
     const content: CardContent = { tables: [
       { spec: { id: 'efa-suitability', title: 'EFA suitability', columns: [], captionStyle: 'preamble', preambleLabel: 'E1' }, rows: [] },

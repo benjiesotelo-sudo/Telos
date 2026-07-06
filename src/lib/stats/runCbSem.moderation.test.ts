@@ -104,7 +104,9 @@ describe('runCbSem — moderation row/slope count invariant (pure, mocked engine
     const runJson = vi.fn()
       .mockResolvedValueOnce(mainStats)
       .mockResolvedValueOnce(cfaResult)
-    return { runJson } as unknown as Engine
+    // U5-T2: a happy-path moderation run now also calls capturePlot for the simple-slopes figure.
+    const capturePlot = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]))
+    return { runJson, capturePlot } as unknown as Engine
   }
 
   const baseRaw = {
@@ -196,7 +198,9 @@ describe('runCbSem — config routing (setup.moderations reaches buildModel; U4-
 
   it('the env handed to engine.runJson carries the moderation model text + indProd flattening', async () => {
     const runJson = vi.fn().mockResolvedValueOnce(baseRaw).mockResolvedValueOnce(cfaResult)
-    const engine = { runJson } as unknown as Engine
+    // U5-T2: this run's slopeRows are non-empty, so runCbSem also calls capturePlot for the figure.
+    const capturePlot = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]))
+    const engine = { runJson, capturePlot } as unknown as Engine
     await runCbSem(engine, data, setup)
 
     expect(runJson).toHaveBeenCalledTimes(2)

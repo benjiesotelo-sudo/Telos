@@ -74,21 +74,16 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
             <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.note.text}</p>
           )}
       {content.nExcluded > 0 && <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.nExcluded} rows excluded (missing values)</p>}
-      {/* sem-canvas tests draw the figure live (the annotated path diagram is the export source —
-          captureNode rasters it from this DOM node), so the slot replaces the placeholder <img>. */}
-      {figureSlot
-        ? content.figures.map((fig, i) => (
-            <div key={`${fig.type}-${i}`}>
-              <p><b>Figure.</b> {fig.caption}</p>
-              {figureSlot}
-            </div>
-          ))
-        : content.figures.map((fig, i) => (
-            <div key={`${fig.type}-${i}`}>
-              <p><b>Figure.</b> {fig.caption}</p>
-              {urls[i] && <img src={urls[i]} alt={`${fig.type} — ${fig.caption}`} width={480} />}
-            </div>
-          ))}
+      {/* sem-canvas tests draw figure 0 live (the annotated path diagram is the export source —
+          captureNode rasters it from this DOM node), so the slot replaces ONLY figure 0's placeholder
+          <img>; any further figure (e.g. the U5-T2 simple-slopes plot) is app-drawn PNG bytes and always
+          renders its own <img>, or it would wrongly duplicate the live canvas into its slot (fix, U5-T2). */}
+      {content.figures.map((fig, i) => (
+        <div key={`${fig.type}-${i}`}>
+          <p><b>Figure.</b> {fig.caption}</p>
+          {figureSlot && i === 0 ? figureSlot : (urls[i] && <img src={urls[i]} alt={`${fig.type} — ${fig.caption}`} width={480} />)}
+        </div>
+      ))}
       <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>How to read this test</h3>
       <p className="prose">{content.howToRead}</p>
       <p><b>APA template:</b> {content.apa}</p>

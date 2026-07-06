@@ -106,6 +106,18 @@ export const CB_SEM: TestSpec = {
         { key: 'result', label: 'Result' },
       ],
     },
+    {
+      id: 'conditional-effects',
+      domId: 'cb-sem-conditional-effects',
+      title: 'Conditional effects (simple slopes)',
+      columns: [
+        { key: 'level', label: 'Moderator level' },
+        { key: 'b', label: 'B' },
+        { key: 'se', label: 'SE' },
+        { key: 'p', label: 'p' },
+        { key: 'ci', label: 'boot 95% CI' },
+      ],
+    },
   ],
   tableNote: {
     kind: 'plain',
@@ -114,6 +126,7 @@ export const CB_SEM: TestSpec = {
   },
   figures: [
     { caption: 'Model', type: 'path diagram (constructs, loadings, structural paths)', file: 'path-diagram' },
+    { caption: 'Simple slopes', type: 'conditional-effects plot (whiskered 95% CI at -1SD/mean/+1SD)', file: 'simple-slopes', optional: true },
   ],
   howToRead:
     'First confirm the measurement model (loadings high, CR/AVE adequate) and overall fit indices. Then read the structural paths: each std. β with p/CI is a hypothesized relationship between constructs; R² shows variance explained in each outcome construct. CB-SEM is confirmatory: the measurement model must be specified from theory a priori — any post-hoc respecification (e.g. from modification indices) is exploratory, must be reported as such, and ideally cross-validated on a fresh sample.',
@@ -127,6 +140,8 @@ export const CB_SEM: TestSpec = {
     'table_fornell-larcker.png',
     'table_htmt.png',
     'table_structural-paths.png (when structural stage selected)',
+    'table_conditional-effects.png (when moderation present)',
     'figure_path-diagram.png',
+    'figure_simple-slopes.png (when moderation present)',
   ],
 }

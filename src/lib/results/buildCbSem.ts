@@ -238,6 +238,16 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     }
   }
 
+  // Conditional-effects table (U5-T2): same `moderation.slopes[]` numbers as the whiskered simple-slopes
+  // figure (runCbSem.ts) — percentile CI only (binding contract), independent of the isMerged/isPath
+  // branching above (moderation never appears in path-analysis mode, design §A7).
+  if (r.moderation?.slopes.length) {
+    const rows = r.moderation.slopes.map((s) => ({
+      level: s.level, b: f(s.b), se: f(s.se), p: fp(s.p), ci: `[${f01(s.ciPercLower)}, ${f01(s.ciPercUpper)}]`,
+    }))
+    tables.push({ spec: specTable(spec, 'conditional-effects'), rows })
+  }
+
   // Notes (U3-T5): CB-SEM (isMerged) is the labelled-notes worked example for A5 — the single giant
   // tableNote is replaced by several bold-labelled one-liners, content-preserving (every clause from
   // CB_SEM's old tableNote.text maps to exactly one labelled note; nothing dropped, nothing added).
@@ -284,12 +294,16 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
           : null
   }
 
-  // Figure: a placeholder slot so the bundle manifest carries figure_path-diagram.png; the REAL annotated-SVG
-  // PNG is layered in ResultsScreen.download() via captureNode (design §4.2), NOT produced here.
-  const fig = figuresOf(spec)[0]
-  const figures: CardContent['figures'] = fig
-    ? [{ caption: fig.caption, type: fig.type, file: fig.file, png: new Uint8Array(0) }]
-    : []
+  // Figure 0: a placeholder slot so the bundle manifest carries figure_path-diagram.png; the REAL
+  // annotated-SVG PNG is layered in ResultsScreen.download() via captureNode (design §4.2), NOT produced
+  // here. Figure 1 (U5-T2): the simple-slopes plot IS produced here — real PNG bytes from runCbSem.ts's
+  // capturePlot — present only when moderation ran (optional FigureSpec; ResultPreviewCard's figureSlot
+  // fix keeps this from being masked by the live canvas, which only ever covers figure 0).
+  const figs = figuresOf(spec)
+  const figures: CardContent['figures'] = [
+    figs[0] ? { caption: figs[0].caption, type: figs[0].type, file: figs[0].file, png: new Uint8Array(0) } : undefined,
+    r.moderation && figs[1] ? { caption: figs[1].caption, type: figs[1].type, file: figs[1].file, png: r.figModSlopesPng ?? new Uint8Array(0) } : undefined,
+  ].filter((x): x is NonNullable<typeof x> => x != null)
 
   return {
     tables,

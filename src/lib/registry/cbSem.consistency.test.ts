@@ -104,7 +104,18 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
   it('canonical Table 1-5 order matches the reordered registry (measurement, fit, Fornell-Larcker, HTMT, structural)', () => {
     expect(spec.tables.map((t) => t.id)).toEqual([
       'efa-suitability', 'efa-loadings', 'cfa-loadings', 'fit-indices', 'fornell-larcker', 'htmt', 'structural-paths',
+      'conditional-effects',
     ])
+  })
+  // U5-T2: Table 6, shown only when moderation ran; same conventions as the other ghost tables.
+  it('Table 6 (conditional effects / simple slopes) thead matches the spec columns', () => {
+    expect(theadAfter('Conditional effects (simple slopes)')).toEqual(tableCols('conditional-effects'))
+    expect(card).toContain('<div class="apa-cap"><b>Table 6.</b> Conditional effects (simple slopes)</div>')
+  })
+  it('a second (optional) figure entry: simple-slopes plot', () => {
+    expect(spec.figures).toHaveLength(2)
+    expect(spec.figures![1].optional).toBe(true)
+    expect(spec.figures![1].file).toBe('simple-slopes')
   })
   it('labelled notes (the live card) reflect the E1/E2 preamble + single merged Table 5 (structural) omission wording', () => {
     // U3-T5: superseded from a byte-verbatim spec.tableNote!.text check to a content-preservation guard

@@ -29,8 +29,14 @@ const SPEC = {
       { key: 'percLower', label: 'Lower' }, { key: 'percUpper', label: 'Upper' },
       { key: 'bcLower', label: 'Lower' }, { key: 'bcUpper', label: 'Upper' },
       { key: 'result', label: 'Result' } ] },
+    { id: 'conditional-effects', title: 'Conditional effects (simple slopes)', columns: [
+      { key: 'level', label: 'Moderator level' }, { key: 'b', label: 'B' }, { key: 'se', label: 'SE' },
+      { key: 'p', label: 'p' }, { key: 'ci', label: 'boot 95% CI' } ] },
   ],
-  figures: [{ caption: 'Path diagram', type: 'annotated path diagram', file: 'path-diagram' }],
+  figures: [
+    { caption: 'Path diagram', type: 'annotated path diagram', file: 'path-diagram' },
+    { caption: 'Simple slopes', type: 'conditional-effects plot', file: 'simple-slopes', optional: true },
+  ],
   howToRead: 'hr', apaTemplate: 'apa', rMap: 'r',
 } as unknown as TestSpec
 
@@ -385,6 +391,39 @@ describe('buildCbSem', () => {
     const ids = c.tables.map((t) => t.spec.id)
     expect(ids).not.toContain('fornell-larcker')
     expect(ids).not.toContain('htmt')
+  })
+
+  // U5-T2: conditional-effects table + second (simple-slopes) figure entry.
+  const SLOPES: NonNullable<CbSemResult['moderation']>['slopes'] = [
+    { level: '-1SD', b: 0.26, se: 0.07, p: 0.0002, z: 3.71, ciPercLower: 0.13, ciPercUpper: 0.40, ciBcLower: 0.14, ciBcUpper: 0.41 },
+    { level: 'mean', b: 0.47, se: 0.06, p: 0.00001, z: 7.83, ciPercLower: 0.36, ciPercUpper: 0.58, ciBcLower: 0.36, ciBcUpper: 0.59 },
+    { level: '+1SD', b: 0.67, se: 0.09, p: 0.000005, z: 7.44, ciPercLower: 0.52, ciPercUpper: 0.86, ciBcLower: 0.52, ciBcUpper: 0.85 },
+  ]
+
+  it('emits the conditional-effects table with the SAME numbers as moderation.slopes', () => {
+    const r: CbSemResult = { ...base, moderation: { rows: base.moderation!.rows, slopes: SLOPES } }
+    const content = buildCbSem(SPEC, r)
+    const table = content.tables.find((t) => t.spec.id === 'conditional-effects')!
+    expect(table.rows).toEqual([
+      { level: '-1SD', b: '0.26', se: '0.07', p: '<.001', ci: '[.13, .40]' },
+      { level: 'mean', b: '0.47', se: '0.06', p: '<.001', ci: '[.36, .58]' },
+      { level: '+1SD', b: '0.67', se: '0.09', p: '<.001', ci: '[.52, .86]' },
+    ])
+  })
+
+  it('emits a SECOND figure entry (simple-slopes) with real PNG bytes when moderation is present, none when absent', () => {
+    const withMod: CbSemResult = {
+      ...base,
+      moderation: { rows: base.moderation!.rows, slopes: SLOPES },
+      figModSlopesPng: new Uint8Array([1, 2, 3]),
+    }
+    const contentWithMod = buildCbSem(SPEC, withMod)
+    expect(contentWithMod.figures).toHaveLength(2)
+    expect(contentWithMod.figures[1].png.length).toBeGreaterThan(0)
+
+    const withoutMod: CbSemResult = { ...base, moderation: undefined }
+    const contentWithoutMod = buildCbSem(SPEC, withoutMod)
+    expect(contentWithoutMod.figures).toHaveLength(1)
   })
 })
 

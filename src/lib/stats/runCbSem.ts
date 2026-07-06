@@ -39,6 +39,10 @@ export interface CbSemResult {
   rsquare?: Record<number, number>
   indirect?: Array<Record<string, unknown>>
   moderation?: { rows: ModerationRow[]; slopes: SlopeRow[] }
+  /** Whiskered simple-slopes figure (design §U5-T2), app-drawn via engine.capturePlot from the SAME
+   *  `moderation.slopes[]` array that feeds the conditional-effects table (identical numbers). Present
+   *  only when moderation ran and produced at least one slope; absent otherwise (optional FigureSpec). */
+  figModSlopesPng?: Uint8Array
   fornellLarcker: number[][]
   htmt: number[][]
   corLvP: number[][]
@@ -576,6 +580,33 @@ export async function runCbSem(
       }
     : undefined
 
+  // Simple-slopes figure (design §U5-T2): three whiskered points (-1SD/mean/+1SD), percentile CI whiskers
+  // (binding contract: ciPercLower/ciPercUpper), no continuous band — same ggplot2-in-R capturePlot
+  // pipeline efa.ts's scree plot and latent.ts's AVE/CR bar charts already use. Fed from moderation.slopes
+  // (already TS-shaped above), so the figure and the conditional-effects table (buildCbSem.ts) render the
+  // SAME numbers from the SAME array.
+  let figModSlopesPng: Uint8Array | undefined
+  if (moderation?.slopes.length) {
+    const slopesBlock = [
+      'library(ggplot2)',
+      'df_plot <- data.frame(level = factor(levels, levels = levels), b = bs, lo = los, hi = his)',
+      'print(',
+      '  ggplot2::ggplot(df_plot, ggplot2::aes(x = level, y = b)) +',
+      '  ggplot2::geom_point(size = 3, colour = "#d97757") +',
+      '  ggplot2::geom_errorbar(ggplot2::aes(ymin = lo, ymax = hi), width = 0.15, colour = "#d97757") +',
+      '  ggplot2::geom_hline(yintercept = 0, linetype = "dotted", colour = "#888") +',
+      '  ggplot2::labs(x = NULL, y = "Conditional effect (simple slope)") +',
+      '  ggplot2::theme_minimal(base_size = 11)',
+      ')',
+    ].join('\n')
+    figModSlopesPng = await engine.capturePlot(slopesBlock, 500, 380, {
+      levels: moderation.slopes.map((s) => s.level),
+      bs: moderation.slopes.map((s) => s.b),
+      los: moderation.slopes.map((s) => s.ciPercLower),
+      his: moderation.slopes.map((s) => s.ciPercUpper),
+    })
+  }
+
   return {
     mode,
     saturated: isSaturated(raw.df),
@@ -599,5 +630,6 @@ export async function runCbSem(
     missing: missingSetting,
     nboot,
     bootstrapped: needsBootstrap,
+    figModSlopesPng,
   }
 }
