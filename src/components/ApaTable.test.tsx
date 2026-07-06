@@ -261,3 +261,66 @@ describe('ApaTable matrix rendering (kind:matrix)', () => {
     expect(h.match(/\.45/g)?.length).toBe(2)
   })
 })
+
+// ── matrix upgrades (A6 device 4, 2026-07-06): italic diagonal, per-cell significance stars, a ──
+// star-legend footer row. Faithful to Table 3's post-merge shape (A1): √AVE italic on the diagonal,
+// stars on the off-diagonal latent correlations.
+describe('ApaTable matrix - devices (diagonalStyle, cellStars, starNote)', () => {
+  const fl: MatrixTable = {
+    kind: 'matrix', id: 'fornell-larcker', caption: 'Fornell-Larcker Criterion',
+    rowLabels: ['Visual', 'Textual', 'Speed'], colLabels: ['Visual', 'Textual', 'Speed'],
+    cells: [
+      ['.83', null, null],
+      ['.42', '.79', null],
+      ['.38', '.51', '.91'],
+    ],
+    diagonalStyle: 'italic',
+    lowerOnly: true,
+    cellStars: [
+      [null, null, null],
+      ['***', null, null],
+      ['**', '***', null],
+    ],
+    starNote: '*p<.05, **p<.01, ***p<.001',
+  }
+  const html = renderToStaticMarkup(<ApaTable matrix={fl} />)
+
+  it('diagonalStyle:italic wraps the diagonal cells in <em>, not <strong>', () => {
+    expect(html).toContain('<em>.83</em>')
+    expect(html).toContain('<em>.79</em>')
+    expect(html).toContain('<em>.91</em>')
+    expect(html).not.toContain('<strong>')
+  })
+
+  it('diagonalStyle:bold behaves like the legacy diagonal:bold', () => {
+    const h = renderToStaticMarkup(<ApaTable matrix={{ ...fl, diagonalStyle: 'bold' }} />)
+    expect(h).toContain('<strong>.83</strong>')
+    expect(h).not.toContain('<em>')
+  })
+
+  it('cellStars append the significance suffix directly after the cell value', () => {
+    expect(html).toContain('.42***')
+    expect(html).toContain('.38**')
+    expect(html).toContain('.51***')
+  })
+
+  it('a null cellStars entry appends nothing (no stray "null" text)', () => {
+    expect(html).not.toContain('null')
+  })
+
+  it('starNote renders as a table footer row so it is captured WITH the table (captureNode parity)', () => {
+    expect(html).toContain('<tfoot>')
+    expect(html).toContain('*p&lt;.05, **p&lt;.01, ***p&lt;.001')
+    // still inside the same <table id="table-fornell-larcker">, not a sibling element
+    const tableBlock = html.match(/<table[^>]*id="table-fornell-larcker"[^>]*>.*<\/table>/s)![0]
+    expect(tableBlock).toContain('*p&lt;.05')
+  })
+
+  it('a matrix with none of the new fields renders exactly as before (byte-identical legacy path)', () => {
+    const legacy: MatrixTable = {
+      kind: 'matrix', id: 'm', caption: 'M', rowLabels: ['A'], colLabels: ['A'], cells: [['.9']], diagonal: 'bold',
+    }
+    const h = renderToStaticMarkup(<ApaTable matrix={legacy} />)
+    expect(h).toBe('<div style="overflow-x:auto"><table id="table-m" class="apa matrix"><thead><tr><th></th><th>A</th></tr></thead><tbody><tr><th>A</th><td><strong>.9</strong></td></tr></tbody></table></div>')
+  })
+})

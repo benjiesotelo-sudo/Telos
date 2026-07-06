@@ -61,6 +61,7 @@ table.apa.coef .row-span td{color:var(--muted);font-size:11px;text-align:left;pa
 table.apa.matrix thead th,table.apa.matrix tbody th{text-align:center;font-weight:600;}
 table.apa.matrix tbody th{text-align:left;}
 table.apa.matrix td:empty{color:transparent;}
+table.apa.matrix .matrix-starnote{color:var(--muted);font-size:11px;text-align:left;padding-top:7px;}
 /* A6 grouped/sectioned/spanned classic tables (2026-07-06): construct rows carry group-level stats
    once (italic); item/child rows indent under them; internal section labels (Direct paths / Indirect
    effects / Moderation) sit full-width between blocks. */

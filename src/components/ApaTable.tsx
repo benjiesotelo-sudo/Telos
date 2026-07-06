@@ -22,7 +22,7 @@ type MatrixProps = { matrix: MatrixTable; domId?: string; id?: never; spec?: nev
 
 export function ApaTable(props: ClassicProps | MatrixProps) {
   if (props.matrix) {
-    const { id, colLabels, rowLabels, cells, diagonal, lowerOnly } = props.matrix
+    const { id, colLabels, rowLabels, cells, diagonal, diagonalStyle, lowerOnly, cellStars, starNote } = props.matrix
     return (
       // R1: overflow-x wrapper only - the id stays on the <table> so #table-* locators (e2e) and
       // captureNode(`table-${domId ?? id}`) (PNG export) still find the same element.
@@ -38,12 +38,18 @@ export function ApaTable(props: ClassicProps | MatrixProps) {
               {colLabels.map((_, j) => {
                 const isUpper = lowerOnly && j > i
                 if (isUpper || cells[i][j] == null) return <td key={j}></td>
-                const val = cells[i][j]
-                const content = (diagonal === 'bold' && j === i) ? <strong>{val}</strong> : val
+                const star = cellStars?.[i]?.[j]
+                const val = star ? `${cells[i][j]}${star}` : cells[i][j]
+                const isDiag = j === i
+                const content =
+                  isDiag && (diagonal === 'bold' || diagonalStyle === 'bold') ? <strong>{val}</strong> :
+                  isDiag && diagonalStyle === 'italic' ? <em>{val}</em> :
+                  val
                 return <td key={j}>{content}</td>
               })}
             </tr>
           ))}</tbody>
+          {starNote && <tfoot><tr><td colSpan={colLabels.length + 1} className="matrix-starnote">{starNote}</td></tr></tfoot>}
         </table>
       </div>
     )
