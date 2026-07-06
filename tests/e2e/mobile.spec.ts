@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('mobile journey: upload → configure → pick → tap-to-assign → run gate enabled', async ({ page }) => {
+test('touch journey: upload → configure → pick → tap-to-assign → run gate enabled', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Get started' }).click()
   await page.setInputFiles('input[type=file]', 'tests/e2e/fixtures/study.csv')
@@ -21,9 +21,17 @@ test('mobile journey: upload → configure → pick → tap-to-assign → run ga
   await page.locator('[data-role="group"]').tap()
   await expect(page.locator('[data-role="group"] .chip.assigned', { hasText: 'group' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Run analysis' })).toBeEnabled()
-  // compact rail: one line, no visible sub-dots (they're display:none under 560px, not absent from the
+  // compact rail: one line, no visible sub-dots under 560px (they're display:none, not absent from the
   // DOM - toHaveCount(0) on .subdot would fail since Playwright counts hidden nodes too), fraction visible
-  await expect(page.locator('.subdot').first()).not.toBeVisible()
-  await expect(page.locator('.thread-frac')).toBeVisible()
+  const { width } = page.viewportSize()!
+  if (width < 560) {
+    await expect(page.locator('.subdot').first()).not.toBeVisible()
+  } else {
+    // subdots ARE visible at wider widths (like 834px tablet)
+    await expect(page.locator('.subdot').first()).toBeVisible()
+  }
+  if (width < 560) {
+    await expect(page.locator('.thread-frac')).toBeVisible()
+  }
   await page.screenshot({ path: 'test-results/mobile-config.png' })
 })

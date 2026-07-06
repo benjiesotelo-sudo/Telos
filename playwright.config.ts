@@ -6,6 +6,7 @@ export default defineConfig({
   use: { baseURL: 'http://localhost:4173' },
   projects: [
     { name: 'desktop', testIgnore: ['**/mobile.spec.ts', '**/responsive.spec.ts'] },
+    { name: 'tablet', testMatch: '**/mobile.spec.ts', use: { viewport: { width: 834, height: 1112 }, isMobile: true, hasTouch: true } },
     { name: 'mobile', testMatch: '**/mobile.spec.ts', use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
     { name: 'responsive', testMatch: '**/responsive.spec.ts', use: { hasTouch: true } },
   ],
