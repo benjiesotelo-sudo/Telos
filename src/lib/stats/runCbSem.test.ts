@@ -95,6 +95,16 @@ describe('runCbSem', () => {
     // --- item Mean/SD (Table 1; complete-case fixture so listwise/fiml agree) ---
     expect(result.itemStats).toHaveLength(11)
     expect(result.itemStats.find((s) => s.item === 'x2')!.mean).toBeGreaterThan(0)
+
+    // --- latent correlation p-values on the SAME ind60/dem60/dem65 measurement model (CFA-only fit,
+    // distinct from the structural sem() fit above). Derived 2026-07-06 via native Rscript (cfa(),
+    // std.lv=FALSE): ind60-dem60: z=4.393 p<.001 · ind60-dem65: z=6.195 p<.001 · dem60-dem65: z=37.483 p<.001
+    expect(result.corLvP).toHaveLength(3)
+    expect(result.corLvP[0][1]).toBeLessThan(0.0001)
+    expect(result.corLvP[1][2]).toBeLessThan(0.0001)
+    expect(result.fornellLarcker).toHaveLength(3)
+    expect(result.htmt).toHaveLength(3)
+    expect(result.discriminantLabels).toEqual(['ind60', 'dem60', 'dem65'])
   }, 600_000)
 })
 

@@ -15,6 +15,7 @@ export interface CfaReliabilityResult {
   fornellLarcker: number[][]
   htmt: number[][]
   labels: string[]
+  corLvP: number[][]
 }
 
 // R block: multi-construct CFA via lavaan; AVE/compRelSEM/alpha per construct; Fornell-Larcker + HTMT matrices.
@@ -76,6 +77,17 @@ for (ci in seq_len(k)) diag(fl)[ci] <- sqrt(ave_ordered[ci])
 htmt_mat <- semTools::htmt(model_str, data = d_all)
 htmt_ordered <- htmt_mat[construct_names, construct_names]
 
+# Latent correlation p-values (ψ block): standardizedSolution() op=="~~" rows among the k constructs.
+ss <- lavaan::standardizedSolution(fit)
+p_mat <- matrix(NA_real_, k, k, dimnames = list(construct_names, construct_names))
+for (i in seq_len(k)) for (j in seq_len(k)) {
+  if (i == j) next
+  ni <- construct_names[i]; nj <- construct_names[j]
+  row <- ss[ss$op == "~~" & ((ss$lhs == ni & ss$rhs == nj) | (ss$lhs == nj & ss$rhs == ni)), ]
+  if (nrow(row) > 0) p_mat[i, j] <- as.numeric(row$pvalue[1])
+}
+corlvp_rows <- lapply(seq_len(k), function(i) as.numeric(p_mat[i, ]))
+
 # per-construct list (name = the ORIGINAL display name; nm indexes the fitted objects)
 per_construct <- lapply(seq_len(k), function(ci) {
   nm <- construct_names[ci]
@@ -97,7 +109,8 @@ list(
   perConstruct   = per_construct,
   fornellLarcker = fl_rows,
   htmt           = htmt_rows,
-  labels         = as.character(display_names)
+  labels         = as.character(display_names),
+  corLvP         = corlvp_rows
 )
 `
 
@@ -148,6 +161,7 @@ export async function runCfaReliability(
     fornellLarcker: number[][]
     htmt: number[][]
     labels: string[]
+    corLvP: number[][]
   }
 
   return engine.runJson<RawResult>(R_STATS, env)

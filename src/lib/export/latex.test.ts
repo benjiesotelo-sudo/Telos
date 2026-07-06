@@ -93,6 +93,7 @@ const ave: AveResult = {
     ],
     fornellLarcker: [[0.74, 0], [0.45, 0.77]],
     htmt: [[0, 0], [0.30, 0]],
+    corLvP: [[NaN, 0.001], [0.001, NaN]],
   },
 }
 

@@ -17,6 +17,10 @@ export interface CbSemResult {
   structural?: Array<Record<string, unknown>>
   rsquare?: Record<number, number>
   indirect?: Array<Record<string, unknown>>
+  fornellLarcker: number[][]
+  htmt: number[][]
+  corLvP: number[][]
+  discriminantLabels: string[]
   estimates: {
     paths: Array<{ from: number; to: number; beta: number }>
     loadings: Record<string, number>
@@ -336,11 +340,19 @@ export async function runCbSem(
 
   // CFA reliability (ω/α/AVE/CR) — reuse Slice A; skipped in path mode (no measurement model).
   let reliability: Array<Record<string, unknown>> = []
+  let fornellLarcker: number[][] = []
+  let htmt: number[][] = []
+  let corLvP: number[][] = []
+  let discriminantLabels: string[] = []
   if (!isPath) {
     const cfa = await runCfaReliability(engine, data, constructs.map((c) => ({ name: c.name, items: c.items })))
     reliability = cfa.perConstruct.map((c: CfaConstructResult) => ({
       construct: c.name, cr: c.cr, ave: c.ave, omega: c.omega, alpha: c.alpha,
     }))
+    fornellLarcker = cfa.fornellLarcker
+    htmt = cfa.htmt
+    corLvP = cfa.corLvP
+    discriminantLabels = cfa.labels
   }
 
   const rsquare: Record<number, number> = {}
@@ -362,6 +374,10 @@ export async function runCbSem(
     structural: raw.structural,
     rsquare,
     indirect,
+    fornellLarcker,
+    htmt,
+    corLvP,
+    discriminantLabels,
     estimates: {
       paths: raw.estPaths,
       loadings: raw.estLoadings,

@@ -123,4 +123,22 @@ describe('cfaReliability', () => {
     expect(result.fornellLarcker[0][0]).toBeCloseTo(0.6087, 3)
     expect(result.htmt[0][1]).toBeCloseTo(0.3841, 3)
   }, 600_000)
+
+  // Latent correlation p-values (ψ block, standardizedSolution op=="~~"). Derived 2026-07-06 via native
+  // Rscript on the SAME model (visual/textual/speed, std.lv=FALSE):
+  //   visual-textual: z=7.189 p<.001 · visual-speed: z=6.461 p<.001 · textual-speed: z=4.117 p<.001
+  // (all three off-diagonal correlations are highly significant on this fixture — the assertions below
+  // check the precise z-derived significance boundary, not just "significant", by pinning p below 1e-4).
+  it('corLvP carries the latent-correlation p-values (Fornell-Larcker significance stars)', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/scale.csv'))
+    const result = await runCfaReliability(engine, data, CONSTRUCTS)
+    expect(result.corLvP).toHaveLength(3)
+    expect(result.corLvP[0][1]).toBeLessThan(0.0001) // visual-textual
+    expect(result.corLvP[0][2]).toBeLessThan(0.0001) // visual-speed
+    expect(result.corLvP[1][2]).toBeLessThan(0.0001) // textual-speed
+    expect(result.corLvP[0][1]).toBeCloseTo(result.corLvP[1][0], 10) // symmetric
+    // diagonal undefined (self-correlation): R's NA_real_ round-trips through .telos_json as `null`
+    // (the same NA→null convention used everywhere else in the bridge), not JS NaN.
+    expect(result.corLvP[0][0]).toBeNull()
+  }, 600_000)
 })
