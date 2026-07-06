@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildPlsSem } from './buildPlsSem'
 import type { PlsSemResult } from '../stats/plsSem'
 import type { TestSpec } from '../registry/types'
+import { PLS_SEM } from '../registry/plsSem'
 
 const SPEC = {
   id: 'pls-sem',
@@ -60,7 +61,8 @@ describe('buildPlsSem', () => {
     expect(outer.rows[0].loading).toBe('.81')
     expect(outer.rows[0].weight).toBe('—')
     expect(outer.rows[1].weight).toBe('.44')
-    expect(outer.rows[1].loading).toBe('—')
+    // merged display column ("Loading / weight"): formative rows surface the WEIGHT here
+    expect(outer.rows[1].loading).toBe('.44')
     expect(outer.rows[1].vif).toBe('1.90')
   })
 
@@ -79,7 +81,7 @@ describe('buildPlsSem', () => {
     const struct = c.tables.find((t) => t.spec.id === 'structural')!
     expect(struct.rows[0].path).toBe('Image → Expectation')
     expect(struct.rows[0].beta).toBe('.30')
-    expect(struct.rows[0].fSquare).toBe('0.10')
+    expect(struct.rows[0].f2).toBe('0.10')
     expect(struct.rows[0].ci).toBe('[.16, .44]')
     const qual = c.tables.find((t) => t.spec.id === 'structural-quality')!
     expect(qual.rows[0].r2).toBe('.09')
@@ -94,5 +96,36 @@ describe('buildPlsSem', () => {
     // dropping indirect removes the table
     const c2 = buildPlsSem(SPEC, { ...R, indirect: [] })
     expect(c2.tables.find((t) => t.spec.id === 'indirect-effects')).toBeUndefined()
+  })
+})
+
+// REGRESSION (2026-07-06 live-run finding): ApaTable renders row[column.key] against the REAL registry
+// spec — the mock SPEC above has empty columns, so builder/spec key mismatches rendered EMPTY
+// "Construct → Item" (spec key 'path') and "f²" (spec key 'f2') columns in the app while the builder
+// unit tests stayed green. Assert against the REAL PLS_SEM spec: every spec column key must be present
+// and non-empty in every built row (the em-dash placeholder counts as non-empty).
+describe('buildPlsSem — real registry spec (row keys must cover every spec column key)', () => {
+  it('PLS_SEM: every rows-table row fills every spec column', () => {
+    const c = buildPlsSem(PLS_SEM, R)
+    for (const table of c.tables) {
+      if (table.matrix) continue // HTMT matrix renders via the matrix branch; spec.columns unused
+      expect(table.rows.length).toBeGreaterThan(0)
+      for (const col of table.spec.columns) {
+        for (const [ri, row] of table.rows.entries()) {
+          const v = row[col.key as keyof typeof row]
+          expect(v, `table ${table.spec.id} row ${ri} column '${col.key}' (${col.label}) is empty`).toBeTruthy()
+          expect(String(v).trim(), `table ${table.spec.id} row ${ri} column '${col.key}' (${col.label}) is blank`).not.toBe('')
+        }
+      }
+    }
+  })
+
+  it('PLS_SEM outer-model: formative rows surface the WEIGHT in the merged Loading / weight column', () => {
+    const c = buildPlsSem(PLS_SEM, R)
+    const outer = c.tables.find((t) => t.spec.id === 'outer-model')!
+    expect(outer.rows[0].path).toBe('Image → IMAG1')
+    expect(outer.rows[0].loading).toBe('.81')       // reflective: loading
+    expect(outer.rows[1].path).toBe('Expectation → CUEX1')
+    expect(outer.rows[1].loading).toBe('.44')       // formative: weight surfaces in the merged column
   })
 })

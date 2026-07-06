@@ -151,6 +151,13 @@ describe('runCbSem — construct names with spaces', () => {
     expect(x2.construct).toBe('Industrialization 1960')
     expect(Number(x2.stdLoading)).toBeCloseTo(0.973, 2)
 
+    // --- EVERY std loading finite + substantive (est.std joins survive sanitization end-to-end) ---
+    expect(result.cfaLoadings.length).toBe(11)
+    for (const row of result.cfaLoadings) {
+      expect(Number.isFinite(Number(row.stdLoading))).toBe(true)
+      expect(Number(row.stdLoading)).toBeGreaterThan(0.3)
+    }
+
     // --- reliability table carries the ORIGINAL spaced construct name ---
     const relInd = result.reliability.find((r) => r.construct === 'Industrialization 1960')
     expect(relInd).toBeDefined()
@@ -161,6 +168,15 @@ describe('runCbSem — construct names with spaces', () => {
     expect(p12.fromName).toBe('Industrialization 1960')
     expect(p12.toName).toBe('Democracy 1960')
     expect(Number(p12.stdBeta)).toBeCloseTo(0.448, 2)
+
+    // --- EVERY structural row: std beta + CI finite; R² finite on endogenous rows ---
+    for (const row of s) {
+      expect(Number.isFinite(Number(row.stdBeta))).toBe(true)
+      expect(Number.isFinite(Number(row.ciLower))).toBe(true)
+      expect(Number.isFinite(Number(row.ciUpper))).toBe(true)
+    }
+    expect(Number.isFinite(Number(result.rsquare![2]))).toBe(true)
+    expect(Number.isFinite(Number(result.rsquare![3]))).toBe(true)
 
     // --- indirect effect chain label uses ORIGINAL spaced names ---
     const ie = result.indirect![0]

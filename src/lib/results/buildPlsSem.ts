@@ -20,11 +20,15 @@ const ci = (lo: unknown, hi: unknown): string => `[${fc(lo)}, ${fc(hi)}]`
 export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
   const tableById = (id: string) => spec.tables.find((t) => t.id === id)!
 
-  // T1: Outer model — Construct · Item · loading · weight · VIF · t · p
+  // T1: Outer model. Row keys must match the registry spec's column keys (ApaTable renders
+  // row[column.key]): the spec displays 'path' ("Construct → Item") and a single merged 'loading'
+  // ("Loading / weight" — the loading for reflective indicators, the weight for formative ones).
+  // construct/item/weight/vif stay as extra keys for programmatic consumers.
   const t1rows = r.outer.map((row) => ({
+    path: `${row.construct} → ${row.item}`,
     construct: String(row.construct),
     item: String(row.item),
-    loading: fc(row.loading),
+    loading: fc(row.loading ?? row.weight),
     weight: fc(row.weight),
     vif: f2(row.vif),
     t: f2(row.t),
@@ -63,14 +67,14 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
     tables.push({ spec: tableById('htmt'), rows: [], matrix: htmtMatrix })
   }
 
-  // T4: Structural paths — Path · β · t · p · 95% CI · f²
+  // T4: Structural paths — Path · β · t · p · 95% CI · f² (spec column key 'f2')
   const t4rows = r.structural.map((row) => ({
     path: String(row.path),
     beta: fc(row.beta),
     t: f2(row.t),
     p: fpFmt(row.p),
     ci: ci(row.ciLower, row.ciUpper),
-    fSquare: f2(row.fSquare),
+    f2: f2(row.fSquare),
   }))
   tables.push({ spec: tableById('structural'), rows: t4rows })
 

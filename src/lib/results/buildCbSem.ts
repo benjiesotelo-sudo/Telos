@@ -17,6 +17,8 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   const tables: BuiltTable[] = []
 
   // T3: Measurement model (CFA) — latent only. CFA rows already carry construct + item names.
+  // Row keys MUST match the registry spec's column keys (ApaTable renders row[column.key]) —
+  // the standardized loading renders under 'std' (cbSem.ts spec), not the runner's 'stdLoading'.
   if (!isPath && r.cfaLoadings.length) {
     const rows = r.cfaLoadings.map((row) => ({
       path: `${row.construct} → ${row.item}`,
@@ -24,7 +26,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       se: f(Number(row.se)),
       z: fdf(Number(row.z)),
       p: fp(Number(row.p)),
-      stdLoading: f01(Number(row.stdLoading)),
+      std: f01(Number(row.stdLoading)),
     }))
     tables.push({ spec: specTable(spec, 'cfa-loadings'), rows })
   }
@@ -58,6 +60,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
 
   // T6: Structural paths — Path cell uses construct NAMES (fromName/toName from the runner);
   // falls back to numeric ids only if a name is missing. The numeric from/to keys feed the canvas.
+  // Std. β renders under 'beta' (cbSem.ts / pathAnalysis.ts spec key), not the runner's 'stdBeta'.
   if (r.structural?.length) {
     const rows = r.structural.map((row) => ({
       path:
@@ -68,7 +71,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       se: f(Number(row.se)),
       z: fdf(Number(row.z)),
       p: fp(Number(row.p)),
-      stdBeta: f01(Number(row.stdBeta)),
+      beta: f01(Number(row.stdBeta)),
       ci: `[${f01(Number(row.ciLower))}, ${f01(Number(row.ciUpper))}]`,
       r2: fx(row.r2 == null ? null : Number(row.r2), f01),
     }))

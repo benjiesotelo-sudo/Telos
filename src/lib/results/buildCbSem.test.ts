@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { buildCbSem } from './buildCbSem'
 import type { CbSemResult } from '../stats/runCbSem'
 import type { TestSpec } from '../registry/types'
+import { CB_SEM } from '../registry/cbSem'
+import { PATH_ANALYSIS } from '../registry/pathAnalysis'
 
 // Minimal spec stub with the 7 CB-SEM tables in §5.1 order. Only ids/titles/columns the builder reads.
 const SPEC = {
@@ -12,14 +14,14 @@ const SPEC = {
     { id: 'efa-loadings', title: 'EFA rotated loadings', columns: [] },
     { id: 'cfa-loadings', title: 'Measurement model (CFA)', columns: [
       { key: 'path', label: 'Construct → Item' }, { key: 'b', label: 'B' }, { key: 'se', label: 'SE' },
-      { key: 'z', label: 'z' }, { key: 'p', label: 'p' }, { key: 'stdLoading', label: 'Std. loading' } ] },
+      { key: 'z', label: 'z' }, { key: 'p', label: 'p' }, { key: 'std', label: 'Std. loading' } ] },
     { id: 'reliability', title: 'Reliability & validity', columns: [
       { key: 'construct', label: 'Construct' }, { key: 'cr', label: 'CR' }, { key: 'ave', label: 'AVE' },
       { key: 'omega', label: 'ω' }, { key: 'alpha', label: 'α' } ] },
     { id: 'fit-indices', title: 'Fit indices', columns: [] },
     { id: 'structural-paths', title: 'Structural paths', columns: [
       { key: 'path', label: 'Path' }, { key: 'b', label: 'B' }, { key: 'se', label: 'SE' },
-      { key: 'z', label: 'z' }, { key: 'p', label: 'p' }, { key: 'stdBeta', label: 'Std. β' },
+      { key: 'z', label: 'z' }, { key: 'p', label: 'p' }, { key: 'beta', label: 'Std. β' },
       { key: 'ci', label: '95% CI' }, { key: 'r2', label: 'R²' } ] },
     { id: 'indirect-effects', title: 'Indirect effects', columns: [
       { key: 'path', label: 'Path' }, { key: 'est', label: 'est' }, { key: 'se', label: 'SE' },
@@ -59,7 +61,7 @@ describe('buildCbSem', () => {
     expect(ids).toEqual(['cfa-loadings', 'reliability', 'fit-indices', 'structural-paths', 'indirect-effects'])
 
     const cfa = c.tables.find((t) => t.spec.id === 'cfa-loadings')!
-    expect(cfa.rows[1].stdLoading).toBe('.97')
+    expect(cfa.rows[1].std).toBe('.97')
     expect(cfa.rows[1].b).toBe('2.18')
 
     const fit = c.tables.find((t) => t.spec.id === 'fit-indices')!
@@ -67,7 +69,7 @@ describe('buildCbSem', () => {
     expect(String(fit.rows[0].rmsea)).toContain('[.06, .14]')
 
     const struct = c.tables.find((t) => t.spec.id === 'structural-paths')!
-    expect(struct.rows[0].stdBeta).toBe('.45')
+    expect(struct.rows[0].beta).toBe('.45')
     expect(struct.rows[0].r2).toBe('.20')
     // construct NAMES in the structural Path cell (render-faithfully extension)
     expect(struct.rows[0].path).toBe('ind60 → dem60')
@@ -106,5 +108,39 @@ describe('buildCbSem', () => {
     expect(ids).not.toContain('cfa-loadings')
     expect(ids).not.toContain('reliability')
     expect(ids).toContain('structural-paths')
+  })
+})
+
+// REGRESSION (2026-07-06 live-run finding): ApaTable renders row[column.key] against the REAL registry
+// spec — the mock SPEC above used the builder's own row keys, so a builder/spec key mismatch rendered
+// EMPTY "Std. loading" (cfa-loadings, spec key 'std') and "Std. β" (structural-paths, spec key 'beta')
+// columns in the app while every builder unit test stayed green. Assert against the REAL specs: every
+// spec column key must be present and non-empty in every built row.
+describe('buildCbSem — real registry specs (row keys must cover every spec column key)', () => {
+  const assertRowsCoverSpecColumns = (spec: TestSpec, result: CbSemResult, tableIds: string[]) => {
+    const c = buildCbSem(spec, result)
+    for (const id of tableIds) {
+      const table = c.tables.find((t) => t.spec.id === id)!
+      expect(table, `table ${id} missing`).toBeDefined()
+      expect(table.rows.length).toBeGreaterThan(0)
+      for (const col of table.spec.columns) {
+        for (const [ri, row] of table.rows.entries()) {
+          const v = row[col.key as keyof typeof row]
+          expect(v, `table ${id} row ${ri} column '${col.key}' (${col.label}) is empty`).toBeTruthy()
+          expect(String(v).trim(), `table ${id} row ${ri} column '${col.key}' (${col.label}) is blank`).not.toBe('')
+        }
+      }
+    }
+  }
+
+  it('CB_SEM: cfa-loadings + structural-paths + reliability + fit + indirect rows fill every spec column', () => {
+    assertRowsCoverSpecColumns(CB_SEM, base, [
+      'cfa-loadings', 'reliability', 'fit-indices', 'structural-paths', 'indirect-effects',
+    ])
+  })
+
+  it('PATH_ANALYSIS: structural-paths + indirect rows fill every spec column', () => {
+    const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
+    assertRowsCoverSpecColumns(PATH_ANALYSIS, path, ['structural-paths', 'indirect-effects'])
   })
 })
