@@ -327,6 +327,21 @@ if (!is_path) {
 }
 est_paths <- lapply(struct_rows, function(r) list(from = r$from, to = r$to, beta = r$stdBeta))
 
+# Canvas moderation-arrow overlay (Task 5.3): one interaction beta per moderation edge, in mod_ids
+# order (the SAME id ordering moderations[] uses TS-side -- see moderationIndProdEnv). INT_<mid> is
+# the interaction construct's R-side name per moderationModel.ts's buildModerationLines. R only
+# computes the beta; moderatorId/pathIndex are filled TS-side by zipping this array against
+# moderationDefs, mirroring how est_paths above is derived from struct_rows rather than requiring R to
+# know about canvas ids.
+est_moderation <- list()
+if (length(mod_ids) > 0) {
+  for (mi in seq_along(mod_ids)) {
+    int_name <- paste0("INT_", mod_ids[mi])
+    gi <- which(ss$op == "~" & ss$rhs == int_name)[1]
+    est_moderation[[mi]] <- list(beta = as.numeric(ss$est.std[gi]))
+  }
+}
+
 list(
   fit = fit_list,
   df = df_val,
@@ -337,7 +352,8 @@ list(
   moderationRows = mod_rows,
   slopeRows = slope_rows,
   estLoadings = est_loadings,
-  estPaths = est_paths
+  estPaths = est_paths,
+  estModeration = est_moderation
 )
 `
 
@@ -424,6 +440,9 @@ interface RawResult {
   slopeRows: RawSlopeRow[]
   estLoadings: Record<string, number>
   estPaths: Array<{ from: number; to: number; beta: number }>
+  /** One entry per moderation edge, in mod_ids order (see moderationIndProdEnv). Absent from older/
+   *  mocked fixtures that predate Task 5.3 -- optional so those keep passing unmodified. */
+  estModeration?: Array<{ beta: number }>
 }
 
 const SLOPE_LEVEL: Record<RawSlopeRow['level'], SlopeRow['level']> = { lo: '-1SD', mid: 'mean', hi: '+1SD' }
@@ -590,6 +609,20 @@ export async function runCbSem(
       }
     : undefined
 
+  // Canvas moderation-arrow overlay (Task 5.3, distinct from the `moderation` reporting block above):
+  // one beta per moderation edge, keyed back to the moderatorId/pathIndex the canvas drew it with, so
+  // SemCanvas can annotate the dashed arrow post-run. moderationDefs/raw.estModeration are both in
+  // mod_ids order (see moderationIndProdEnv). `raw.estModeration` is guarded separately from
+  // `moderationDefs.length` so older/mocked RawResult fixtures that predate this field degrade to
+  // `undefined` instead of throwing.
+  const modInputById = new Map((setup.moderations ?? []).map((m) => [m.id, m]))
+  const estModeration = moderationDefs.length && raw.estModeration
+    ? moderationDefs.map((def, i) => {
+        const input = modInputById.get(def.id)!
+        return { moderatorId: input.moderatorId, pathIndex: input.pathIndex, beta: raw.estModeration![i].beta }
+      })
+    : undefined
+
   // Simple-slopes figure (design §U5-T2): three whiskered points (-1SD/mean/+1SD), percentile CI whiskers
   // (binding contract: ciPercLower/ciPercUpper), no continuous band — same ggplot2-in-R capturePlot
   // pipeline efa.ts's scree plot and latent.ts's AVE/CR bar charts already use. Fed from moderation.slopes
@@ -654,6 +687,7 @@ export async function runCbSem(
       paths: raw.estPaths,
       loadings: raw.estLoadings,
       r2: rsquare,
+      moderation: estModeration,
     },
     itemStats,
     missing: missingSetting,

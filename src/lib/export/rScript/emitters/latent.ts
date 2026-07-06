@@ -438,6 +438,10 @@ export const latentEmitters: Record<string, Emitter> = {
       '# ---- Figure: path diagram (reproducible stand-in for the app-drawn annotated SVG) ----',
       'semPlot::semPaths(fit, what = "std", layout = "tree", edge.label.cex = 0.9,',
       '                  nodeLabels = NULL, residuals = FALSE, intercepts = FALSE)',
+      '',
+      '# Note: semPaths draws the interaction construct\'s own path like any other structural path (no',
+      '# distinct "moderation" edge style) -- this is the closest reproducible native-R rendering; the app\'s',
+      '# live canvas draws it as a dashed clay arrow (see figure_path-diagram.png from the app export).',
     )
 
     return out.join('\n')

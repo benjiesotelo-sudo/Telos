@@ -58,6 +58,11 @@ describe('runCbSem — latent moderation (matched, equal indicator counts)', () 
     expect(hi.level).toBe('+1SD'); expect(hi.b).toBeCloseTo(0.67290681, 3)
     expect(lo.ciPercLower).toBeCloseTo(0.14362545, 2)
     expect(hi.ciBcUpper).toBeCloseTo(0.85224986, 2)
+
+    // Task 5.3: the canvas moderation-arrow overlay carries the SAME standardized interaction beta as
+    // row.stdBeta above (0.23155625), keyed by moderatorId/pathIndex instead of the internal moderation
+    // edge id -- SemCanvas reads this to label the dashed arrow post-run.
+    expect(result.estimates.moderation).toEqual([{ moderatorId: 2, pathIndex: 0, beta: expect.closeTo(0.2316, 3) }])
   }, 600_000)
 
   // Unequal counts (SN=4 items, TA3=3 items) -> match=FALSE, all-pairs product indicators (12 = 4x3),
