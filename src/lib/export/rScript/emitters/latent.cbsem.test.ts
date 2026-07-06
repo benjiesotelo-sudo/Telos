@@ -121,6 +121,19 @@ describe("latentEmitters['cb-sem'] — latent moderation (export ≡ app, U5-T4)
       expect.arrayContaining(['lavaan', 'semTools', 'psych', 'semPlot']),
     )
   })
+
+  // Reviewer-verified fixture (moderator-drawn): moderatorId=2 (TA) already has its own drawn path
+  // to the target (paths[1] = TA -> TI), so buildModerationLines' alreadyPredicts guard suppresses the
+  // pmod_ auto-injected covariate here — but the INT_1 interaction row (lavaan label pint_1) is ALWAYS
+  // emitted as a `~` op row on the target regardless. Table 6 (Structural paths) must therefore scope
+  // to the drawn paths' own p_<from>_<to> labels (unique to struct_rows in the app runner), never bare
+  // `op == "~"`, or it leaks INT_1 as a THIRD "structural" row duplicating Table 8.
+  it('Table 6 (Structural paths) is scoped by the p_ path label, not bare op=="~" — no INT_/pint_ leak', () => {
+    const peRegLine = r.split('\n').find((l) => l.startsWith('pe_reg <-'))
+    expect(peRegLine).toBeDefined()
+    expect(peRegLine).toContain('grepl("^p_", pe$label)')
+    expect(peRegLine).not.toBe('pe_reg <- pe[pe$op == "~", ]; pe_bc_reg <- pe_bc[pe_bc$op == "~", ]; ss_reg <- ss[ss$op == "~", ]')
+  })
 })
 
 describe("latentEmitters['cb-sem'] — moderation with unequal indicator counts (match=FALSE disclosure)", () => {
@@ -140,6 +153,18 @@ describe("latentEmitters['cb-sem'] — moderation with unequal indicator counts 
   it('uses match=FALSE and emits the disclosure comment', () => {
     expect(r).toContain('mod_matched <- c(FALSE)')
     expect(r).toContain('all possible pairs')
+  })
+
+  // Reviewer-verified fixture (moderator-undrawn): moderatorId=2 (TA3) has NO drawn path anywhere in
+  // `paths` (only SN -> TI is drawn), so buildModerationLines' alreadyPredicts guard is false and the
+  // auto-injected pmod_1*TA3 main-effect covariate IS spliced onto the target's regression line — a row
+  // the app's struct_rows (runCbSem.ts, iterates path_from/path_to only) never surfaces anywhere. Table 6
+  // must not leak it either: same p_-label scoping as the moderator-drawn fixture above covers this case
+  // too, since pmod_1/pint_1 labels don't match the "^p_" prefix.
+  it('Table 6 (Structural paths) excludes the auto-injected pmod_ covariate row (reported nowhere, same as the app)', () => {
+    const peRegLine = r.split('\n').find((l) => l.startsWith('pe_reg <-'))
+    expect(peRegLine).toBeDefined()
+    expect(peRegLine).toContain('grepl("^p_", pe$label)')
   })
 })
 

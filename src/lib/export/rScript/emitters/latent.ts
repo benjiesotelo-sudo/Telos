@@ -451,7 +451,20 @@ export const latentEmitters: Record<string, Emitter> = {
       '}',
       '',
       '# ---- Table 6: Structural paths (B / SE / z / p / std.β + dual 95% CI: percentile & bias-corrected) ----',
-      'pe_reg <- pe[pe$op == "~", ]; pe_bc_reg <- pe_bc[pe_bc$op == "~", ]; ss_reg <- ss[ss$op == "~", ]',
+      '# Scoped to the DRAWN paths\' own p_<from>_<to> labels (buildModel labels every drawn structural path',
+      '# this way, and ONLY those) -- matches runCbSem.ts\'s struct_rows, which iterates the drawn path_from/',
+      '# path_to arrays rather than filtering by bare op == "~".',
+      ...(hasModeration
+        ? [
+            '# Moderation note: bare `op == "~"` would ALSO match the interaction row (already reported in',
+            '# Table 8) and, when the moderator is not itself a drawn path, an auto-injected moderator',
+            '# main-effect covariate row that the app never surfaces anywhere -- this scoping excludes both,',
+            '# mirroring the app exactly (that covariate is part of the fitted model but reported in no table).',
+          ]
+        : []),
+      'pe_reg <- pe[pe$op == "~" & grepl("^p_", pe$label), ]',
+      'pe_bc_reg <- pe_bc[pe_bc$op == "~" & grepl("^p_", pe_bc$label), ]',
+      'ss_reg <- ss[ss$op == "~" & grepl("^p_", ss$label), ]',
       'reg_key <- pair_key(pe_reg)',
       'rownames(pe_bc_reg) <- pair_key(pe_bc_reg); rownames(ss_reg) <- pair_key(ss_reg)',
       'struct_tab <- data.frame(',
