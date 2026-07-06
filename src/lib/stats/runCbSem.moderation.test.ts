@@ -147,3 +147,80 @@ describe('runCbSem — moderation row/slope count invariant (pure, mocked engine
     expect(result.bootstrapped).toBe(false)
   })
 })
+
+describe('runCbSem — config routing (setup.moderations reaches buildModel; U4-T4 wiring, no WebR)', () => {
+  // Proves the config->runner seam end to end WITHOUT a WebR run: capture the env object runCbSem
+  // actually hands to engine.runJson and assert it carries buildModel's moderation output (the
+  // interaction line + indProd flattening) -- i.e. setup.moderations really did reach buildModel,
+  // not just get accepted and dropped. Full-precision math is U2-T6's job
+  // (runCbSem.moderation.integration.test.ts); this test is wiring-only.
+  const items = { sn: ['sn1', 'sn2', 'sn3', 'sn4'], ta: ['ta1', 'ta2', 'ta3', 'ta4'], ti: ['ti1', 'ti2', 'ti3'] }
+  const data: Dataset = {
+    columns: [...items.sn, ...items.ta, ...items.ti],
+    rows: Array.from({ length: 10 }, (_, i) =>
+      Object.fromEntries([...items.sn, ...items.ta, ...items.ti].map((c, j) => [c, i + j + 1])),
+    ),
+  }
+  const setup: TestSetup = {
+    roles: {}, options: { estimator: 'ML', nboot: 500, ciType: 'percentile' }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'SN', items: items.sn },
+      { id: 2, name: 'TA', items: items.ta },
+      { id: 3, name: 'TI', items: items.ti },
+    ],
+    paths: [{ from: 1, to: 3 }],
+    moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }],
+  }
+  const validModRow = { id: 1, b: 0.1, se: 0.1, z: 1, p: 0.3, stdBeta: 0.1, ciPercLower: -0.1, ciPercUpper: 0.3, ciBcLower: -0.1, ciBcUpper: 0.3 }
+  const validSlopeRow = (level: 'lo' | 'mid' | 'hi') => ({
+    modId: 1, level, est: 0.1, se: 0.1, z: 1, p: 0.3, ciPercLower: -0.1, ciPercUpper: 0.3, ciBcLower: -0.1, ciBcUpper: 0.3,
+  })
+  const cfaResult = {
+    perConstruct: [
+      { name: 'SN', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'TA', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'TI', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+    ],
+    fornellLarcker: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    htmt: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+    labels: ['SN', 'TA', 'TI'],
+    corLvP: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+  }
+  const baseRaw = {
+    fit: {}, df: 1, cfaLoadings: [], structural: [], rsquareIds: { 3: 0.4 }, indirect: [],
+    estLoadings: {}, estPaths: [],
+    moderationRows: [validModRow],
+    slopeRows: [validSlopeRow('lo'), validSlopeRow('mid'), validSlopeRow('hi')],
+  }
+
+  it('the env handed to engine.runJson carries the moderation model text + indProd flattening', async () => {
+    const runJson = vi.fn().mockResolvedValueOnce(baseRaw).mockResolvedValueOnce(cfaResult)
+    const engine = { runJson } as unknown as Engine
+    await runCbSem(engine, data, setup)
+
+    expect(runJson).toHaveBeenCalledTimes(2)
+    const [, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    // buildModel's interaction line reached the model string sent to R -- proves setup.moderations
+    // was not silently dropped between the store and the runner.
+    expect(env.model_str).toContain('INT_1 =~ sn1.ta1 + sn2.ta2 + sn3.ta3 + sn4.ta4')
+    expect(env.model_str).toContain('slope_lo_1  := p_1_3 - pint_1*sqrt(vmod_1)')
+    // moderationIndProdEnv flattening reached the env (not just the model string).
+    expect(env.mod_ids).toEqual([1])
+    expect(env.mod_var1_flat).toEqual(items.sn)
+    // moderation widens the bootstrap gate regardless of any indirect-effect chain (design §A7).
+    expect(env.has_indirect).toBe(true)
+  })
+
+  it('a moderation-free setup sends NO mod_* env fields (empty-array webR crash guard, moderationModel.ts)', async () => {
+    const noModSetup: TestSetup = { ...setup, moderations: [] }
+    const runJson = vi.fn()
+      .mockResolvedValueOnce({ ...baseRaw, moderationRows: [], slopeRows: [] })
+      .mockResolvedValueOnce(cfaResult)
+    const engine = { runJson } as unknown as Engine
+    await runCbSem(engine, data, noModSetup)
+    const [, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(env).not.toHaveProperty('mod_ids')
+    expect(env.model_str).not.toContain('INT_')
+  })
+})

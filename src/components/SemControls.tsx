@@ -32,6 +32,12 @@ export interface SemControlsUIProps {
   missing: string
   nboot: number
   running: boolean
+  /** True when the canvas has one or more moderation edges drawn (design §A7). Moderation's
+   *  indProd() approach forces an ML-family estimator, so WLSMV must be un-selectable once a
+   *  moderation edge exists — mirrors the runCbSem/moderationModel guard that already throws if
+   *  WLSMV reaches the runner with moderations present; this closes the UI-side seam so the
+   *  estimator dropdown never lets the user reach that thrown error in the first place. */
+  hasModeration?: boolean
   onSetPipeline: (p: 'full' | 'cfa-only') => void
   onSetEfa: (on: boolean) => void
   onSetEstimator: (e: string) => void
@@ -41,7 +47,7 @@ export interface SemControlsUIProps {
 
 /** Pure presentational bespoke controls — NOT generic option pills (locked stages, conditional greying, computed estimate). */
 export function SemControlsUI({
-  track, modelKind, pipeline, efa, estimator, missing, nboot, running,
+  track, modelKind, pipeline, efa, estimator, missing, nboot, running, hasModeration = false,
   onSetPipeline, onSetEfa, onSetEstimator, onSetMissing, onSetNboot,
 }: SemControlsUIProps) {
   const isCb = track === 'cb-sem'
@@ -84,7 +90,9 @@ export function SemControlsUI({
             <select aria-label="estimator" value={estimator} disabled={running}
               onChange={(e) => onSetEstimator(e.target.value)}
               style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
-              {['WLSMV', 'ML', 'MLR'].map((e) => <option key={e} value={e}>{e}</option>)}
+              {['WLSMV', 'ML', 'MLR'].map((e) => (
+                <option key={e} value={e} disabled={e === 'WLSMV' && hasModeration}>{e}</option>
+              ))}
             </select>
           </label>
           <label className="pill" style={{ marginLeft: 8 }}>
@@ -100,6 +108,12 @@ export function SemControlsUI({
           {!isMlFamily(estimator) && (
             <p className="hint" role="note" style={{ marginTop: 4 }}>
               FIML requires an ML-family estimator (ML or MLR); under WLSMV use pairwise.
+            </p>
+          )}
+          {hasModeration && (
+            <p className="hint" role="note" style={{ marginTop: 4 }}>
+              WLSMV is unavailable while a moderation edge is drawn — latent moderation forces an
+              ML-family estimator (ML or MLR); remove the moderation edge to use WLSMV.
             </p>
           )}
         </fieldset>
@@ -157,6 +171,7 @@ export function SemControls({ testId }: { testId: string }) {
       missing={missingOptionValue(o)}
       nboot={Number(o.nboot ?? 5000)}
       running={s.runStatus === 'running'}
+      hasModeration={(setup.moderations ?? []).length > 0}
       onSetPipeline={(p) => s.setOption(testId, 'pipeline', p)}
       onSetEfa={(on) => s.setOption(testId, 'efa', on)}
       onSetEstimator={(e) => s.setOption(testId, 'estimator', e)}

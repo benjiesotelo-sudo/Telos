@@ -80,6 +80,23 @@ describe('SemControlsUI — estimator-aware missing-data dropdown (§3.4)', () =
   })
 })
 
+describe('SemControlsUI — WLSMV blocked once a moderation edge exists (§A7 UI-estimator seam)', () => {
+  it('greys the WLSMV option when hasModeration is true', () => {
+    const html = renderUI({ estimator: 'ML', hasModeration: true })
+    expect(html).toContain('value="WLSMV" disabled=""')
+  })
+
+  it('leaves WLSMV selectable when there is no moderation edge (default)', () => {
+    const html = renderUI({ estimator: 'ML' })
+    expect(html).not.toContain('value="WLSMV" disabled=""')
+  })
+
+  it('shows a note explaining why WLSMV is unavailable', () => {
+    const html = renderUI({ estimator: 'ML', hasModeration: true })
+    expect(html).toMatch(/WLSMV is unavailable while a moderation edge is drawn/)
+  })
+})
+
 describe('SemControlsUI — bootstrap control (presets + free entry + time estimate, D6)', () => {
   it('exposes 1k / 5k / 10k presets and 5000 is the live value', () => {
     const html = renderUI({ nboot: 5000 })
