@@ -9,15 +9,15 @@ import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE } from '../../..
 import { BC_CI_R } from '../../../stats/plsBcCi'
 import { SIMPLE_SLOPES_PLOT_R } from '../../../stats/simpleSlopesPlot'
 
-// Latent variable / SEM family. Mirrors the stats modules' R verbatim — same calls, same design rationale.
+// Latent variable / SEM family. Mirrors the stats modules' R verbatim - same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
-// NEVER call semTools::reliability() — deprecated 2022. Use compRelSEM() for ω/α-equivalent.
+// NEVER call semTools::reliability() - deprecated 2022. Use compRelSEM() for ω/α-equivalent.
 
-/** Raw CSV column universe for the given SEM-family test id (before sanitizing) — the SAME domain each
+/** Raw CSV column universe for the given SEM-family test id (before sanitizing) - the SAME domain each
  *  app-side runner uses for its own lvNames() call (cfaReliability.ts for ave/composite-reliability,
  *  runCbSem.ts for cb-sem/path-analysis, plsSem.ts for pls-sem, cronbachsAlpha.ts for cronbachs-alpha).
  *  Every other test id returns `[]`. This is the single place that knows "what counts as a raw column"
- *  per id — both latentRenameEntries below and emit.ts's cross-selection union call this, so there is
+ *  per id - both latentRenameEntries below and emit.ts's cross-selection union call this, so there is
  *  exactly ONE definition of each id's domain (root-cause fix for U10: previously this list existed only
  *  implicitly, duplicated inline inside each emitter). */
 export function latentItemDomain(id: string, setup: TestSetup, spec?: TestSpec): string[] {
@@ -36,7 +36,7 @@ export function latentItemDomain(id: string, setup: TestSetup, spec?: TestSpec):
 
 /** Raw CSV column -> sanitized R-side token, for the readData() rename table. `globalMap` is the ONE
  *  lvNames() call over the union of every SEM-family id's domain across the WHOLE selection (built by
- *  emit.ts) — looked up here, never re-derived, so a raw column that collides with a different partner
+ *  emit.ts) - looked up here, never re-derived, so a raw column that collides with a different partner
  *  in another test's domain still resolves to the SAME safe token everywhere it's referenced (U10 fix:
  *  previously each id computed its OWN local lvNames() over its OWN domain, so the same raw column could
  *  sanitize to different tokens across two selected tests). Returns only entries that actually changed;
@@ -56,10 +56,10 @@ export function latentRenameEntries(
 
 /** Shared raw-column -> R-token lookup for every SEM-family emitter below. When `globalMap` is supplied
  *  (the real emitRScript path), every raw column is looked up in that ONE shared map instead of being
- *  re-sanitized from this emitter's own local `domain` — the fix for U10 (an emitter used to call
+ *  re-sanitized from this emitter's own local `domain` - the fix for U10 (an emitter used to call
  *  lvNames() on its OWN item list, which drifts from a DIFFERENT selected test's sanitization of the
  *  same raw column when a collision partner exists in only one of the two domains). When no `globalMap`
- *  is supplied (an emitter invoked directly, outside emitRScript — every emitter unit test does this),
+ *  is supplied (an emitter invoked directly, outside emitRScript - every emitter unit test does this),
  *  falls back to deriving the map from `domain` alone: for a single test this is exactly what the global
  *  map reduces to anyway (its own domain IS the whole union), so both paths stay byte-identical. */
 export function buildItemMap(domain: string[], globalMap?: Map<string, string>): (raw: string) => string {
@@ -71,7 +71,7 @@ export function buildItemMap(domain: string[], globalMap?: Map<string, string>):
 
 export const latentEmitters: Record<string, Emitter> = {
   // lavaan::cfa (multi-construct) + semTools::AVE/compRelSEM/htmt → convergent + discriminant validity.
-  // NEVER call semTools::reliability() — deprecated 2022.
+  // NEVER call semTools::reliability() - deprecated 2022.
   // T1: Construct / AVE / CR / ω / α
   // T2: Fornell-Larcker matrix (√AVE diagonal; latent correlations off-diagonal)
   // T3: HTMT matrix
@@ -81,12 +81,12 @@ export const latentEmitters: Record<string, Emitter> = {
     const k = constructs.length
     if (k === 0) return '# No constructs defined — nothing to run for AVE.'
 
-    // Sanitized identifiers (lvNames) — display names with spaces are illegal lavaan `=~` tokens,
+    // Sanitized identifiers (lvNames) - display names with spaces are illegal lavaan `=~` tokens,
     // and every fitted object below is indexed by construct_names (same fix as cfaReliability.ts).
     const rNames = lvNames(constructs.map((c) => c.name))
     const constructNamesR = `c(${rNames.map((n) => `"${n}"`).join(', ')})`
 
-    // Sanitized item identifiers — looked up in the shared selection-global map (falls back to a local
+    // Sanitized item identifiers - looked up in the shared selection-global map (falls back to a local
     // lvNames call across the full flattened+deduped item set, mirroring cfaReliability.ts's
     // runCfaReliability exactly, when this emitter is invoked directly without a global map).
     const allItems = [...new Set(constructs.flatMap((c) => c.items))]
@@ -179,7 +179,7 @@ export const latentEmitters: Record<string, Emitter> = {
   // ggplot2 item-total bar chart.
   'cronbachs-alpha': (_spec, setup, _dataset, itemMap) => {
     const items = setup.roles['items'] ?? []
-    // Sanitized item identifiers — `items` below feeds a bare lavaan `=~` formula string (model <-
+    // Sanitized item identifiers - `items` below feeds a bare lavaan `=~` formula string (model <-
     // paste0("f =~ ", ...)), and R's read.csv() default check.names mangling means even the plain
     // `d[, items]` string index would miss a spaced column post-rename; looked up in the shared
     // selection-global map (falls back to cronbachsAlpha.ts's own lvNames(items) call exactly).
@@ -226,7 +226,7 @@ export const latentEmitters: Record<string, Emitter> = {
     )
     if (dropItem) {
       // Axis labels use the RAW display names (items_display), never the sanitized lavaan-safe token
-      // `items` — mirrors cronbachsAlpha.ts's R_FIG figEnv, which passes the original `items` param
+      // `items` - mirrors cronbachsAlpha.ts's R_FIG figEnv, which passes the original `items` param
       // (not its own sanitized rItems) for the exact same reason.
       const itemsDisplayR = `c(${items.map((v) => `"${v}"`).join(', ')})`
       lines.push(
@@ -245,19 +245,19 @@ export const latentEmitters: Record<string, Emitter> = {
   },
 
   // lavaan::cfa + semTools::compRelSEM/AVE + psych::alpha → CR / ω / AVE / α per construct.
-  // NEVER call semTools::reliability() — deprecated 2022.
-  // T1: Construct / CR / AVE / ω / α (CR = ω for congeneric — identical columns; correct)
+  // NEVER call semTools::reliability() - deprecated 2022.
+  // T1: Construct / CR / AVE / ω / α (CR = ω for congeneric - identical columns; correct)
   // Figure: CR bar chart (ggplot2)
   'composite-reliability': (_spec, setup, _dataset, itemMap) => {
     const constructs: { name: string; items: string[] }[] = setup.constructs ?? []
     const k = constructs.length
     if (k === 0) return '# No constructs defined — nothing to run for Composite Reliability.'
 
-    // Sanitized identifiers (lvNames) — same rationale as the 'ave' emitter above.
+    // Sanitized identifiers (lvNames) - same rationale as the 'ave' emitter above.
     const rNames = lvNames(constructs.map((c) => c.name))
     const constructNamesR = `c(${rNames.map((n) => `"${n}"`).join(', ')})`
 
-    // Sanitized item identifiers — same shared-map rationale as 'ave' above.
+    // Sanitized item identifiers - same shared-map rationale as 'ave' above.
     const allItems = [...new Set(constructs.flatMap((c) => c.items))]
     const itemNameOf = buildItemMap(allItems, itemMap)
 
@@ -415,10 +415,10 @@ export const latentEmitters: Record<string, Emitter> = {
 
   // lavaan::sem from constructs (=~) + structural paths (~) + auto := indirect defs + latent moderation
   // (interaction construct + := simple slopes, design §A7/U5-T4). buildModel is the SAME function
-  // runCbSem.ts calls — one source of truth for the full model string, so export ≡ app without
+  // runCbSem.ts calls - one source of truth for the full model string, so export ≡ app without
   // re-deriving any model-assembly logic here.
   // Single bootstrap fit for mediation/moderation (percentile + bias-corrected CI from the SAME draws,
-  // design D7/D10/§A2/§A7 — no RNG chunking). Diagram = semPlot::semPaths.
+  // design D7/D10/§A2/§A7 - no RNG chunking). Diagram = semPlot::semPaths.
   // Fit table suppressed strictly when fitMeasures(fit,"df") == 0 (shared df==0 predicate; design §3.6/§5.1).
   'cb-sem': (spec, setup, _dataset, itemMap) => {
     const constructs: { id: number; name: string; items: string[] }[] =
@@ -430,10 +430,10 @@ export const latentEmitters: Record<string, Emitter> = {
     if (constructs.length === 0) return '# No constructs defined — nothing to run for CB-SEM.'
 
     // Sanitized lavaan identifiers per construct (display names with spaces are illegal `=~`/`~` tokens)
-    // — the SAME lvNames the app runner (runCbSem.ts) uses, so export ≡ app. In LATENT mode these are
+    // - the SAME lvNames the app runner (runCbSem.ts) uses, so export ≡ app. In LATENT mode these are
     // pure model-internal labels that never touch an actual CSV column, so no cross-test consistency
     // need (kept local, like before). In PATH mode the construct "names" themselves ARE the observed CSV
-    // columns (mirrors runCbSem.ts's usedCols) — routed through the shared selection-global map like
+    // columns (mirrors runCbSem.ts's usedCols) - routed through the shared selection-global map like
     // every other SEM-family raw column, so two selected path-mode tests never collide on the same fix
     // this file applies everywhere else (U10).
     const nameDomain = [...new Set(constructs.map((c) => c.name))]
@@ -443,19 +443,19 @@ export const latentEmitters: Record<string, Emitter> = {
     const nboot = Number(setup.options['nboot'] ?? 5000)
     const moderations = setup.moderations ?? []
 
-    // Sanitized item identifiers (latent mode only — path mode's "items" are each construct's own raw
-    // name, already carried by rNameOf/the readData() rename above) — mirrors runCbSem.ts's
+    // Sanitized item identifiers (latent mode only - path mode's "items" are each construct's own raw
+    // name, already carried by rNameOf/the readData() rename above) - mirrors runCbSem.ts's
     // usedCols/itemNameOf exactly, looked up in the shared selection-global map.
     const usedCols = isPath ? [] : [...new Set(constructs.flatMap((c) => c.items))]
     const itemNameOf = buildItemMap(usedCols, itemMap)
 
     // Model text (measurement + structural + auto indirect defs + moderation, already spliced onto its
     // target's structural line) + moderationDefs (needed for the indProd data-prep block below). Guards
-    // (self/duplicate/path-mode) live in validateModerations, called by buildModel itself — a bad
+    // (self/duplicate/path-mode) live in validateModerations, called by buildModel itself - a bad
     // moderation setup throws here exactly like it would in the app runner, never reaching a bad script.
     const { model, hasIndirect, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, moderations, itemNameOf)
     const hasModeration = moderationDefs.length > 0
-    // Moderation ALWAYS bootstraps (design §A7), independent of any indirect-effect chain — same widened
+    // Moderation ALWAYS bootstraps (design §A7), independent of any indirect-effect chain - same widened
     // gate as runCbSem.ts's `needsBootstrap` (Task 4.4).
     const needsBootstrap = hasIndirect || hasModeration
     const modelR = model.replace(/\n/g, '\\n')
@@ -650,7 +650,7 @@ export const latentEmitters: Record<string, Emitter> = {
   },
 
   // prcomp(scale.=TRUE) → eigenvalues · parallel analysis (kind="pca") → retention
-  // correlation-scaled loadings (rotation × sdev) → T2 (NO communality — PCA is data reduction)
+  // correlation-scaled loadings (rotation × sdev) → T2 (NO communality - PCA is data reduction)
   // ggplot2 → scree figure
   'pca': (_spec, setup) => {
     const variables: string[] = setup.roles['variables'] ?? []
@@ -732,7 +732,7 @@ export const latentEmitters: Record<string, Emitter> = {
     return lines.join('\n')
   },
 
-  // seminr PLS-SEM: estimate_pls + bootstrap_model (serial-cluster shim — WASM has no PSOCK sockets).
+  // seminr PLS-SEM: estimate_pls + bootstrap_model (serial-cluster shim - WASM has no PSOCK sockets).
   // U6 reshape parity (mirrors buildPlsSem.ts / runPlsSem.ts EXACTLY, same table numbering as the app card):
   //   Table 1: Measurement model (merged construct alpha/rhoA/CR/AVE + per-item mean/sd/loading-or-weight/t/p)
   //   Table 2: HTMT
@@ -751,7 +751,7 @@ export const latentEmitters: Record<string, Emitter> = {
     const nboot = Number(setup.options['nboot'] ?? 5000)
     const fromName = (id: number) => byId.get(id) ?? String(id)
 
-    // Sanitized item identifiers — mirrors plsSem.ts's allItems/itemMap exactly, looked up in the shared
+    // Sanitized item identifiers - mirrors plsSem.ts's allItems/itemMap exactly, looked up in the shared
     // selection-global map. seminr's composite() item strings are string literals, not R identifiers,
     // but they must still match `colnames(d)` (renamed to the sanitized token by readData()) exactly, so
     // a raw item with a space would otherwise silently miss the data frame's actual column.

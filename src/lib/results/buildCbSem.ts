@@ -18,11 +18,11 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   const tables: BuiltTable[] = []
   let itemSampleNote: string | null = null
 
-  // T1 (merged, U3-T1): Measurement model (loadings, reliability & item descriptives) — latent only.
+  // T1 (merged, U3-T1): Measurement model (loadings, reliability & item descriptives) - latent only.
   // Construct rows (__group marker, A6 renderer device) carry ω/α/CR/AVE once; item rows (indented by
   // the renderer) carry Mean/SD (item descriptives) and the CFA loading (B/SE/z/p/Std. loading), leaving
   // the construct-level columns blank. Row keys MUST match the registry spec's column keys (ApaTable
-  // renders row[column.key]) — the standardized loading renders under 'std' (cbSem.ts spec), not the
+  // renders row[column.key]) - the standardized loading renders under 'std' (cbSem.ts spec), not the
   // runner's 'stdLoading'.
   if (!isPath && r.cfaLoadings.length) {
     const relByConstruct = new Map(r.reliability.map((row) => [String(row.construct), row]))
@@ -43,7 +43,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       }
       const item = itemByKey.get(`${construct}::${row.item}`)
       rows.push({
-        path: String(row.item), // indented child — CSS/LaTeX render the indent, not the string itself
+        path: String(row.item), // indented child - CSS/LaTeX render the indent, not the string itself
         mean: item ? f(item.mean) : '—', sd: item ? f(item.sd) : '—',
         b: f(Number(row.b)), se: f(Number(row.se)), z: fdf(Number(row.z)), p: fp(Number(row.p)),
         std: f01(Number(row.stdLoading)), omega: '', alpha: '', cr: '', ave: '',
@@ -62,7 +62,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     itemSampleNote = `Item Mean/SD are computed on ${itemSampleClause}.`
   }
 
-  // T4/T5 (U3-T2): Discriminant validity — Fornell-Larcker (italic √AVE diagonal, starred off-diagonal
+  // T4/T5 (U3-T2): Discriminant validity - Fornell-Larcker (italic √AVE diagonal, starred off-diagonal
   // latent correlations from corLvP) + HTMT; mirrors buildAve.ts's matrix construction, suppressed below
   // 2 constructs (same rule as the AVE card). corLvP's diagonal is R's NA_real_ -> null (never NaN), but
   // it is never read here: cellStars only touches the strict lower triangle (j < i).
@@ -88,7 +88,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     tables.push({ spec: specTable(spec, 'htmt'), rows: [], matrix: htmtMatrix })
   }
 
-  // T5: Fit indices — suppressed when saturated (df==0). One shared predicate from semSaturation.ts.
+  // T5: Fit indices - suppressed when saturated (df==0). One shared predicate from semSaturation.ts.
   const saturated = r.saturated || isSaturated(r)
   if (r.fit && !saturated) {
     const fit = r.fit
@@ -106,11 +106,11 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   // T6/T7 merged (U3-T3): CB-SEM merges structural paths + indirect effects + moderation into ONE
   // H-numbered, dual-CI (percentile + BC), Result-ruled table (registry id 'structural-paths', now the
   // sole owner of that id in cbSem.ts). PATH_ANALYSIS keeps its OWN two-table legacy shape (id
-  // 'structural-paths' + 'indirect-effects', single '95% CI' column, no H/spans/sections/Result) —
+  // 'structural-paths' + 'indirect-effects', single '95% CI' column, no H/spans/sections/Result) -
   // branch on spec.id, the only discriminator available here since both share the runner's row shape.
   // Result is Supported/Not supported from the PERCENTILE 95% CI excluding zero, α fixed .05 (design §U3-T3).
   // Fix round (review follow-up a, U3-T5): a nullish/non-finite bound must render a dash, never a
-  // fabricated verdict — Number(null) coerces to 0 (finite!), so converting BEFORE the nullish check let
+  // fabricated verdict - Number(null) coerces to 0 (finite!), so converting BEFORE the nullish check let
   // a missing bound masquerade as "the CI touches zero" and print "Not supported". Check nullish first.
   const result = (lo: unknown, hi: unknown) => {
     const loN = lo == null ? NaN : Number(lo)
@@ -119,12 +119,12 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   }
   const isMerged = spec.id === 'cb-sem'
   // Fix round (review findings 1+2): a direct-paths-only model never bootstraps (the runner's
-  // needsBootstrap gate = hasIndirect || moderation), so ciBcLower/Upper come back null — they must
-  // render as dashes via fx (the file's null→dash convention), never f01(Number(null)) = ".00" — and
+  // needsBootstrap gate = hasIndirect || moderation), so ciBcLower/Upper come back null - they must
+  // render as dashes via fx (the file's null→dash convention), never f01(Number(null)) = ".00" - and
   // ciPercLower/Upper hold delta-method (Wald) CIs from parameterEstimates, not bootstrap percentile
   // CIs, so the ciNote below must say so instead of the bootstrap-count (A&B) claim. Defaults to true:
   // every pre-existing hand-built CbSemResult fixture is bootstrap-shaped. Column headers deliberately
-  // stay "Percentile 95% CI"/"BC 95% CI" (static registry spec) — the note carries the honesty.
+  // stay "Percentile 95% CI"/"BC 95% CI" (static registry spec) - the note carries the honesty.
   const bootstrapped = r.bootstrapped !== false
   // All four CI cells share the fx null→dash guard; a nullish bound renders '—'.
   const ci = (v: unknown) => fx(v == null ? null : Number(v), f01)
@@ -191,7 +191,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       // CI provenance note (fix round). Bootstrapped runs keep the Andrews & Buchinsky (2000)
       // bootstrap-count disclosure (post-review amendment a): BC CIs are more resample-hungry than
       // percentile CIs; flagged when the run used fewer than 7,000 resamples. Non-bootstrapped runs
-      // (direct paths only — zero resamples were drawn) instead state what the CI columns really hold.
+      // (direct paths only - zero resamples were drawn) instead state what the CI columns really hold.
       if (bootstrapped) {
         const nboot = Number(r.nboot ?? 5000)
         if (nboot < 7000) {
@@ -206,7 +206,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       }
     }
   } else {
-    // PATH_ANALYSIS legacy shape — UNCHANGED from today: single 'ci' column, no H/spans/sections/Result.
+    // PATH_ANALYSIS legacy shape - UNCHANGED from today: single 'ci' column, no H/spans/sections/Result.
     if (r.structural?.length) {
       const rows = r.structural.map((row) => ({
         path:
@@ -239,12 +239,12 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   }
 
   // Conditional-effects table (U5-T2): same `moderation.slopes[]` numbers as the whiskered simple-slopes
-  // figure (runCbSem.ts) — percentile CI only (binding contract), independent of the isMerged/isPath
+  // figure (runCbSem.ts) - percentile CI only (binding contract), independent of the isMerged/isPath
   // branching above (moderation never appears in path-analysis mode, design §A7).
   // Fix round (multi-moderation regression): with 2+ moderation edges, slopes holds 3 rows PER edge, all
-  // sharing the same 3 `level` values — indistinguishable without the edge identity. Single-moderation
+  // sharing the same 3 `level` values - indistinguishable without the edge identity. Single-moderation
   // (the common case, and the one the master HTML/consistency test pin) keeps the EXACT static 5-column
-  // registry spec unchanged (same spec object, same columns array — byte-identical to today). Only when
+  // registry spec unchanged (same spec object, same columns array - byte-identical to today). Only when
   // >1 distinct moderation is present does the builder clone the spec with a prepended 'Moderation'
   // column (dynamic-columns-in-the-builder approach, since the registry spec is static per test id).
   if (r.moderation?.slopes.length) {
@@ -260,7 +260,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     tables.push({ spec: tableSpec, rows })
   }
 
-  // Notes (U3-T5 + U8-T4): CB-SEM (isMerged) was the labelled-notes worked example for A5 — the single
+  // Notes (U3-T5 + U8-T4): CB-SEM (isMerged) was the labelled-notes worked example for A5 - the single
   // giant tableNote is replaced by several bold-labelled one-liners, content-preserving (every clause
   // from CB_SEM's old tableNote.text maps to exactly one labelled note; nothing dropped, nothing added).
   // PATH_ANALYSIS (legacy shape) gets the SAME U8-T4 treatment below, reusing the mechanism, not
@@ -297,7 +297,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       notes.push({ label: 'Moderation', text: disclosureText ? `${modStatic} ${disclosureText}` : modStatic })
     }
   } else {
-    // PATH_ANALYSIS labelled notes (U8-T4 sweep, reusing CB-SEM's U3-T5 mechanism — content-preserving
+    // PATH_ANALYSIS labelled notes (U8-T4 sweep, reusing CB-SEM's U3-T5 mechanism - content-preserving
     // split of pathAnalysis.ts's CURRENT tableNote.text, read in full before splitting; nothing dropped,
     // nothing added, no new claims). No table-number references to correct here (path-analysis's
     // tableNote never cited a "Table N"). No moderation scope-boundary sentence exists in the current
@@ -317,8 +317,8 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
 
   // Figure 0: a placeholder slot so the bundle manifest carries figure_path-diagram.png; the REAL
   // annotated-SVG PNG is layered in ResultsScreen.download() via captureNode (design §4.2), NOT produced
-  // here. Figure 1 (U5-T2): the simple-slopes plot IS produced here — real PNG bytes from runCbSem.ts's
-  // capturePlot — present only when moderation ran (optional FigureSpec; ResultPreviewCard's figureSlot
+  // here. Figure 1 (U5-T2): the simple-slopes plot IS produced here - real PNG bytes from runCbSem.ts's
+  // capturePlot - present only when moderation ran (optional FigureSpec; ResultPreviewCard's figureSlot
   // fix keeps this from being masked by the live canvas, which only ever covers figure 0).
   const figs = figuresOf(spec)
   const figures: CardContent['figures'] = [
@@ -327,7 +327,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   ].filter((x): x is NonNullable<typeof x> => x != null)
 
   // U8-T4: aggregate helpers for cb-sem/path-analysis's open-cardinality tables (documented aggregate
-  // convention, same as multiple-linear-regression's vifMax) — a flat `values` lookup can't hold one
+  // convention, same as multiple-linear-regression's vifMax) - a flat `values` lookup can't hold one
   // number per dynamic-length item/construct/path row, so several explainer keys below report the
   // range actually observed in THIS run's table instead of picking one arbitrary row.
   const nums = (rows: Array<Record<string, unknown>>, key: string) =>
@@ -341,13 +341,13 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
 
   // U8-T3/U8-T4: keyed to match the 'cb-sem' EXPLAINERS entries (cfi, rmsea, tli, srmr, chisq, chisqDf,
   // mean, sd, b, se, z, std, omega, alpha, cr, ave, beta, h, percLower, percUpper, bcLower, bcUpper,
-  // result — rmseaLower/rmseaUpper convention, T1-review MUST) and the 'path-analysis' EXPLAINERS entries
+  // result - rmseaLower/rmseaUpper convention, T1-review MUST) and the 'path-analysis' EXPLAINERS entries
   // (b, se, z, p, beta, ci, r2, est) in registry/explainers.ts. isMerged/isPath are mutually exclusive per
   // call (one spec.id at a time), so the two cards' distinctly-named keys below never collide; fit values
   // stay empty (not partially-undefined) when fit is suppressed for saturation, mirroring the fit-indices
-  // table's own `r.fit && !saturated` gate — a saturated model's fit indices are "not informative", so no
+  // table's own `r.fit && !saturated` gate - a saturated model's fit indices are "not informative", so no
   // explainer line should quote them either. EFA-preamble keys (kmo/bartlettChisq/df/p/f1/f2/communality)
-  // have registry entries for coverage but stay unpopulated on purpose — the E1/E2 EFA-preamble stage
+  // have registry entries for coverage but stay unpopulated on purpose - the E1/E2 EFA-preamble stage
   // (design §U3-T4) isn't wired into this runner yet (r.efaSuitability/efaLoadings are still-undefined
   // placeholders on CbSemResult), so those lines correctly self-skip via TermExplainers' guard, exactly
   // as the E1/E2 TABLES themselves are omitted today.
@@ -396,7 +396,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         ...rekey(rangeOf(nums(r.structural ?? [], 'ciBcLower'), f01), 'bcLower'),
         ...rekey(rangeOf(nums(r.structural ?? [], 'ciBcUpper'), f01), 'bcUpper'),
         nModerationEdges: new Set((r.moderation?.rows ?? []).map((row) => row.moderatorName)).size,
-        // Conditional-effects table's own 'ci' column (simple-slope boot 95% CI) — both bounds combined
+        // Conditional-effects table's own 'ci' column (simple-slope boot 95% CI) - both bounds combined
         // into one span, since (unlike the structural-paths table) it renders as a single bracketed
         // column, not separate Lower/Upper columns.
         ...rekey(rangeOf((r.moderation?.slopes ?? []).flatMap((s) => [s.ciPercLower, s.ciPercUpper]).filter((n) => Number.isFinite(n)), f01), 'condCi'),
