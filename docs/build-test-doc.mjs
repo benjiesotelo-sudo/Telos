@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 // Assemble ONE self-contained audit HTML per test from its docs/test-documentation/<dir> artifacts.
-// Usage: node docs/build-test-doc.mjs 05_independent-t-test [more dirs...]
+// Usage: npx tsx docs/build-test-doc.mjs 05_independent-t-test [more dirs...]
+//   (tsx, not plain node — see the registry import below, same pattern as scripts/gen-test-tree.ts)
 // Output: docs/test-documentation/<dir>.html (single file, all assets base64-embedded).
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdtempSync, rmSync, copyFileSync } from 'node:fs'
 import { join, basename } from 'node:path'
 import { tmpdir } from 'node:os'
 import { execSync } from 'node:child_process'
+import { citationsTxt } from '../src/lib/registry/citations.ts'
 
 const ROOT = join(import.meta.dirname, 'test-documentation')
 
@@ -64,7 +66,8 @@ function runNativeR(dir) {
 function build(dir, { skipR } = {}) {
   const d = join(ROOT, dir)
   const [nn, ...rest] = dir.split('_')
-  const name = rest.join('-').replace(/-/g, ' ')
+  const id = rest.join('-') // catalog id, e.g. "independent-t-test" — dirs are "NN_<catalog-id>"
+  const name = id.replace(/-/g, ' ')
   const commit = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim()
   const today = new Date().toISOString().slice(0, 10)
 
@@ -179,8 +182,12 @@ ${tablePngs.map((f) => img(join(exportDir, sub, f), f.replace('.png', '').replac
 ${figurePngs.map((f) => img(join(exportDir, sub, f), f.replace('.png', '').replace(/_/g, ' '))).join('\n')}
 </div></section>
 
-<section id="citations"><h2><span class="n">6</span>Citations (CITATIONS.txt)</h2>
-<pre><code>${esc(citations)}</code></pre></section>
+<section id="citations"><h2><span class="n">6</span>Citations &amp; statistical basis</h2>
+<h3>Statistical basis for this test</h3>
+<p class="hint">Why this test was recommended and the methodological references behind each on-screen claim, straight from the registry (source of truth for the on-screen/PDF/LaTeX footers).</p>
+<pre><code>${esc(citationsTxt([id]))}</code></pre>
+<details><summary>Full CITATIONS.txt (exported reference kit)</summary><pre><code>${esc(citations)}</code></pre></details>
+</section>
 
 <section id="manifest"><h2><span class="n">7</span>Artifact manifest</h2>
 ${readme ? `<details><summary>Harness README</summary><pre><code>${esc(readme)}</code></pre></details>` : ''}
