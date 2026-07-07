@@ -19,6 +19,9 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
 
   // Detect whether the model included an interaction term.
   const hasInteractions = r.rows.some((row) => row.source.includes('×'))
+  // Headline row for the term-led explainers: the interaction row takes priority when modelled
+  // (mirrors howToRead's "a significant interaction usually takes priority"), else the first factor row.
+  const headlineRow = hasInteractions ? r.rows.find((row) => row.source.includes('×'))! : r.rows[0]
 
   // Build APA sentence.
   let apa: string
@@ -77,12 +80,21 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
     nExcluded: r.nExcluded,
   }
 
+  // U8-T4: keyed to match the 'factorial-anova' EXPLAINERS entries in registry/explainers.ts.
+  const values = {
+    source: headlineRow.source, ss: f(headlineRow.ss), df: fdf(headlineRow.df),
+    ms: f(headlineRow.ms), f: f(headlineRow.f),
+    p: fpApa(headlineRow.p), pSig: headlineRow.p < r.alpha ? 'below' : 'at or above', alpha: String(r.alpha),
+    pes: f01(headlineRow.pes), pesLow: f01(headlineRow.pesLow), pesHigh: f01(headlineRow.pesHigh),
+    nCells: String(r.desc.length),
+  }
+
   if (filteredSE.length === 0) {
     // Decision 2: nothing significant — omit Table 3 entirely
-    return { tables: [table1, table2], ...base }
+    return { tables: [table1, table2], ...base, values }
   }
 
   const t3cols = spec.tables[2].columns.map((c) => c.key === 'ci' ? { ...c, label: ciLabel } : c)
   const table3 = { spec: { ...spec.tables[2], columns: t3cols }, rows: seTableRows(filteredSE, { f, fp }) }
-  return { tables: [table1, table2, table3], ...base }
+  return { tables: [table1, table2, table3], ...base, values }
 }

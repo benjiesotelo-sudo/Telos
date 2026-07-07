@@ -120,9 +120,10 @@ export interface CardContent {
   howToRead: string
   apa: string
   nExcluded: number
-  // A5 (U8-T3 wires this per builder): flat lookup of the numbers already computed for this run, keyed
-  // to match EXPLAINERS[id][].key. Optional for now - only the 6 representative builders populate it;
-  // U8-T3 makes it required and wires the remaining builders.
+  // A5 (U8-T3/U8-T4): flat lookup of the numbers already computed for this run, keyed to match
+  // EXPLAINERS[id][].key. Every builder now populates it (U8-T4 completed the remaining 42 cards);
+  // stays optional in the type since ResultPreviewCard already guards on `content.values` being
+  // present and non-empty before rendering "Understanding the numbers".
   values?: ResultValues
 }
 export type RunProgress = (p: { message: string; elapsedMs?: number; estMs?: number }) => void

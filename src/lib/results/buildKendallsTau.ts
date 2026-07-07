@@ -22,5 +22,9 @@ export function buildKendallsTau(spec: TestSpec, r: KendallsTauResult): CardCont
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      tau: f(r.tau), tauLow: f(r.tauLow), tauHigh: f(r.tauHigh),
+      z: f(r.z), p: fpApa(r.p), n: String(r.n), alpha: String(r.alpha),
+    },
   }
 }

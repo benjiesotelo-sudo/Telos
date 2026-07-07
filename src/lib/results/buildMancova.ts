@@ -38,5 +38,13 @@ export function buildMancova(spec: TestSpec, r: MancovaResult): CardContent {
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // U8-T4: keyed to match the 'mancova' EXPLAINERS entries in registry/explainers.ts.
+    // Headline = factorRow (already computed above for the APA sentence).
+    values: {
+      effect: factorRow.effect, stat: f(factorRow.stat), statLabel,
+      f: f(factorRow.f), df1: fdf(factorRow.df1), df2: fdf(factorRow.df2),
+      p: fpApa(factorRow.p), pSig: factorRow.p < r.alpha ? 'below' : 'at or above', alpha: String(r.alpha),
+      nDVs: String(r.followups.length),
+    },
   }
 }

@@ -71,4 +71,10 @@ describe('buildRandomEffects', () => {
     expect(note.text).toContain('Swamy–Arora —')
     expect(note.text).not.toMatch(/NaN/)
   })
+
+  it('A5: values carries the term-led explainer lookup (GOF + the first non-intercept predictor B)', () => {
+    expect(buildRandomEffects(RANDOM_EFFECTS, mock()).values).toEqual({
+      n: '96', nentities: '12', r2: '0.98', adjr2: '0.98', est: '−4.05',
+    })
+  })
 })

@@ -56,5 +56,13 @@ export function buildManova(spec: TestSpec, r: ManovaResult): CardContent {
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // U8-T4: keyed to match the 'manova' EXPLAINERS entries in registry/explainers.ts.
+    // Headline = mv (the first multivariate-test row, already computed above for the APA sentence).
+    values: {
+      effect: mv.effect, stat: f(mv.stat), statLabel,
+      f: f(mv.f), df1: fdf(mv.df1), df2: fdf(mv.df2),
+      p: fpApa(mv.p), pSig: mv.p < r.alpha ? 'below' : 'at or above', alpha: String(r.alpha),
+      nDVs: String(r.followups.length),
+    },
   }
 }

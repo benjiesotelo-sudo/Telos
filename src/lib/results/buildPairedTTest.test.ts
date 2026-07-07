@@ -46,4 +46,11 @@ describe('buildPairedTTest', () => {
   it('carries the figure with its type for alt-text and export naming', () => {
     expect(c.figures).toEqual([{ caption: 'Change per case', type: 'difference', png: r.figurePng }])
   })
+  it('values carries the numbers the term explainers reference (U8-T4)', () => {
+    expect(c.values).toEqual({
+      conditionA: 'pre', conditionB: 'post', n: '6', meanA: '70.33', meanB: '82.33', sdA: '3.14', sdB: '3.78',
+      t: '−10.39', df: '5', p: '< .001', mdiff: '−12.00', ci: '[−14.97, −9.03]',
+      d: '−4.24', dlo: '−6.90', dhi: '−1.58',
+    })
+  })
 })

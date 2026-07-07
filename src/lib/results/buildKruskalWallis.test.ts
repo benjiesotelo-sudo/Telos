@@ -70,6 +70,16 @@ describe('buildKruskalWallis', () => {
     expect(c.apa).toBe('A Kruskal-Wallis test gave H(2)=6.56, p = .038, ε²=.11 [.03, 1.00].')
   })
 
+  it('values carries the numbers the term explainers reference (U8-T4), aggregating the 3-group rank rows by low/high', () => {
+    expect(c.values).toEqual({
+      h: '6.56', df: '2', p: '= .038', eps2: '0.11', eps2lo: '0.03', eps2hi: '1.00',
+      n: '60',
+      meanRankLowGroup: 'control', meanRankLowVal: '24.90', meanRankHighGroup: 'drug_b', meanRankHighVal: '38.45',
+      medianLowGroup: 'control', medianLowVal: '33.55', medianHighGroup: 'drug_b', medianHighVal: '38.70',
+      iqrLowGroup: 'drug_b', iqrLowVal: '6.60', iqrHighGroup: 'drug_a', iqrHighVal: '11.97',
+      padj: '.042', padjPair: 'control - drug_b', z: '2.45',
+    })
+  })
   it('p<.001 branch flips correctly', () => {
     const c2 = buildKruskalWallis(spec, { ...spikeResult, p: 0.0005 })
     expect(c2.apa).toContain('p < .001')

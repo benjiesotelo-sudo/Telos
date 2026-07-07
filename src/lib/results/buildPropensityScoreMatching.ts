@@ -28,6 +28,8 @@ export function buildPropensityScoreMatching(spec: TestSpec, r: PsmResult): Card
     .replace('{hi}', f(r.attHi))
     .replace('p {p}', `p ${fpApa(r.attP)}`)
   const figs = figuresOf(spec)
+  // A5 (U8-T4): the first covariate's balance row stands in for the multi-row balance table.
+  const firstBal = r.balance[0]
   return {
     tables: [
       { spec: spec.tables[0], rows: balanceRows },
@@ -38,5 +40,12 @@ export function buildPropensityScoreMatching(spec: TestSpec, r: PsmResult): Card
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      covariate: firstBal ? firstBal.covariate : undefined,
+      smdPre: firstBal ? f(firstBal.smdPre) : undefined,
+      smdPost: firstBal ? f(firstBal.smdPost) : undefined,
+      varRatio: firstBal ? f(firstBal.varRatio) : undefined,
+      est: f(r.attB), matchedN: gofValue.matchedN, treatedN: gofValue.treatedN, controlN: gofValue.controlN,
+    },
   }
 }

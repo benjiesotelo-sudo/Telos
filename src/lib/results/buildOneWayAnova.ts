@@ -31,7 +31,16 @@ export function buildOneWayAnova(spec: TestSpec, r: OneWayAnovaResult): CardCont
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
-    // U8-T3: keyed to match the 'one-way-anova' EXPLAINERS entries (f, eta2) in registry/explainers.ts.
-    values: { df1: fdf(r.dfB), df2: fdf(r.dfW), f: f(r.f), eta2: f01(r.eta2), eta2lo: f01(r.eta2Low), eta2hi: f01(r.eta2High) },
+    // U8-T3/U8-T4: keyed to match the 'one-way-anova' EXPLAINERS entries (f, eta2, p, source, ss, ms,
+    // df, n, m, sd, mdiff, se, padj, ci) in registry/explainers.ts. Between/Within are the only two
+    // source-table rows (always exactly 2 for a one-way design), so their SS/MS are carried directly;
+    // the descriptives and post-hoc tables are open-cardinality (3+ groups / C(n,2) pairs), so their
+    // per-row numbers stay in the tables themselves — values carries totals/labels for a generic
+    // interpret() instead of picking one arbitrary row.
+    values: {
+      df1: fdf(r.dfB), df2: fdf(r.dfW), f: f(r.f), eta2: f01(r.eta2), eta2lo: f01(r.eta2Low), eta2hi: f01(r.eta2High),
+      p: fpApa(r.p), ssB: f(r.ssB), ssW: f(r.ssW), msB: f(r.msB), msW: f(r.msW),
+      nGroups: r.desc.length, totalN: r.desc.reduce((s, g) => s + g.n, 0), posthocMethod: r.posthocMethod,
+    },
   }
 }

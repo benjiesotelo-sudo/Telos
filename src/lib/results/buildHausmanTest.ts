@@ -35,6 +35,8 @@ export function buildHausmanTest(spec: TestSpec, r: HausmanResult): CardContent 
     .replace('{chisq}', f(r.chisq))
     .replace('p {p}', `p ${fpApa(r.p)}`)
   const figs = figuresOf(spec)
+  // A5 (U8-T4): the first compared term stands in for the multi-row FE|RE|Difference table.
+  const firstCompare = r.compareRows[0]
   return {
     tables: [{ spec: t, rows }],
     note: spec.tableNote ?? null,
@@ -42,5 +44,12 @@ export function buildHausmanTest(spec: TestSpec, r: HausmanResult): CardContent 
     howToRead: spec.howToRead + ` The standard errors in parentheses are clustered by entity; the bracketed line is the ${pct}% CI. Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      n: String(r.nObs), nentities: String(r.nEntities),
+      r2: `FE ${f01(r.feR2)} / RE ${f01(r.reR2)}`,
+      fe: firstCompare ? f(firstCompare.feB) : undefined,
+      re: firstCompare ? f(firstCompare.reB) : undefined,
+      diff: firstCompare ? f(firstCompare.diff) : undefined,
+    },
   }
 }

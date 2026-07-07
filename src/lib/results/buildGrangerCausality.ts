@@ -26,5 +26,7 @@ export function buildGrangerCausality(spec: TestSpec, r: GrangerResult): CardCon
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // A5 (U8-T4): the X→Y row stands in for the two-direction table (matches the APA line's lead direction).
+    values: { direction: xy.direction, f: f(xy.f), df: `${fdf(xy.df1)}, ${fdf(xy.df2)}`, p: fp(xy.p) },
   }
 }

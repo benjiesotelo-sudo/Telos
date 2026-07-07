@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildManova } from './buildManova'
 import { MANOVA as spec } from '../registry/manova'
 import type { ManovaResult } from '../stats/manova'
+import { f, fdf, fpApa } from '../format/apa'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
@@ -100,6 +101,16 @@ describe('buildManova', () => {
 
     it('nExcluded passthrough', () => {
       expect(c.nExcluded).toBe(0)
+    })
+
+    it('values: keyed for the term-led explainers, headline = the first (only) multivariate row', () => {
+      const mv = pillaiResult.multivariate[0]
+      expect(c.values).toEqual({
+        effect: mv.effect, stat: f(mv.stat), statLabel: "Pillai's V",
+        f: f(mv.f), df1: fdf(mv.df1), df2: fdf(mv.df2),
+        p: fpApa(mv.p), pSig: 'below', alpha: '0.05',
+        nDVs: '2',
+      })
     })
   })
 

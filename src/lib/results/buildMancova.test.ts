@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildMancova } from './buildMancova'
 import { MANCOVA as spec } from '../registry/mancova'
 import type { MancovaResult } from '../stats/mancova'
+import { f, fdf, fpApa } from '../format/apa'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
@@ -78,6 +79,16 @@ describe('buildMancova', () => {
 
   it('nExcluded passes through', () => {
     expect(c.nExcluded).toBe(0)
+  })
+
+  it('values: keyed for the term-led explainers, headline = the last (factor) multivariate row', () => {
+    const factorRow = spikeResult.multivariate[1] // 'group' — the last row (formula: covs + factors)
+    expect(c.values).toEqual({
+      effect: factorRow.effect, stat: f(factorRow.stat), statLabel: "Pillai's V",
+      f: f(factorRow.f), df1: fdf(factorRow.df1), df2: fdf(factorRow.df2),
+      p: fpApa(factorRow.p), pSig: 'below', alpha: '0.05',
+      nDVs: '2',
+    })
   })
 
   it('Wilks-selected result: APA uses Wilks label and selected stat values (owner ruling)', () => {

@@ -24,5 +24,17 @@ export function buildWilcoxonSignedRank(spec: TestSpec, r: WilcoxonSignedRankRes
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
+    // U8-T4: keyed to match the 'wilcoxon-signed-rank' EXPLAINERS entries in registry/explainers.ts.
+    // ranks is fixed-order [Positive, Negative, Ties]; mean rank/sum of ranks are only meaningful for the
+    // Positive/Negative groups (Ties carries no signed rank), so only those two are surfaced.
+    values: {
+      nPos: String(r.ranks[0].n), nNeg: String(r.ranks[1].n), nTies: String(r.ranks[2].n),
+      meanRankPos: fx(r.ranks[0].meanRank, f), meanRankNeg: fx(r.ranks[1].meanRank, f),
+      sumRanksPos: r.ranks[0].n === 0 ? '—' : f(r.ranks[0].sumRanks),
+      sumRanksNeg: r.ranks[1].n === 0 ? '—' : f(r.ranks[1].sumRanks),
+      v: f(r.v), z: f(r.z), p: fpApa(r.p),
+      r: f(r.r), rlo: f(r.rLow), rhi: f(r.rHigh),
+      hl: `${fx(r.hl, f)} [${fx(r.hlLow, f)}, ${fx(r.hlHigh, f)}]`,
+    },
   }
 }

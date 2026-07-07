@@ -22,5 +22,9 @@ export function buildSpearman(spec: TestSpec, r: SpearmanResult): CardContent {
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      rho: f(r.rho), rhoLow: f(r.rhoLow), rhoHigh: f(r.rhoHigh),
+      s: fdf(r.s), p: fpApa(r.p), n: String(r.n), alpha: String(r.alpha),
+    },
   }
 }

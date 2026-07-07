@@ -4,6 +4,19 @@ import type { ChiSquareGofResult } from '../stats/chiSquareGof'
 import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa } from '../format/apa'
 
+// A5: per-category rows (observed/expected/stdres) have no single row to bind to, so those explainers
+// report the range across categories — a real aggregate of the already-computed per-category numbers.
+const rangeInt = (nums: number[]) => {
+  if (!nums.length) return '—'
+  const lo = Math.min(...nums), hi = Math.max(...nums)
+  return lo === hi ? String(lo) : `${lo}–${hi}`
+}
+const rangeF = (nums: number[]) => {
+  if (!nums.length) return '—'
+  const lo = Math.min(...nums), hi = Math.max(...nums)
+  return lo === hi ? f(lo) : `${f(lo)}–${f(hi)}`
+}
+
 export function buildChiSquareGof(spec: TestSpec, r: ChiSquareGofResult): CardContent {
   const apa = spec.apaTemplate
     .replace('{df}', fdf(r.df)) // the drawn "k−1" slot carries the real df at runtime (recorded decision 2)
@@ -21,5 +34,13 @@ export function buildChiSquareGof(spec: TestSpec, r: ChiSquareGofResult): CardCo
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      category: String(r.rows.length),
+      observed: rangeInt(r.rows.map((x) => x.observed)),
+      expected: rangeF(r.rows.map((x) => x.expected)),
+      stdres: rangeF(r.rows.map((x) => Math.abs(x.stdRes))),
+      chisq: f(r.chisq), df: fdf(r.df), n: String(r.n), p: fpApa(r.p), alpha: String(r.alpha),
+      w: f01(r.w), wLow: f01(r.wLow), wHigh: f01(r.wHigh),
+    },
   }
 }

@@ -36,5 +36,11 @@ export function buildStationarityTests(spec: TestSpec, r: StationarityResult): C
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // A5 (U8-T4): the ADF row stands in for the 3-row table (test/statistic/lag/p/conclusion are per-row);
+    // 'test' lists all three tests reported, matching the card's own "reconciles them" framing.
+    values: {
+      test: r.rows.map((x) => x.test).join(', '),
+      statistic: f(adf.statistic), lag: String(adf.lag), p: pCell(adf), conclusion: adf.conclusion,
+    },
   }
 }

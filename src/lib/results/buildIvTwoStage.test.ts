@@ -60,4 +60,11 @@ describe('buildIvTwoStage', () => {
   it('note is the static descriptive tableNote, unchanged (live diagnostics now live in span rows)', () => {
     expect(buildIvTwoStage(IV_TWO_STAGE, mock()).note).toEqual(IV_TWO_STAGE.tableNote)
   })
+
+  it('A5: values carries the term-led explainer lookup (first-stage row + endogenous OLS/IV + gof)', () => {
+    expect(buildIvTwoStage(IV_TWO_STAGE, mock()).values).toEqual({
+      instrument: 'educ_iv', coef: '1.16', se: '0.06', partialF: '438.50', p: '<.001',
+      ols: '9.57', iv: '7.82', n: '200', rmse: '6.67', structF: '373.44',
+    })
+  })
 })

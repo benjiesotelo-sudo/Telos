@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildMixedAnova } from './buildMixedAnova'
 import { MIXED_ANOVA as spec } from '../registry/mixedAnova'
 import type { MixedAnovaResult } from '../stats/mixedAnova'
+import { f, f01, fdf, fpApa } from '../format/apa'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
@@ -133,5 +134,24 @@ describe('buildMixedAnova', () => {
     const c3 = buildMixedAnova(spec, r3)
     expect(c3.tables).toHaveLength(3)
     expect(c3.tables[2].spec.id).toBe('sphericity')
+  })
+
+  it('values: keyed for the term-led explainers, headline = the Group × Condition interaction row', () => {
+    const inter = result.anovaRows[2]
+    const sph0 = result.sphericity[0]
+    expect(c.values).toEqual({
+      source: inter.source, ss: f(inter.ss), df: fdf(inter.df1), ms: f(inter.ms), f: f(inter.f),
+      p: fpApa(inter.p), pSig: 'at or above', alpha: '0.05',
+      pes: f01(inter.pes), pesLow: f01(inter.pesLow), pesHigh: f01(inter.pesHigh),
+      nRows: '9',
+      effect: sph0.effect, w: f(sph0.w), gg: f(sph0.ggEps), hf: f(sph0.hfEps),
+    })
+  })
+
+  it('values omit sphericity keys when the 2-level (sphericity-empty) case is passed', () => {
+    const r2 = { ...result, sphericity: [], posthoc: [] }
+    const c2 = buildMixedAnova(spec, r2)
+    expect(c2.values!.effect).toBeUndefined()
+    expect(c2.values!.w).toBeUndefined()
   })
 })

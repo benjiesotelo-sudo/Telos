@@ -53,9 +53,16 @@ export function buildDid(spec: TestSpec, r: DidResult): CardContent {
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
-    // U8-T3: keyed to match the 'did' EXPLAINERS entry (b) in registry/explainers.ts, reusing the same
-    // `did` row the apa sentence above already found. Empty when the Treated×Post term is absent (should
-    // not happen in practice) so the whole "Understanding the numbers" section is skipped, not half-broken.
-    values: did ? { b: f(did.b), lo: f(did.ciLow), hi: f(did.ciHigh), p: fpApa(did.p) } : {},
+    // U8-T3/U8-T4: keyed to match the 'did' EXPLAINERS entries (est, n, nentities, r2within, f) in
+    // registry/explainers.ts. `est` (renamed from the old `b` — 'est' is the coef table's actual column
+    // key, per the registry's `models: [{ key: 'est', ... }]`) reuses the same `did` row the apa sentence
+    // above already found; the gof numbers reuse the exact `gofValue` strings the footer rows already
+    // render. The est/lo/hi/p group is omitted (not present, not undefined-filled) when the Treated×Post
+    // term is absent (edge case: a fitted model with no interaction term) — the gof numbers still stand
+    // on their own, so only the DiD-specific explainer lines are skipped, not the whole section.
+    values: {
+      n: gofValue.n, nentities: gofValue.nentities, r2within: gofValue.r2within, f: gofValue.f,
+      ...(did ? { est: f(did.b), lo: f(did.ciLow), hi: f(did.ciHigh), p: fpApa(did.p) } : {}),
+    },
   }
 }

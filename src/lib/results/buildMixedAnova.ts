@@ -71,6 +71,20 @@ export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardConten
     })
   }
 
+  // U8-T4: keyed to match the 'mixed-anova' EXPLAINERS entries in registry/explainers.ts.
+  // Headline = the Group × Condition interaction row (`inter`, already computed above for the APA
+  // sentence) — mirrors howToRead's "read the interaction first". Sphericity fields are added only
+  // when a row exists this run; the omitted key filters itself out via TermExplainers.tsx's
+  // undefined/NaN guard.
+  const sph0 = r.sphericity[0]
+  const values = {
+    source: inter.source, ss: f(inter.ss), df: fdf(inter.df1), ms: f(inter.ms), f: f(inter.f),
+    p: fpApa(inter.p), pSig: inter.p < r.alpha ? 'below' : 'at or above', alpha: String(r.alpha),
+    pes: f01(inter.pes), pesLow: f01(inter.pesLow), pesHigh: f01(inter.pesHigh),
+    nRows: String(r.desc.length),
+    ...(sph0 ? { effect: sph0.effect, w: f(sph0.w), gg: f(sph0.ggEps), hf: f(sph0.hfEps) } : {}),
+  }
+
   return {
     tables,
     note,
@@ -78,5 +92,6 @@ export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardConten
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values,
   }
 }

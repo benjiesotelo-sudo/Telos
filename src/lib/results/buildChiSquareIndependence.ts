@@ -41,5 +41,10 @@ export function buildChiSquareIndependence(spec: TestSpec, r: ChiSquareIndepende
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      chisq: f(r.chisq), df: fdf(r.df), n: String(r.n), p: fpApa(r.p), alpha: String(r.alpha),
+      v: f01(r.v), vLow: f01(r.vLow), vHigh: f01(r.vHigh),
+      rows: String(R), cols: String(C), minExpected: f1(r.minExpected),
+    },
   }
 }

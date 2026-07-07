@@ -96,7 +96,10 @@ describe('buildOneWayAnova (pure, no engine)', () => {
   it('nExcluded is 0', () => {
     expect(c.nExcluded).toBe(0)
   })
-  it('values carries the numbers the term explainers reference (U8-T3)', () => {
-    expect(c.values).toEqual({ df1: '2', df2: '57', f: '2.81', eta2: '.09', eta2lo: '.00', eta2hi: '1.00' })
+  it('values carries the numbers the term explainers reference (U8-T3/U8-T4)', () => {
+    expect(c.values).toEqual({
+      df1: '2', df2: '57', f: '2.81', eta2: '.09', eta2lo: '.00', eta2hi: '1.00', p: '= .069',
+      ssB: '260.68', ssW: '2648.49', msB: '130.34', msW: '46.46', nGroups: 3, totalN: 60, posthocMethod: 'Tukey HSD',
+    })
   })
 })

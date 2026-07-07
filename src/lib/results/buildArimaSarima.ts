@@ -39,6 +39,9 @@ export function buildArimaSarima(spec: TestSpec, r: ArimaSarimaResult): CardCont
     .replace('{pdq}', pdq).replace('{PDQ}', PDQ)
     .replace('{aic}', f(r.aic)).replace('{ljungbox_p}', fpApa(r.ljungboxP))
   const figs = figuresOf(spec)
+  // A5 (U8-T4): the first (nearest-term) coefficient / forecast row stands in for the multi-row tables.
+  const firstCoef = r.coefs[0]
+  const firstForecast = r.forecastRows[0]
   return {
     tables: [
       { spec: spec.tables[0], rows: summaryRows },
@@ -52,5 +55,13 @@ export function buildArimaSarima(spec: TestSpec, r: ArimaSarimaResult): CardCont
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      ...gofValue, ljungbox,
+      est: firstCoef ? f(firstCoef.estimate) : undefined,
+      period: firstForecast ? String(firstForecast.period) : undefined,
+      forecast: firstForecast ? f(firstForecast.forecast) : undefined,
+      pi80: firstForecast ? `[${f(firstForecast.lo80)}, ${f(firstForecast.hi80)}]` : undefined,
+      pi95: firstForecast ? `[${f(firstForecast.lo95)}, ${f(firstForecast.hi95)}]` : undefined,
+    },
   }
 }

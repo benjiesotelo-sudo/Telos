@@ -102,5 +102,12 @@ export function buildEfa(spec: TestSpec, r: EfaResult): CardContent {
     howToRead: spec.howToRead,
     apa,
     nExcluded: 0,
+    // U8-T4: keyed to match the 'efa' EXPLAINERS entries (bartlettChisq, communality, cumPct, df,
+    // eigenvalue, f1, f2, factor, kmo, p, pctVar) in registry/explainers.ts. T1 (suitability) is a single
+    // row, so kmo/bartlettChisq/df/p weave the real run numbers; the retained-factor count and the total
+    // cumulative variance (same number the APA sentence reports) are genuine single run-level facts even
+    // though their own table (T2) is per-factor; T2's eigenvalue/pctVar and T3's per-item loadings/
+    // communality stay generic (open-cardinality, no single "the" value).
+    values: { kmo: f01(r.kmo), bartlettChisq: r.bartlettChisq.toFixed(1), df: String(r.bartlettDf), p: fp(r.bartlettP), nFactors: r.retain, totalCumPct: cumPct.toFixed(1) },
   }
 }

@@ -57,4 +57,10 @@ describe('buildGrangerCausality', () => {
     expect((note as { text: string }).text).toContain('max lag of 4')
     expect((note as { text: string }).text).toContain('AIC/BIC (vars::VARselect)')
   })
+
+  it('A5: values carries the term-led explainer lookup (the X→Y row)', () => {
+    expect(buildGrangerCausality(GRANGER_CAUSALITY, mock()).values).toEqual({
+      direction: 'X→Y', f: '47.89', df: '4, 63', p: '<.001',
+    })
+  })
 })

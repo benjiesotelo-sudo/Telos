@@ -37,7 +37,11 @@ describe('buildIndependentTTest', () => {
     expect(c.figures).toHaveLength(1)
     expect(c.figures[0].type).toBe('boxplot')
   })
-  it('values carries the numbers the term explainers reference (U8-T3)', () => {
-    expect(c.values).toEqual({ df: '9.68', t: '−5.98', p: '< .001', d: '−3.45', dlo: '−5.32', dhi: '−1.53' })
+  it('values carries the numbers the term explainers reference (U8-T3/U8-T4)', () => {
+    expect(c.values).toEqual({
+      g1: 'control', g2: 'treatment', n1: 6, n2: 6, mean1: '70.33', mean2: '82.33', sd1: '3.14', sd2: '3.78', se1: '1.28', se2: '1.54',
+      df: '9.68', t: '−5.98', p: '< .001', d: '−3.45', dlo: '−5.32', dhi: '−1.53',
+      mdiff: '−12.00', ci: '[−16.49, −7.51]', ciPct: 95,
+    })
   })
 })

@@ -26,7 +26,10 @@ export function buildFrequenciesCrosstabs(spec: TestSpec, r: FrequenciesResult):
       rows.push({ category: 'Missing', n: r.nExcluded, validpct: fx(null, pc), totalpct: pc(r.nExcluded / r.nTotal * 100), cumpct: fx(null, pc) })
     }
     return { ...base, note: r.nExcluded > 0 ? { kind: 'plain', text: FREQ_MISSING_NOTE } : null,
-      tables: [{ spec: spec.tables[0], rows }] }
+      tables: [{ spec: spec.tables[0], rows }],
+      // one-variable branch only — these keys are absent on the two-variable branch so its (unrelated) explainers stay hidden.
+      values: { category: String(r.freq!.length), n: String(r.nValid), validpct: String(r.nValid), totalpct: String(r.nTotal), cumpct: String(r.freq!.length) },
+    }
   }
   const ct = r.crosstab!
   // THE one sanctioned divergence from the registry spec: replace the drawn Col 1/Col 2/… placeholders with
@@ -44,5 +47,8 @@ export function buildFrequenciesCrosstabs(spec: TestSpec, r: FrequenciesResult):
   const totalRow: Record<string, string | number> = { rowcat: 'Total', total: String(ct.counts[R][C]) }
   ct.colCats.forEach((_, j) => { totalRow[`c${j}`] = String(ct.counts[R][j]) }) // margins: plain counts (their %s are 100% by construction)
   return { ...base, note: spec.tableNote ?? null,
-    tables: [{ spec: { ...spec.tables[1], columns }, rows: [...rows, totalRow] }] }
+    tables: [{ spec: { ...spec.tables[1], columns }, rows: [...rows, totalRow] }],
+    // two-variable branch only — 'category'/'n'/'validpct'/'totalpct'/'cumpct' stay absent so the one-variable explainers stay hidden.
+    values: { rowcat: String(R), c1: String(C), more: String(C), total: String(r.nValid) },
+  }
 }

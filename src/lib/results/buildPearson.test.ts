@@ -18,8 +18,8 @@ describe('buildPearson', () => {
     const c = buildPearson(PEARSON, res)
     expect(c.apa).toBe('hours_studied and exam_score were correlated, r(38)=.61, p < .001, 95% CI [0.37, 0.77].')
   })
-  it('values carries the numbers the term explainer references (U8-T3)', () => {
+  it('values carries the numbers the term explainer references (U8-T3/U8-T4)', () => {
     const c = buildPearson(PEARSON, res)
-    expect(c.values).toEqual({ df: '38', r: '.61', ciLow: '.37', ciHigh: '.77' })
+    expect(c.values).toEqual({ df: '38', r: '.61', ciLow: '.37', ciHigh: '.77', ci: '[.37, .77]', ciPct: 95, t: '4.78', p: '< .001', n: 40 })
   })
 })

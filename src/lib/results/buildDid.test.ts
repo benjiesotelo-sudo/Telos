@@ -90,8 +90,17 @@ describe('buildDid', () => {
     expect(c.apa).toContain('(classical SE)')
     expect(c.apa).not.toContain('(clustered SE)')
   })
-  it('values carries the DiD estimate the term explainer references (U8-T3)', () => {
+  it('values carries the DiD estimate + panel GOF numbers the term explainers reference (U8-T3/U8-T4)', () => {
     const c = buildDid(DID, mock())
-    expect(c.values).toEqual({ b: '1.53', lo: '1.29', hi: '1.76', p: '< .001' })
+    expect(c.values).toEqual({
+      n: '96', nentities: '12', r2within: '.84', f: 'F(2, 82) = 216.31, p < .001',
+      est: '1.53', lo: '1.29', hi: '1.76', p: '< .001',
+    })
+  })
+  it('values omits the interaction estimate (not undefined-filled) when the model has no Treated×Post term, but keeps the panel GOF numbers (edge case, U8-T4)', () => {
+    const c = buildDid(DID, mock({ coefRows: [{ term: 'po', b: 2.015083, se: 0.086275, t: 23.357, p: 1e-30, ciLow: 1.843456, ciHigh: 2.186711 }] }))
+    expect(c.values).toEqual({ n: '96', nentities: '12', r2within: '.84', f: 'F(2, 82) = 216.31, p < .001' })
+    expect(c.values).not.toHaveProperty('est')
+    expect(c.apa).toBe('The DiD estimate was B=—, 95% CI [—, —], p — (clustered SE).')
   })
 })

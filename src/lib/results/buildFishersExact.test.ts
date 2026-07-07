@@ -15,10 +15,18 @@ describe('buildFishersExact', () => {
     expect(c.tables[1].rows).toEqual([{ p: '.751', or: '0.67', ci: '[0.16, 2.73]', v: '—' }])
     expect(c.apa).toBe("A Fisher's exact test of passed by gender gave p = .751 (OR=0.67, 95% CI [0.16, 2.73]).")
   })
+  it('A5: 2×2 → values carries or/ci but not v (the branch where V is undefined)', () => {
+    const c = buildFishersExact(FISHERS_EXACT, base)
+    expect(c.values).toEqual({ p: '= .751', n: '40', alpha: '0.05', rows: '2', cols: '2', or: '0.67', ciLow: '0.16', ciHigh: '2.73' })
+  })
   it('non-2×2 → em-dash OR/CI cells, Cramér V populated, base APA only', () => {
     const c = buildFishersExact(FISHERS_EXACT, { ...base, is2x2: false, or: undefined, ciLow: undefined, ciHigh: undefined, p: 0.0834, v: 0.1986, vLow: 0, vHigh: 1 })
     expect(c.tables[1].rows).toEqual([{ p: '.083', or: '—', ci: '—', v: '0.20 [0.00, 1.00]' }])
     expect(c.apa).toBe("A Fisher's exact test of passed by gender gave p = .083.")
+  })
+  it('A5: non-2×2 → values carries v but not or/ci (the branch where OR is undefined)', () => {
+    const c = buildFishersExact(FISHERS_EXACT, { ...base, is2x2: false, or: undefined, ciLow: undefined, ciHigh: undefined, p: 0.0834, v: 0.1986, vLow: 0, vHigh: 1 })
+    expect(c.values).toEqual({ p: '= .083', n: '40', alpha: '0.05', rows: '2', cols: '2', v: '0.20', vLow: '0.00', vHigh: '1.00' })
   })
   it('non-2×2 with missing V → em-dash V cell (guard)', () => {
     const c = buildFishersExact(FISHERS_EXACT, { ...base, is2x2: false, or: undefined, ciLow: undefined, ciHigh: undefined, p: 0.0834, v: undefined, vLow: undefined, vHigh: undefined })

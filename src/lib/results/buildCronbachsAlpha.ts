@@ -43,5 +43,14 @@ export function buildCronbachsAlpha(spec: TestSpec, r: CronbachResult): CardCont
     howToRead: spec.howToRead,
     apa,
     nExcluded: 0, // listwise deletion is done inside runCronbachsAlpha; nExcluded is not separately tracked
+    // U8-T4: keyed to match the 'cronbachs-alpha' EXPLAINERS entries (alpha, alphaDropped, ci, nCases,
+    // nItems, omega, r) in registry/explainers.ts. Item-total r and alpha-if-dropped are per-item
+    // (open-cardinality) so their own explainers read generically off the table; alphaDropped's interpret
+    // still weaves the overall `alpha` value below for the "higher than the overall α" comparison.
+    values: {
+      omega: f01(r.omega), alpha: f01(displayAlpha),
+      ci: `[${f(r.omegaCi[0])}, ${f(r.omegaCi[1])}]`, ciLow: f(r.omegaCi[0]), ciHigh: f(r.omegaCi[1]),
+      nItems: r.nItems, nCases: r.nCases,
+    },
   }
 }

@@ -25,5 +25,11 @@ export function buildWelchAnova(spec: TestSpec, r: WelchAnovaResult): CardConten
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // U8-T4: keyed to match the 'welch-anova' EXPLAINERS entries in registry/explainers.ts.
+    values: {
+      f: f(r.f), df1: fdf(r.df1), df2: fdf(r.df2),
+      p: fpApa(r.p), pSig: r.p < r.alpha ? 'below' : 'at or above', alpha: String(r.alpha),
+      nGroups: String(r.desc.length),
+    },
   }
 }

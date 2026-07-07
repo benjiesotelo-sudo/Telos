@@ -81,4 +81,11 @@ describe('buildFixedEffects', () => {
     expect(c.apa).toContain('(classical SE)')
     expect(c.apa).not.toContain('(clustered SE)')
   })
+
+  it('A5: values carries the term-led explainer lookup (GOF + the first predictor B)', () => {
+    expect(buildFixedEffects(FIXED_EFFECTS, mock()).values).toEqual({
+      n: '96', nentities: '12', r2within: '.91', adjr2within: '.90', f: 'F(3, 81) = 288.78, p < .001',
+      est: '−5.57',
+    })
+  })
 })

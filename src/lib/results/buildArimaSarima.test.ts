@@ -60,4 +60,11 @@ describe('buildArimaSarima', () => {
     expect(c.figures.map((g) => g.file)).toEqual(['forecast', 'residuals'])
     expect(c.apa).toBe('An ARIMA(1,0,0)(0,0,0) model was fit (AIC=64.76); the Ljung–Box test of residual autocorrelation gave p = .405.')
   })
+  it('A5: values carries the term-led explainer lookup (GOF + first coef + first forecast row)', () => {
+    expect(buildArimaSarima(ARIMA_SARIMA, res).values).toEqual({
+      n: '48', sigma2: '0.21', ljungbox: 'Ljung–Box Q(9) = 9.36, p = .405 (lag 10, residual autocorrelation)',
+      aic: '64.76', bic: '70.37', ll: '−29.38',
+      est: '0.57', period: '1', forecast: '2.69', pi80: '[2.11, 3.27]', pi95: '[1.80, 3.58]',
+    })
+  })
 })

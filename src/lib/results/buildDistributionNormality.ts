@@ -4,6 +4,20 @@ import type { DistributionNormalityResult, VariableNormality } from '../stats/di
 import type { CardContent } from './builders'
 import { f, f01, fp, fpApa, fx } from '../format/apa'
 
+// A5: like summary-statistics, this card can run over several variables at once, so numeric explainers
+// report the range (or single value) across the reported variable(s) rather than binding to one row.
+const range = (nums: (number | null)[]) => {
+  const arr = nums.filter((n): n is number => typeof n === 'number' && Number.isFinite(n))
+  if (!arr.length) return '—'
+  const lo = Math.min(...arr), hi = Math.max(...arr)
+  return lo === hi ? f(lo) : `${f(lo)}–${f(hi)}`
+}
+const intRange = (nums: number[]) => {
+  if (!nums.length) return '—'
+  const lo = Math.min(...nums), hi = Math.max(...nums)
+  return lo === hi ? String(lo) : `${lo}–${hi}`
+}
+
 export function buildDistributionNormality(spec: TestSpec, r: DistributionNormalityResult): CardContent {
   // skew/kurtosis are per-variable (shared across both test rows, like N); excess kurtosis (psych type 3, normal = 0).
   const row = (v: VariableNormality, test: string, letter: 'W' | 'D', stat: number | null, p: number | null) =>
@@ -30,5 +44,17 @@ export function buildDistributionNormality(spec: TestSpec, r: DistributionNormal
     howToRead: spec.howToRead,
     apa: r.variables.length === 1 ? sentence(r.variables[0]) : r.variables.map((v) => `${v.variable}: ${sentence(v)}`).join(' '),
     nExcluded: 0, // the per-variable N column carries missingness (the summary-statistics recorded decision)
+    values: (() => {
+      const pvals = r.variables.flatMap((v) => [v.shapiro.p, v.ks.p]).filter((p): p is number => typeof p === 'number' && Number.isFinite(p))
+      return {
+        variable: String(r.variables.length),
+        test: String(r.variables.length),
+        statistic: pvals.length ? `${pvals.filter((p) => p < 0.05).length} of ${pvals.length}` : '—',
+        n: intRange(r.variables.map((v) => v.n)),
+        p: pvals.length ? `${pvals.filter((p) => p < 0.05).length} of ${pvals.length}` : '—',
+        skew: range(r.variables.map((v) => v.skew)),
+        kurtosis: range(r.variables.map((v) => v.kurtosis)),
+      }
+    })(),
   }
 }

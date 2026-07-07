@@ -74,13 +74,20 @@ describe('buildMultipleLinearRegression', () => {
     expect(buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res).apa)
       .toBe('The model explained R²=.75 of the variance, F(5,34)=20.42, p < .001; predictor pre_score gave B=0.61, p < .001.')
   })
-  it('values carries R² and a synthesized vifMax (the largest VIF across all reported terms) (U8-T3)', () => {
+  it('values carries R² and a synthesized vifMax (the largest VIF across all reported terms) (U8-T3/U8-T4)', () => {
     const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res)
-    expect(c.values).toEqual({ r2: '.75', vifMax: '1.41' })
+    expect(c.values).toEqual({
+      r2: '.75', vifMax: '1.41', rmse: '4.68', adjr2: '0.71', aic: '250.96', bic: '262.78', ll: '−118.48', n: 40, f: '20.42',
+      est: '0.61', beta: undefined, term: 'pre_score',
+    })
   })
   it('values.vifMax is undefined (not NaN/0) when every term VIF is null (k = 1)', () => {
     const one = { ...res, terms: res.terms.slice(0, 2).map((t) => ({ ...t, vif: null })) }
     const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, one)
     expect(c.values!.vifMax).toBeUndefined()
+  })
+  it('values.beta carries the standardized β for the first predictor when standardize is ON', () => {
+    const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, { ...res, standardize: true })
+    expect(c.values!.beta).toBe('0.78')
   })
 })

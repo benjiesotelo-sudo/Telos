@@ -36,5 +36,6 @@ export function buildRdd(spec: TestSpec, r: RddResult): CardContent {
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,
+    values: { ...gofValue, est: f(r.estimate) },
   }
 }

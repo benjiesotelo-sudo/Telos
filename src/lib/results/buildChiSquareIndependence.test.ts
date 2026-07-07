@@ -32,4 +32,10 @@ describe('buildChiSquareIndependence', () => {
     expect(buildChiSquareIndependence(CHI_SQUARE_INDEPENDENCE, res).apa)
       .toBe('A chi-square test of independence gave χ²(1, N=40)=0.20, p = .653, V=.10 [.00, 1.00].')
   })
+  it('A5: values carries the term-explainer lookup', () => {
+    expect(buildChiSquareIndependence(CHI_SQUARE_INDEPENDENCE, res).values).toEqual({
+      chisq: '0.20', df: '1', n: '40', p: '= .653', alpha: '0.05',
+      v: '.10', vLow: '.00', vHigh: '1.00', rows: '2', cols: '2', minExpected: '9.0',
+    })
+  })
 })

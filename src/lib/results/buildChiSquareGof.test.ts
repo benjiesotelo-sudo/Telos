@@ -22,4 +22,10 @@ describe('buildChiSquareGof', () => {
   it('APA renders the real df in the drawn k−1 slot, with w + its [95% CI]', () => {
     expect(buildChiSquareGof(CHI_SQUARE_GOF, res).apa).toBe('A goodness-of-fit test, χ²(2, N=40)=0.53, p = .766, w=.12 [.00, 1.41].')
   })
+  it('A5: values carries the term-explainer lookup, incl. per-category ranges', () => {
+    expect(buildChiSquareGof(CHI_SQUARE_GOF, res).values).toEqual({
+      category: '3', observed: '8–18', expected: '8.00–20.00', stdres: '0.00–0.68',
+      chisq: '0.53', df: '2', n: '40', p: '= .766', alpha: '0.05', w: '.12', wLow: '.00', wHigh: '1.41',
+    })
+  })
 })

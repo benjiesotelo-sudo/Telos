@@ -66,4 +66,10 @@ describe('buildLogisticRegression', () => {
     expect(h).toContain('omnibus χ²')
     expect(h).not.toMatch(/z column|z = B\/SE/)
   })
+  it('A5: values carries the term-led explainer lookup (GOF + first predictor + classification counts)', () => {
+    expect(buildLogisticRegression(LOGISTIC_REGRESSION, res).values).toEqual({
+      n: '40', nagelkerke: '0.28', chi2: '9.54 (p .023)', ll: '−22.95', aic: '53.91', bic: '60.66',
+      b: '0.08', or: '1.08', c0: '13', c1: '13', pct: '65.0%',
+    })
+  })
 })

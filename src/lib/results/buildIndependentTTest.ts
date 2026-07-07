@@ -27,8 +27,16 @@ export function buildIndependentTTest(spec: TestSpec, r: TTestResult): CardConte
     howToRead: spec.howToRead.replace('95% CI', ciLabel).replace('(e.g. .05)', `(e.g. ${r.alpha})`) + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
-    // U8-T3: same numbers already formatted above for the table/apa strings, keyed to match the
-    // 'independent-t-test' EXPLAINERS entries (t, p, d) in registry/explainers.ts.
-    values: { df: fdf(r.df), t: f(r.t), p: fpApa(r.p), d: f(r.cohensD), dlo: f(r.cohensDLow), dhi: f(r.cohensDHigh) },
+    // U8-T3/U8-T4: same numbers already formatted above for the table/apa strings, keyed to match the
+    // 'independent-t-test' EXPLAINERS entries (t, p, d, n, mean, sd, se, df, mdiff, ci) in
+    // registry/explainers.ts. n/mean/sd/se are per-group (the card is always exactly 2 groups —
+    // TTestResult.groupStats is a fixed [GroupStat, GroupStat] tuple), so both groups' numbers and
+    // names are carried under suffixed keys (g1/g2/n1/n2/...) for the interpret() functions to weave.
+    values: {
+      g1: g1.group, g2: g2.group,
+      n1: g1.n, n2: g2.n, mean1: f(g1.mean), mean2: f(g2.mean), sd1: f(g1.sd), sd2: f(g2.sd), se1: f(g1.se), se2: f(g2.se),
+      df: fdf(r.df), t: f(r.t), p: fpApa(r.p), d: f(r.cohensD), dlo: f(r.cohensDLow), dhi: f(r.cohensDHigh),
+      mdiff: f(r.meanDiff), ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, ciPct: pct,
+    },
   }
 }

@@ -38,5 +38,12 @@ export function buildSimpleLinearRegression(spec: TestSpec, r: SimpleLinearResul
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // A5 (U8-T4): flat lookup for the term-led explainers — reuses the same formatted GOF strings the
+    // footer rows already render, plus the sole predictor's B/β (recorded decision 3: unambiguous here).
+    values: {
+      ...gofValue,
+      r2: f01(r.r2), adjr2: f01(r.adjR2),
+      est: f(pred.b), beta: pred.beta == null ? undefined : f01(pred.beta),
+    },
   }
 }

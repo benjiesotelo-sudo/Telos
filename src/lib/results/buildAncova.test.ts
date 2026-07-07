@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildAncova } from './buildAncova'
 import { ANCOVA as spec } from '../registry/ancova'
 import type { AncovaResult } from '../stats/ancova'
+import { f, f01, fdf, fpApa } from '../format/apa'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
@@ -86,5 +87,15 @@ describe('buildAncova', () => {
 
   it('nExcluded is 0', () => {
     expect(c.nExcluded).toBe(0)
+  })
+
+  it('values: keyed for the term-led explainers, headline = the group (factor) row', () => {
+    const factorRow = spikeResult.rows[1] // 'group' — the last non-interaction row
+    expect(c.values).toEqual({
+      source: factorRow.source, ss: f(factorRow.ss), df: fdf(factorRow.df), ms: f(factorRow.ms), f: f(factorRow.f),
+      p: fpApa(factorRow.p), pSig: 'below', alpha: '0.05',
+      pes: f01(factorRow.pes), pesLow: f01(factorRow.pesLow), pesHigh: f01(factorRow.pesHigh),
+      nGroups: '3',
+    })
   })
 })

@@ -25,5 +25,12 @@ export function buildOneSampleTTest(spec: TestSpec, r: OneSampleTTestResult): Ca
     howToRead: spec.howToRead.replace('95% CI', ciLabel) + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
+    // U8-T4: keyed to match the 'one-sample-t-test' EXPLAINERS entries in registry/explainers.ts.
+    // Reuses the same formatted strings assembled above for the table/apa output.
+    values: {
+      variable: r.variable, n: String(r.n), mean: f(r.mean), sd: f(r.sd), se: f(r.se),
+      mu0: minus(String(r.mu0)), t: f(r.t), df: fdf(r.df), p: fpApa(r.p), mdiff: f(r.meanDiff),
+      ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: f(r.cohensD), dlo: f(r.cohensDLow), dhi: f(r.cohensDHigh),
+    },
   }
 }

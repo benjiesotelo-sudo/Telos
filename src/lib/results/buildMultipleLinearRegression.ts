@@ -52,7 +52,15 @@ export function buildMultipleLinearRegression(spec: TestSpec, r: MultipleLinearR
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
-    // Keyed to match the 'multiple-linear-regression' EXPLAINERS entries (r2, vif) in registry/explainers.ts.
-    values: { r2: f01(r.r2), vifMax },
+    // Keyed to match the 'multiple-linear-regression' EXPLAINERS entries (r2, vif, rmse, adjr2, aic, bic,
+    // ll, n, f, est, beta) in registry/explainers.ts. est/beta come from the SAME first-predictor row
+    // already picked out for the APA sentence above; beta is left absent (not "—") when standardize is
+    // off, since the interpret() line then simply doesn't render (TermExplainers' undefined-guard),
+    // matching how the table itself renders '—' for an off-toggle beta cell but there is no live number
+    // to interpret.
+    values: {
+      r2: f01(r.r2), vifMax, rmse: f(r.rmse), adjr2: f(r.adjR2), aic: f(r.aic), bic: f(r.bic), ll: f(r.logLik), n: r.n, f: f(r.f),
+      est: f(first.b), beta: r.standardize && first.beta != null ? f(first.beta) : undefined, term: first.term,
+    },
   }
 }

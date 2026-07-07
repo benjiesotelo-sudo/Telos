@@ -17,4 +17,9 @@ describe('buildSpearman', () => {
   it('APA line — ρ carries its bootstrap CI', () => {
     expect(buildSpearman(SPEARMAN, res).apa).toBe('A Spearman correlation gave ρ=.73 [.59, .85], p = .003, N=40.')
   })
+  it('A5: values carries the term-explainer lookup', () => {
+    expect(buildSpearman(SPEARMAN, res).values).toEqual({
+      rho: '0.73', rhoLow: '0.59', rhoHigh: '0.85', s: '2854.40', p: '= .003', n: '40', alpha: '0.05',
+    })
+  })
 })

@@ -183,5 +183,11 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
     howToRead: spec.howToRead,
     apa: spec.apaTemplate,
     nExcluded: 0,
+    // U8-T4: keyed to match the 'pls-sem' EXPLAINERS entries in registry/explainers.ts. Every table on
+    // this card (measurement/structural/quality/indirect/conditional) is open-cardinality (1+ constructs,
+    // 1+ paths, 0+ endogenous constructs, 0+ indirect effects, 0+ moderation levels), so every explainer
+    // reads generically off its own table rather than picking one arbitrary row's number; values carries
+    // only the run-shape counts, harmless if never read by an interpret().
+    values: { nConstructs: labels.length, nPaths: r.structural.length, nEndogenous: r.quality.length },
   }
 }

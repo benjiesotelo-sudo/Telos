@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildFactorialAnova } from './buildFactorialAnova'
 import { FACTORIAL_ANOVA as spec } from '../registry/factorialAnova'
 import type { FactorialAnovaResult } from '../stats/factorialAnova'
+import { f, f01, fdf, fpApa } from '../format/apa'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
@@ -80,6 +81,16 @@ describe('buildFactorialAnova — fixture (nothing significant): Table 3 absent'
 
   it('figure carries the interaction plot type', () => {
     expect(c.figures).toEqual([{ caption: 'Interaction', type: 'interaction plot (one line per level of a factor)', file: 'interaction', png }])
+  })
+
+  it('values: keyed for the term-led explainers, headline = the interaction row', () => {
+    const inter = fixtureResult.rows[2]
+    expect(c.values).toEqual({
+      source: inter.source, ss: f(inter.ss), df: fdf(inter.df), ms: f(inter.ms), f: f(inter.f),
+      p: fpApa(inter.p), pSig: 'at or above', alpha: '0.05',
+      pes: f01(inter.pes), pesLow: f01(inter.pesLow), pesHigh: f01(inter.pesHigh),
+      nCells: '6',
+    })
   })
 })
 

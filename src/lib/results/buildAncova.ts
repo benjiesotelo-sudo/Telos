@@ -68,5 +68,14 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // U8-T4: keyed to match the 'ancova' EXPLAINERS entries in registry/explainers.ts.
+    // Headline = firstFactorRow (already computed above for the APA sentence).
+    values: {
+      source: firstFactorRow.source, ss: f(firstFactorRow.ss), df: fdf(firstFactorRow.df),
+      ms: f(firstFactorRow.ms), f: f(firstFactorRow.f),
+      p: fpApa(firstFactorRow.p), pSig: firstFactorRow.p < r.alpha ? 'below' : 'at or above', alpha: String(r.alpha),
+      pes: f01(firstFactorRow.pes), pesLow: f01(firstFactorRow.pesLow), pesHigh: f01(firstFactorRow.pesHigh),
+      nGroups: String(r.adjusted.length),
+    },
   }
 }

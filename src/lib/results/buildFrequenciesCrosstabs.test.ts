@@ -42,6 +42,10 @@ describe('buildFrequenciesCrosstabs', () => {
     expect(c.apa).toBe('Frequencies (and cross-tabulations) are reported in Table X.')
     expect(c.nExcluded).toBe(0)
   })
+  it('A5: one-variable branch populates only the frequency-table explainer keys', () => {
+    const c = buildFrequenciesCrosstabs(spec, oneVar)
+    expect(c.values).toEqual({ category: '3', n: '6', validpct: '6', totalpct: '6', cumpct: '3' })
+  })
 
   it('one variable WITH missing → datasummary_crosstab Missing row (Valid%/cum em-dash, Total% over grand total) + note', () => {
     const c = buildFrequenciesCrosstabs(spec, oneVarMissing)
@@ -69,5 +73,9 @@ describe('buildFrequenciesCrosstabs', () => {
     expect(c.note).toEqual({ kind: 'plain', text: spec.tableNote!.text })
     expect(c.apa).toBe('Frequencies (and cross-tabulations) are reported in Table X.')
     expect(c.nExcluded).toBe(1)
+  })
+  it('A5: two-variable branch populates only the crosstab explainer keys', () => {
+    const c = buildFrequenciesCrosstabs(spec, twoVar)
+    expect(c.values).toEqual({ rowcat: '3', c1: '2', more: '2', total: '6' })
   })
 })

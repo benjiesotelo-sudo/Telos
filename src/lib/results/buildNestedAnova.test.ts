@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildNestedAnova } from './buildNestedAnova'
 import { NESTED_ANOVA as spec } from '../registry/nestedAnova'
 import type { NestedAnovaResult } from '../stats/nestedAnova'
+import { f, f01, fdf, fpApa } from '../format/apa'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
@@ -86,6 +87,16 @@ describe('buildNestedAnova', () => {
   it('howToRead and nExcluded forwarded', () => {
     expect(c.howToRead).toBe(spec.howToRead + ' Your significance threshold (α) is 0.05.')
     expect(c.nExcluded).toBe(0)
+  })
+
+  it('values: keyed for the term-led explainers, headline = row A (the top-level factor)', () => {
+    const rowA = spikeResult.rows[0]
+    expect(c.values).toEqual({
+      source: 'school', ss: f(rowA.ss), df: fdf(rowA.df), ms: f(rowA.ms), f: f(rowA.f),
+      p: fpApa(rowA.p), pSig: 'at or above', alpha: '0.05',
+      omega2: f01(rowA.omega2!), omega2Low: f01(rowA.omega2Low!), omega2High: f01(rowA.omega2High!),
+      nGroups: '3',
+    })
   })
 })
 

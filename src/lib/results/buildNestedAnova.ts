@@ -58,6 +58,16 @@ export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardCont
   const noteText = baseNoteText + assumeStats + crossedWarning
 
   const fig = figuresOf(spec)[0]
+
+  // U8-T4: keyed to match the 'nested-anova' EXPLAINERS entries in registry/explainers.ts.
+  // Headline = row A (the top-level factor), matching the APA sentence above.
+  const values = {
+    source: sourceA, ss: f(rowA.ss), df: fdf(rowA.df), ms: f(rowA.ms), f: f(rowA.f),
+    p: fpApa(rowA.p), pSig: rowA.p < r.alpha ? 'below' : 'at or above', alpha: String(r.alpha),
+    omega2: fx(rowA.omega2, f01), omega2Low: fx(rowA.omega2Low, f01), omega2High: fx(rowA.omega2High, f01),
+    nGroups: String(r.desc.length),
+  }
+
   return {
     tables: [
       { spec: spec.tables[0], rows: descRows },
@@ -68,5 +78,6 @@ export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardCont
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values,
   }
 }

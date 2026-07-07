@@ -27,5 +27,17 @@ export function buildMannWhitneyU(spec: TestSpec, r: MannWhitneyUResult): CardCo
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
+    // U8-T4: keyed to match the 'mann-whitney-u' EXPLAINERS entries in registry/explainers.ts.
+    // Rank-summary values are genuinely per-group (2 groups), so both are exposed with a 0/1 suffix.
+    values: {
+      group0: r.ranks[0].group, group1: r.ranks[1].group,
+      n0: String(r.ranks[0].n), n1: String(r.ranks[1].n),
+      meanRank0: f(r.ranks[0].meanRank), meanRank1: f(r.ranks[1].meanRank),
+      median0: f(r.ranks[0].median), median1: f(r.ranks[1].median),
+      iqr0: f(r.ranks[0].iqr), iqr1: f(r.ranks[1].iqr),
+      sumRanks0: f(r.ranks[0].sumRanks), sumRanks1: f(r.ranks[1].sumRanks),
+      u: fdf(r.u), z: f(r.z), p: fpApa(r.p),
+      r: f(r.rankBiserial), rlo: f(r.rankBiserialLow), rhi: f(r.rankBiserialHigh),
+    },
   }
 }

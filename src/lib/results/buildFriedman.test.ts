@@ -76,4 +76,13 @@ describe('buildFriedman', () => {
   it('nExcluded propagated', () => {
     expect(c.nExcluded).toBe(0)
   })
+
+  it('values carries the numbers the term explainers reference (U8-T4), aggregating the 3-condition rank rows by low/high', () => {
+    expect(c.values).toEqual({
+      chi2: '67.19', df: '2', p: '< .001', w: '0.56', wlo: '0.48', whi: '1.00',
+      conditionNames: 'score_t1, score_t2, score_t3',
+      meanRankLowCond: 'score_t1', meanRankLowVal: '1.08', meanRankHighCond: 'score_t3', meanRankHighVal: '2.98',
+      padj: '<.001', padjPair: 'score_t1 - score_t3',
+    })
+  })
 })

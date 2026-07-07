@@ -41,6 +41,12 @@ describe('buildDistributionNormality', () => {
     expect(c.figures[0].png).toBe(scoreVar.histogramPng)
     expect(c.figures[1].png).toBe(scoreVar.qqPng)
   })
+  it('A5: values aggregates across variables - significant-test fraction, N/skew/kurtosis ranges', () => {
+    expect(c.values).toEqual({
+      variable: '1', test: '1', statistic: '0 of 2', n: '12', p: '0 of 2',
+      skew: '0.11', kurtosis: '−1.49',
+    })
+  })
   it('two variables: four rows in variable order, four figures, per-variable APA sentences', () => {
     const m = buildDistributionNormality(spec, multi)
     expect(m.tables[0].rows).toEqual([
@@ -50,6 +56,10 @@ describe('buildDistributionNormality', () => {
       { variable: 'anxiety', test: 'K–S (Lilliefors)', statistic: 'D 0.08', n: 11, p: '1.000', skew: '0.12', kurtosis: '−1.27' },
     ])
     expect(m.figures.map((g) => g.type)).toEqual(['histogram_score', 'qq_score', 'histogram_anxiety', 'qq_anxiety'])
+    expect(m.values).toEqual({
+      variable: '2', test: '2', statistic: '0 of 4', n: '11–12', p: '0 of 4',
+      skew: '0.11–0.12', kurtosis: '−1.49–−1.27',
+    })
     expect(m.apa).toBe(
       'score: Normality was assessed with the Shapiro-Wilk test, W = .96, p = .829. ' +
       'anxiety: Normality was assessed with the Shapiro-Wilk test, W = .99, p = .988.')

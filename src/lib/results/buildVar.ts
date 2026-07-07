@@ -95,6 +95,14 @@ export function buildVar(spec: TestSpec, r: VarResult): CardContent {
 
   const apa = spec.apaTemplate.replace('{p}', String(r.selectedLag))
   const figs = figuresOf(spec)
+
+  // A5 (U8-T4): the first equation / selected-lag row / first FEVD row stand in for these per-equation and
+  // per-row tables (one column-per-equation and one row-per-shock, respectively).
+  const selectedLagRow = r.lagRows.find((x) => x.lag === r.selectedLag) ?? r.lagRows[0]
+  const firstEqName = r.seriesNames[0]
+  const firstEqCoef = r.coefRows.find((x) => x.equation === firstEqName)
+  const firstEqGof = r.eqGof.find((x) => x.equation === firstEqName)
+  const firstFevd = r.fevdRows[0]
   return {
     tables: [
       { spec: spec.tables[0], rows: lagRows },
@@ -109,5 +117,20 @@ export function buildVar(spec: TestSpec, r: VarResult): CardContent {
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      lag: selectedLagRow ? String(selectedLagRow.lag) : undefined,
+      aic: selectedLagRow ? f(selectedLagRow.aic) : undefined,
+      bic: selectedLagRow ? f(selectedLagRow.bic) : undefined,
+      hq: selectedLagRow ? f(selectedLagRow.hq) : undefined,
+      eq1: firstEqCoef ? f(firstEqCoef.estimate) : undefined,
+      nobs: firstEqGof ? String(firstEqGof.nobs) : undefined,
+      r2: firstEqGof ? f01(firstEqGof.r2) : undefined,
+      adjr2: firstEqGof ? f01(firstEqGof.adjR2) : undefined,
+      rmse: firstEqGof ? f(firstEqGof.rmse) : undefined,
+      ll: firstEqGof ? f(firstEqGof.logLik) : undefined,
+      variable: firstFevd ? firstFevd.variable : undefined,
+      impulse: firstFevd ? firstFevd.impulse : undefined,
+      share: firstFevd ? f01(firstFevd.share) : undefined,
+    },
   }
 }

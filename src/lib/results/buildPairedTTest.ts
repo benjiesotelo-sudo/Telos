@@ -26,5 +26,16 @@ export function buildPairedTTest(spec: TestSpec, r: PairedTTestResult): CardCont
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
+    // U8-T4: keyed to match the 'paired-t-test' EXPLAINERS entries in registry/explainers.ts.
+    // Both conditions carry the same N (complete-pairs listwise), so a single `n` value is genuine;
+    // mean/sd genuinely differ per condition, so both are exposed with an A/B suffix.
+    values: {
+      conditionA: r.conditions[0].condition, conditionB: r.conditions[1].condition,
+      n: String(r.conditions[0].n),
+      meanA: f(r.conditions[0].mean), meanB: f(r.conditions[1].mean),
+      sdA: f(r.conditions[0].sd), sdB: f(r.conditions[1].sd),
+      t: f(r.t), df: fdf(r.df), p: fpApa(r.p), mdiff: f(r.meanDiff),
+      ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: f(r.dz), dlo: f(r.dzLow), dhi: f(r.dzHigh),
+    },
   }
 }

@@ -7,6 +7,21 @@ import { f, fx, ciLevel } from '../format/apa'
 // t-based mean CI cell: "[lo, hi]" with each bound em-dashed when null (n<2); whole cell em-dash if neither bound exists.
 const ciCell = (lo: number | null, hi: number | null) => lo == null && hi == null ? '—' : `[${fx(lo, f)}, ${fx(hi, f)}]`
 
+// A5: this card can summarize several variables (and groups) at once, so there is no single row to bind an
+// explainer's live value to. Instead we report the range (or single value, when everything agrees) of each
+// numeric column across the reported rows — still a real computed number, just aggregated rather than per-row.
+const range = (nums: number[]) => {
+  const arr = nums.filter((n) => Number.isFinite(n))
+  if (!arr.length) return '—'
+  const lo = Math.min(...arr), hi = Math.max(...arr)
+  return lo === hi ? f(lo) : `${f(lo)}–${f(hi)}`
+}
+const intRange = (nums: number[]) => {
+  if (!nums.length) return '—'
+  const lo = Math.min(...nums), hi = Math.max(...nums)
+  return lo === hi ? String(lo) : `${lo}–${hi}`
+}
+
 export function buildSummaryStatistics(spec: TestSpec, r: SummaryStatsResult): CardContent {
   const base = spec.tables[0]
   // The CI label carries the card's adjustable level when present (no CI option today ⇒ stays 95%), matching the t-test convention.
@@ -30,5 +45,18 @@ export function buildSummaryStatistics(spec: TestSpec, r: SummaryStatsResult): C
     howToRead: spec.howToRead,
     apa: spec.apaTemplate.replace('{x}', 'X'), // bare "Table." captions — the card's exemplar sentence stands as written
     nExcluded: r.nExcluded,
+    values: {
+      variable: String(new Set(r.rows.map((row) => row.variable)).size),
+      grouped: r.grouped ? 'true' : 'false',
+      n: intRange(r.rows.map((row) => row.n)),
+      mean: range(r.rows.map((row) => row.mean ?? NaN)),
+      sd: range(r.rows.map((row) => row.sd ?? NaN)),
+      ci: ciLabel,
+      min: range(r.rows.map((row) => row.min ?? NaN)),
+      max: range(r.rows.map((row) => row.max ?? NaN)),
+      median: range(r.rows.map((row) => row.median ?? NaN)),
+      skew: range(r.rows.map((row) => row.skew ?? NaN)),
+      kurtosis: range(r.rows.map((row) => row.kurtosis ?? NaN)),
+    },
   }
 }

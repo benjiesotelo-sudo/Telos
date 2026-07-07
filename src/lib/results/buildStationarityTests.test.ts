@@ -57,4 +57,10 @@ describe('buildStationarityTests — APA line surfaces all three tests (ADF, KPS
     const c = buildStationarityTests(STATIONARITY_TESTS, exact)
     expect(c.apa).toContain('Phillips–Perron gave Z=−3.50, p = .031')
   })
+
+  it('A5: values carries the term-led explainer lookup (ADF row stands in for the 3-row table)', () => {
+    expect(buildStationarityTests(STATIONARITY_TESTS, res).values).toEqual({
+      test: 'ADF, KPSS, PP', statistic: '−8.38', lag: '4', p: '< .010', conclusion: 'stationary',
+    })
+  })
 })

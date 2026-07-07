@@ -33,5 +33,9 @@ export function buildCompositeReliability(spec: TestSpec, r: CompositeReliabilit
     howToRead: spec.howToRead,
     apa: spec.apaTemplate,
     nExcluded: 0,
+    // U8-T4: keyed to match the 'composite-reliability' EXPLAINERS entries (alpha, ave, cr, omega) in
+    // registry/explainers.ts. All four are per-construct (open-cardinality), so their explainers read
+    // generically off the table rather than picking one arbitrary construct's number.
+    values: { nConstructs: perConstruct.length },
   }
 }

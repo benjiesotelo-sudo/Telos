@@ -41,5 +41,6 @@ export function buildRandomEffects(spec: TestSpec, r: RandomEffectsResult): Card
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values: { ...gofValue, est: first ? f(first.b) : undefined },
   }
 }

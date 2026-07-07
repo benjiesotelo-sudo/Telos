@@ -46,4 +46,10 @@ describe('buildSimpleLinearRegression', () => {
     expect(buildSimpleLinearRegression(SIMPLE_LINEAR_REGRESSION, res).apa)
       .toBe('A simple linear regression gave B=0.64, t(38)=8.58, p < .001, R²=.66.')
   })
+  it('A5: values carries the term-led explainer lookup (GOF + the predictor B/β)', () => {
+    expect(buildSimpleLinearRegression(SIMPLE_LINEAR_REGRESSION, res).values).toEqual({
+      n: '40', r2: '.66', adjr2: '.65', f: '73.57', rmse: '5.46', aic: '255.36', bic: '260.43', ll: '−124.68',
+      est: '0.64', beta: '.81',
+    })
+  })
 })

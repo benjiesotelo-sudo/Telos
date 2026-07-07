@@ -38,5 +38,12 @@ export function buildFishersExact(spec: TestSpec, r: FishersExactResult): CardCo
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      p: fpApa(r.p), n: String(r.n), alpha: String(r.alpha), rows: String(R), cols: String(C),
+      // 2×2-only vs. larger-table-only keys stay absent on the branch where they don't apply,
+      // so the other branch's (inapplicable) explainer lines render "undefined" and get hidden.
+      ...(r.is2x2 ? { or: f(r.or!), ciLow: f(r.ciLow!), ciHigh: f(r.ciHigh!) } : {}),
+      ...(!r.is2x2 && r.v != null ? { v: f(r.v), vLow: fx(r.vLow ?? null, f), vHigh: fx(r.vHigh ?? null, f) } : {}),
+    },
   }
 }

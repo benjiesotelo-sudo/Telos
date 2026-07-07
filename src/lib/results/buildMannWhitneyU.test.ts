@@ -44,6 +44,14 @@ describe('buildMannWhitneyU', () => {
     const c3 = buildMannWhitneyU(spec, { ...overlap, hodgesLehmann: null, hlLow: null, hlHigh: null })
     expect(c3.tables[1].rows[1]).toEqual({ _kind: 'span', u: 'Hodges-Lehmann median difference = —, 95% CI [—, —]' })
   })
+  it('values carries the numbers the term explainers reference (U8-T4)', () => {
+    expect(c.values).toEqual({
+      group0: 'control', group1: 'treatment', n0: '6', n1: '6',
+      meanRank0: '4.50', meanRank1: '8.50', median0: '70.50', median1: '76.00',
+      iqr0: '3.25', iqr1: '5.50', sumRanks0: '27.00', sumRanks1: '51.00',
+      u: '6', z: '−1.92', p: '= .065', r: '−0.67', rlo: '−0.90', rhi: '−0.12',
+    })
+  })
   it('p-clause flips to p < .001; a midrank U renders at 2 dp', () => {
     const c2 = buildMannWhitneyU(spec, { ...overlap, u: 6.5, p: 0.0004 })
     expect(c2.apa).toContain('U=6.50')

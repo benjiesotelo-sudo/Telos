@@ -45,6 +45,15 @@ describe('buildWilcoxonSignedRank', () => {
   it('figure carries the difference type for alt-text and export naming', () => {
     expect(c.figures).toEqual([{ caption: 'Change per case', type: 'difference', png: base.figurePng }])
   })
+  it('values carries the numbers the term explainers reference (U8-T4)', () => {
+    expect(c.values).toEqual({
+      nPos: '0', nNeg: '6', nTies: '0',
+      meanRankPos: '—', meanRankNeg: '3.50',
+      sumRanksPos: '—', sumRanksNeg: '21.00',
+      v: '0.00', z: '−2.20', p: '= .031', r: '−1.00', rlo: '−1.00', rhi: '−1.00',
+      hl: '−11.50 [−17.00, −9.00]',
+    })
+  })
   it('p-clause branch: tiny p renders p<.001 in table and sentence; midrank V keeps 2 dp; non-degenerate r CI renders both bounds', () => {
     // tied fixture: r=−0.857143, native-R rank_biserial(ci=0.95) CI = [−0.974404, −0.373210]
     const c2 = buildWilcoxonSignedRank(spec, { ...base, v: 1.5, p: 0.0002, r: -0.857143, rLow: -0.974404, rHigh: -0.373210 })

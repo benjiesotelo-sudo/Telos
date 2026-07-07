@@ -1,9 +1,7 @@
-// A5 coverage gate (U8-T2): every reportable statistic must be reachable by a term-led explainer
-// (docs/superpowers/specs/2026-07-06-telos-citable-complete-design.md §A5). This test enumerates every
-// card's registry table column keys and asserts an EXPLAINERS entry exists per key per card.
-// EXPECTED RED at this task: only 6 representative cards have entries so far (U8-T1); the remaining
-// ~42 cards are filled by U8-T4, which un-skips this describe as its first step and works the
-// `offenders` list to empty. Skipped for now so test:fast stays green on an intentionally-red gate.
+// A5 coverage gate (U8-T2, un-skipped + made GREEN by U8-T4): every reportable statistic must be
+// reachable by a term-led explainer (docs/superpowers/specs/2026-07-06-telos-citable-complete-design.md
+// §A5). This test enumerates every card's registry table column keys and asserts an EXPLAINERS entry
+// exists per key per card - all 48 cards / 454 (card, key) pairs now covered.
 import { describe, it, expect } from 'vitest'
 import { SPECS } from './catalog'
 import { EXPLAINERS } from './explainers'
@@ -28,10 +26,10 @@ function keysOf(t: TableSpec): string[] {
 // Task 4 doesn't need to touch the check's logic if it hits a genuine synthesized-key case.
 const AGGREGATE_ALLOWLIST = new Set<string>([])
 
-describe.skip('explainer coverage (A5 - machine-checked, drift-proof)', () => {
+describe('explainer coverage (A5 - machine-checked, drift-proof)', () => {
   it('every card has at least one explainer entry (placeholder gate; per-key check below is the real one)', () => {
     const missing = Object.keys(SPECS).filter((id) => !EXPLAINERS[id] || EXPLAINERS[id].length === 0)
-    expect(missing).toEqual([]) // RED at Task 2 time - GREEN once Task 4 lands remaining-card entries
+    expect(missing).toEqual([])
   })
   it('every non-identifier column key surfaced by a card has a matching explainer entry (or a documented aggregate allowlist entry)', () => {
     const offenders: string[] = []
@@ -40,6 +38,6 @@ describe.skip('explainer coverage (A5 - machine-checked, drift-proof)', () => {
       const have = new Set((EXPLAINERS[id] ?? []).map((e) => e.key))
       for (const k of keys) if (!have.has(k) && !AGGREGATE_ALLOWLIST.has(`${id}:${k}`)) offenders.push(`${id}:${k}`)
     }
-    expect(offenders).toEqual([]) // RED at Task 2 time - GREEN once Task 4 lands remaining-card entries
+    expect(offenders).toEqual([])
   })
 })

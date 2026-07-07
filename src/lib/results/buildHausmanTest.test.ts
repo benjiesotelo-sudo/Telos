@@ -58,4 +58,11 @@ describe('buildHausmanTest', () => {
     expect(c.howToRead).toContain('95% CI')
     expect(c.howToRead).toContain('Your significance threshold (α) is 0.05')
   })
+
+  it('A5: values carries the term-led explainer lookup (N/entities/R² + the first compared term)', () => {
+    expect(buildHausmanTest(HAUSMAN_TEST, mock()).values).toEqual({
+      n: '96', nentities: '12', r2: 'FE .91 / RE .98',
+      fe: '−5.57', re: '−4.05', diff: '−1.52',
+    })
+  })
 })

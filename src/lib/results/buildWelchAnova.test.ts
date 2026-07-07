@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildWelchAnova } from './buildWelchAnova'
 import { WELCH_ANOVA as spec } from '../registry/welchAnova'
 import type { WelchAnovaResult } from '../stats/welchAnova'
+import { f, fdf, fpApa } from '../format/apa'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
@@ -82,5 +83,13 @@ describe('buildWelchAnova', () => {
 
   it('nExcluded passthrough', () => {
     expect(c.nExcluded).toBe(0)
+  })
+
+  it('values: keyed for the term-led explainers', () => {
+    expect(c.values).toEqual({
+      f: f(spikeResult.f), df1: fdf(spikeResult.df1), df2: fdf(spikeResult.df2),
+      p: fpApa(spikeResult.p), pSig: 'at or above', alpha: '0.05',
+      nGroups: '3',
+    })
   })
 })

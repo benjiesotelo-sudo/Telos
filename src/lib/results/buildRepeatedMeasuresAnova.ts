@@ -71,6 +71,19 @@ export function buildRepeatedMeasuresAnova(spec: TestSpec, r: RepeatedMeasuresAn
     }
   }
 
+  // U8-T4: keyed to match the 'repeated-measures-anova' EXPLAINERS entries in registry/explainers.ts.
+  // Sphericity fields (effect/w/gg/hf) are only added when a sphericity row exists this run (2-level
+  // designs have none) — the omitted key surfaces as literal `undefined` in interpret(), which
+  // TermExplainers.tsx already filters out, so the entry simply doesn't render that run.
+  const sph0 = r.sphericity[0]
+  const values = {
+    source: r.anova.source, ss: f(r.anova.ss), df: fdf(r.anova.df1), ms: f(r.anova.ms), f: f(r.anova.f),
+    p: fpApa(r.anova.p), pSig: r.anova.p < r.alpha ? 'below' : 'at or above', alpha: String(r.alpha),
+    pes: f01(r.anova.pes), pesLow: f01(r.anova.pesLow), pesHigh: f01(r.anova.pesHigh),
+    nConditions: String(r.desc.length),
+    ...(sph0 ? { effect: sph0.effect, w: f(sph0.w), gg: f(sph0.ggEps), hf: f(sph0.hfEps) } : {}),
+  }
+
   return {
     tables,
     note,
@@ -78,5 +91,6 @@ export function buildRepeatedMeasuresAnova(spec: TestSpec, r: RepeatedMeasuresAn
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values,
   }
 }

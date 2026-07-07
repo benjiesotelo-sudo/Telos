@@ -68,4 +68,10 @@ describe('buildPoissonNegativeBinomial — modelsummary SHAPE A (B | IRR)', () =
     expect(buildPoissonNegativeBinomial(POISSON_NEGATIVE_BINOMIAL, poisson).apa)
       .toBe('Predictor age was associated with the count, IRR=1.01, 95% CI [1.00, 1.02], p = .007.')
   })
+  it('A5: values carries the term-led explainer lookup (GOF + the first predictor B/IRR)', () => {
+    expect(buildPoissonNegativeBinomial(POISSON_NEGATIVE_BINOMIAL, poisson).values).toEqual({
+      n: '40', dispersion: '1.69', dev: '67.57', df: '37', ll: '−98.18', aic: '202.37', bic: '207.44',
+      b: '0.01', irr: '1.01',
+    })
+  })
 })

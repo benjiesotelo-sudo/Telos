@@ -131,6 +131,14 @@ describe('buildVar — modelsummary side-by-side per-equation coef table', () =>
     expect(c.tables).toHaveLength(3)
   })
 
+  it('A5: values carries the term-led explainer lookup (selected lag row + first equation + first FEVD row)', () => {
+    expect(buildVar(VAR, mock()).values).toEqual({
+      lag: '1', aic: '−1.97', bic: '−1.80', hq: '−1.90',
+      eq1: '0.95', nobs: '83', r2: '1.00', adjr2: '1.00', rmse: '0.50', ll: '−60.00',
+      variable: 'e', impulse: 'e', share: '.55',
+    })
+  })
+
   it('handles a 3-series VAR (column count is data-dependent)', () => {
     const t2 = buildVar(VAR, mock({
       seriesNames: ['a', 'b', 'c'],

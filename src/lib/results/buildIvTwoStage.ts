@@ -34,6 +34,8 @@ export function buildIvTwoStage(spec: TestSpec, r: IvResult): CardContent {
     .replace('p {p}', `p ${endoCoef ? fpApa(endoCoef.p) : '—'}`)
     .replace('{f}', f(r.weakF))
   const figs = figuresOf(spec)
+  // A5 (U8-T4): the first instrument row stands in for the multi-row first-stage table.
+  const firstInstrument = r.firstStage[0]
   return {
     tables: [
       { spec: spec.tables[0], rows: firstStageRows },
@@ -44,5 +46,15 @@ export function buildIvTwoStage(spec: TestSpec, r: IvResult): CardContent {
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      instrument: firstInstrument ? firstInstrument.instrument : undefined,
+      coef: firstInstrument ? f(firstInstrument.coef) : undefined,
+      se: firstInstrument ? f(firstInstrument.se) : undefined,
+      partialF: firstInstrument ? f(firstInstrument.partialF) : undefined,
+      p: firstInstrument ? fp(firstInstrument.p) : undefined,
+      ols: endoCoef ? f(endoCoef.olsB) : undefined,
+      iv: endoCoef ? f(endoCoef.b) : undefined,
+      n: gofValue.n, rmse: gofValue.rmse, structF: gofValue.structF,
+    },
   }
 }

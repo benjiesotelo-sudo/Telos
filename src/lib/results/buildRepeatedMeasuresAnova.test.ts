@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildRepeatedMeasuresAnova } from './buildRepeatedMeasuresAnova'
 import { REPEATED_MEASURES_ANOVA as spec } from '../registry/repeatedMeasuresAnova'
 import type { RepeatedMeasuresAnovaResult } from '../stats/repeatedMeasuresAnova'
+import { f, f01, fdf, fpApa } from '../format/apa'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
@@ -121,6 +122,17 @@ describe('buildRepeatedMeasuresAnova', () => {
     it('4 tables total (desc + anova + sphericity + posthoc)', () => {
       expect(c.tables).toHaveLength(4)
     })
+
+    it('values: keyed for the term-led explainers, headline = r.anova + first sphericity row', () => {
+      const { anova, sphericity } = result3
+      expect(c.values).toEqual({
+        source: anova.source, ss: f(anova.ss), df: fdf(anova.df1), ms: f(anova.ms), f: f(anova.f),
+        p: fpApa(anova.p), pSig: 'below', alpha: '0.05',
+        pes: f01(anova.pes), pesLow: f01(anova.pesLow), pesHigh: f01(anova.pesHigh),
+        nConditions: '3',
+        effect: sphericity[0].effect, w: f(sphericity[0].w), gg: f(sphericity[0].ggEps), hf: f(sphericity[0].hfEps),
+      })
+    })
   })
 
   describe('2-measure result (sphericity omitted)', () => {
@@ -137,6 +149,14 @@ describe('buildRepeatedMeasuresAnova', () => {
 
     it('nExcluded reflects listwise exclusions', () => {
       expect(c.nExcluded).toBe(2)
+    })
+
+    it('values omit sphericity keys (effect/w/gg/hf) when sphericity is empty (2-level design)', () => {
+      expect(c.values!.effect).toBeUndefined()
+      expect(c.values!.w).toBeUndefined()
+      expect(c.values!.gg).toBeUndefined()
+      expect(c.values!.hf).toBeUndefined()
+      expect(c.values!.nConditions).toBe('2')
     })
   })
 

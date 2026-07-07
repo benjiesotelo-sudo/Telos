@@ -43,6 +43,10 @@ export function buildLogisticRegression(spec: TestSpec, r: LogisticResult): Card
     .replace('{p}', fpApa(first.p))                             // policy (3): spaced APA p, "p = .035" / "p < .001"
     .replace('{auc}', f01(r.auc))                               // policy (3): bounded stat drops leading zero
   const fig = figuresOf(spec)[0]
+  // A5 (U8-T4): overall classification accuracy — the diagonal (correct) cells over N; a simple aggregate of
+  // the classCounts already in the table, not a new statistic (cf. the vif-max aggregate precedent).
+  const totalCorrect = r.classCounts[0][0] + r.classCounts[1][1]
+  const overallPct = r.n > 0 ? `${((totalCorrect / r.n) * 100).toFixed(1)}%` : '—'
   return {
     tables: [
       { spec: t, rows },
@@ -53,5 +57,10 @@ export function buildLogisticRegression(spec: TestSpec, r: LogisticResult): Card
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values: {
+      ...gofValue,
+      b: f(first.b), or: r.reportOR ? fOr(first.or) : '—',
+      c0: String(r.classCounts[0][0]), c1: String(r.classCounts[1][1]), pct: overallPct,
+    },
   }
 }

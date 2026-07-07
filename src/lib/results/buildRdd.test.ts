@@ -63,4 +63,10 @@ describe('buildRdd', () => {
     expect(c.howToRead).toBe(RDD.howToRead)
     expect(c.howToRead).not.toContain('significance threshold')
   })
+
+  it('A5: values carries the term-led explainer lookup (bandwidth/N-left/N-right + the estimate)', () => {
+    expect(buildRdd(RDD, mock()).values).toEqual({
+      bandwidth: '8.66', nleft: '18', nright: '16', est: '9.90',
+    })
+  })
 })

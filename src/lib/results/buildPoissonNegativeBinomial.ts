@@ -46,5 +46,6 @@ export function buildPoissonNegativeBinomial(spec: TestSpec, r: PoissonNbResult)
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    values: { ...gofValue, b: fCoef(first.b), irr: f(first.irr) },
   }
 }

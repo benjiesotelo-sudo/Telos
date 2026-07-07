@@ -26,4 +26,8 @@ describe('buildKendallsTau', () => {
     const c = buildKendallsTau(KENDALLS_TAU, res)
     expect(c.apa).toBe("A Kendall's tau-b correlation gave τ=.51 [.30, .69], p < .001, N=40.")
   })
+  it('A5: values carries the term-explainer lookup', () => {
+    const c = buildKendallsTau(KENDALLS_TAU, res)
+    expect(c.values).toEqual({ tau: '0.51', tauLow: '0.30', tauHigh: '0.69', z: '3.46', p: '< .001', n: '40', alpha: '0.05' })
+  })
 })

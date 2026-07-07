@@ -48,4 +48,13 @@ describe('buildSummaryStatistics', () => {
     expect(c.figures.map((f) => f.type)).toEqual(['histogram_score', 'histogram_age']) // unique types ⇒ unique export names
     expect(c.figures[0].caption).toBe('Distribution — score')
   })
+  it('A5: values carries a term-explainer lookup - ranges across the reported variables, plus the CI label', () => {
+    const c = buildSummaryStatistics(spec, overall)
+    expect(c.values).toEqual({
+      variable: '2', grouped: 'false', n: '1–12',
+      mean: '34.00–76.33', sd: '7.09', ci: '95% CI',
+      min: '34.00–66.00', max: '34.00–88.00', median: '34.00–76.50',
+      skew: '0.11', kurtosis: '−1.49',
+    })
+  })
 })

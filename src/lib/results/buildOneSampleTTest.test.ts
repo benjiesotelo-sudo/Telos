@@ -29,6 +29,13 @@ describe('buildOneSampleTTest', () => {
     expect(c.nExcluded).toBe(2)
     expect(c.howToRead).toBe(spec.howToRead + ' Your significance threshold (α) is 0.05.')
   })
+  it('values carries the numbers the term explainers reference (U8-T4)', () => {
+    expect(c.values).toEqual({
+      variable: 'post_score', n: '6', mean: '82.33', sd: '3.78', se: '1.54', mu0: '70',
+      t: '8.00', df: '5', p: '< .001', mdiff: '12.33', ci: '[8.37, 16.30]',
+      d: '3.27', dlo: '1.14', dhi: '5.37',
+    })
+  })
   it('branches: Shapiro null → em-dashes; p ≥ .001 stays a p= clause; negatives typeset U+2212', () => {
     // μ0 = 90 derivation pinned in native R: t = −4.971884, p = 0.004205, diff CI [−11.630515, −3.702818], d = −2.029763.
     const v = buildOneSampleTTest(spec, { ...r, mu0: 90, t: -4.971884, p: 0.004205, meanDiff: -7.66667, ci: [-11.630515, -3.702818], cohensD: -2.029763, cohensDLow: -3.463975, cohensDHigh: -0.548868, shapiro: { W: null, p: null } })

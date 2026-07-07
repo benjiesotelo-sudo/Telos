@@ -49,4 +49,11 @@ describe('buildPropensityScoreMatching', () => {
     expect(apa).toBe('After propensity-score matching, the ATT was 5.87, 95% CI [5.42, 6.32], p < .001.')
     expect(apa).not.toContain('SMDs < .1')
   })
+
+  it('A5: values carries the term-led explainer lookup (first covariate balance row + ATT + matched Ns)', () => {
+    expect(buildPropensityScoreMatching(PROPENSITY_SCORE_MATCHING, mock()).values).toEqual({
+      covariate: 'exper', smdPre: '−0.04', smdPost: '−0.00', varRatio: '1.02',
+      est: '5.87', matchedN: '134', treatedN: '67', controlN: '67',
+    })
+  })
 })
