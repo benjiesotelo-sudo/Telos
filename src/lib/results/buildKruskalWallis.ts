@@ -32,7 +32,7 @@ export function buildKruskalWallis(spec: TestSpec, r: KruskalWallisResult): Card
     nExcluded: r.nExcluded,
     values: {
       h: f(r.h), df: fdf(r.df), p: fpApa(r.p), eps2: f(r.eps2), eps2lo: f(r.eps2Low), eps2hi: f(r.eps2High),
-      n: String(totalN),
+      n: String(totalN), alpha: String(r.alpha),
       meanRankLowGroup: byMeanRank[0].group, meanRankLowVal: f(byMeanRank[0].meanRank),
       meanRankHighGroup: byMeanRank[byMeanRank.length - 1].group, meanRankHighVal: f(byMeanRank[byMeanRank.length - 1].meanRank),
       medianLowGroup: byMedian[0].group, medianLowVal: fx(byMedian[0].median, f),

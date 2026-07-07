@@ -22,6 +22,16 @@ export interface Explainer {
   interpret: (v: ResultValues) => string
 }
 
+// Audit fix (U8-T4 fix round): display strings format negatives with U+2212 (see format/apa.ts's
+// `minus`), which plain Number() cannot parse - Number('−0.32') is NaN, not -0.32. That silently broke
+// every magnitude/sign check run directly on a negative display value (e.g. pearson's r, spearman's rho:
+// a negative correlation always fell through their magnitude ternary to 'large', and its sign check
+// always read 'negative' regardless of true sign). Use this instead of a bare Number(v.x) anywhere an
+// interpret() reads a possibly-negative display value: it normalizes U+2212 to ASCII '-', strips any
+// thin/narrow/no-break space, and drops stray comparison symbols so "< .05"-style strings still parse.
+const parseDisplayNum = (v: ResultValues[string]): number =>
+  Number(String(v ?? '').replace(/−/g, '-').replace(/[<>=]/g, '').replace(/[\s   ]/g, ''))
+
 export const EXPLAINERS: Record<string, Explainer[]> = {
   'independent-t-test': [
     { key: 't', term: 't', meaning: 'How many standard errors the two group means are apart.',
@@ -139,11 +149,11 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
     { key: 'test', term: 'Test', meaning: 'Which normality test that row reports - Shapiro-Wilk or K-S (Lilliefors) - both computed so you can cross-check them.',
       interpret: (v) => `Here, both tests are run for each of the ${v.test} variable(s), but judge normality mainly from the Q-Q plot - points hugging the diagonal indicate normality.` },
     { key: 'statistic', term: 'Statistic (W / D)', meaning: 'The test statistic itself - W for Shapiro-Wilk, D for K-S (Lilliefors) - summarizing how far the sample departs from a normal distribution.',
-      interpret: (v) => `Here, ${v.statistic} of the computed tests flag a significant departure from normality (p < .05).` },
+      interpret: (v) => `Here, ${v.statistic} computed tests flag a significant departure from normality (p < .05).` },
     { key: 'n', term: 'N', meaning: "How many valid values that variable's test was computed on (Shapiro-Wilk needs 3-5000 cases; K-S needs at least 5).",
       interpret: (v) => `Here, N = ${v.n} across the reported variable(s).` },
     { key: 'p', term: 'p', meaning: 'The probability of a departure from normality this large (or larger) if the data truly were normal; with large samples this over-flags trivial deviations, and with small samples it has low power.',
-      interpret: (v) => `Here, ${v.p} of the computed tests are significant (p < .05) - either way, check the Q-Q plot before concluding.` },
+      interpret: (v) => `Here, ${v.p} computed tests are significant (p < .05) - either way, check the Q-Q plot before concluding.` },
     { key: 'skew', term: 'Skew', meaning: "How far the distribution's shape departs from a normal bell curve in asymmetry.",
       interpret: (v) => `Here, Skew = ${v.skew} across the reported variable(s).` },
     { key: 'kurtosis', term: 'Kurtosis (excess)', meaning: "How far the distribution's shape departs from a normal bell curve in tail weight (normal = 0).",
@@ -413,7 +423,7 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
     { key: 'n', term: 'N', meaning: 'The total number of observations used across all groups.',
       interpret: (v) => `Here, N = ${v.n}.` },
     { key: 'p', term: 'p', meaning: 'The probability of rank differences this large (or larger) across groups if all groups truly had the same distribution.',
-      interpret: (v) => `Here, p ${v.p}${Number(String(v.p).replace(/[<>=\s]/g, '')) < 0.05 ? ' - below the conventional .05 threshold, at least one group differs.' : ' - at or above the conventional .05 threshold, no systematic difference detected.'}` },
+      interpret: (v) => `Here, p ${v.p}${Number(String(v.p).replace(/[<>=\s]/g, '')) < Number(v.alpha) ? ' - below your significance threshold, at least one group differs.' : ' - at or above your significance threshold, no systematic difference detected.'}` },
     { key: 'padj', term: 'p adj', meaning: 'The Dunn post-hoc adjusted p-value for a specific pair of groups.',
       interpret: (v) => `Here, the strongest pairwise difference is ${v.padjPair}, p adj ${v.padj}.` },
     { key: 'z', term: 'Z', meaning: 'The Dunn post-hoc test statistic comparing a specific pair of groups’ mean ranks.',
@@ -437,7 +447,7 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
   ],
   pearson: [
     { key: 'r', term: "Pearson's r", meaning: 'The strength and direction of the linear relationship, from -1 to +1.',
-      interpret: (v) => `Here, r(${v.df}) = ${v.r}, 95% CI [${v.ciLow}, ${v.ciHigh}] - a ${Math.abs(Number(v.r)) < 0.1 ? 'negligible' : Math.abs(Number(v.r)) < 0.3 ? 'small' : Math.abs(Number(v.r)) < 0.5 ? 'medium' : 'large'} ${Number(v.r) >= 0 ? 'positive' : 'negative'} relationship.` },
+      interpret: (v) => `Here, r(${v.df}) = ${v.r}, 95% CI [${v.ciLow}, ${v.ciHigh}] - a ${Math.abs(parseDisplayNum(v.r)) < 0.1 ? 'negligible' : Math.abs(parseDisplayNum(v.r)) < 0.3 ? 'small' : Math.abs(parseDisplayNum(v.r)) < 0.5 ? 'medium' : 'large'} ${parseDisplayNum(v.r) >= 0 ? 'positive' : 'negative'} relationship.` },
     { key: 'ci', term: '95% CI', meaning: 'The precision of the r estimate: the range of correlations plausible at the chosen confidence level.',
       interpret: (v) => `Here, the ${v.ciPct}% CI for r is ${v.ci}.` },
     { key: 't', term: 't', meaning: 'The test statistic testing whether r differs from zero.',
@@ -451,7 +461,7 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
   ],
   spearman: [
     { key: 'rho', term: 'ρ (rho)', meaning: 'The strength and direction of the monotonic (consistent up-or-down) relationship between the two variables, from -1 to +1.',
-      interpret: (v) => `Here, ρ = ${v.rho}, 95% CI [${v.rhoLow}, ${v.rhoHigh}] - read the sign and magnitude like Pearson's r: a ${Math.abs(Number(v.rho)) < 0.1 ? 'negligible' : Math.abs(Number(v.rho)) < 0.3 ? 'small' : Math.abs(Number(v.rho)) < 0.5 ? 'medium' : 'large'} ${Number(v.rho) >= 0 ? 'positive' : 'negative'} relationship.` },
+      interpret: (v) => `Here, ρ = ${v.rho}, 95% CI [${v.rhoLow}, ${v.rhoHigh}] - read the sign and magnitude like Pearson's r: a ${Math.abs(parseDisplayNum(v.rho)) < 0.1 ? 'negligible' : Math.abs(parseDisplayNum(v.rho)) < 0.3 ? 'small' : Math.abs(parseDisplayNum(v.rho)) < 0.5 ? 'medium' : 'large'} ${parseDisplayNum(v.rho) >= 0 ? 'positive' : 'negative'} relationship.` },
     { key: 's', term: 'S', meaning: "The test statistic Spearman's rho is derived from, based on the sum of squared rank differences.",
       interpret: (v) => `Here, S = ${v.s}.` },
     { key: 'p', term: 'p', meaning: 'The probability of a rank association this strong (or stronger) if the two variables were truly unrelated.',
@@ -632,9 +642,9 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, BIC = ${v.bic}.` },
     { key: 'n', term: 'N', meaning: 'The number of observations used to fit the model.',
       interpret: (v) => `Here, N = ${v.n}.` },
-    { key: 'c0', term: 'Predicted \\ Observed (first category)', meaning: 'How many cases the model correctly classified into the first outcome category (predicted and observed agree).',
+    { key: 'c0', term: 'Predicted \\ Observed (first category)', meaning: 'The diagonal (correct) cell for the first outcome category: how many cases the model predicted into it that were actually observed there.',
       interpret: (v) => `Here, ${v.c0} cases were predicted and observed in the first category.` },
-    { key: 'c1', term: 'Predicted \\ Observed (second category)', meaning: 'How many cases the model correctly classified into the second outcome category (predicted and observed agree).',
+    { key: 'c1', term: 'Predicted \\ Observed (second category)', meaning: 'The diagonal (correct) cell for the second outcome category: how many cases the model predicted into it that were actually observed there.',
       interpret: (v) => `Here, ${v.c1} cases were predicted and observed in the second category.` },
     { key: 'pct', term: '% correct', meaning: 'The overall share of cases the model classified correctly - model fit and the ROC/AUC show how well it classifies overall.',
       interpret: (v) => `Here, the model classified ${v.pct} of cases correctly.` },
@@ -684,7 +694,7 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, the 95% interval is ${v.pi95}.` },
   ],
   'stationarity-tests': [
-    { key: 'test', term: 'Test', meaning: 'Which stationarity test this row reports - ADF, KPSS, or (since the §2.5 addition) Phillips–Perron.',
+    { key: 'test', term: 'Test', meaning: 'Which stationarity test this row reports - ADF, KPSS, or Phillips–Perron.',
       interpret: (v) => `Here, the table reports: ${v.test}.` },
     { key: 'statistic', term: 'Statistic', meaning: 'The test statistic itself - the Dickey–Fuller τ for ADF, the LM statistic for KPSS, or the Phillips–Perron Z for PP (not on the same scale).',
       interpret: (v) => `Here, the ADF statistic is τ = ${v.statistic}.` },
@@ -836,8 +846,8 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, control (matched) = ${v.controlN}.` },
   ],
   'cronbachs-alpha': [
-    { key: 'omega', term: 'ω (omega)', meaning: "The headline reliability coefficient for this scale — it only assumes a one-factor (congeneric) model, so it's preferred over α when item loadings differ (McNeish, 2018).",
-      interpret: (v) => `Here, ω = ${v.omega}, 95% CI ${v.ci} — values ≥ .70 are commonly considered acceptable, ≥ .80 good, and > .95 may suggest item redundancy.` },
+    { key: 'omega', term: 'ω (omega)', meaning: "The headline reliability coefficient for this scale - it only assumes a one-factor (congeneric) model, so it's preferred over α when item loadings differ (McNeish, 2018).",
+      interpret: (v) => `Here, ω = ${v.omega}, 95% CI ${v.ci} - values ≥ .70 are commonly considered acceptable, ≥ .80 good, and > .95 may suggest item redundancy.` },
     { key: 'alpha', term: "α (Cronbach's alpha)", meaning: 'A secondary/legacy reliability coefficient that assumes every item loads equally (tau-equivalence); it is a lower bound on reliability when loadings differ.',
       interpret: (v) => `Here, α = ${v.alpha}.` },
     { key: 'ci', term: '95% CI', meaning: "The range likely to contain ω's true value, given sampling variability.",
@@ -846,18 +856,18 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, N items = ${v.nItems}.` },
     { key: 'nCases', term: 'N cases', meaning: 'The number of complete cases (participants) the estimates are based on.',
       interpret: (v) => `Here, N cases = ${v.nCases}.` },
-    { key: 'r', term: 'Corrected item-total r', meaning: 'How strongly one item correlates with the sum of the remaining items — a diagnostic of whether it belongs on this scale.',
+    { key: 'r', term: 'Corrected item-total r', meaning: 'How strongly one item correlates with the sum of the remaining items - a diagnostic of whether it belongs on this scale.',
       interpret: () => "Each row is one item's own item-total correlation; a low or negative value flags an item that may not belong on this scale." },
-    { key: 'alphaDropped', term: 'α if item dropped', meaning: "What Cronbach's α would be if that one item were removed from the scale — it flags items worth reviewing.",
+    { key: 'alphaDropped', term: 'α if item dropped', meaning: "What Cronbach's α would be if that one item were removed from the scale - it flags items worth reviewing.",
       interpret: (v) => `An item whose "α if item dropped" value is higher than the overall α (${v.alpha}) is a candidate for review.` },
   ],
   ave: [
     { key: 'ave', term: 'AVE', meaning: "The average share of a construct's item variance that it actually captures; ≥ .50 (Fornell & Larcker, 1981) means the items converge well on their construct.",
       interpret: () => "Each row is one construct's own AVE; a construct below .50 may still be acceptable when its CR is above .60 (the Fornell & Larcker caveat), but treat that as a caution, not a lenient pass." },
-    { key: 'cr', term: 'CR', meaning: "Composite reliability — how reliably a construct's indicators measure it as a group; ≥ .70 is acceptable (Nunnally, 1978; Bagozzi & Yi, 1988).",
+    { key: 'cr', term: 'CR', meaning: "Composite reliability - how reliably a construct's indicators measure it as a group; ≥ .70 is acceptable (Nunnally, 1978; Bagozzi & Yi, 1988).",
       interpret: () => "Each row is one construct's own CR; a value below .70 flags a construct whose indicators may not hang together well." },
-    { key: 'omega', term: 'ω (omega)', meaning: 'The preferred headline reliability coefficient per construct — model-based, not assuming tau-equivalence (McNeish, 2018).',
-      interpret: () => "Compare each construct's ω against its α in the same row — a large gap suggests the items' loadings are not equal." },
+    { key: 'omega', term: 'ω (omega)', meaning: 'The preferred headline reliability coefficient per construct - model-based, not assuming tau-equivalence (McNeish, 2018).',
+      interpret: () => "Compare each construct's ω against its α in the same row - a large gap suggests the items' loadings are not equal." },
     { key: 'alpha', term: 'α (alpha)', meaning: "Cronbach's alpha, shown per construct as a secondary/legacy coefficient alongside ω.",
       interpret: () => "Each construct's α is shown for reference alongside its own ω, the preferred coefficient." },
   ],
@@ -865,22 +875,22 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
     { key: 'cr', term: 'CR', meaning: "How reliably a construct's items capture it as a group (0-1); ≥ .70 is the conventional threshold (Nunnally, 1978; Bagozzi & Yi, 1988).",
       interpret: () => "Each row is one construct's own CR, computed from its CFA loadings via semTools::compRelSEM()." },
     { key: 'ave', term: 'AVE', meaning: 'Shown alongside CR as a quick convergent-validity reference (≥ .50; Fornell & Larcker, 1981); the full discriminant-validity write-up lives on the dedicated AVE card.',
-      interpret: () => "Each row's AVE is a quick reference — for Fornell–Larcker and HTMT, run the AVE card." },
+      interpret: () => "Each row's AVE is a quick reference - for Fornell–Larcker and HTMT, run the AVE card." },
     { key: 'omega', term: 'ω (omega)', meaning: 'For a congeneric (unidimensional) factor, ω always equals CR, since both come from the same CFA loadings.',
-      interpret: () => "Each construct's ω matches its CR in this table — the two columns will always agree for a congeneric factor." },
-    { key: 'alpha', term: 'α (alpha)', meaning: 'A secondary/legacy coefficient — it assumes every item loads equally (tau-equivalence) and is a lower bound when loadings differ (McNeish, 2018).',
+      interpret: () => "Each construct's ω matches its CR in this table - the two columns will always agree for a congeneric factor." },
+    { key: 'alpha', term: 'α (alpha)', meaning: 'A secondary/legacy coefficient - it assumes every item loads equally (tau-equivalence) and is a lower bound when loadings differ (McNeish, 2018).',
       interpret: () => "Each construct's α is retained for reference, but CR/ω is the primary reliability figure on this card." },
   ],
   efa: [
-    { key: 'kmo', term: 'KMO', meaning: 'Sampling adequacy — whether the variables share enough variance to factor well; > .60 acceptable, > .70 preferred (Kaiser & Rice, 1974).',
+    { key: 'kmo', term: 'KMO', meaning: 'Sampling adequacy - whether the variables share enough variance to factor well; > .60 acceptable, > .70 preferred (Kaiser & Rice, 1974).',
       interpret: (v) => `Here, KMO = ${v.kmo}.` },
-    { key: 'bartlettChisq', term: "Bartlett's χ²", meaning: 'Tests whether the correlation matrix differs from an identity matrix (no correlation at all) — a prerequisite check for factoring.',
+    { key: 'bartlettChisq', term: "Bartlett's χ²", meaning: 'Tests whether the correlation matrix differs from an identity matrix (no correlation at all) - a prerequisite check for factoring.',
       interpret: (v) => `Here, Bartlett's χ²(${v.df}) = ${v.bartlettChisq}.` },
     { key: 'df', term: 'df', meaning: "Degrees of freedom for Bartlett's test, based on the number of items.",
       interpret: (v) => `Here, df = ${v.df}.` },
     { key: 'p', term: 'p', meaning: "The significance of Bartlett's test; p < .001 is required for suitability.",
       interpret: (v) => `Here, p ${v.p}.` },
-    { key: 'factor', term: 'Factor', meaning: 'One retained factor from the chosen retention rule — parallel analysis (Horn, 1965) is recommended over the Kaiser eigenvalue > 1 rule, which over-extracts (Zwick & Velicer, 1986).',
+    { key: 'factor', term: 'Factor', meaning: 'One retained factor from the chosen retention rule - parallel analysis (Horn, 1965) is recommended over the Kaiser eigenvalue > 1 rule, which over-extracts (Zwick & Velicer, 1986).',
       interpret: (v) => `Here, ${v.nFactors} factor(s) were retained (rows below), ordered by descending variance explained.` },
     { key: 'eigenvalue', term: 'Eigenvalue', meaning: 'How much total variance a factor accounts for; parallel analysis retains a factor only once its eigenvalue clears a randomly-generated threshold.',
       interpret: () => "Each retained factor's eigenvalue already cleared the retention rule you selected." },
@@ -896,11 +906,11 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: () => "Each item's communality summarizes how well the retained factors, together, account for it." },
   ],
   'pls-sem': [
-    { key: 'alpha', term: 'α (alpha)', meaning: "Cronbach's alpha for a construct — one part of the reliability & validity picture (with ρ_A, CR, AVE) PLS-SEM is judged by, since it reports no global fit indices (Hair et al., 2019).",
+    { key: 'alpha', term: 'α (alpha)', meaning: "Cronbach's alpha for a construct - one part of the reliability & validity picture (with ρ_A, CR, AVE) PLS-SEM is judged by, since it reports no global fit indices (Hair et al., 2019).",
       interpret: () => "Each construct's group row carries its own α, ρ_A, CR, and AVE together (blank when that construct is modeled as formative)." },
     { key: 'rhoA', term: 'ρ_A', meaning: "Hair et al. (2019)'s recommended reliability coefficient for PLS-SEM constructs, reported alongside α and CR.",
       interpret: () => "Each construct's ρ_A is the reliability figure Hair et al. (2019) recommend leading with in PLS-SEM." },
-    { key: 'rhoC', term: 'CR (ρ_C)', meaning: 'Composite reliability for a construct — part of the same reliability & validity assessment.',
+    { key: 'rhoC', term: 'CR (ρ_C)', meaning: 'Composite reliability for a construct - part of the same reliability & validity assessment.',
       interpret: () => "Each construct's CR sits alongside α, ρ_A, and AVE on its own group row." },
     { key: 'ave', term: 'AVE', meaning: 'Average variance extracted for a reflective construct; suppressed for formative constructs, which are judged instead by indicator weights, VIF, and redundancy analysis.',
       interpret: () => "A construct row showing AVE is reflective; a formative construct's AVE cell is blank by design." },
@@ -908,7 +918,7 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: () => "Each indicator row shows its own descriptive Mean." },
     { key: 'sd', term: 'SD', meaning: "The observed standard deviation of an indicator's raw responses.",
       interpret: () => "Each indicator row shows its own descriptive SD alongside its Mean." },
-    { key: 'loading', term: 'Loading / weight', meaning: 'How strongly an indicator represents its construct — a loading for reflective indicators, a weight for formative ones; the column merges both since only one applies per indicator.',
+    { key: 'loading', term: 'Loading / weight', meaning: 'How strongly an indicator represents its construct - a loading for reflective indicators, a weight for formative ones; the column merges both since only one applies per indicator.',
       interpret: () => 'Each indicator shows either its loading (reflective) or its weight (formative) in this single merged column.' },
     { key: 't', term: 't', meaning: "The bootstrapped t-statistic testing whether an indicator's loading or weight differs from zero.",
       interpret: () => "Each indicator's t (with its p) tests whether its own loading/weight is reliably different from zero." },
@@ -916,15 +926,15 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: () => "Across this card's tables, p is the bootstrapped significance for that row's own estimate." },
     { key: 'h', term: 'H', meaning: 'The hypothesis number labeling one structural path, in the order you drew it on the canvas.',
       interpret: () => 'Each H-row is one drawn structural path, numbered in creation order.' },
-    { key: 'beta', term: 'β (path coefficient)', meaning: 'The standardized structural path coefficient — PLS-SEM path coefficients are already on the standardized/composite scale.',
+    { key: 'beta', term: 'β (path coefficient)', meaning: 'The standardized structural path coefficient - PLS-SEM path coefficients are already on the standardized/composite scale.',
       interpret: () => "Each H-row's β is that path's own standardized coefficient." },
-    { key: 'ciPercLo', term: 'Percentile 95% CI — lower bound', meaning: 'The lower bound of the primary bootstrap confidence interval for a structural path.',
+    { key: 'ciPercLo', term: 'Percentile 95% CI - lower bound', meaning: 'The lower bound of the primary bootstrap confidence interval for a structural path.',
       interpret: () => "Each H-row's percentile-CI lower bound, with its upper bound, is what the Result column is derived from." },
-    { key: 'ciPercHi', term: 'Percentile 95% CI — upper bound', meaning: 'The upper bound of the primary bootstrap confidence interval for a structural path.',
+    { key: 'ciPercHi', term: 'Percentile 95% CI - upper bound', meaning: 'The upper bound of the primary bootstrap confidence interval for a structural path.',
       interpret: () => "Each H-row's percentile-CI upper bound completes the interval the Result column is derived from." },
-    { key: 'ciBcLo', term: 'BC 95% CI — lower bound', meaning: 'The lower bound of a hand-rolled bias-corrected bootstrap interval, shown as comparative context alongside the primary percentile CI.',
+    { key: 'ciBcLo', term: 'BC 95% CI - lower bound', meaning: 'The lower bound of a hand-rolled bias-corrected bootstrap interval, shown as comparative context alongside the primary percentile CI.',
       interpret: () => "Each H-row's BC-CI lower bound is comparative context; the Result column is always derived from the percentile CI, not this one." },
-    { key: 'ciBcHi', term: 'BC 95% CI — upper bound', meaning: 'The upper bound of the same hand-rolled bias-corrected bootstrap interval.',
+    { key: 'ciBcHi', term: 'BC 95% CI - upper bound', meaning: 'The upper bound of the same hand-rolled bias-corrected bootstrap interval.',
       interpret: () => "Each H-row's BC-CI upper bound completes the comparative interval alongside its lower bound." },
     { key: 'result', term: 'Result', meaning: "Whether a structural path's percentile CI excludes zero (Supported) or straddles it (Not supported), at α = .05.",
       interpret: () => "Each H-row's Result reads directly off whether its own percentile CI excludes zero." },
@@ -932,7 +942,7 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: () => "Each endogenous construct's row shows its own R² (with R²adj alongside); f² for each incoming path is reported in the note below." },
     { key: 'r2adj', term: 'R²_adj', meaning: 'R² adjusted for the number of predictor paths into that construct.',
       interpret: () => "Each construct's R²adj sits beside its R², adjusting for the number of incoming paths." },
-    { key: 'q2', term: 'Q²', meaning: 'A measure of predictive relevance for an endogenous construct — values above zero indicate the model has predictive relevance for it (Hair et al., 2019).',
+    { key: 'q2', term: 'Q²', meaning: 'A measure of predictive relevance for an endogenous construct - values above zero indicate the model has predictive relevance for it (Hair et al., 2019).',
       interpret: () => "Each endogenous construct's Q² indicates its own predictive relevance." },
     { key: 'est', term: 'Estimate', meaning: 'The size of an indirect (mediated) effect along a chained path (X → M → Y).',
       interpret: () => "Each indirect-effect row's Estimate is that mediated path's own bootstrapped size." },
@@ -946,7 +956,7 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: () => "Each level's β is the path's slope estimated at that specific moderator level." },
   ],
   pca: [
-    { key: 'component', term: 'Component', meaning: 'One retained principal component — a weighted composite of the observed variables, not a latent factor.',
+    { key: 'component', term: 'Component', meaning: 'One retained principal component - a weighted composite of the observed variables, not a latent factor.',
       interpret: (v) => `Here, ${v.nComponents} component(s) were retained (rows below), ordered by variance explained.` },
     { key: 'eigenvalue', term: 'Eigenvalue', meaning: 'How much variance a component retains; components are retained where the observed eigenvalue exceeds the parallel-analysis threshold (the Kaiser > 1 rule is shown for reference but tends to over-extract, Zwick & Velicer, 1986).',
       interpret: () => "Each retained component's eigenvalue already cleared the retention rule you selected." },
@@ -968,7 +978,7 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, CFI = ${v.cfi}.` },
     { key: 'rmsea', term: 'RMSEA', meaning: 'The average model misfit per degree of freedom, penalizing complexity (≤ .06 is a common, non-binding guideline).',
       // Key names match runCbSem.ts's fit object convention (rmseaLower/rmseaUpper), not a shortened
-      // rmseaLo/rmseaHi (T1-review MUST — renamed here so the builder needs no translation layer).
+      // rmseaLo/rmseaHi (T1-review MUST - renamed here so the builder needs no translation layer).
       interpret: (v) => `Here, RMSEA = ${v.rmsea} [90% CI ${v.rmseaLower}, ${v.rmseaUpper}].` },
     { key: 'tli', term: 'TLI', meaning: 'Like CFI, compares the model to a baseline with no relationships, penalizing complexity more than CFI does (≥ .95 is a common, non-binding guideline).',
       interpret: (v) => `Here, TLI = ${v.tli}.` },

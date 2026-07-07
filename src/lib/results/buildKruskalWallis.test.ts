@@ -73,7 +73,7 @@ describe('buildKruskalWallis', () => {
   it('values carries the numbers the term explainers reference (U8-T4), aggregating the 3-group rank rows by low/high', () => {
     expect(c.values).toEqual({
       h: '6.56', df: '2', p: '= .038', eps2: '0.11', eps2lo: '0.03', eps2hi: '1.00',
-      n: '60',
+      n: '60', alpha: '0.05',
       meanRankLowGroup: 'control', meanRankLowVal: '24.90', meanRankHighGroup: 'drug_b', meanRankHighVal: '38.45',
       medianLowGroup: 'control', medianLowVal: '33.55', medianHighGroup: 'drug_b', medianHighVal: '38.70',
       iqrLowGroup: 'drug_b', iqrLowVal: '6.60', iqrHighGroup: 'drug_a', iqrHighVal: '11.97',
