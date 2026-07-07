@@ -367,6 +367,10 @@ export function buildModel(
   isPath: boolean,
   rNameOf: (id: number) => string,
   moderations: Moderation[] = [],
+  /** Maps a raw/display item name to its sanitized R-side identifier (lvNames-derived; display names
+   *  with spaces are illegal `=~` RHS tokens). Defaults to identity so the export emitter's existing
+   *  call site (item-level export sanitization is a separate follow-on task) is unaffected. */
+  itemNameOf: (raw: string) => string = (raw) => raw,
 ): {
   model: string
   hasIndirect: boolean
@@ -379,7 +383,7 @@ export function buildModel(
 
   // Measurement model (latent mode only; path mode regresses observed columns directly)
   if (!isPath) {
-    for (const c of constructs) lines.push(`${rNameOf(c.id)} =~ ${c.items.join(' + ')}`)
+    for (const c of constructs) lines.push(`${rNameOf(c.id)} =~ ${c.items.map(itemNameOf).join(' + ')}`)
   }
 
   // Structural model: one regression per endogenous target, predictors labeled for := defs.
@@ -409,7 +413,7 @@ export function buildModel(
   // lines assembled above. `buildModel` delegates to the shared module so the SAME text also feeds the
   // cb-sem R-script export emitter later (export ≡ app, one source of truth).
   validateModerations(moderations, paths, isPath)
-  const { lines: modLines, moderationDefs, targetLineExtras } = buildModerationLines(constructs, paths, rNameOf, moderations)
+  const { lines: modLines, moderationDefs, targetLineExtras } = buildModerationLines(constructs, paths, rNameOf, moderations, itemNameOf)
   for (const [pathIndex, extra] of targetLineExtras) {
     const path = paths[pathIndex]
     const targetLineIdx = lines.findIndex((l) => l.startsWith(`${rNameOf(path.to)} ~ `))
@@ -484,13 +488,23 @@ export async function runCbSem(
   const missingSetting = String(setup.options['missing'] ?? CB_SEM_DEFAULT_MISSING)
   const itemStats = isPath ? [] : computeItemStats(data, constructs, rows, missingSetting)
 
-  // R-side column names: in path mode the model tokens are the SANITIZED construct names, so the data
-  // frame columns must carry the same sanitized names; latent mode keeps the raw item columns.
+  // Sanitized R-side item identifiers (lavaan `=~` RHS tokens are illegal with spaces), one call across
+  // ALL used items so cross-construct collisions after sanitizing still dedupe correctly (same approach
+  // as cfaReliability.ts); empty in path mode, where usedCols already holds sanitized construct names,
+  // not items. `itemNameOf` falls back to identity for anything outside usedCols (defensive; shouldn't
+  // happen since usedCols is exactly the item universe below).
+  const rItemNames = isPath ? [] : lvNames(usedCols)
+  const itemMap = new Map(usedCols.map((raw, i) => [raw, rItemNames[i]]))
+  const itemNameOf = (raw: string) => itemMap.get(raw) ?? raw
+  const rawOfItem = new Map(rItemNames.map((san, i) => [san, usedCols[i]])) // sanitized -> raw, for mapping R output back to display names
+
+  // R-side column names: in path mode the model tokens are the SANITIZED construct names; latent mode
+  // uses the SANITIZED item columns (matching the measurement model's =~ RHS built via itemNameOf below).
   const rCols = isPath
     ? usedCols.map((col) => rNameOf(constructs.find((c) => c.name === col)!.id))
-    : usedCols
+    : rItemNames
 
-  const { model, hasIndirect, indirectDefs, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, setup.moderations ?? [])
+  const { model, hasIndirect, indirectDefs, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, setup.moderations ?? [], itemNameOf)
   const nboot = Number(setup.options['nboot'] ?? 5000)
   // was: const ci_type = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'   // 'bca' is not a valid
   // lavaan boot.ci.type -- dead code, would error if ever reached (design §A2 fix).
@@ -581,6 +595,16 @@ export async function runCbSem(
   const rsquare: Record<number, number> = {}
   for (const [k, v] of Object.entries(raw.rsquareIds)) rsquare[Number(k)] = v
 
+  // Restore raw/display item names: the fitted lavaan model only ever saw the SANITIZED item token
+  // (rItemNames, via itemNameOf above), so both item-level output surfaces -- Table 2's CFA loadings
+  // and the canvas overlay's estimates.loadings (keyed by SemCanvas against raw Construct.items) --
+  // need the sanitized->raw reverse map applied before they reach TS callers. No-op in path mode
+  // (rawOfItem is empty there; both raw.cfaLoadings/raw.estLoadings are already empty).
+  const cfaLoadings = raw.cfaLoadings.map((row) => ({ ...row, item: rawOfItem.get(String(row.item)) ?? row.item }))
+  const estLoadings = Object.fromEntries(
+    Object.entries(raw.estLoadings).map(([k, v]) => [rawOfItem.get(k) ?? k, v]),
+  )
+
   // Attach the construct-name chain (pathLabel) to each indirect row by its lavaan := label, so the
   // builder renders "ind60 → dem60 → dem65" instead of the internal "ie_1_2_3". Pure additive field.
   const labelToChain = new Map(indirectDefs.map((d) => [d.label, d.chainNames.join(' → ')]))
@@ -649,7 +673,7 @@ export async function runCbSem(
   return {
     mode,
     saturated: isSaturated(raw.df),
-    cfaLoadings: raw.cfaLoadings,
+    cfaLoadings,
     reliability,
     fit: raw.fit,
     structural: raw.structural,
@@ -662,7 +686,7 @@ export async function runCbSem(
     discriminantLabels,
     estimates: {
       paths: raw.estPaths,
-      loadings: raw.estLoadings,
+      loadings: estLoadings,
       r2: rsquare,
       moderation: estModeration,
     },

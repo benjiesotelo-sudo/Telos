@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Engine } from '../webr/engine'
 import { runCfaReliability } from './cfaReliability'
 import { loadCsvFixture } from './csvFixture'
+import type { Dataset } from './types'
 import { join } from 'node:path'
 
 // Reference values: native R 4.6.0, HolzingerSwineford x1–x9 (tests/e2e/fixtures/scale.csv).
@@ -120,6 +121,44 @@ describe('cfaReliability', () => {
     expect(vis.omega).toBeCloseTo(0.6120, 3)
     expect(vis.alpha).toBeCloseTo(0.6261, 3)
 
+    expect(result.fornellLarcker[0][0]).toBeCloseTo(0.6087, 3)
+    expect(result.htmt[0][1]).toBeCloseTo(0.3841, 3)
+  }, 600_000)
+
+  // Same model/data, only the ITEM (indicator) names carry spaces — the =~ RHS (`c.items.join(' + ')`)
+  // and `colnames(d_all)` both need the SAME sanitized token or lavaan either fails to parse or the data
+  // frame columns silently misalign. Renaming items doesn't change the fitted numbers, so this reuses
+  // the reference values above.
+  const ITEM_RENAME: Record<string, string> = {
+    x1: 'visual perception 1', x2: 'visual perception 2', x3: 'visual perception 3',
+    x4: 'verbal ability 4', x5: 'verbal ability 5', x6: 'verbal ability 6',
+    x7: 'processing speed 7', x8: 'processing speed 8', x9: 'processing speed 9',
+  }
+  const SPACED_ITEM_CONSTRUCTS = [
+    { name: 'visual', items: ['visual perception 1', 'visual perception 2', 'visual perception 3'] },
+    { name: 'textual', items: ['verbal ability 4', 'verbal ability 5', 'verbal ability 6'] },
+    { name: 'speed', items: ['processing speed 7', 'processing speed 8', 'processing speed 9'] },
+  ]
+
+  it('spaced item names produce the same AVE/CR/alpha/Fornell-Larcker/HTMT as the safe-header equivalent', async () => {
+    const raw = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/scale.csv'))
+    const spacedData: Dataset = {
+      columns: Object.values(ITEM_RENAME),
+      rows: raw.rows.map((r) => {
+        const row: Dataset['rows'][number] = {}
+        for (const [orig, spaced] of Object.entries(ITEM_RENAME)) row[spaced] = r[orig]
+        return row
+      }),
+    }
+    const result = await runCfaReliability(engine, spacedData, SPACED_ITEM_CONSTRUCTS)
+
+    expect(result.labels).toEqual(['visual', 'textual', 'speed'])
+    const [vis, tex, spd] = result.perConstruct
+    expect(vis.ave).toBeCloseTo(0.3706, 3)
+    expect(tex.ave).toBeCloseTo(0.7210, 3)
+    expect(spd.ave).toBeCloseTo(0.4245, 3)
+    expect(vis.omega).toBeCloseTo(0.6120, 3)
+    expect(vis.alpha).toBeCloseTo(0.6261, 3)
     expect(result.fornellLarcker[0][0]).toBeCloseTo(0.6087, 3)
     expect(result.htmt[0][1]).toBeCloseTo(0.3841, 3)
   }, 600_000)

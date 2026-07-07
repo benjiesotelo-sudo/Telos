@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Engine } from '../webr/engine'
 import { runCronbachsAlpha, type CronbachResult } from './cronbachsAlpha'
 import { loadCsvFixture } from './csvFixture'
+import type { Dataset } from './types'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
@@ -97,6 +98,24 @@ describe('runCronbachsAlpha', () => {
     // figItemTotalPng is defined when dropItem=true (the default)
     expect(Array.from(result.figItemTotalPng!.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
+
+  it('spaced item names produce the same alpha/omega as the safe-header equivalent, with display names preserved', async () => {
+    const SPACED_ITEMS = ITEMS.map((it) => `visual perception ${it}`)
+    const safeDs = loadCsvFixture(join(FIXTURES, 'scale.csv'))
+    const spacedDs: Dataset = {
+      columns: SPACED_ITEMS,
+      rows: safeDs.rows.map((r) => {
+        const row: Dataset['rows'][number] = {}
+        ITEMS.forEach((it, i) => { row[SPACED_ITEMS[i]] = r[it] })
+        return row
+      }),
+    }
+    const spaced = await runCronbachsAlpha(engine, spacedDs, SPACED_ITEMS, 20260619, TEST_NBOOT)
+    expect(spaced.alpha).toBeCloseTo(result.alpha, 6)
+    expect(spaced.omega).toBeCloseTo(result.omega, 6)
+    // Table/figure-facing item labels stay the RAW spaced display name, never the lavaan-safe R token.
+    expect(spaced.itemTotal.map((it) => it.item)).toEqual(SPACED_ITEMS)
+  }, 600_000)
 
   it('listwise: drops rows missing any item, nCases reflects filtered count', async () => {
     const ds = loadCsvFixture(join(FIXTURES, 'scale.csv'))

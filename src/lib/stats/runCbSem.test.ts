@@ -239,6 +239,107 @@ describe('runCbSem — construct names with spaces', () => {
   }, 600_000)
 })
 
+describe('runCbSem — spaced ITEM names (X1 app-side fix)', () => {
+  const engine = new Engine()
+  beforeAll(async () => { await engine.init() }, 600_000)
+  afterAll(async () => { await engine.close() })
+
+  // Same Bollen PoliticalDemocracy model/data as the top-of-file SETUP, only the ITEM (indicator) column
+  // names carry spaces -- the measurement model's `=~` RHS (`c.items.join(' + ')`) and `colnames(d)` both
+  // need the SAME sanitized token or lavaan either fails to parse or the data frame columns silently
+  // misalign. Renaming items doesn't change the fitted numbers, so this reuses the exact reference
+  // values from the SETUP test above.
+  const ITEM_RENAME: Record<string, string> = {
+    x1: 'industrial score 1', x2: 'industrial score 2', x3: 'industrial score 3',
+    y1: 'democracy 1960 a', y2: 'democracy 1960 b', y3: 'democracy 1960 c', y4: 'democracy 1960 d',
+    y5: 'democracy 1965 a', y6: 'democracy 1965 b', y7: 'democracy 1965 c', y8: 'democracy 1965 d',
+  }
+  const SPACED_ITEM_SETUP: TestSetup = {
+    ...SETUP,
+    constructs: [
+      { id: 1, name: 'ind60', items: ['industrial score 1', 'industrial score 2', 'industrial score 3'] },
+      { id: 2, name: 'dem60', items: ['democracy 1960 a', 'democracy 1960 b', 'democracy 1960 c', 'democracy 1960 d'] },
+      { id: 3, name: 'dem65', items: ['democracy 1965 a', 'democracy 1965 b', 'democracy 1965 c', 'democracy 1965 d'] },
+    ],
+  }
+
+  it('spaced item names run successfully (latent mode) and preserve display names in cfaLoadings/estimates.loadings/itemStats', async () => {
+    const raw = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/polidemocracy.csv'))
+    const spacedData: Dataset = {
+      columns: raw.columns.map((c) => ITEM_RENAME[c] ?? c),
+      rows: raw.rows.map((r) => {
+        const row: Dataset['rows'][number] = {}
+        for (const [k, v] of Object.entries(r)) row[ITEM_RENAME[k] ?? k] = v
+        return row
+      }),
+    }
+    const result = await runCbSem(engine, spacedData, SPACED_ITEM_SETUP)
+
+    expect(result.fit!.df).toBe(41)
+    expect(result.fit!.chisq).toBeCloseTo(72.462, 1)
+
+    // --- cfaLoadings: the displayed `item` carries the ORIGINAL spaced name, never the sanitized R token ---
+    const x2 = result.cfaLoadings.find((r) => r.item === 'industrial score 2')!
+    expect(x2).toBeDefined()
+    expect(x2.construct).toBe('ind60')
+    expect(Number(x2.stdLoading)).toBeCloseTo(0.973, 2)
+
+    // --- canvas overlay (estimates.loadings) is keyed by the RAW display item name -- SemCanvas looks
+    // it up via Construct.items, which never gets sanitized ---
+    expect(result.estimates.loadings['industrial score 2']).toBeCloseTo(0.973, 2)
+
+    // --- structural paths/R² unaffected (paths key off construct ids, not items) ---
+    const s = result.structural!
+    const p12 = s.find((r) => r.from === 1 && r.to === 2)!
+    expect(Number(p12.stdBeta)).toBeCloseTo(0.448, 2)
+    expect(result.rsquare![3]).toBeCloseTo(0.974, 2)
+
+    // --- item Mean/SD (Table 1) still keyed by the raw display item name ---
+    expect(result.itemStats.find((st) => st.item === 'industrial score 2')).toBeDefined()
+  }, 600_000)
+
+  // Path mode's item/column sanitization was ALREADY correct before this fix (construct.name doubles as
+  // the observed column, sanitized via rNameOf) -- this proves that pre-existing correctness isn't
+  // regressed by the new item-sanitization code path added for latent/full/cfa-only mode. In path mode
+  // the construct NAME is the actual data column (not `.items`), so renaming it to a spaced display
+  // label requires renaming the underlying dataset column to match, same as the CSV-header rename used
+  // for the latent-mode item tests above.
+  it('path mode with spaced observed-column (construct) names is unaffected by the item-sanitization fix', async () => {
+    const raw = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/scale.csv'))
+    const data: Dataset = {
+      columns: raw.columns.map((c) => (c === 'x4' ? 'perceptual speed score' : c)),
+      rows: raw.rows.map((r) => {
+        const row: Dataset['rows'][number] = {}
+        for (const [k, v] of Object.entries(r)) row[k === 'x4' ? 'perceptual speed score' : k] = v
+        return row
+      }),
+    }
+    const spacedPathSetup: TestSetup = {
+      ...PATH_SETUP,
+      constructs: [
+        { id: 1, name: 'x1', items: ['x1'] },
+        { id: 2, name: 'perceptual speed score', items: ['perceptual speed score'] },
+        { id: 3, name: 'x7', items: ['x7'] },
+      ],
+      paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }, { from: 1, to: 3 }],
+    }
+    const result = await runCbSem(engine, data, spacedPathSetup)
+
+    expect(result.mode).toBe('path')
+    expect(result.saturated).toBe(true)
+    expect(result.fit!.df).toBe(0)
+    expect(result.cfaLoadings).toHaveLength(0) // no measurement model in path mode
+
+    const s = result.structural!
+    const p12 = s.find((r) => r.from === 1 && r.to === 2)!
+    const p23 = s.find((r) => r.from === 2 && r.to === 3)!
+    expect(p12.toName).toBe('perceptual speed score')
+    expect(Number(p12.stdBeta)).toBeCloseTo(0.373, 2)
+    expect(Number(p23.stdBeta)).toBeCloseTo(0.173, 2)
+    expect(result.rsquare![2]).toBeCloseTo(0.139, 2)
+  }, 600_000)
+})
+
 describe('runCbSem — observed-only path mode (modelKind:path)', () => {
   const engine = new Engine()
   beforeAll(async () => { await engine.init() }, 600_000)

@@ -4,6 +4,7 @@ import { runPlsSem } from './plsSem'
 import { loadCsvFixture } from './csvFixture'
 import { join } from 'node:path'
 import type { TestSetup } from '../../state/session'
+import type { Dataset } from './types'
 
 // Reference values: native R 4.6.0, AUTHORITATIVE seminr::mobi example (tests/e2e/fixtures/mobi.csv,
 // regenerated 2026-06-21 via `write.csv(seminr::mobi, ...)`). 3-construct sub-model so the test stays fast:
@@ -175,6 +176,59 @@ describe('plsSem', () => {
     )
     expect(ind).toBeDefined()
     expect(Number(ind!.est)).toBeCloseTo(0.1104, 2)
+  }, 600_000)
+
+  // seminr's composite()/measurement-model string arguments are quoted R strings, not bare formula
+  // tokens, so they never NEEDED sanitization for their own syntax -- but `colnames(d_all)` (built from
+  // the SAME `all_items` array) does need to agree with whatever key composite() looks up, and raw
+  // spaced names make that a fragile non-syntactic assignment. This proves spaced ITEM (indicator)
+  // names run end-to-end and preserve the ORIGINAL display name everywhere the app shows/keys by item.
+  const ITEM_RENAME: Record<string, string> = {
+    IMAG1: 'brand image q1', IMAG2: 'brand image q2', IMAG3: 'brand image q3',
+    IMAG4: 'brand image q4', IMAG5: 'brand image q5',
+    CUEX1: 'customer expectation q1', CUEX2: 'customer expectation q2', CUEX3: 'customer expectation q3',
+    CUSA1: 'customer satisfaction q1', CUSA2: 'customer satisfaction q2', CUSA3: 'customer satisfaction q3',
+  }
+  const SPACED_ITEM_SETUP: TestSetup = {
+    ...REFLECTIVE_SETUP,
+    options: { nboot: 100, missing: 'mean-replacement' },
+    constructs: [
+      { id: 1, name: 'Image', mode: 'reflective', items: ['brand image q1', 'brand image q2', 'brand image q3', 'brand image q4', 'brand image q5'] },
+      { id: 2, name: 'Expectation', mode: 'reflective', items: ['customer expectation q1', 'customer expectation q2', 'customer expectation q3'] },
+      { id: 3, name: 'Satisfaction', mode: 'reflective', items: ['customer satisfaction q1', 'customer satisfaction q2', 'customer satisfaction q3'] },
+    ],
+  }
+
+  it('spaced item (indicator) names run natively through seminr and preserve display names in outer/estimates.loadings', async () => {
+    const raw = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
+    const spacedData: Dataset = {
+      columns: raw.columns.map((c) => ITEM_RENAME[c] ?? c),
+      rows: raw.rows.map((r) => {
+        const row: Dataset['rows'][number] = {}
+        for (const [k, v] of Object.entries(r)) row[ITEM_RENAME[k] ?? k] = v
+        return row
+      }),
+    }
+    const r = await runPlsSem(engine, spacedData, SPACED_ITEM_SETUP)
+
+    // reliability unaffected by renaming items (bootstrap-independent point estimates)
+    const byName = Object.fromEntries(r.reliability.map((row) => [row.construct, row]))
+    expect(Number(byName['Image'].alpha)).toBeCloseTo(0.7228, 3)
+
+    // outer table's displayed `item` carries the ORIGINAL spaced name, never the sanitized R token
+    const row = r.outer.find((row) => row.item === 'brand image q1')!
+    expect(row).toBeDefined()
+    expect(row.construct).toBe('Image')
+    expect(Number(row.mean)).toBeCloseTo(7.64, 2)
+    expect(Number(row.sd)).toBeCloseTo(1.69999, 3)
+
+    // canvas overlay (estimates.loadings) is keyed by the RAW display item name -- SemCanvas looks it
+    // up via Construct.items, which never gets sanitized
+    expect(r.estimates.loadings['brand image q1']).toBeCloseTo(Number(row.loading), 6)
+
+    // structural paths/estimates unaffected (PLS construct names, unlike items, were never sanitized)
+    const pImEx = r.estimates.paths.find((p) => p.from === 1 && p.to === 2)!
+    expect(pImEx.beta).toBeCloseTo(0.5095, 2)
   }, 600_000)
 
   it('outer rows carry item mean/sd computed on the listwise sample', async () => {

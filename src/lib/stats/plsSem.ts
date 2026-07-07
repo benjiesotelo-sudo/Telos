@@ -5,6 +5,7 @@ import type { RunProgress } from '../results/builders'
 import { MAKECLUSTER_SHIM } from '../webr/parallelShim'
 import { BC_CI_R } from './plsBcCi'
 import { renderSimpleSlopesFigure } from './simpleSlopesPlot'
+import { lvNames } from './lvName'
 
 /** Simple slope at one of the three Aiken & West (1991) probing levels (U6-T5), derived from seminr's
  *  ESTIMATED interaction coefficient rather than a lavaan `:=` defined parameter (PLS has no latent-
@@ -331,9 +332,13 @@ function listwise(data: Dataset, items: string[]): Record<string, unknown>[] {
   )
 }
 
-/** seminr `composite("Name", c("item",...), weights = mode_A|mode_B)` source line per construct. */
-function measurementLine(c: Construct): string {
-  const items = `c(${c.items.map((it) => `"${it}"`).join(', ')})`
+/** seminr `composite("Name", c("item",...), weights = mode_A|mode_B)` source line per construct.
+ *  Uses the SANITIZED item name (itemNameOf) for the quoted string arguments too — seminr's composite()
+ *  key must match `colnames(d_all)` exactly (also sanitized), even though these are string literals,
+ *  not R identifiers, so the display name would technically parse fine but silently mismatch the data
+ *  frame's columns for any item containing a space. */
+function measurementLine(c: Construct, itemNameOf: (raw: string) => string): string {
+  const items = `c(${c.items.map((it) => `"${itemNameOf(it)}"`).join(', ')})`
   const wt = c.mode === 'formative' ? ', weights = mode_B' : ', weights = mode_A'
   return `composite("${c.name}", ${items}${wt})`
 }
@@ -357,6 +362,14 @@ export async function runPlsSem(
   const rows = listwise(data, allItems)
   const n = rows.length
   const item_cols_flat = allItems.flatMap((col) => rows.map((r) => r[col] as number))
+
+  // Sanitized R-side item identifiers: seminr's composite() item strings must match `colnames(d_all)`
+  // exactly, and raw/display names can contain spaces (one call across ALL items so cross-construct
+  // collisions after sanitizing still dedupe correctly, same approach as cfaReliability.ts/runCbSem.ts).
+  const rAllItems = lvNames(allItems)
+  const itemMap = new Map(allItems.map((raw, i) => [raw, rAllItems[i]]))
+  const itemNameOf = (raw: string) => itemMap.get(raw) ?? raw
+  const rawOfItem = new Map(rAllItems.map((san, i) => [san, allItems[i]])) // sanitized -> raw, for mapping R output back to display names
 
   const nboot = Number(setup.options['nboot'] ?? 5000)
   const fromName = (id: number) => byId.get(id)?.name ?? String(id)
@@ -390,12 +403,12 @@ export async function runPlsSem(
 
   const env = {
     item_cols_flat,
-    all_items: allItems,
+    all_items: rAllItems,
     n,
     // Moderation lines append (never replace) both the constructs(...) and relationships(...) source -
     // the interaction row then flows through the SAME path_from/path_to/*_name arrays and the structural
     // extraction loop below, right alongside every ordinary drawn path.
-    mm_lines: [...constructs.map(measurementLine), ...modLines],
+    mm_lines: [...constructs.map((c) => measurementLine(c, itemNameOf)), ...modLines],
     sm_lines: [
       ...paths.map((p) => structuralLine(fromName(p.from), fromName(p.to))),
       ...modInteractions.map((m) => structuralLine(m.name, m.targetName)),
@@ -430,6 +443,15 @@ export async function runPlsSem(
 
   const raw = await engine.runJson<PlsSemResult>(R_STATS(MAKECLUSTER_SHIM), env)
 
+  // Restore raw/display item names: seminr's fitted model only ever saw the SANITIZED item token
+  // (rAllItems, via itemNameOf above), so both item-level output surfaces -- the outer-model table's
+  // `item` cell and the canvas overlay's estimates.loadings (keyed by SemCanvas against raw
+  // Construct.items) -- need the sanitized->raw reverse map applied before they reach TS callers.
+  const outer = raw.outer.map((row) => ({ ...row, item: rawOfItem.get(String(row.item)) ?? row.item }))
+  const loadings = Object.fromEntries(
+    Object.entries(raw.estimates.loadings).map(([k, v]) => [rawOfItem.get(k) ?? k, v]),
+  )
+
   // Simple-slopes (U6-T5): TS-shape the R block's `slopes[]` with a human label ("<iv> -> <target> x
   // <moderator>", same convention as CbSemResult.SlopeRow.label), then render the SAME shared figure
   // CB-SEM uses (simpleSlopesPlot.ts) from those exact rows.
@@ -459,7 +481,7 @@ export async function runPlsSem(
 
   // nboot is attached client-side (mirrors runCbSem.ts) — the R block itself never echoes it back.
   return {
-    ...raw, nboot, slopes, figModSlopesPng,
-    estimates: { ...raw.estimates, moderation: estModeration },
+    ...raw, outer, nboot, slopes, figModSlopesPng,
+    estimates: { ...raw.estimates, loadings, moderation: estModeration },
   }
 }

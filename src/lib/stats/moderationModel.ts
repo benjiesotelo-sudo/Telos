@@ -51,6 +51,10 @@ export function buildModerationLines(
   paths: StructuralPath[],
   rNameOf: (id: number) => string,
   moderations: Moderation[],
+  /** Maps a raw/display item name to its sanitized R-side identifier (lvNames-derived; display names
+   *  with spaces are illegal in the product-indicator names built below). Defaults to identity so the
+   *  export emitter's existing call site (not yet updated to sanitize items) is unaffected. */
+  itemNameOf: (raw: string) => string = (raw) => raw,
 ): { lines: string[]; moderationDefs: ModerationDef[]; targetLineExtras: Map<number, string> } {
   const byId = new Map(constructs.map((c) => [c.id, c]))
   const lines: string[] = []
@@ -62,6 +66,8 @@ export function buildModerationLines(
     const target = byId.get(path.to)!
     const moderator = byId.get(mod.moderatorId)!
     const matched = source.items.length === moderator.items.length
+    const sourceItems = source.items.map(itemNameOf)
+    const moderatorItems = moderator.items.map(itemNameOf)
     const intName = `INT_${mod.id}`
     const modLabel = `pmod_${mod.id}`
     const intLabel = `pint_${mod.id}`
@@ -70,10 +76,12 @@ export function buildModerationLines(
 
     // Product-indicator naming REPLICATES semTools::indProd exactly (var1[i].var2[j], match=TRUE:
     // i==j pairs only, match=FALSE: all i,j pairs) — the R side calls indProd() with the SAME
-    // var1/var2 item lists in the SAME order, so the names line up without a round trip.
+    // var1/var2 item lists in the SAME order, so the names line up without a round trip. Built from the
+    // SANITIZED item names (sourceItems/moderatorItems) since that's what indProd will actually receive
+    // and name its new columns from.
     const prodNames = matched
-      ? source.items.map((it, i) => `${it}.${moderator.items[i]}`)
-      : source.items.flatMap((a) => moderator.items.map((b) => `${a}.${b}`))
+      ? sourceItems.map((it, i) => `${it}.${moderatorItems[i]}`)
+      : sourceItems.flatMap((a) => moderatorItems.map((b) => `${a}.${b}`))
     lines.push(`${intName} =~ ${prodNames.join(' + ')}`)
 
     // Moderator main-effect covariate on the target, UNLESS an existing drawn path already predicts it.
@@ -93,7 +101,7 @@ export function buildModerationLines(
     moderationDefs.push({
       id: mod.id, moderatorName: moderator.name, pathLabel: `${source.name} → ${target.name}`,
       matched, intLabel, modLabel, varLabel, pathLabel_,
-      var1: source.items, var2: moderator.items, targetName: rNameOf(path.to),
+      var1: sourceItems, var2: moderatorItems, targetName: rNameOf(path.to),
     })
   }
   return { lines, moderationDefs, targetLineExtras }

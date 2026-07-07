@@ -122,9 +122,12 @@ function listwise(data: Dataset, items: string[]): Record<string, unknown>[] {
 }
 
 /** Build the lavaan measurement model string from constructs, using the SANITIZED identifiers
- *  (display names with spaces are illegal lavaan `=~` tokens). */
-function buildModel(constructs: { items: string[] }[], rNames: string[]): string {
-  return constructs.map((c, i) => `${rNames[i]} =~ ${c.items.join(' + ')}`).join('\n')
+ *  (display names with spaces are illegal lavaan `=~` tokens) for BOTH the construct token and its
+ *  items, via the raw-item -> sanitized-item `itemMap`. */
+function buildModel(constructs: { items: string[] }[], rNames: string[], itemMap: Map<string, string>): string {
+  return constructs
+    .map((c, i) => `${rNames[i]} =~ ${c.items.map((it) => itemMap.get(it)!).join(' + ')}`)
+    .join('\n')
 }
 
 export async function runCfaReliability(
@@ -139,18 +142,26 @@ export async function runCfaReliability(
   // Column-major flat array over all items
   const item_cols_flat = allItems.flatMap((col) => rows.map((r) => r[col] as number))
 
-  // Per-construct item list (flat + lens) for alpha computation in R
-  const construct_items_flat = constructs.flatMap((c) => c.items)
+  // Sanitize the FULL flattened item list in ONE call, so items belonging to different constructs
+  // that happen to collide after sanitizing (e.g. "q 1" from two constructs) still dedupe correctly
+  // against each other; raw display names stay untouched everywhere else (labels, colnames lookups
+  // from JS-side code, etc).
+  const rAllItems = lvNames(allItems)
+  const itemMap = new Map(allItems.map((raw, i) => [raw, rAllItems[i]]))
+
+  // Per-construct item list (flat + lens) for alpha computation in R, sanitized so it indexes
+  // d_all's (now-sanitized) colnames.
+  const construct_items_flat = constructs.flatMap((c) => c.items.map((it) => itemMap.get(it)!))
   const construct_items_lens = constructs.map((c) => c.items.length)
 
   const rNames = lvNames(constructs.map((c) => c.name))
 
   const env = {
-    model_str: buildModel(constructs, rNames),
+    model_str: buildModel(constructs, rNames, itemMap),
     construct_names: rNames,
     display_names: constructs.map((c) => c.name),
     item_cols_flat,
-    all_items: allItems,
+    all_items: rAllItems,
     n,
     construct_items_flat,
     construct_items_lens,

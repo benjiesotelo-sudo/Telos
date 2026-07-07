@@ -1,5 +1,6 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
+import { lvNames } from './lvName'
 
 export interface CronbachResult {
   omega: number
@@ -139,8 +140,13 @@ export async function runCronbachsAlpha(
   const n = rows.length
   // Column-major flat array: all values for item[0], then item[1], etc.
   const cols_flat = items.flatMap((col) => rows.map((r) => r[col] as number))
+  // Sanitized R-side identifiers for colnames(d)/the lavaan model string (lavaan/R syntax rejects
+  // spaces); `items` (raw, possibly spaced display names) stays untouched above for cols_flat
+  // extraction (positional, order-preserved) and is restored below onto the item-total labels
+  // the user sees.
+  const rItems = lvNames(items)
 
-  const env = { cols_flat, items, n, seed, nboot }
+  const env = { cols_flat, items: rItems, n, seed, nboot }
 
   const raw = await engine.runJson<RawStats>(R_STATS, env)
 
@@ -160,7 +166,9 @@ export async function runCronbachsAlpha(
     nItems: raw.nItems,
     nCases: raw.nCases,
     useStandardizedAlpha: standardizedAlpha,
-    itemTotal: dropItem ? raw.itemTotal : [],
+    // Restore the raw display name onto each row; raw.itemTotal is built in R-side column order,
+    // which matches `items`'s order.
+    itemTotal: dropItem ? raw.itemTotal.map((it, i) => ({ ...it, item: items[i] })) : [],
     figItemTotalPng,
   }
 }
