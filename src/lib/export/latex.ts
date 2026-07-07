@@ -1,6 +1,7 @@
 import type { TestSpec } from '../registry/types'
 import type { TestSetup, TestRun } from '../../state/session'
 import { BUILDERS } from '../results/builders'
+import { CITATIONS } from '../registry/citations'
 import { coefToLatex, classicToLatex, matrixToLatex, escapeLatex } from './rTable'
 
 // LaTeX report export (design 2026-06-16, export-formats slice): the same report as the in-app results,
@@ -32,6 +33,8 @@ export function emitLatex(
     for (const fig of content.figures) out.push(`\\includegraphics{${folder}/figure_${fig.file ?? fig.type}.png}`)
     out.push(escapeLatex(content.howToRead))
     out.push(escapeLatex(content.apa))
+    const c = CITATIONS[id]
+    if (c) out.push(escapeLatex(`Statistical basis: ${c.statisticalBasis.map((b) => `${b.claim} (${b.ref.text})`).join('; ')}.`))
   })
   out.push('\\end{document}')
   return out.join('\n\n')

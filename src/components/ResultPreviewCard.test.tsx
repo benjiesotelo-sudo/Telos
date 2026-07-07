@@ -94,4 +94,19 @@ describe('chassis renders each card shape (design §5)', () => {
     // sub comes before suffix
     expect(html.indexOf('<sub>diff</sub>')).toBeLessThan(html.indexOf(' (adj.)'))
   })
+  it('renders a Statistical basis footer when citations are supplied (U7-T4)', () => {
+    const citations = {
+      whyThisTest: { text: 'x', refs: [] },
+      statisticalBasis: [{ claim: 'Independent-samples t-test', ref: { text: 'Student (1908)...' } }],
+    }
+    const html = renderToStaticMarkup(
+      <ResultPreviewCard index={1} name="Name" question="q?" content={base} stale={false} running={false} onRerun={() => {}} citations={citations} />)
+    expect(html).toContain('Statistical basis')
+    expect(html).toContain('Independent-samples t-test')
+    expect(html).toContain('CITATIONS.txt')
+  })
+  it('renders nothing extra when citations is undefined', () => {
+    const html = render(base)
+    expect(html).not.toContain('Statistical basis')
+  })
 })

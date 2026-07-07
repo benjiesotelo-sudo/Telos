@@ -59,6 +59,8 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await expect(t2).toContainText('<.001'); await expect(t2).toContainText('[−16.49, −7.51]'); await expect(t2).toContainText('−3.45')
   await expect(page.getByText('How to read this test')).toBeVisible()
   await expect(page.getByRole('img', { name: /boxplot/i })).toBeVisible()
+  await expect(page.getByText('Statistical basis:')).toBeVisible()
+  await expect(page.getByText(/Student \(1908\)/)).toBeVisible()
 
   // R1: the results screen joins the overflow audit - resize needs no re-run
   for (const w of [320, 390, 560, 680, 834, 1024, 1280]) {

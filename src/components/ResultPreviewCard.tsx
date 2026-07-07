@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { CardContent } from '../lib/results/builders'
+import type { TestCitations } from '../lib/registry/citations'
 import { ApaTable } from './ApaTable'
 
-export function ResultPreviewCard({ index, name, question, content, stale, running, onRerun, figureSlot }:
-  { index: number; name: string; question: string; content: CardContent; stale: boolean; running: boolean; onRerun: () => void; figureSlot?: ReactNode }) {
+export function ResultPreviewCard({ index, name, question, content, stale, running, onRerun, figureSlot, citations }:
+  { index: number; name: string; question: string; content: CardContent; stale: boolean; running: boolean; onRerun: () => void; figureSlot?: ReactNode; citations?: TestCitations }) {
   const [urls, setUrls] = useState<string[]>([])
   useEffect(() => {
     const u = content.figures.map((fig) => URL.createObjectURL(new Blob([fig.png as Uint8Array<ArrayBuffer>], { type: 'image/png' })))
@@ -87,6 +88,14 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
       <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>How to read this test</h3>
       <p className="prose">{content.howToRead}</p>
       <p><b>APA template:</b> {content.apa}</p>
+      {citations && (
+        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
+          <b>Statistical basis:</b>{' '}
+          {citations.statisticalBasis.map((b, i) => (
+            <span key={i}>{b.claim} ({b.ref.text}){i < citations.statisticalBasis.length - 1 ? '; ' : '.'}</span>
+          ))}{' '}Full references in the exported CITATIONS.txt.
+        </p>
+      )}
     </section>
   )
 }

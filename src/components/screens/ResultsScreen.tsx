@@ -8,6 +8,7 @@ import { toCsv } from '../../lib/export/cleanedCsv'
 import { emitLatex } from '../../lib/export/latex'
 import { licensesText } from '../../lib/export/licenses'
 import { citationsText } from '../../lib/export/citations'
+import { CITATIONS } from '../../lib/registry/citations'
 import { FEEDBACK_URL } from '../../content/copy'
 import { ResultPreviewCard } from '../ResultPreviewCard'
 import { ResultBoundary } from '../ResultBoundary'
@@ -208,5 +209,6 @@ function BuiltCard({ id, index }: { id: string; index: number }) {
   // the DOM node captureNode rasters for the figure_path-diagram.png export.
   const figureSlot = spec.inputKind === 'sem-canvas' ? <SemCanvas testId={id} /> : undefined
   return <ResultPreviewCard index={index} name={spec.name} question={spec.question} content={content}
-    stale={run.stale} running={s.runStatus === 'running'} onRerun={() => { void s.runAll() }} figureSlot={figureSlot} />
+    stale={run.stale} running={s.runStatus === 'running'} onRerun={() => { void s.runAll() }} figureSlot={figureSlot}
+    citations={CITATIONS[id]} />
 }
