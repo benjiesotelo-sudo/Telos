@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { emitRScript } from './emit'
+import { latentEmitters } from './emitters/latent'
 import { SPECS } from '../../registry/catalog'
 import type { Dataset } from '../../stats/types'
+import type { TestSetup } from '../../../state/session'
 
 const dataset: Dataset = {
   columns: ['post_score', 'pre_score'],
@@ -32,5 +34,63 @@ describe('emitRScript — backbone + simple-linear reference emitter', () => {
   it('emits the canonical modelsummary() report-only call', () => {
     expect(script).toContain('modelsummary(')
     expect(script).toContain('stars = FALSE')
+  })
+})
+
+// U10-T2 (reviewer-confirmed bug + fix): the multi-test rename union used to build Map(raw -> safe) per
+// test with last-write-wins, but each SEM emitter sanitized from its OWN local item domain — the same
+// raw column ('a b') could sanitize to a DIFFERENT token across two selected tests when a collision
+// partner ('a.b') existed in only ONE of the two domains. Fix: ONE global lvNames() call over the union
+// of every selected SEM test's item domain (emit.ts); every emitter looks up that shared map instead of
+// re-deriving its own.
+describe('emitRScript — selection-global item sanitization (U10 multi-test SEM fix)', () => {
+  const emptyDs: Dataset = { columns: [], rows: [] }
+
+  // Reviewer's exact repro. Test A's OWN domain (['a.b', 'x', 'a b']) has an internal collision — 'a.b'
+  // and 'a b' both sanitize to 'a_b', so lvNames' dedup rule suffixes the SECOND occurrence: 'a_b_2' for
+  // 'a b'. Test B's OWN domain (['a b', 'y', 'z']) has NO such collision in isolation, so a locally-
+  // computed lvNames call would sanitize 'a b' to plain 'a_b' — a DIFFERENT token for the SAME raw column.
+  const setupCR: TestSetup = {
+    roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent',
+    constructs: [{ id: 1, name: 'C1', items: ['a.b', 'x', 'a b'] }],
+    paths: [],
+  }
+  const setupEfa: TestSetup = {
+    roles: { items: ['a b', 'y', 'z'] }, options: {}, props: {}, blocked: null,
+  }
+
+  const R = emitRScript(
+    ['composite-reliability', 'efa'],
+    { 'composite-reliability': setupCR, efa: setupEfa },
+    SPECS,
+    emptyDs,
+  )
+
+  it('renames the shared raw column to ONE token in the readData() rename table (no per-id drift)', () => {
+    expect(R).toContain('colnames(d)[match(c("a.b", "a b"), colnames(d))] <- c("a_b", "a_b_2")')
+  })
+
+  it("both tests' emitted bodies reference the SAME safe token for the shared raw column 'a b'", () => {
+    const blockCR = R.slice(R.indexOf('# === 01'), R.indexOf('# === 02'))
+    const blockEfa = R.slice(R.indexOf('# === 02'))
+    expect(blockCR).toContain('C1 =~ a_b + x + a_b_2')
+    expect(blockEfa).toContain('items <- c("a_b_2", "y", "z")')
+    // The pre-fix drift: efa computed 'a b' -> 'a_b' locally (no collision in ITS OWN domain alone).
+    expect(blockEfa).not.toContain('items <- c("a_b", "y", "z")')
+  })
+
+  // Byte-stability: a single selected test's own domain IS the whole union, so the global map (and every
+  // token it produces) collapses to exactly what the emitter computes when called directly with no
+  // global map at all — no regression for the common single-test-selection case.
+  it('single-test selection is byte-identical to calling the emitter directly (no global map)', () => {
+    const direct = latentEmitters['composite-reliability']({ id: 'composite-reliability' } as never, setupCR, emptyDs)
+    const viaEmit = emitRScript(['composite-reliability'], { 'composite-reliability': setupCR }, SPECS, emptyDs)
+    expect(viaEmit).toContain(direct)
+  })
+
+  it('single-test efa selection is also byte-identical to calling the emitter directly', () => {
+    const direct = latentEmitters['efa']({ id: 'efa' } as never, setupEfa, emptyDs)
+    const viaEmit = emitRScript(['efa'], { efa: setupEfa }, SPECS, emptyDs)
+    expect(viaEmit).toContain(direct)
   })
 })

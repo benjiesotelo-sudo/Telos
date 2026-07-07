@@ -9,6 +9,7 @@ import { emitRScript } from './emit'
 import { toCsv } from '../cleanedCsv'
 import { SPECS } from '../../registry/catalog'
 import type { TestSetup } from '../../../state/session'
+import type { Dataset } from '../../stats/types'
 
 // Native-R correctness gate (the export slice's differentiator). For a representative test per family we
 // build the cleaned CSV + emit the R via the REAL production pipeline, run it under native Rscript, and
@@ -520,4 +521,55 @@ describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
     },
     180_000,
   )
+
+  // U10-T2: reviewer's exact repro, proven at the native-R level (not just string-inspected). Two
+  // SEM-family tests selected together, sharing a raw column ('a b') whose sanitized token depends on a
+  // collision partner ('a.b') that exists in only ONE of the two tests' own item domains. Pre-fix, each
+  // emitter's local lvNames() call disagreed on 'a b' -> the losing test's body referenced a column the
+  // renamed data frame never had -> `object 'a_b' not found` (or similar) and Rscript exits non-zero.
+  // Retention pinned to fixed-n=1 on the efa side (skips the 500-rep parallel-analysis simulation and its
+  // sampling variance) and composite-reliability never bootstraps — kept cheap on purpose.
+  it('multi-test SEM selection with a cross-test rename collision runs clean in native R (U10 fix)', () => {
+    const setupCR: TestSetup = {
+      roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent',
+      constructs: [{ id: 1, name: 'C1', items: ['a.b', 'x', 'a b'] }],
+      paths: [],
+    }
+    const setupEfa: TestSetup = {
+      roles: { items: ['a b', 'y', 'z'] },
+      options: { retention: 'fixed-n', nFactors: 1 },
+      props: {}, blocked: null,
+    }
+    // Small correlated synthetic dataset — a.b/x/"a b" share a common factor (so the 1-factor CFA
+    // identifies cleanly); y/z are independent filler so efa's 3rd/4th items aren't degenerate.
+    const n = 40
+    const rows = Array.from({ length: n }, (_, i) => {
+      const f = Math.sin(i * 0.7)
+      return {
+        'a.b': f + Math.sin(i * 1.3) * 0.3,
+        x: f + Math.cos(i * 1.1) * 0.3,
+        'a b': f + Math.sin(i * 2.1) * 0.3,
+        y: Math.cos(i * 0.9),
+        z: Math.sin(i * 1.7),
+      }
+    })
+    const ds: Dataset = { columns: ['a.b', 'x', 'a b', 'y', 'z'], rows }
+
+    const R = emitRScript(
+      ['composite-reliability', 'efa'],
+      { 'composite-reliability': setupCR, efa: setupEfa },
+      SPECS,
+      ds,
+    )
+    const csv = toCsv(ds)
+    const dir = mkdtempSync(join(tmpdir(), 'telos-r-u10-'))
+    writeFileSync(join(dir, 'analysis.R'), R)
+    writeFileSync(join(dir, 'cleaned.csv'), csv)
+
+    // execSync THROWS on a non-zero exit — a clean run (no throw) IS the fix's proof: both emitted
+    // bodies reference columns that actually exist in the renamed data frame.
+    const out = execSync('Rscript analysis.R', { cwd: dir, encoding: 'utf8', stdio: 'pipe' })
+    expect(out).toContain('--- Table 1: Composite reliability ---')
+    expect(out).toContain('--- Table 2: Variance explained ---')
+  })
 })
