@@ -2,9 +2,11 @@
 
 **Question:** group means adjusted for a covariate
 
+**Scenario:** Campus study: method effect on exam score, adjusting for entering ability.
+
 ## Input configuration
 
-- **Dataset:** `anova.csv`
+- **Dataset:** `campus-study.csv`
 - **Configure-data:** app defaults (auto-detected types/levels)
 - **Options:** adjusted means; α 0.05; 95% CI
 
@@ -12,9 +14,9 @@
 
 | Column | Role slot |
 |---|---|
-| `outcome` | outcome |
-| `group` | factor |
-| `baseline` | covariates |
+| `exam_score` | outcome |
+| `teaching_method` | factor |
+| `pretest_score` | covariates |
 
 ## Files in this folder
 
@@ -22,8 +24,8 @@
 |---|---|
 | `1-input-config.png` | the configure-test screen with the columns dragged into roles + options set |
 | `2-app-output.png` | the rendered results card in the app (APA table, figures, how-to-read, APA sentence) |
-| `3-pdf-report.pdf` | the **PDF** export — the app's browser print-to-PDF of this result |
-| `4-latex-source.tex` | the **LaTeX** export — the `report.tex` the app generates for this test |
+| `3-pdf-report.pdf` | the **PDF** export - the app's browser print-to-PDF of this result |
+| `4-latex-source.tex` | the **LaTeX** export - the `report.tex` the app generates for this test |
 | `5-latex-rendered.pdf` | `4-latex-source.tex` compiled (tectonic / XeTeX) |
 | `export/` | the full export bundle: `analysis.R` (reproducible R script), `cleaned.csv`, table/figure PNGs, `LICENSES.txt` |
 

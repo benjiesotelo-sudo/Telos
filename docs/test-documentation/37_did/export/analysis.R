@@ -5,31 +5,31 @@ library(plm)
 library(lmtest)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["firm"]] <- factor(d[["firm"]])
+d[["state"]] <- factor(d[["state"]])
 
 # === 01 · Difference-in-differences (DiD) ===
 # code treated/post to 0/1 by the positive level (avoids the pre<post sign flip)
 d$tr <- ifelse(as.character(d$treated) == "1", 1, 0)
 d$po <- ifelse(as.character(d$post) == "1", 1, 0)
-pdat <- plm::pdata.frame(data.frame(.entity = d$firm, .timev = d$year, roa = d$roa, po = d$po, tr = d$tr), index = c(".entity", ".timev"))
-fit <- plm::plm(roa ~ po + po:tr, data = pdat, model = 'within')
+pdat <- plm::pdata.frame(data.frame(.entity = d$state, .timev = d$year, employment = d$employment, po = d$po, tr = d$tr), index = c(".entity", ".timev"))
+fit <- plm::plm(employment ~ po + po:tr, data = pdat, model = 'within')
 V <- plm::vcovHC(fit, method = 'arellano', type = 'HC1', cluster = 'group')
 print(lmtest::coeftest(fit, vcov. = V))
 print(lmtest::coefci(fit, vcov. = V, level = 0.95))
 print(summary(fit))
 # Raw 2x2 group-period means (R1 gap-fix) - the parallel-trends figure only shows this visually
-print(aggregate(roa ~ tr + po, data = d, FUN = mean))
+print(aggregate(employment ~ tr + po, data = d, FUN = mean))
 # Figure — parallel-trends plot (group means over time, treatment onset marked)
 # mirror did.ts: aggregate over LISTWISE-complete rows; rank a non-numeric time axis to integer order
-keep <- is.finite(suppressWarnings(as.numeric(d$roa))) &
+keep <- is.finite(suppressWarnings(as.numeric(d$employment))) &
   !is.na(d$treated) & trimws(as.character(d$treated)) != "" &
   !is.na(d$post) & trimws(as.character(d$post)) != "" &
-  !is.na(d$firm) & trimws(as.character(d$firm)) != "" &
+  !is.na(d$state) & trimws(as.character(d$state)) != "" &
   !is.na(d$year) & trimws(as.character(d$year)) != ""
 df_t <- d[keep, ]
 raw_time <- df_t$year
 tt <- if (is.numeric(raw_time) && all(is.finite(raw_time))) raw_time else match(as.character(raw_time), sort(unique(as.character(raw_time))))
-agg <- aggregate(yy ~ tt + grp, data = data.frame(yy = df_t$roa, tt = tt, grp = ifelse(df_t$tr == 1, "Treated", "Control")), FUN = mean)
+agg <- aggregate(yy ~ tt + grp, data = data.frame(yy = df_t$employment, tt = tt, grp = ifelse(df_t$tr == 1, "Treated", "Control")), FUN = mean)
 onset <- min(tt[df_t$po == 1])
 print(ggplot(agg, aes(x = tt, y = yy, colour = grp, group = grp)) +
   geom_vline(xintercept = onset, colour = "#9cc2ec", linetype = "dashed") +

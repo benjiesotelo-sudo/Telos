@@ -9,12 +9,40 @@ d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · CB-SEM ===
 # ---- CB-SEM via lavaan::sem (measurement + structural + indirect + moderation) ----
-model_str <- "visual =~ x1 + x2 + x3\ntextual =~ x4 + x5 + x6\nspeed =~ x7 + x8 + x9\ntextual ~ p_1_2*visual\nspeed ~ p_2_3*textual + p_1_3*visual\nie_1_2_3 := p_1_2*p_2_3"
+model_str <- "esg =~ esg1 + esg2 + esg3 + esg4\nnorm =~ norm1 + norm2 + norm3 + norm4\nservice_quality =~ service_quality1 + service_quality2 + service_quality3 + service_quality4\nattitude =~ attitude1 + attitude2 + attitude3 + attitude4\nintent =~ intent1 + intent2 + intent3\nintent ~ p_1_5*esg + p_2_5*norm + p_3_5*service_quality + pmod_1*attitude + pint_1*INT_1\nINT_1 =~ norm1.attitude1 + norm2.attitude2 + norm3.attitude3 + norm4.attitude4\nattitude ~~ vmod_1*attitude\nslope_lo_1  := p_2_5 - pint_1*sqrt(vmod_1)\nslope_mid_1 := p_2_5\nslope_hi_1  := p_2_5 + pint_1*sqrt(vmod_1)"
+
+# ---- Latent moderation: indProd double-mean-centering data prep ----
+mod_ids <- c(1)
+mod_var1_flat <- c("norm1", "norm2", "norm3", "norm4")
+mod_var1_lens <- c(4)
+mod_var2_flat <- c("attitude1", "attitude2", "attitude3", "attitude4")
+mod_var2_lens <- c(4)
+mod_matched <- c(TRUE)
+
+# Defensive defaults: the WebR call site (runCbSem.ts) deliberately OMITS these vars from the env
+# object on a non-moderation run rather than sending empty JS arrays -- webr's JS->R env marshalling
+# misdetects an empty array as tabular "array of row-objects" data (Array.prototype.every is vacuously
+# true on []) and crashes converting it to a data.frame. R defines its own empty typed vectors instead.
+if (!exists('mod_ids', inherits = FALSE)) {
+  mod_ids <- integer(0); mod_var1_flat <- character(0); mod_var1_lens <- integer(0)
+  mod_var2_flat <- character(0); mod_var2_lens <- integer(0); mod_matched <- logical(0)
+  mod_target <- character(0)
+}
+if (length(mod_ids) > 0) {
+  suppressMessages(library(semTools))
+  v1_start <- 1L; v2_start <- 1L
+  for (mi in seq_along(mod_ids)) {
+    v1 <- mod_var1_flat[v1_start:(v1_start + mod_var1_lens[mi] - 1L)]; v1_start <- v1_start + mod_var1_lens[mi]
+    v2 <- mod_var2_flat[v2_start:(v2_start + mod_var2_lens[mi] - 1L)]; v2_start <- v2_start + mod_var2_lens[mi]
+    d <- indProd(d, var1 = v1, var2 = v2, match = as.logical(mod_matched[mi]), meanC = TRUE, doubleMC = TRUE)
+  }
+}
+
 
 # Single awaited bootstrap fit for mediation/moderation (no RNG chunking — preserves WebR≡native parity).
 gc()
 set.seed(20260620)
-fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = 5000)
+fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = 1000)
 # Dual CI (percentile + bias-corrected) from the SAME bootstrap draws — both recompute CIs off
 # fit@boot without re-running the bootstrap (design §A2; matches runCbSem.ts exactly).
 pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)
@@ -56,6 +84,10 @@ if (!(as.numeric(lavaan::fitMeasures(fit, "df")) == 0)) {
 # Scoped to the DRAWN paths' own p_<from>_<to> labels (buildModel labels every drawn structural path
 # this way, and ONLY those) -- matches runCbSem.ts's struct_rows, which iterates the drawn path_from/
 # path_to arrays rather than filtering by bare op == "~".
+# Moderation note: bare `op == "~"` would ALSO match the interaction row (already reported in
+# Table 8) and, when the moderator is not itself a drawn path, an auto-injected moderator
+# main-effect covariate row that the app never surfaces anywhere -- this scoping excludes both,
+# mirroring the app exactly (that covariate is part of the fitted model but reported in no table).
 pe_reg <- pe[pe$op == "~" & grepl("^p_", pe$label), ]
 pe_bc_reg <- pe_bc[pe_bc$op == "~" & grepl("^p_", pe_bc$label), ]
 ss_reg <- ss[ss$op == "~" & grepl("^p_", ss$label), ]
@@ -73,22 +105,34 @@ print(struct_tab)
 cat("\n--- R-square (endogenous) ---\n")
 print(round(lavInspect(fit, "rsquare"), 3))
 
-# ---- Table 7: Indirect effects (bootstrap percentile + bias-corrected 95% CI) ----
-# := defs have no free-parameter label -- their lhs (e.g. "ie_1_2_3") is itself the unique key.
-pe_def <- pe[pe$op == ":=" & grepl("^ie_", pe$lhs), ]
-pe_bc_def <- pe_bc[pe_bc$op == ":=" & grepl("^ie_", pe_bc$lhs), ]
-rownames(pe_bc_def) <- pe_bc_def$lhs
-indirect_tab <- data.frame(
-  lhs = pe_def$lhs, est = pe_def$est, se = pe_def$se, pvalue = pe_def$pvalue,
-  perc.lower = pe_def$ci.lower, perc.upper = pe_def$ci.upper,
-  bc.lower = pe_bc_def[pe_def$lhs, "ci.lower"], bc.upper = pe_bc_def[pe_def$lhs, "ci.upper"]
+# ---- Table 8: Moderation (interaction-term B / SE / z / p / std.β + dual 95% CI) ----
+pe_mod <- pe[pe$op == "~" & grepl("^INT_", pe$rhs), ]
+pe_bc_mod <- pe_bc[pe_bc$op == "~" & grepl("^INT_", pe_bc$rhs), ]
+ss_mod <- ss[ss$op == "~" & grepl("^INT_", ss$rhs), ]
+mod_key <- pair_key(pe_mod)
+rownames(pe_bc_mod) <- pair_key(pe_bc_mod); rownames(ss_mod) <- pair_key(ss_mod)
+mod_tab <- data.frame(
+  lhs = pe_mod$lhs, rhs = pe_mod$rhs, label = pe_mod$label,
+  est = pe_mod$est, se = pe_mod$se, z = pe_mod$z, pvalue = pe_mod$pvalue,
+  std = ss_mod[mod_key, "est.std"],
+  perc.lower = pe_mod$ci.lower, perc.upper = pe_mod$ci.upper,
+  bc.lower = pe_bc_mod[mod_key, "ci.lower"], bc.upper = pe_bc_mod[mod_key, "ci.upper"]
 )
-cat("\n--- Table 7: Indirect effects ---\n")
-print(indirect_tab)
+cat("\n--- Table 8: Moderation ---\n")
+print(mod_tab)
+
+# ---- Table 9: Conditional effects (simple slopes at -1SD/mean/+1SD, percentile 95% CI) ----
+# Percentile CI only (binding contract, matches the app's conditional-effects table exactly).
+slope_tab <- pe[pe$op == ":=" & grepl("^slope_", pe$lhs), c("lhs", "est", "se", "pvalue", "ci.lower", "ci.upper")]
+names(slope_tab)[names(slope_tab) == "ci.lower"] <- "perc.lower"
+names(slope_tab)[names(slope_tab) == "ci.upper"] <- "perc.upper"
+cat("\n--- Table 9: Conditional effects (simple slopes) ---\n")
+print(slope_tab)
 
 # ---- Figure: path diagram (reproducible stand-in for the app-drawn annotated SVG) ----
 semPlot::semPaths(fit, what = "std", layout = "tree", edge.label.cex = 0.9,
                   nodeLabels = NULL, residuals = FALSE, intercepts = FALSE)
 
-# Note: this is the closest reproducible native-R rendering of the path diagram; the app's live
-# canvas draws the same structural paths (see figure_path-diagram.png from the app export).
+# Note: semPaths draws the interaction construct's own path like any other structural path (no
+# distinct "moderation" edge style) -- this is the closest reproducible native-R rendering; the app's
+# live canvas draws it as a dashed clay arrow (see figure_path-diagram.png from the app export).

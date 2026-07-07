@@ -2,17 +2,19 @@
 
 **Question:** does a mean differ from a fixed value?
 
+**Scenario:** Campus study: do entering students' pretest scores differ from the 50-point national baseline?
+
 ## Input configuration
 
-- **Dataset:** `paired.csv`
+- **Dataset:** `campus-study.csv`
 - **Configure-data:** app defaults (auto-detected types/levels)
-- **Options:** test value μ₀ = 70; two-tailed; α 0.05; 95% CI
+- **Options:** test value μ₀ = 50 (national baseline); two-tailed; α 0.05; 95% CI
 
 **Role assignments** (drag column → slot):
 
 | Column | Role slot |
 |---|---|
-| `post` | outcome |
+| `pretest_score` | outcome |
 
 ## Files in this folder
 
@@ -20,8 +22,8 @@
 |---|---|
 | `1-input-config.png` | the configure-test screen with the columns dragged into roles + options set |
 | `2-app-output.png` | the rendered results card in the app (APA table, figures, how-to-read, APA sentence) |
-| `3-pdf-report.pdf` | the **PDF** export — the app's browser print-to-PDF of this result |
-| `4-latex-source.tex` | the **LaTeX** export — the `report.tex` the app generates for this test |
+| `3-pdf-report.pdf` | the **PDF** export - the app's browser print-to-PDF of this result |
+| `4-latex-source.tex` | the **LaTeX** export - the `report.tex` the app generates for this test |
 | `5-latex-rendered.pdf` | `4-latex-source.tex` compiled (tectonic / XeTeX) |
 | `export/` | the full export bundle: `analysis.R` (reproducible R script), `cleaned.csv`, table/figure PNGs, `LICENSES.txt` |
 

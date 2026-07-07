@@ -12,8 +12,8 @@
 \toprule
 Group & N & Mean & Std. Dev. & SE \\
 \midrule
-control & 6 & 70.33 & 3.14 & 1.28 \\
-treatment & 6 & 82.33 & 3.78 & 1.54 \\
+Female & 120 & 65.69 & 8.31 & 0.76 \\
+Male & 120 & 65.44 & 8.03 & 0.73 \\
 \bottomrule
 \end{tabular}
 
@@ -21,7 +21,7 @@ treatment & 6 & 82.33 & 3.78 & 1.54 \\
 \toprule
 Contrast & t & df & p & Mdiff & 95\% CI & Cohen's d [95\% CI] \\
 \midrule
-control $-$ treatment & $-$5.98 & 9.68 & $<$.001 & $-$12.00 & [$-$16.49, $-$7.51] & $-$3.45 [$-$5.32, $-$1.53] \\
+Female $-$ Male & 0.24 & 237.73 & .810 & 0.25 & [$-$1.82, 2.33] & 0.03 [$-$0.22, 0.28] \\
 \bottomrule
 \end{tabular}
 
@@ -29,7 +29,7 @@ control $-$ treatment & $-$5.98 & 9.68 & $<$.001 & $-$12.00 & [$-$16.49, $-$7.51
 
 Asks whether two groups' averages differ by more than chance. Look at p: below alpha (e.g. 0.05) means significant. The mean difference and 95\% CI show the size and precision of the gap; Cohen's d gives effect size (\textasciitilde{}0.2 small, 0.5 medium, 0.8 large). A large p means no significant difference was detected --- not that the group means are equal.
 
-An independent-samples t-test compared control (M=70.3, SD=3.1) and treatment (M=82.3, SD=3.8), t(9.68)=$-$5.98, p $<$ .001, d=$-$3.45 [$-$5.32, $-$1.53].
+An independent-samples t-test compared Female (M=65.7, SD=8.3) and Male (M=65.4, SD=8.0), t(237.73)=0.24, p = .810, d=0.03 [$-$0.22, 0.28].
 
 Statistical basis: Independent-samples t-test (pooled variance) (Student (1908). "The probable error of a mean." Biometrika, 6(1), 1-25.); Welch's correction (unequal variances, the app's default) (Welch, B. L. (1947). "The generalization of Student's problem when several different population variances are involved." Biometrika, 34(1-2), 28-35.); Cohen's d effect-size benchmarks (.2/.5/.8) (Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.); Levene's test for equal variances (Brown-Forsythe median-centered variant) (Levene, H. (1960). "Robust tests for equality of variances." In I. Olkin (Ed.), Contributions to Probability and Statistics (pp. 278-292). Stanford University Press.); Brown-Forsythe median-centered variant of the homogeneity-of-variance test (Brown, M. B., Forsythe, A. B. (1974). "Robust tests for the equality of variances." Journal of the American Statistical Association, 69(346), 364-367.).
 

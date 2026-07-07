@@ -2,9 +2,11 @@
 
 **Question:** reduce many variables to a few components
 
+**Scenario:** Tourism ESG: reducing 11 survey items to a handful of components.
+
 ## Input configuration
 
-- **Dataset:** `scale.csv`
+- **Dataset:** `tourism-esg.csv`
 - **Configure-data:** app defaults (auto-detected types/levels)
 - **Options:** retention: parallel analysis; standardize ON (correlation matrix); loadings |< .32| suppressed; no communalities
 
@@ -12,15 +14,17 @@
 
 | Column | Role slot |
 |---|---|
-| `x1` | variables |
-| `x2` | variables |
-| `x3` | variables |
-| `x4` | variables |
-| `x5` | variables |
-| `x6` | variables |
-| `x7` | variables |
-| `x8` | variables |
-| `x9` | variables |
+| `esg1` | variables |
+| `esg2` | variables |
+| `esg3` | variables |
+| `esg4` | variables |
+| `norm1` | variables |
+| `norm2` | variables |
+| `norm3` | variables |
+| `norm4` | variables |
+| `intent1` | variables |
+| `intent2` | variables |
+| `intent3` | variables |
 
 ## Files in this folder
 
@@ -28,8 +32,8 @@
 |---|---|
 | `1-input-config.png` | the configure-test screen with the columns dragged into roles + options set |
 | `2-app-output.png` | the rendered results card in the app (APA table, figures, how-to-read, APA sentence) |
-| `3-pdf-report.pdf` | the **PDF** export — the app's browser print-to-PDF of this result |
-| `4-latex-source.tex` | the **LaTeX** export — the `report.tex` the app generates for this test |
+| `3-pdf-report.pdf` | the **PDF** export - the app's browser print-to-PDF of this result |
+| `4-latex-source.tex` | the **LaTeX** export - the `report.tex` the app generates for this test |
 | `5-latex-rendered.pdf` | `4-latex-source.tex` compiled (tectonic / XeTeX) |
 | `export/` | the full export bundle: `analysis.R` (reproducible R script), `cleaned.csv`, table/figure PNGs, `LICENSES.txt` |
 

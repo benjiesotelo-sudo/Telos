@@ -2,21 +2,23 @@
 
 **Question:** between-groups × repeated conditions
 
+**Scenario:** Sleep & caffeine: dose x caffeine-tolerance group on sleep quality.
+
 ## Input configuration
 
-- **Dataset:** `anova.csv`
-- **Configure-data overrides:** `subject_id → Used + nominal`
+- **Dataset:** `sleep-caffeine.csv`
+- **Configure-data overrides:** `participant_id → Used + nominal`
 - **Options:** sphericity: GG correction; post-hoc ON; α 0.05
 
 **Role assignments** (drag column → slot):
 
 | Column | Role slot |
 |---|---|
-| `subject_id` | subject |
-| `group` | between |
-| `score_t1` | measures |
-| `score_t2` | measures |
-| `score_t3` | measures |
+| `participant_id` | subject |
+| `tolerance_group` | between |
+| `sleep_baseline` | measures |
+| `sleep_low` | measures |
+| `sleep_high` | measures |
 
 ## Files in this folder
 
@@ -24,8 +26,8 @@
 |---|---|
 | `1-input-config.png` | the configure-test screen with the columns dragged into roles + options set |
 | `2-app-output.png` | the rendered results card in the app (APA table, figures, how-to-read, APA sentence) |
-| `3-pdf-report.pdf` | the **PDF** export — the app's browser print-to-PDF of this result |
-| `4-latex-source.tex` | the **LaTeX** export — the `report.tex` the app generates for this test |
+| `3-pdf-report.pdf` | the **PDF** export - the app's browser print-to-PDF of this result |
+| `4-latex-source.tex` | the **LaTeX** export - the `report.tex` the app generates for this test |
 | `5-latex-rendered.pdf` | `4-latex-source.tex` compiled (tectonic / XeTeX) |
 | `export/` | the full export bundle: `analysis.R` (reproducible R script), `cleaned.csv`, table/figure PNGs, `LICENSES.txt` |
 

@@ -2,18 +2,20 @@
 
 **Question:** effect at a cutoff
 
+**Scenario:** Scholarship: does crossing the entrance-score cutoff raise later GPA (bandwidth-sensitivity check)?
+
 ## Input configuration
 
-- **Dataset:** `causal.csv`
+- **Dataset:** `scholarship.csv`
 - **Configure-data:** app defaults (auto-detected types/levels)
-- **Options:** cutoff 50; bandwidth auto; polynomial order 1 (linear)
+- **Options:** cutoff 60 (explicit); bandwidth auto + half/double bandwidth-sensitivity re-estimates; polynomial order 1 (linear)
 
 **Role assignments** (drag column → slot):
 
 | Column | Role slot |
 |---|---|
-| `score` | outcome |
-| `running_var` | running variable |
+| `later_gpa` | outcome |
+| `entrance_score` | running variable |
 
 ## Files in this folder
 
@@ -21,8 +23,8 @@
 |---|---|
 | `1-input-config.png` | the configure-test screen with the columns dragged into roles + options set |
 | `2-app-output.png` | the rendered results card in the app (APA table, figures, how-to-read, APA sentence) |
-| `3-pdf-report.pdf` | the **PDF** export — the app's browser print-to-PDF of this result |
-| `4-latex-source.tex` | the **LaTeX** export — the `report.tex` the app generates for this test |
+| `3-pdf-report.pdf` | the **PDF** export - the app's browser print-to-PDF of this result |
+| `4-latex-source.tex` | the **LaTeX** export - the `report.tex` the app generates for this test |
 | `5-latex-rendered.pdf` | `4-latex-source.tex` compiled (tectonic / XeTeX) |
 | `export/` | the full export bundle: `analysis.R` (reproducible R script), `cleaned.csv`, table/figure PNGs, `LICENSES.txt` |
 

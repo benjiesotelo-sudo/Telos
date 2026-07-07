@@ -2,9 +2,11 @@
 
 **Question:** linear association of two numeric variables
 
+**Scenario:** Campus study: do study hours predict exam score?
+
 ## Input configuration
 
-- **Dataset:** `association.csv`
+- **Dataset:** `campus-study.csv`
 - **Configure-data:** app defaults (auto-detected types/levels)
 - **Options:** two-tailed; α 0.05; 95% CI
 
@@ -12,7 +14,7 @@
 
 | Column | Role slot |
 |---|---|
-| `hours_studied` | variable A |
+| `study_hours_per_week` | variable A |
 | `exam_score` | variable B |
 
 ## Files in this folder
@@ -21,8 +23,8 @@
 |---|---|
 | `1-input-config.png` | the configure-test screen with the columns dragged into roles + options set |
 | `2-app-output.png` | the rendered results card in the app (APA table, figures, how-to-read, APA sentence) |
-| `3-pdf-report.pdf` | the **PDF** export — the app's browser print-to-PDF of this result |
-| `4-latex-source.tex` | the **LaTeX** export — the `report.tex` the app generates for this test |
+| `3-pdf-report.pdf` | the **PDF** export - the app's browser print-to-PDF of this result |
+| `4-latex-source.tex` | the **LaTeX** export - the `report.tex` the app generates for this test |
 | `5-latex-rendered.pdf` | `4-latex-source.tex` compiled (tectonic / XeTeX) |
 | `export/` | the full export bundle: `analysis.R` (reproducible R script), `cleaned.csv`, table/figure PNGs, `LICENSES.txt` |
 
