@@ -4,17 +4,19 @@ import { BC_CI_R } from './plsBcCi'
 
 const hasR = (() => { try { execSync('Rscript --version', { stdio: 'ignore' }); return true } catch { return false } })()
 
-// Shared fixture: docs/superpowers/reviews/2026-07-06-moderation-spike.md's ext script proved the hand-rolled
+// Fixture: docs/superpowers/reviews/2026-07-06-moderation-spike.md's ext script proved the hand-rolled
 // bc_ci() reproduces lavaan's boot.ci.type="bca.simple" exactly (max |hand-rolled - lavaan| ≈ 0 in the spike
 // log). This test re-derives that proof as a committed, re-runnable gate: fit the SAME matched CB-SEM
 // moderation model in native R, compute BC via lavaan directly AND via BC_CI_R on the raw boot draws, assert
 // they match to 6 decimals — proving BC_CI_R (the text seminr's PLS structural table will reuse) is correct
-// BEFORE it is ever wired into plsSem.ts.
+// BEFORE it is ever wired into plsSem.ts. Reads the committed tests/e2e/fixtures/sem-moderation.csv fixture
+// (byte-identical to the original .superpowers/sdd/spike-moderation-data.csv spike file, which is gitignored
+// and unavailable on a fresh clone).
 describe.skipIf(!hasR)('BC_CI_R hand-rolled bca.simple — native-R verified against lavaan boot.ci.type="bca.simple"', () => {
   it('matches lavaan\'s bca.simple CI for the interaction path b3, to 6 decimals', () => {
     const script = `
       suppressMessages({ library(lavaan); library(semTools) })
-      d <- read.csv("${process.cwd()}/.superpowers/sdd/spike-moderation-data.csv")
+      d <- read.csv("${process.cwd()}/tests/e2e/fixtures/sem-moderation.csv")
       pi <- indProd(d, var1=c("sn1","sn2","sn3","sn4"), var2=c("ta1","ta2","ta3","ta4"), match=TRUE, meanC=TRUE, doubleMC=TRUE)
       model <- 'SN=~sn1+sn2+sn3+sn4\nTA=~ta1+ta2+ta3+ta4\nTI=~ti1+ti2+ti3\nSNTA=~sn1.ta1+sn2.ta2+sn3.ta3+sn4.ta4\nTI~b1*SN+b2*TA+b3*SNTA'
       set.seed(20260706)
