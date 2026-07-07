@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { CardContent } from '../lib/results/builders'
 import type { TestCitations } from '../lib/registry/citations'
+import { EXPLAINERS } from '../lib/registry/explainers'
 import { ApaTable } from './ApaTable'
+import { TermExplainers } from './TermExplainers'
 
-export function ResultPreviewCard({ index, name, question, content, stale, running, onRerun, figureSlot, citations }:
-  { index: number; name: string; question: string; content: CardContent; stale: boolean; running: boolean; onRerun: () => void; figureSlot?: ReactNode; citations?: TestCitations }) {
+export function ResultPreviewCard({ index, name, question, content, stale, running, onRerun, figureSlot, citations, id }:
+  { index: number; name: string; question: string; content: CardContent; stale: boolean; running: boolean; onRerun: () => void; figureSlot?: ReactNode; citations?: TestCitations; id?: string }) {
   const [urls, setUrls] = useState<string[]>([])
   useEffect(() => {
     const u = content.figures.map((fig) => URL.createObjectURL(new Blob([fig.png as Uint8Array<ArrayBuffer>], { type: 'image/png' })))
@@ -85,6 +87,12 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
           {figureSlot && i === 0 ? figureSlot : (urls[i] && <img src={urls[i]} alt={`${fig.type} — ${fig.caption}`} width={480} />)}
         </div>
       ))}
+      {id && EXPLAINERS[id] && EXPLAINERS[id].length > 0 && (
+        <>
+          <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>Understanding the numbers</h3>
+          <TermExplainers items={EXPLAINERS[id]} values={content.values ?? {}} />
+        </>
+      )}
       <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>How to read this test</h3>
       <p className="prose">{content.howToRead}</p>
       <p><b>APA template:</b> {content.apa}</p>

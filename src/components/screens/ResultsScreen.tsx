@@ -210,5 +210,5 @@ function BuiltCard({ id, index }: { id: string; index: number }) {
   const figureSlot = spec.inputKind === 'sem-canvas' ? <SemCanvas testId={id} /> : undefined
   return <ResultPreviewCard index={index} name={spec.name} question={spec.question} content={content}
     stale={run.stale} running={s.runStatus === 'running'} onRerun={() => { void s.runAll() }} figureSlot={figureSlot}
-    citations={CITATIONS[id]} />
+    citations={CITATIONS[id]} id={id} />
 }

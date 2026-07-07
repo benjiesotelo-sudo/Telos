@@ -100,6 +100,7 @@ import { buildPlsSem } from './buildPlsSem'
 import type { MatrixTable } from './types'
 import { categoriesOf, propsArray } from '../data/props'
 import { ciLevel } from '../format/apa'
+import type { ResultValues } from '../registry/explainers'
 
 /** Map the tails option choice to R's alternative= string (default: 'two.sided'). */
 export const alternativeOf = (setup: TestSetup): string =>
@@ -119,6 +120,10 @@ export interface CardContent {
   howToRead: string
   apa: string
   nExcluded: number
+  // A5 (U8-T3 wires this per builder): flat lookup of the numbers already computed for this run, keyed
+  // to match EXPLAINERS[id][].key. Optional for now - only the 6 representative builders populate it;
+  // U8-T3 makes it required and wires the remaining builders.
+  values?: ResultValues
 }
 export type RunProgress = (p: { message: string; elapsedMs?: number; estMs?: number }) => void
 export type Runner = (engine: Engine, ds: Dataset, setup: TestSetup, onProgress?: RunProgress) => Promise<unknown>
