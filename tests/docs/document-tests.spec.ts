@@ -51,6 +51,10 @@ async function documentTest(page: Page, c: Case) {
   await expect(page.getByRole('heading', { name: 'Pick a test' })).toBeVisible()
   await page.getByRole('checkbox', { name: c.pickName, exact: true }).check()
   await page.getByRole('button', { name: 'Confirm selection' }).click()
+  // The app preserves scroll across step changes; after auto-scrolling to a mid-list checkbox on
+  // Pick tests, the configure screen can open scrolled with the sticky rail covering the first
+  // slot (mouse drops land on the rail). Start configure from the top like a user would.
+  await page.evaluate(() => window.scrollTo(0, 0))
 
   // configure-test: path-analysis (observed-only path mode) — no construct-slots form, no drag roles.
   // The canvas shows one RECTANGLE per used column (data-node-id = index into the used-columns list);
@@ -97,7 +101,9 @@ async function documentTest(page: Page, c: Case) {
   }
   // Canvas tests: the config canvas mounts before constructs are added, so fit the diagram to its
   // content before capturing — otherwise the outermost construct's item boxes sit off-view.
-  if (c.constructs || c.nodePaths) {
+  // Only sem-canvas cards (paths/nodePaths) render the canvas; construct-slots cards (AVE, CR)
+  // have no canvas and no Fit button.
+  if (c.paths || c.nodePaths) {
     await page.getByRole('button', { name: 'Fit' }).click()
     await page.waitForTimeout(200)
   }
