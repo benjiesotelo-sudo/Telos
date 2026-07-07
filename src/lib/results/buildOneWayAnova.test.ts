@@ -77,16 +77,23 @@ describe('buildOneWayAnova (pure, no engine)', () => {
     expect(c3.apa).toContain('Bonferroni post-hoc tests showed')
   })
 
-  it('note is assume kind with Levene + Shapiro appended; no warning when Levene p > .05', () => {
+  it('note is assume kind with Levene + Shapiro appended; met verdicts when both p > alpha (audit V)', () => {
     expect(c.note!.kind).toBe('assume')
     expect(c.note!.text).toContain("assumption checks: Levene's (equal variances) & normality of residuals.")
     expect(c.note!.text).toContain('Levene F=0.02')
     expect(c.note!.text).not.toContain("Welch's ANOVA") // levene p = 0.978, not significant
+    expect(c.note!.text).toContain('equal variances look reasonable') // levene met
+    expect(c.note!.text).toContain('residual normality looks reasonable') // shapiro p = .12345, met
   })
 
-  it('note includes Welch suggestion when Levene p < .05', () => {
+  it('note includes Welch suggestion when Levene p < alpha (audit V: violated verdict)', () => {
     const c3 = buildOneWayAnova(spec, { ...spikeResult, levene: { F: 4.5, p: 0.01 } })
     expect(c3.note!.text).toContain("consider Welch's ANOVA")
+  })
+
+  it('note flags a doubtful residual-normality verdict when Shapiro p < alpha (audit V)', () => {
+    const c4 = buildOneWayAnova(spec, { ...spikeResult, shapiro: { W: 0.7, p: 0.001 } })
+    expect(c4.note!.text).toContain('residual normality looks doubtful; consider a nonparametric alternative (e.g. Kruskal-Wallis) or interpreting with caution')
   })
 
   it('figures carries the means-plot figure', () => {

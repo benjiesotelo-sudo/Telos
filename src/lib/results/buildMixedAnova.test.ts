@@ -98,16 +98,16 @@ describe('buildMixedAnova', () => {
     expect(c.apa).toBe('A mixed ANOVA yielded a Group × Condition interaction, F(3.34,95.29)=2.52, p = .056, partial η²=.08 [.00, 1.00].')
   })
 
-  it('note is assume kind with card text + between-groups Levene parenthetical (mirrors one-way)', () => {
+  it('note is assume kind with card text + between-groups Levene parenthetical + plain-language verdicts (audit V: Levene p=.71 met, Mauchly p=.002 violated)', () => {
     expect(c.note!.kind).toBe('assume')
-    expect(c.note!.text).toBe(`${spec.tableNote!.text} (Levene F=0.35, p=.710)`)
+    expect(c.note!.text).toBe(`${spec.tableNote!.text} (Levene F=0.35, p=.710) — equal variances between groups look reasonable — sphericity looks violated; check that a Greenhouse–Geisser or Huynh–Feldt correction is applied above`)
     expect(c.note!.text).toContain('Levene')
   })
 
-  it('note renders em-dash NA when Levene is null (small-N / single-group guard)', () => {
+  it('note renders em-dash NA when Levene is null (small-N / single-group guard) — no Levene verdict, Mauchly verdict still applies', () => {
     const rNA = { ...result, levene: { F: null, p: null } }
     const cNA = buildMixedAnova(spec, rNA)
-    expect(cNA.note!.text).toBe(`${spec.tableNote!.text} (Levene F=—, p=—)`)
+    expect(cNA.note!.text).toBe(`${spec.tableNote!.text} (Levene F=—, p=—) — sphericity looks violated; check that a Greenhouse–Geisser or Huynh–Feldt correction is applied above`)
   })
 
   it('figure has card caption and type', () => {

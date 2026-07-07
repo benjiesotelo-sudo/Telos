@@ -4,6 +4,7 @@ import type { RepeatedMeasuresAnovaResult } from '../stats/repeatedMeasuresAnova
 import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa } from '../format/apa'
 import { posthocTableRows } from '../stats/posthoc'
+import { verdictClause } from '../format/verdict'
 
 /** Maps the option select value to the APA correction label. */
 const CORRECTION_LABEL: Record<string, string> = {
@@ -55,19 +56,28 @@ export function buildRepeatedMeasuresAnova(spec: TestSpec, r: RepeatedMeasuresAn
   // When sphericity='none': note anchors after the ANOVA table (before posthoc) and omits
   //   the correction sentence since no correction is applied.
   // When sphericity is absent because of 2 levels (empty array, choice not 'none'): same anchor.
+  // Audit V (2026-07-06 completeness audit): a plain-language sphericity verdict, keyed off Mauchly's own
+  // p (computed regardless of the correction choice — even under sphericityChoice='none' the runner still
+  // reports it, only the display table is suppressed), never restated as a number here (the Table 3
+  // numbers already carry that; this is judgment-only). Absent for 2-level designs (no sphericity row).
+  const mauchlyViolatedText = showSphericity
+    ? 'sphericity looks violated; check that a Greenhouse–Geisser or Huynh–Feldt correction is applied above'
+    : 'sphericity looks violated; consider selecting a Greenhouse–Geisser or Huynh–Feldt correction'
+  const mauchlyVerdict = verdictClause(r.sphericity[0]?.p ?? null, r.alpha, 'sphericity looks reasonable', mauchlyViolatedText)
+
   const noteBase = spec.tableNote ?? null
   let note: CardContent['note'] = null
   if (noteBase) {
     if (showSphericity) {
-      note = { ...noteBase, afterTableId: 'sphericity' }
+      note = { ...noteBase, text: `${noteBase.text}${mauchlyVerdict}`, afterTableId: 'sphericity' }
     } else if (r.sphericityChoice === 'none') {
       // Sphericity deliberately omitted — reword to remove the now-inapplicable correction sentence.
       const trimmedText = noteBase.text
         .replace('when sphericity is violated the F-test uses the Greenhouse–Geisser / Huynh–Feldt correction; post-hoc table follows. ', '')
-      note = { ...noteBase, text: trimmedText, afterTableId: 'rm-anova' }
+      note = { ...noteBase, text: `${trimmedText}${mauchlyVerdict}`, afterTableId: 'rm-anova' }
     } else {
       // 2-level case: sphericity not needed; no afterTableId — note renders after last table.
-      note = { ...noteBase }
+      note = { ...noteBase, text: `${noteBase.text}${mauchlyVerdict}` }
     }
   }
 

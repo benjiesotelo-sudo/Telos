@@ -27,6 +27,16 @@ const FISHER_1925: Ref = { text: 'Fisher, R. A. (1925). Statistical Methods for 
 const GREENHOUSE_GEISSER_1959: Ref = { text: 'Greenhouse, S. W., Geisser, S. (1959). "On methods in the analysis of profile data." Psychometrika, 24(2), 95-112.' }
 const HUYNH_FELDT_1976: Ref = { text: 'Huynh, H., Feldt, L. S. (1976). "Estimation of the Box correction for degrees of freedom from sample data in randomized block and split-plot designs." Journal of Educational Statistics, 1(1), 69-82.' }
 const PILLAI_1955: Ref = { text: 'Pillai, K. C. S. (1955). "Some new test criteria in multivariate analysis." Annals of Mathematical Statistics, 26(1), 117-121.' }
+// Audit fix (U9-T3 wave B, 2026-07-06 completeness audit): the app's Levene test is actually the
+// median-centered Brown-Forsythe variant (aov(abs(y - group median) ~ group)), so both are cited
+// together wherever the homogeneity-of-variance test is rendered (one-sample/independent-t siblings,
+// one-way/factorial/nested/mixed/ancova ANOVA family).
+const LEVENE_1960: Ref = { text: 'Levene, H. (1960). "Robust tests for equality of variances." In I. Olkin (Ed.), Contributions to Probability and Statistics (pp. 278-292). Stanford University Press.' }
+const BROWN_FORSYTHE_1974: Ref = { text: 'Brown, M. B., Forsythe, A. B. (1974). "Robust tests for the equality of variances." Journal of the American Statistical Association, 69(346), 364-367.', url: 'https://doi.org/10.2307/2285659' }
+const MAUCHLY_1940: Ref = { text: 'Mauchly, J. W. (1940). "Significance test for sphericity of a normal n-variate distribution." The Annals of Mathematical Statistics, 11(2), 204-209.', url: 'https://doi.org/10.1214/aoms/1177731915' }
+const BOX_1949: Ref = { text: 'Box, G. E. P. (1949). "A general distribution theory for a class of likelihood criteria." Biometrika, 36(3-4), 317-346.', url: 'https://doi.org/10.2307/2332671' }
+const DUNN_1961: Ref = { text: 'Dunn, O. J. (1961). "Multiple comparisons among means." Journal of the American Statistical Association, 56(293), 52-64.', url: 'https://doi.org/10.2307/2282330' }
+const SCHEFFE_1953: Ref = { text: 'Scheffé, H. (1953). "A method for judging all contrasts in the analysis of variance." Biometrika, 40(1-2), 87-104.', url: 'https://doi.org/10.2307/2333100' }
 const TUKEY_1949: Ref = { text: 'Tukey, J. W. (1949). "Comparing individual means in the analysis of variance." Biometrics, 5(2), 99-114.' }
 const PEARSON_1895: Ref = { text: 'Pearson, K. (1895). "Note on regression and inheritance in the case of two parents." Proceedings of the Royal Society of London, 58, 240-242.' }
 const OBRIEN_2007: Ref = { text: 'O’Brien, R. M. (2007). "A caution regarding rules of thumb for variance inflation factors." Quality & Quantity, 41(5), 673-690.', url: 'https://doi.org/10.1007/s11135-006-9018-6' }
@@ -166,6 +176,8 @@ export const CITATIONS: Record<string, TestCitations> = {
       { claim: 'Independent-samples t-test (pooled variance)', ref: STUDENT_1908 },
       { claim: "Welch's correction (unequal variances, the app's default)", ref: WELCH_1947 },
       { claim: "Cohen's d effect-size benchmarks (.2/.5/.8)", ref: COHEN_1988 },
+      { claim: "Levene's test for equal variances (Brown-Forsythe median-centered variant)", ref: LEVENE_1960 },
+      { claim: 'Brown-Forsythe median-centered variant of the homogeneity-of-variance test', ref: BROWN_FORSYTHE_1974 },
     ],
   },
   'paired-t-test': {
@@ -176,6 +188,7 @@ export const CITATIONS: Record<string, TestCitations> = {
     statisticalBasis: [
       { claim: 'Paired-samples t-test', ref: STUDENT_1908 },
       { claim: "Cohen's dz effect size", ref: COHEN_1988 },
+      { claim: 'Paired correlation (Pearson r) between the two conditions', ref: PEARSON_1895 },
     ],
   },
   'one-way-anova': {
@@ -186,6 +199,10 @@ export const CITATIONS: Record<string, TestCitations> = {
     statisticalBasis: [
       { claim: 'F-test for equality of several means (ANOVA)', ref: FISHER_1925 },
       { claim: 'Tukey HSD post-hoc comparison', ref: TUKEY_1949 },
+      { claim: "Bonferroni-corrected post-hoc comparison (a 'posthoc' choice)", ref: DUNN_1961 },
+      { claim: "Scheffé-corrected post-hoc comparison (a 'posthoc' choice)", ref: SCHEFFE_1953 },
+      { claim: "Levene's test for equal variances (Brown-Forsythe median-centered variant)", ref: LEVENE_1960 },
+      { claim: 'Brown-Forsythe median-centered variant of the homogeneity-of-variance test', ref: BROWN_FORSYTHE_1974 },
       { claim: 'η² effect-size benchmarks', ref: COHEN_1988 },
     ],
   },
@@ -207,6 +224,7 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: 'Repeated-measures ANOVA (F-test for within-subjects conditions)', ref: FISHER_1925 },
+      { claim: "Mauchly's test of sphericity (rendered above the correction)", ref: MAUCHLY_1940 },
       { claim: 'Greenhouse-Geisser correction (sphericity violated)', ref: GREENHOUSE_GEISSER_1959 },
       { claim: 'Huynh-Feldt correction (sphericity violated)', ref: HUYNH_FELDT_1976 },
       { claim: 'Estimated marginal means for post-hoc comparisons', ref: EMMEANS_REF },
@@ -219,6 +237,11 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: 'Mixed (split-plot) ANOVA', ref: FISHER_1925 },
+      { claim: "Mauchly's test of sphericity (rendered above the correction)", ref: MAUCHLY_1940 },
+      { claim: 'Greenhouse-Geisser correction (sphericity violated)', ref: GREENHOUSE_GEISSER_1959 },
+      { claim: 'Huynh-Feldt correction (sphericity violated)', ref: HUYNH_FELDT_1976 },
+      { claim: "Levene's test for equal variances between groups (Brown-Forsythe median-centered variant)", ref: LEVENE_1960 },
+      { claim: 'Brown-Forsythe median-centered variant of the homogeneity-of-variance test', ref: BROWN_FORSYTHE_1974 },
       { claim: 'Estimated marginal means for post-hoc comparisons', ref: EMMEANS_REF },
     ],
   },
@@ -240,6 +263,7 @@ export const CITATIONS: Record<string, TestCitations> = {
     statisticalBasis: [
       { claim: "Welch's ANOVA (heteroscedasticity-robust F, fractional df)", ref: WELCH_1951 },
       { claim: 'Games-Howell post-hoc comparisons (also variance-robust)', ref: RSTATIX_REF },
+      { claim: 'ω² effect size (F-to-omega² conversion, no fitted aov model needed)', ref: EFFECTSIZE_REF },
     ],
   },
   ancova: {
@@ -262,6 +286,8 @@ export const CITATIONS: Record<string, TestCitations> = {
     statisticalBasis: [
       { claim: "Pillai's trace multivariate test (headline statistic)", ref: PILLAI_1955 },
       { claim: "Wilks' Lambda multivariate test", ref: WILKS_1932 },
+      { claim: "Box's M test of homogeneity of covariance matrices", ref: BOX_1949 },
+      { claim: 'Multivariate effect size (partial η² from the multivariate approx. F)', ref: EFFECTSIZE_REF },
     ],
   },
   mancova: {
@@ -272,6 +298,8 @@ export const CITATIONS: Record<string, TestCitations> = {
     statisticalBasis: [
       { claim: "Pillai's trace multivariate test (headline statistic, covariate-adjusted)", ref: PILLAI_1955 },
       { claim: "Wilks' Lambda multivariate test (covariate-adjusted)", ref: WILKS_1932 },
+      { claim: "Box's M test of homogeneity of covariance matrices", ref: BOX_1949 },
+      { claim: 'Multivariate effect size (partial η² from the multivariate approx. F)', ref: EFFECTSIZE_REF },
       { claim: 'Estimated marginal (covariate-adjusted) means', ref: EMMEANS_REF },
     ],
   },

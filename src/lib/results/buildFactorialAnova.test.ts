@@ -72,11 +72,19 @@ describe('buildFactorialAnova — fixture (nothing significant): Table 3 absent'
     expect(c.apa).toBe('A two-way ANOVA gave A×B interaction F(2,54)=2.48, p = .093, partial η²=.08 [.00, 1.00].')
   })
 
-  it('note appends Levene + Shapiro values to card assume text', () => {
+  it('note appends Levene + Shapiro values + plain-language verdicts to card assume text (audit V: both p > alpha here)', () => {
     expect(c.note!.kind).toBe('assume')
     expect(c.note!.text).toContain("assumption checks: Levene's & normality of residuals")
     expect(c.note!.text).toContain('Levene F=1.23')
     expect(c.note!.text).toContain('Shapiro W=0.98')
+    expect(c.note!.text).toContain('equal variances look reasonable')
+    expect(c.note!.text).toContain('residual normality looks reasonable')
+  })
+
+  it('audit V: flags violated verdicts when Levene/Shapiro p < alpha', () => {
+    const c2 = buildFactorialAnova(spec, { ...fixtureResult, levene: { F: 9, p: 0.001 }, shapiro: { W: 0.7, p: 0.001 } })
+    expect(c2.note!.text).toContain('equal variances look doubtful; interpret the F-tests with extra caution')
+    expect(c2.note!.text).toContain('residual normality looks doubtful; interpret the F-tests with extra caution')
   })
 
   it('figure carries the interaction plot type', () => {

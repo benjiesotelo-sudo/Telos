@@ -3,6 +3,7 @@ import { figuresOf } from '../registry/types'
 import type { NestedAnovaResult } from '../stats/nestedAnova'
 import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
+import { verdictClause } from '../format/verdict'
 
 export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardContent {
   const { factor, nested } = r
@@ -55,7 +56,12 @@ export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardCont
     : ''
   // Runtime assumption statistics (mirror buildOneWayAnova's note style; em-dash NA via fx()).
   const assumeStats = ` (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · Shapiro W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})`
-  const noteText = baseNoteText + assumeStats + crossedWarning
+  // Audit V (2026-07-06 completeness audit): plain-language verdicts for both reported checks.
+  const leveneVerdict = verdictClause(r.levene.p, r.alpha, 'equal variances look reasonable',
+    'equal variances look doubtful; interpret the F-tests with extra caution')
+  const shapiroVerdict = verdictClause(r.shapiro.p, r.alpha, 'residual normality looks reasonable',
+    'residual normality looks doubtful; interpret the F-tests with extra caution')
+  const noteText = baseNoteText + assumeStats + leveneVerdict + shapiroVerdict + crossedWarning
 
   const fig = figuresOf(spec)[0]
 

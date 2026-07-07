@@ -2,8 +2,26 @@ import type { TestSpec } from '../registry/types'
 import type { TTestResult } from '../stats/types'
 import type { CardContent } from './builders'
 import { f, f1, fdf, fp, fpApa, fx } from '../format/apa'
+import { verdictClause } from '../format/verdict'
 
 const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
+
+// Audit V (2026-07-06 completeness audit): the Levene verdict text depends on WHICH test actually ran —
+// when Welch already ran (the app's default), a Levene violation is already accounted for; when the
+// pooled test ran (equal-variance toggle ON), suggest switching it off (suggest, never auto-switch).
+const leveneVerdict = (r: TTestResult) => verdictClause(r.levene.p, r.alpha, 'equal variances look reasonable',
+  r.test === 'welch'
+    ? 'equal variances look doubtful; the Welch test above already accounts for this'
+    : "equal variances look doubtful; consider switching off 'equal variance' to run Welch's test")
+
+// Normality is checked per group; flag a violation if EITHER group's Shapiro is significant (the more
+// conservative read — both groups are needed for the pooled/Welch t-test's per-group assumption).
+const shapiroVerdict = (r: TTestResult) => {
+  const ps = r.shapiroByGroup.map((s) => s.p).filter((p): p is number => p != null)
+  const minP = ps.length > 0 ? Math.min(...ps) : null
+  return verdictClause(minP, r.alpha, 'normality looks reasonable in both groups',
+    'normality looks doubtful in at least one group; consider the Mann-Whitney U test or interpreting with caution')
+}
 
 export function buildIndependentTTest(spec: TestSpec, r: TTestResult): CardContent {
   const [g1, g2] = r.groupStats
@@ -22,7 +40,7 @@ export function buildIndependentTTest(spec: TestSpec, r: TTestResult): CardConte
       { spec: spec.tables[0], rows: r.groupStats.map((g) => ({ group: g.group, n: g.n, mean: f(g.mean), sd: f(g.sd), se: f(g.se) })) },
       { spec: { ...spec.tables[1], columns: t2cols }, rows: [{ contrast: r.contrast, t: f(r.t), df: fdf(r.df), p: fp(r.p), mdiff: f(r.meanDiff), ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: `${f(r.cohensD)} [${f(r.cohensDLow)}, ${f(r.cohensDHigh)}]` }] },
     ],
-    note: { kind: 'assume', text: `${spec.assumptionNote} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · ${r.shapiroByGroup.map((s) => `Shapiro ${s.group} W=${fx(s.W, f)}, p=${fx(s.p, fp)}`).join('; ')} · ${r.test === 'welch' ? 'Welch' : 'pooled'} test)` },
+    note: { kind: 'assume', text: `${spec.assumptionNote} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · ${r.shapiroByGroup.map((s) => `Shapiro ${s.group} W=${fx(s.W, f)}, p=${fx(s.p, fp)}`).join('; ')} · ${r.test === 'welch' ? 'Welch' : 'pooled'} test)${leveneVerdict(r)}${shapiroVerdict(r)}` },
     figures: [{ caption: spec.figure!.caption, type: spec.figure!.type, png: r.figurePng }],
     howToRead: spec.howToRead.replace('95% CI', ciLabel).replace('(e.g. .05)', `(e.g. ${r.alpha})`) + tailsNote(r.tails),
     apa,

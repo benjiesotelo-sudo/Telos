@@ -26,7 +26,15 @@ describe('buildIndependentTTest', () => {
     expect(c.tables[1].rows[0]).toMatchObject({ t: '−5.98', df: '9.68', p: '<.001', mdiff: '−12.00', ci: '[−16.49, −7.51]', d: '−3.45 [−5.32, −1.53]' })
   })
   it('renders the assumption note with em-dashes for the degenerate Levene, per-group Shapiro normality, and capitalizes Welch', () => {
-    expect(c.note).toEqual({ kind: 'assume', text: `${spec.assumptionNote} (Levene F=—, p=— · Shapiro control W=0.99, p=.995; Shapiro treatment W=0.96, p=.847 · Welch test)` })
+    // audit V: Levene p is null → no verdict clause; both groups' Shapiro p >= alpha → normality "looks reasonable"
+    expect(c.note).toEqual({ kind: 'assume', text: `${spec.assumptionNote} (Levene F=—, p=— · Shapiro control W=0.99, p=.995; Shapiro treatment W=0.96, p=.847 · Welch test) — normality looks reasonable in both groups` })
+  })
+  it('audit V: Levene verdict differs by which test actually ran (welch vs pooled), and flags normality when either group violates', () => {
+    const welchViolated = buildIndependentTTest(spec, { ...r, levene: { F: 5.1, p: 0.02 }, test: 'welch', shapiroByGroup: [{ group: 'control', W: 0.8, p: 0.01 }, r.shapiroByGroup[1]] })
+    expect(welchViolated.note!.text).toContain('equal variances look doubtful; the Welch test above already accounts for this')
+    expect(welchViolated.note!.text).toContain('normality looks doubtful in at least one group; consider the Mann-Whitney U test or interpreting with caution')
+    const pooledViolated = buildIndependentTTest(spec, { ...r, levene: { F: 5.1, p: 0.02 }, test: 'pooled' })
+    expect(pooledViolated.note!.text).toContain("equal variances look doubtful; consider switching off 'equal variance' to run Welch's test")
   })
   it('fills the APA sentence as a p-clause with 1-dp M/SD, spaced p-operator, and the d effect-size CI', () => {
     expect(c.apa).toContain('control (M=70.3, SD=3.1)')

@@ -4,6 +4,7 @@ import type { MixedAnovaResult } from '../stats/mixedAnova'
 import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 import { posthocTableRows } from '../stats/posthoc'
+import { verdictClause } from '../format/verdict'
 
 export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardContent {
   const inter = r.anovaRows[2]  // interaction row drives the APA
@@ -21,10 +22,17 @@ export function buildMixedAnova(spec: TestSpec, r: MixedAnovaResult): CardConten
   // Note anchors after the sphericity table (before posthoc) when sphericity rows are present.
   // When sphericity is absent (2-level within factor), the note renders after the ANOVA table.
   const showSphericity = r.sphericity.length > 0
+  // Audit V (2026-07-06 completeness audit): plain-language verdicts for both reported assumption
+  // checks — Levene (between-groups variance) and Mauchly (within-factor sphericity, keyed off the
+  // first sphericity row; absent for a 2-level within factor, mirroring RM-ANOVA's own device).
+  const leveneVerdict = verdictClause(r.levene.p, r.alpha, 'equal variances between groups look reasonable',
+    'equal variances between groups look doubtful; interpret the between-groups effect with extra caution')
+  const mauchlyVerdict = verdictClause(r.sphericity[0]?.p ?? null, r.alpha, 'sphericity looks reasonable',
+    'sphericity looks violated; check that a Greenhouse–Geisser or Huynh–Feldt correction is applied above')
   // Render the between-groups homogeneity check (Brown-Forsythe Levene on per-subject means) into the assume-note — mirrors one-way's "(Levene F=…, p=…)". em-dash NA via fx().
   const note: CardContent['note'] = {
     kind: 'assume',
-    text: `${spec.tableNote!.text} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)})`,
+    text: `${spec.tableNote!.text} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)})${leveneVerdict}${mauchlyVerdict}`,
     ...(showSphericity ? { afterTableId: 'sphericity' } : { afterTableId: 'mixed-anova' }),
   }
 

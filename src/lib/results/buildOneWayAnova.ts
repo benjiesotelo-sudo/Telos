@@ -4,6 +4,7 @@ import type { OneWayAnovaResult } from '../stats/oneWayAnova'
 import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 import { posthocTableRows } from '../stats/posthoc'
+import { verdictClause } from '../format/verdict'
 
 export function buildOneWayAnova(spec: TestSpec, r: OneWayAnovaResult): CardContent {
   const pct = Math.round(r.ciLevel * 100)
@@ -26,7 +27,7 @@ export function buildOneWayAnova(spec: TestSpec, r: OneWayAnovaResult): CardCont
       ] },
       { spec: { ...spec.tables[2], columns: t3cols }, rows: posthocTableRows(r.posthoc, { f, fp }) },
     ],
-    note: { kind: 'assume', text: `${spec.tableNote!.text} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · Shapiro W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})${r.levene.p != null && r.levene.p < 0.05 ? " — equal variances look doubtful; consider Welch's ANOVA" : ''}` }, // design §4.4: suggest, never auto-switch
+    note: { kind: 'assume', text: `${spec.tableNote!.text} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · Shapiro W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})${verdictClause(r.levene.p, r.alpha, 'equal variances look reasonable', "equal variances look doubtful; consider Welch's ANOVA")}${verdictClause(r.shapiro.p, r.alpha, 'residual normality looks reasonable', 'residual normality looks doubtful; consider a nonparametric alternative (e.g. Kruskal-Wallis) or interpreting with caution')}` }, // design §4.4: suggest, never auto-switch
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,

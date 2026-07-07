@@ -111,8 +111,12 @@ describe('buildRepeatedMeasuresAnova', () => {
       expect(c.apa).toBe('A repeated-measures ANOVA (GG-corrected) gave F(1.78,104.75)=78.51, p < .001, partial η²=.57 [.48, 1.00].')
     })
 
-    it('note is the assume note with afterTableId=sphericity (note renders between Table 3 and Table 4)', () => {
-      expect(c.note).toEqual({ ...spec.tableNote, afterTableId: 'sphericity' })
+    it('note is the assume note + a violated verdict (Mauchly p=.0198 < alpha) with afterTableId=sphericity (note renders between Table 3 and Table 4)', () => {
+      expect(c.note).toEqual({
+        ...spec.tableNote,
+        text: `${spec.tableNote!.text} — sphericity looks violated; check that a Greenhouse–Geisser or Huynh–Feldt correction is applied above`,
+        afterTableId: 'sphericity',
+      })
     })
 
     it('figure caption and type match spec', () => {
@@ -192,8 +196,9 @@ describe('buildRepeatedMeasuresAnova', () => {
       expect((c.note as Record<string, unknown>)['afterTableId']).toBe('rm-anova')
     })
 
-    it('note text omits the correction sentence when correction=none', () => {
-      expect(c.note!.text).not.toContain('Greenhouse–Geisser')
+    it('note text omits the static correction-explanation sentence when correction=none, but still surfaces a violated-verdict suggestion (audit V: Mauchly p=.0198 < alpha, carried over from result3)', () => {
+      expect(c.note!.text).not.toContain('the F-test uses the Greenhouse–Geisser / Huynh–Feldt correction')
+      expect(c.note!.text).toContain('sphericity looks violated; consider selecting a Greenhouse–Geisser or Huynh–Feldt correction')
     })
   })
 })

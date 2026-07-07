@@ -4,6 +4,7 @@ import type { FactorialAnovaResult } from '../stats/factorialAnova'
 import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 import type { PosthocRow } from '../stats/posthoc'
+import { verdictClause } from '../format/verdict'
 
 /** Render simple-effects rows using the 'contrast' key (column key on Table 3). */
 const seTableRows = (rows: (PosthocRow & { term: string })[], fmt: { f: (n: number) => string; fp: (p: number) => string }) =>
@@ -43,7 +44,7 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
     apa = `A two-way ANOVA gave main effects of ${apaRows.join('; ')}.`
   }
 
-  const noteText = `${spec.tableNote!.text} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · Shapiro W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})`
+  const noteText = `${spec.tableNote!.text} (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · Shapiro W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})${verdictClause(r.levene.p, r.alpha, 'equal variances look reasonable', 'equal variances look doubtful; interpret the F-tests with extra caution')}${verdictClause(r.shapiro.p, r.alpha, 'residual normality looks reasonable', 'residual normality looks doubtful; interpret the F-tests with extra caution')}`
 
   // Decision 2: include simple-effects rows only for significant terms (p < .05).
   // Marginal rows for factor X: included only if X's ANOVA row p < .05.

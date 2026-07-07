@@ -73,10 +73,11 @@ describe('buildNestedAnova', () => {
     expect(c.apa).toBe('A nested ANOVA for A gave F(2,3)=1.48, p = .357, ω²=.06 [.00, 1.00].')
   })
 
-  it('assume-note = registry text + runtime Levene/Shapiro stats (no crossed warning when crossed is empty)', () => {
+  it('assume-note = registry text + runtime Levene/Shapiro stats + plain-language verdicts (audit V: both met, p > alpha) — no crossed warning when crossed is empty', () => {
     expect(c.note).toEqual({
       kind: 'assume',
-      text: spec.tableNote!.text + ' (Levene F=0.02, p=.978 · Shapiro W=0.98, p=.297)',
+      text: spec.tableNote!.text + ' (Levene F=0.02, p=.978 · Shapiro W=0.98, p=.297)'
+        + ' — equal variances look reasonable — residual normality looks reasonable',
     })
   })
 
@@ -109,6 +110,7 @@ describe('buildNestedAnova — crossed warning', () => {
     expect(c.note!.text).toBe(
       spec.tableNote!.text +
       ' (Levene F=0.02, p=.978 · Shapiro W=0.98, p=.297)' +
+      ' — equal variances look reasonable — residual normality looks reasonable' +
       ' — classroom labels repeat across school levels; results assume distinct groups within each school — check your coding',
     )
   })
@@ -154,7 +156,8 @@ describe('buildNestedAnova — fixed nesting APA and note', () => {
     expect(c.note!.text).toBe(
       'Under fixed nesting both F rows are tested against the residual mean square — the two F rows share the same denominator. Variance components (or ω²) are reported as the effect size where estimable. ' +
       "Assumption checks: Levene's (equal variances across top-level groups) & normality of residuals (Shapiro-Wilk)." +
-      ' (Levene F=0.02, p=.978 · Shapiro W=0.98, p=.297)',
+      ' (Levene F=0.02, p=.978 · Shapiro W=0.98, p=.297)' +
+      ' — equal variances look reasonable — residual normality looks reasonable',
     )
   })
 })
