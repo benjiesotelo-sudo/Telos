@@ -9,6 +9,12 @@ export interface PlsSemResult {
   outer: Array<Record<string, unknown>>
   reliability: Array<Record<string, unknown>>
   htmt: { labels: string[]; cells: (number | null)[][] }
+  /** Structural paths - INCLUDING any moderation interaction path(s) (U6-T4). Unlike CB-SEM (which
+   *  hand-builds indProd + a `:=`-defined interaction and reports it through a SEPARATE `moderation`
+   *  field/table section), seminr's `interaction_term(iv=, moderator=, method=two_stage)` is modeled as
+   *  an ordinary construct + `paths(from="{iv}*{moderator}", to="{target}")` - so its row falls out of
+   *  THIS SAME array with no special extraction. There is deliberately no `moderation.rows` field here;
+   *  a moderation edge just adds one more `structural[]` entry named "{iv}*{moderator} → {target}". */
   structural: Array<Record<string, unknown>>
   quality: Array<Record<string, unknown>>
   indirect?: Array<Record<string, unknown>>
@@ -50,6 +56,8 @@ export interface PlsSemResult {
 //   path_to_name    character vector: target construct name per edge
 //   nboot           integer: bootstrap resamples (5000 default; the test passes 300)
 //   seed            integer: RNG seed (deterministic native parity)
+//   construct_names_real character vector: the DRAWN construct names (construct order - excludes any
+//     derived interaction constructs seminr appends for moderation edges, U6-T4)
 //   is_formative_flags logical vector (one per construct, construct order): TRUE = formative
 //     (AVE/HTMT suppressed; outer = weight + VIF). A per-construct flag — never an empty array — because
 //     webr 0.6.0's env conversion throws "Cannot convert undefined or null to object" on an empty JS [].
@@ -86,9 +94,13 @@ bo  <- bootstrap_model(seminr_model = pls, nboot = nboot, cores = 1)
 sb  <- summary(bo)
 gc()
 
-construct_names <- pls$constructs
-# is_formative_flags is bound in the SAME order constructs were passed to constructs(); seminr preserves
-# that order in pls$constructs, so a positional map is exact.
+# The DRAWN construct names, bound from TS in the same order as is_formative_flags (positional map exact
+# by construction). NOT pls$constructs: with a moderation edge (U6-T4), seminr appends the derived
+# interaction construct ("{iv}*{moderator}", a two-stage product score) there too - it is not a measured
+# construct, carries no meaningful alpha/AVE/HTMT/outer rows, and must not enter measurement reporting or
+# the mediation enumeration below. Its structural row still flows through the path loop (bp/fsq/boot_paths
+# are keyed by NAME, and path_*_name include the interaction edge).
+construct_names <- as.character(construct_names_real)
 is_formative <- as.logical(is_formative_flags)
 
 # ---- Reliability: raw seminr order alpha/rhoC/AVE/rhoA → display α/ρ_A/CR/AVE; AVE NA for formative ----
@@ -203,7 +215,13 @@ quality <- lapply(endo, function(nm) {
 # names(), only colnames(). Index by MATRIX COLUMN: sig[1, "Original Est."] etc. (sig["..."] is all-NA).
 indirect <- list()
 adj <- matrix(FALSE, k, k, dimnames = list(construct_names, construct_names))
-for (e in seq_along(path_from_name)) adj[path_from_name[e], path_to_name[e]] <- TRUE
+# Interaction edges ("{iv}*{moderator}" -> target, U6-T4) are skipped: the interaction construct is not a
+# dimname of adj, and a moderation term never participates in a mediation chain (no incoming paths).
+for (e in seq_along(path_from_name)) {
+  if (path_from_name[e] %in% construct_names && path_to_name[e] %in% construct_names) {
+    adj[path_from_name[e], path_to_name[e]] <- TRUE
+  }
+}
 for (a in construct_names) for (z in construct_names) {
   if (a == z) next
   mids <- construct_names[adj[a, ] & adj[, z]]
@@ -277,6 +295,25 @@ export async function runPlsSem(
   const nboot = Number(setup.options['nboot'] ?? 5000)
   const fromName = (id: number) => byId.get(id)?.name ?? String(id)
 
+  // U6-T4 moderation: seminr's interaction_term takes CONSTRUCT names directly (iv=/moderator=) - no
+  // item-level product-indicator bookkeeping the way CB-SEM's indProd needs. The moderated path's source
+  // construct (paths[m.pathIndex].from) is the iv; m.moderatorId resolves to the moderator; the
+  // interaction's own construct name is always seminr's literal "{iv}*{moderator}" convention (confirmed
+  // in the spike: "Image*Expectation") - no TS-side naming scheme needed. Each moderation contributes one
+  // `interaction_term(...)` line (spliced into the SAME constructs(...) call as the composite() lines)
+  // and one structural `paths(from="{iv}*{moderator}", to="{target}")` line, where {target} is the
+  // ORIGINAL moderated path's target (paths[m.pathIndex].to) - mirroring the spike's mobi_sm exactly.
+  const moderations = setup.moderations ?? []
+  const modInteractions = moderations.map((m) => {
+    const p = paths[m.pathIndex]
+    const ivName = fromName(p.from)
+    const modName = fromName(m.moderatorId)
+    return { ivName, modName, name: `${ivName}*${modName}`, targetId: p.to, targetName: fromName(p.to) }
+  })
+  const modLines = modInteractions.map(
+    ({ ivName, modName }) => `interaction_term(iv = "${ivName}", moderator = "${modName}", method = two_stage, weights = mode_A)`,
+  )
+
   // seminr is lazy-installed (Engine.ensureSeminr — NOT part of init()'s eager preload). init() also applies
   // the detectCores + makeCluster serial shims that bootstrap_model needs under WASM (no sockets). Both must
   // run before the R block's library(seminr)/bootstrap_model; both are idempotent so this is safe per call.
@@ -289,14 +326,26 @@ export async function runPlsSem(
     item_cols_flat,
     all_items: allItems,
     n,
-    mm_lines: constructs.map(measurementLine),
-    sm_lines: paths.map((p) => structuralLine(fromName(p.from), fromName(p.to))),
-    path_from: paths.map((p) => p.from),
-    path_to: paths.map((p) => p.to),
-    path_from_name: paths.map((p) => fromName(p.from)),
-    path_to_name: paths.map((p) => fromName(p.to)),
+    // Moderation lines append (never replace) both the constructs(...) and relationships(...) source -
+    // the interaction row then flows through the SAME path_from/path_to/*_name arrays and the structural
+    // extraction loop below, right alongside every ordinary drawn path.
+    mm_lines: [...constructs.map(measurementLine), ...modLines],
+    sm_lines: [
+      ...paths.map((p) => structuralLine(fromName(p.from), fromName(p.to))),
+      ...modInteractions.map((m) => structuralLine(m.name, m.targetName)),
+    ],
+    // Interaction "constructs" have no real numeric construct id; `-m.id` is a harmless, collision-free
+    // sentinel for estimates.paths' `from` (unused for PLS today - SemCanvas overlay reads CbSemResult's
+    // estimates, not PlsSemResult's), while `to` stays the real target construct id.
+    path_from: [...paths.map((p) => p.from), ...moderations.map((m) => -m.id)],
+    path_to: [...paths.map((p) => p.to), ...modInteractions.map((m) => m.targetId)],
+    path_from_name: [...paths.map((p) => fromName(p.from)), ...modInteractions.map((m) => m.name)],
+    path_to_name: [...paths.map((p) => fromName(p.to)), ...modInteractions.map((m) => m.targetName)],
     nboot,
     seed: 20260620,
+    // The DRAWN construct names (same order as is_formative_flags) - the R block reports measurement/HTMT/
+    // indirect over these only, excluding seminr's derived interaction constructs (see comment in R_STATS).
+    construct_names_real: constructs.map((c) => c.name),
     // Per-construct flag (construct order) — never an empty array (webr 0.6.0 cannot convert []).
     is_formative_flags: constructs.map((c) => c.mode === 'formative'),
   }

@@ -201,4 +201,52 @@ describe('plsSem', () => {
     expect(typeof expRows[0].weight).toBe('number')
     expect(typeof expRows[0].vif).toBe('number')
   }, 600_000)
+
+  // U6-T4 - interaction_term two_stage moderation (Henseler & Chin, 2010), native-R-verified: full
+  // 7-construct mobi model per the moderation spike (docs/superpowers/reviews/2026-07-06-moderation-spike.md
+  // §3), Expectation moderates Image -> Satisfaction. Point estimate beta=-0.016341 and Satisfaction
+  // R²=0.681492/AdjR²=0.674965 are seed-independent and equal the spike's numbers EXACTLY. The bootstrap
+  // t/CI references are re-derived under native R 4.6.0 at the RUNNER'S pinned seed 20260620 (the spike
+  // used 20260706; the app pins one deterministic seed for every PLS run, so the spike's CI digits cannot
+  // reproduce through the app path): t=-0.5706614046, perc CI=[-0.0737725875, 0.0397582893] - WebR matched
+  // these native values to every printed digit (the same byte-identical parity the spike proved at its seed).
+  const MOBI_MOD_SETUP: TestSetup = {
+    roles: {}, options: { nboot: 500 }, props: {}, blocked: null, modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'Image', items: ['IMAG1', 'IMAG2', 'IMAG3', 'IMAG4', 'IMAG5'] },
+      { id: 2, name: 'Expectation', items: ['CUEX1', 'CUEX2', 'CUEX3'] },
+      { id: 3, name: 'Quality', items: ['PERQ1', 'PERQ2', 'PERQ3', 'PERQ4', 'PERQ5', 'PERQ6', 'PERQ7'] },
+      { id: 4, name: 'Value', items: ['PERV1', 'PERV2'] },
+      { id: 5, name: 'Satisfaction', items: ['CUSA1', 'CUSA2', 'CUSA3'] },
+      { id: 6, name: 'Complaints', items: ['CUSCO'] },
+      { id: 7, name: 'Loyalty', items: ['CUSL1', 'CUSL2', 'CUSL3'] },
+    ],
+    paths: [
+      { from: 1, to: 2 }, { from: 1, to: 5 }, { from: 1, to: 7 },
+      { from: 2, to: 3 }, { from: 2, to: 4 }, { from: 2, to: 5 },
+      { from: 3, to: 4 }, { from: 3, to: 5 },
+      { from: 4, to: 5 },
+      { from: 5, to: 6 }, { from: 5, to: 7 },
+      { from: 6, to: 7 },
+    ],
+    moderations: [{ id: 1, moderatorId: 2, pathIndex: 1 }], // Expectation moderates Image -> Satisfaction (path index 1)
+  }
+
+  it('interaction_term (Image*Expectation -> Satisfaction) matches the native-R reference values exactly', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
+    const result = await runPlsSem(engine, data, MOBI_MOD_SETUP)
+    const row = result.structural.find((r) => r.path === 'Image*Expectation → Satisfaction')!
+    expect(row.beta).toBeCloseTo(-0.016341, 5)
+    expect(row.ciLower).toBeCloseTo(-0.073773, 5)
+    expect(row.ciUpper).toBeCloseTo(0.039758, 5)
+    expect(row.t).toBeCloseTo(-0.570661, 5)
+  }, 600_000)
+
+  it('Satisfaction R²/AdjR² match the spike reference values with the interaction path present', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
+    const result = await runPlsSem(engine, data, MOBI_MOD_SETUP)
+    const q = result.quality.find((r) => r.construct === 'Satisfaction')!
+    expect(q.r2).toBeCloseTo(0.681492, 4)
+    expect(q.r2adj).toBeCloseTo(0.674965, 4)
+  }, 600_000)
 })

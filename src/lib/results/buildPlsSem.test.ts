@@ -114,6 +114,23 @@ describe('buildPlsSem', () => {
     expect(table.rows[1].h).toBe('H2'); expect(table.rows[1].result).toBe('Not supported')
   })
 
+  // U6-T4: unlike CB-SEM (which has a dedicated `moderation.rows`/`moderation` __section on the merged
+  // table), PLS-SEM's interaction path is just an ordinary structural row - seminr models it as another
+  // construct+path, so plsSem.ts's structural[] extraction loop already produces it with no special
+  // casing (see the comment on PlsSemResult in plsSem.ts). This locks that in: an interaction-named path
+  // ("X*Y → Z") gets the next sequential H-id and the same dual-CI/Result treatment as any other row -
+  // no `moderation` field is read here, proving buildPlsSem needs none.
+  it('an interaction-named path (moderation) is just the next ordinary structural row, same H-id/CI/Result shape', () => {
+    const content = buildPlsSem(SPEC, { ...R, structural: [
+      ...R.structural,
+      { path: 'Image*Expectation → Satisfaction', beta: -0.0163, p: 0.55, ciLower: -0.0722, ciUpper: 0.0399, ciBcLower: -0.07, ciBcUpper: 0.04, fSquare: 0.001 },
+    ] })
+    const table = content.tables.find((t) => t.spec.id === 'structural')!
+    expect(table.rows[1].h).toBe('H2')
+    expect(table.rows[1].path).toBe('Image*Expectation → Satisfaction')
+    expect(table.rows[1].result).toBe('Not supported') // percentile CI [-.0722, .0399] straddles zero
+  })
+
   // U6-T3 RED: f² is not a structural-table column any more (dual CIs took its place) — it must reach the
   // R² note line, keyed by target construct, never vanish as a silently-unrendered orphan row key.
   it('the R²/f² note line reports f² per incoming path, not as a silent orphan row key', () => {
