@@ -37,6 +37,11 @@ export function buildMultipleLinearRegression(spec: TestSpec, r: MultipleLinearR
     .replace('{b}', f(first.b))
     .replace('p {p2}', `p ${fpApa(first.p)}`)
   const [figResiduals, figCoef] = figuresOf(spec) // #11: residual diagnostics, then the coefficient plot
+  // vifMax (U8-T3) is synthesized here, not a native-R field of its own: the largest VIF across every
+  // reported term (documented per T1-review MUST), reusing the exact per-term `x.vif` numbers already
+  // read above — undefined (not 0/NaN) when every term's VIF is null (k = 1 predictor, VIF undefined).
+  const vifs = r.terms.map((x) => x.vif).filter((v): v is number => v != null)
+  const vifMax = vifs.length ? f(Math.max(...vifs)) : undefined
   return {
     tables: [{ spec: t, rows }],
     note: spec.tableNote ?? null,
@@ -47,5 +52,7 @@ export function buildMultipleLinearRegression(spec: TestSpec, r: MultipleLinearR
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // Keyed to match the 'multiple-linear-regression' EXPLAINERS entries (r2, vif) in registry/explainers.ts.
+    values: { r2: f01(r.r2), vifMax },
   }
 }

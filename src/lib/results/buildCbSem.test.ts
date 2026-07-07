@@ -453,6 +453,17 @@ describe('buildCbSem', () => {
     expect(table.rows[5]).toMatchObject({ moderation: edge2, level: '+1SD' })
   })
 
+  it('values carries the fit indices under the rmseaLower/rmseaUpper convention the term explainer reads (U8-T3)', () => {
+    const c = buildCbSem(SPEC, base)
+    expect(c.values).toEqual({ cfi: '.95', tli: '.94', rmsea: '.10', rmseaLower: '.06', rmseaUpper: '.14', srmr: '.06' })
+  })
+
+  it('values is empty when fit is suppressed for saturation - no explainer line quotes an uninformative fit index', () => {
+    const sat: CbSemResult = { ...base, saturated: true, fit: { ...base.fit!, df: 0 } }
+    const c = buildCbSem(SPEC, sat)
+    expect(c.values).toEqual({})
+  })
+
   it('single moderation keeps the EXACT static column shape (the real registry spec object, untouched)', () => {
     const r: CbSemResult = { ...base, moderation: { rows: base.moderation!.rows, slopes: SLOPES } }
     const content = buildCbSem(SPEC, r)

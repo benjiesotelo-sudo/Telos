@@ -88,10 +88,7 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
         </div>
       ))}
       {id && EXPLAINERS[id] && EXPLAINERS[id].length > 0 && content.values && Object.keys(content.values).length > 0 && (
-        <>
-          <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>Understanding the numbers</h3>
-          <TermExplainers items={EXPLAINERS[id]} values={content.values} />
-        </>
+        <TermExplainers items={EXPLAINERS[id]} values={content.values} />
       )}
       <h3 style={{ fontSize: 15, margin: '16px 0 4px' }}>How to read this test</h3>
       <p className="prose">{content.howToRead}</p>

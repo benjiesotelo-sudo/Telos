@@ -37,4 +37,7 @@ describe('buildIndependentTTest', () => {
     expect(c.figures).toHaveLength(1)
     expect(c.figures[0].type).toBe('boxplot')
   })
+  it('values carries the numbers the term explainers reference (U8-T3)', () => {
+    expect(c.values).toEqual({ df: '9.68', t: '−5.98', p: '< .001', d: '−3.45', dlo: '−5.32', dhi: '−1.53' })
+  })
 })

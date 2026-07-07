@@ -27,5 +27,8 @@ export function buildPearson(spec: TestSpec, r: PearsonResult): CardContent {
     howToRead: spec.howToRead.replace('95% CI', ciLabel) + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
     nExcluded: r.nExcluded,
+    // U8-T3: keyed to match the 'pearson' EXPLAINERS entry (r) in registry/explainers.ts; r/ciLow/ciHigh
+    // are bounded [-1, 1] so use f01 (leading-zero-stripped), same as the apa sentence above.
+    values: { df: fdf(r.df), r: f01(r.r), ciLow: f01(r.ciLow), ciHigh: f01(r.ciHigh) },
   }
 }

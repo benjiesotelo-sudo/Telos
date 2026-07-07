@@ -74,4 +74,13 @@ describe('buildMultipleLinearRegression', () => {
     expect(buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res).apa)
       .toBe('The model explained R²=.75 of the variance, F(5,34)=20.42, p < .001; predictor pre_score gave B=0.61, p < .001.')
   })
+  it('values carries R² and a synthesized vifMax (the largest VIF across all reported terms) (U8-T3)', () => {
+    const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res)
+    expect(c.values).toEqual({ r2: '.75', vifMax: '1.41' })
+  })
+  it('values.vifMax is undefined (not NaN/0) when every term VIF is null (k = 1)', () => {
+    const one = { ...res, terms: res.terms.slice(0, 2).map((t) => ({ ...t, vif: null })) }
+    const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, one)
+    expect(c.values!.vifMax).toBeUndefined()
+  })
 })

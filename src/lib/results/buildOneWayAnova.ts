@@ -31,5 +31,7 @@ export function buildOneWayAnova(spec: TestSpec, r: OneWayAnovaResult): CardCont
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // U8-T3: keyed to match the 'one-way-anova' EXPLAINERS entries (f, eta2) in registry/explainers.ts.
+    values: { df1: fdf(r.dfB), df2: fdf(r.dfW), f: f(r.f), eta2: f01(r.eta2), eta2lo: f01(r.eta2Low), eta2hi: f01(r.eta2High) },
   }
 }

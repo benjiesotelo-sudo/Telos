@@ -96,4 +96,7 @@ describe('buildOneWayAnova (pure, no engine)', () => {
   it('nExcluded is 0', () => {
     expect(c.nExcluded).toBe(0)
   })
+  it('values carries the numbers the term explainers reference (U8-T3)', () => {
+    expect(c.values).toEqual({ df1: '2', df2: '57', f: '2.81', eta2: '.09', eta2lo: '.00', eta2hi: '1.00' })
+  })
 })

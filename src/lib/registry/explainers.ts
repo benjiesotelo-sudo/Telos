@@ -48,6 +48,8 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
     { key: 'cfi', term: 'CFI', meaning: 'How much better the model fits than a baseline with no relationships at all (≥ .95 is a common, non-binding guideline).',
       interpret: (v) => `Here, CFI = ${v.cfi}.` },
     { key: 'rmsea', term: 'RMSEA', meaning: 'The average model misfit per degree of freedom, penalizing complexity (≤ .06 is a common, non-binding guideline).',
-      interpret: (v) => `Here, RMSEA = ${v.rmsea} [90% CI ${v.rmseaLo}, ${v.rmseaHi}].` },
+      // Key names match runCbSem.ts's fit object convention (rmseaLower/rmseaUpper), not a shortened
+      // rmseaLo/rmseaHi (T1-review MUST — renamed here so the builder needs no translation layer).
+      interpret: (v) => `Here, RMSEA = ${v.rmsea} [90% CI ${v.rmseaLower}, ${v.rmseaUpper}].` },
   ],
 }

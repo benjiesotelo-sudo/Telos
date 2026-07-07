@@ -53,5 +53,9 @@ export function buildDid(spec: TestSpec, r: DidResult): CardContent {
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
+    // U8-T3: keyed to match the 'did' EXPLAINERS entry (b) in registry/explainers.ts, reusing the same
+    // `did` row the apa sentence above already found. Empty when the Treated×Post term is absent (should
+    // not happen in practice) so the whole "Understanding the numbers" section is skipped, not half-broken.
+    values: did ? { b: f(did.b), lo: f(did.ciLow), hi: f(did.ciHigh), p: fpApa(did.p) } : {},
   }
 }

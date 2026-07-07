@@ -90,4 +90,8 @@ describe('buildDid', () => {
     expect(c.apa).toContain('(classical SE)')
     expect(c.apa).not.toContain('(clustered SE)')
   })
+  it('values carries the DiD estimate the term explainer references (U8-T3)', () => {
+    const c = buildDid(DID, mock())
+    expect(c.values).toEqual({ b: '1.53', lo: '1.29', hi: '1.76', p: '< .001' })
+  })
 })

@@ -317,6 +317,17 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     r.moderation && figs[1] ? { caption: figs[1].caption, type: figs[1].type, file: figs[1].file, png: r.figModSlopesPng ?? new Uint8Array(0) } : undefined,
   ].filter((x): x is NonNullable<typeof x> => x != null)
 
+  // U8-T3: keyed to match the 'cb-sem' EXPLAINERS entries (cfi, rmsea — rmseaLower/rmseaUpper convention,
+  // T1-review MUST) in registry/explainers.ts. Empty (not partially-undefined) when fit is suppressed for
+  // saturation, mirroring the fit-indices table's own `r.fit && !saturated` gate above — a saturated
+  // model's fit indices are "not informative", so no explainer line should quote them either.
+  const values: CardContent['values'] = r.fit && !saturated
+    ? {
+        cfi: f01(r.fit.cfi), tli: f01(r.fit.tli), rmsea: f01(r.fit.rmsea),
+        rmseaLower: f01(r.fit.rmseaLower), rmseaUpper: f01(r.fit.rmseaUpper), srmr: f01(r.fit.srmr),
+      }
+    : {}
+
   return {
     tables,
     note,
@@ -325,5 +336,6 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     howToRead: spec.howToRead,
     apa: spec.apaTemplate,
     nExcluded: 0,
+    values,
   }
 }
