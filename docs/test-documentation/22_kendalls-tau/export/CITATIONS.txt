@@ -25,6 +25,8 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
     Wickham H (2016). ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York. https://CRAN.R-project.org/package=ggplot2
   ivreg
     Fox J, Kleiber C, Zeileis A (2024). ivreg: Instrumental-Variables Regression by 2SLS, 2SM, or 2SMM, with Diagnostics. R package. https://CRAN.R-project.org/package=ivreg
+  lavaan
+    Rosseel Y (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36. https://CRAN.R-project.org/package=lavaan
   lmtest
     Zeileis A, Hothorn T (2002). "Diagnostic Checking in Regression Relationships." R News, 2(3), 7-10. https://CRAN.R-project.org/package=lmtest
   MASS
@@ -51,9 +53,25 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
     Kassambara A (2023). rstatix: Pipe-Friendly Framework for Basic Statistical Tests. R package. https://CRAN.R-project.org/package=rstatix
   sandwich
     Zeileis A, Köll S, Graham N (2020). "Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R." Journal of Statistical Software, 95(1), 1-36. https://CRAN.R-project.org/package=sandwich
+  seminr
+    Ray S, Danks N, Calero Valdéz A (2021). seminr: Domain-Specific Language for Building PLS Structural Equation Models. R package. https://CRAN.R-project.org/package=seminr
+  semPlot
+    Epskamp S (2019). semPlot: Path Diagrams and Visual Analysis of Various SEM Packages’ Output. R package. https://CRAN.R-project.org/package=semPlot
+  semTools
+    Jorgensen TD, Pornprasertmanit S, Schoemann AM, Rosseel Y (2022). semTools: Useful tools for structural equation modeling. R package. https://CRAN.R-project.org/package=semTools
   tseries
     Trapletti A, Hornik K (2024). tseries: Time Series Analysis and Computational Finance. R package. https://CRAN.R-project.org/package=tseries
   vars
     Pfaff B (2008). "VAR, SVAR and SVEC Models: Implementation Within R Package vars." Journal of Statistical Software, 27(4). https://CRAN.R-project.org/package=vars
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
+
+Statistical basis (why each test was recommended, and its methodological references)
+========================================================================================
+
+Kendall's tau
+  Why this test: Recommended when you measure rank association between two variables and want a coefficient robust to tied ranks.
+    Kendall, M. G. (1938). "A new measure of rank correlation." Biometrika, 30(1/2), 81-93.
+  Statistical basis:
+    Kendall's tau-b rank correlation (tie-corrected)
+      Kendall, M. G. (1938). "A new measure of rank correlation." Biometrika, 30(1/2), 81-93.

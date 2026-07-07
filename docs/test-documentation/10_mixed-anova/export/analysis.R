@@ -5,8 +5,8 @@ library(afex)
 library(emmeans)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$subject_id <- factor(d$subject_id)
-d$group <- factor(d$group)
+d[["subject_id"]] <- factor(d[["subject_id"]])
+d[["group"]] <- factor(d[["group"]])
 
 # === 01 · Mixed ANOVA ===
 conds <- c("score_t1", "score_t2", "score_t3")

@@ -5,7 +5,7 @@ library(plm)
 library(lmtest)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$firm <- factor(d$firm)
+d[["firm"]] <- factor(d[["firm"]])
 
 # === 01 · Hausman test ===
 pdat <- plm::pdata.frame(d, index = c("firm", "year"))

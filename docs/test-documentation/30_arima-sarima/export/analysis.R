@@ -4,7 +4,7 @@
 library(forecast)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$month <- factor(d$month)
+d[["month"]] <- factor(d[["month"]])
 
 # === 01 · ARIMA / SARIMA ===
 # sort by time so the series is in order

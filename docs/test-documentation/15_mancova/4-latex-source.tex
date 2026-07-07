@@ -8,12 +8,12 @@
 
 \section{MANCOVA}
 
-\begin{tabular}{llllll}
+\begin{tabular}{lllllll}
 \toprule
-Effect & Pillai / Wilks & approx F & df1 & df2 & p \\
+Effect & Pillai / Wilks & approx F & df1 & df2 & p & partial $\eta$\textsuperscript{2} [95\% CI] \\
 \midrule
-baseline & 0.55 & 33.87 & 2 & 55 & $<$.001 \\
-group & 0.37 & 6.30 & 4 & 112 & $<$.001 \\
+baseline & 0.55 & 33.87 & 2 & 55 & $<$.001 & 0.55 [0.40, 1.00] \\
+group & 0.37 & 6.30 & 4 & 112 & $<$.001 & 0.18 [0.07, 1.00] \\
 \bottomrule
 \end{tabular}
 
@@ -30,6 +30,8 @@ outcome2 & 7.47 & 2 & 56 & .001 & 0.21 [0.06, 1.00] \\
 
 Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. Interpret the univariate follow-ups only if the multivariate p is significant, and adjust them for the number of DVs (e.g. Bonferroni) to control familywise error. Your significance threshold ($\alpha$) is 0.05.
 
-A MANCOVA gave a covariate-adjusted group effect, Pillai's V=.37, F(4,112)=6.30, p $<$ .001.
+A MANCOVA gave a covariate-adjusted group effect, Pillai's V=.37, F(4,112)=6.30, p $<$ .001, partial $\eta$\textsuperscript{2}=.18 [.07, 1.00].
+
+Statistical basis: Pillai's trace multivariate test (headline statistic, covariate-adjusted) (Pillai, K. C. S. (1955). "Some new test criteria in multivariate analysis." Annals of Mathematical Statistics, 26(1), 117-121.); Wilks' Lambda multivariate test (covariate-adjusted) (Wilks, S. S. (1932). "Certain generalized distributions in multivariate analysis." Biometrika, 24(3/4), 471-494.); Box's M test of homogeneity of covariance matrices (Box, G. E. P. (1949). "A general distribution theory for a class of likelihood criteria." Biometrika, 36(3-4), 317-346.); Multivariate effect size (partial $\eta$\textsuperscript{2} from the multivariate approx. F) (Ben-Shachar MS, Lüdecke D, Makowski D (2020). "effectsize: Estimation of Effect Size Indices and Standardized Parameters." Journal of Open Source Software, 5(56), 2815.); Estimated marginal (covariate-adjusted) means (Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package.).
 
 \end{document}

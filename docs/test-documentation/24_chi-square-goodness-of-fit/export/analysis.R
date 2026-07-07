@@ -4,7 +4,7 @@
 library(effectsize)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$method <- factor(d$method)
+d[["method"]] <- factor(d[["method"]])
 
 # === 01 · Chi-square goodness-of-fit ===
 sub <- d[!is.na(d[["method"]]) & trimws(d[["method"]]) != "", ]
@@ -15,6 +15,8 @@ w <- as.numeric(effectsize::cohens_w(tab, p = pr)$Cohens_w)
 print(g)
 print(g$stdres)
 cat("Cohen's w:", w, "\n")
+print(g$expected)
+cat("Min expected:", min(g$expected), "\n")
 k <- length(tab)
 gof_d <- data.frame(category = factor(rep(names(tab), 2), levels = names(tab)),
   kind = factor(rep(c('Observed', 'Expected'), each = k), levels = c('Observed', 'Expected')),

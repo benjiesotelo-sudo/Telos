@@ -6,7 +6,7 @@ library(ggplot2)
 library(MASS)
 library(performance)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$group <- factor(d$group)
+d[["group"]] <- factor(d[["group"]])
 
 # === 01 · Poisson / negative binomial ===
 m <- glm(complaints ~ age + group + offset(log(months_observed)), family = poisson, data = d)

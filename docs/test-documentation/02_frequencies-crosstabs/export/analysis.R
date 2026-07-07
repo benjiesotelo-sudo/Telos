@@ -4,7 +4,7 @@
 library(modelsummary)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$group <- factor(d$group)
+d[["group"]] <- factor(d[["group"]])
 
 # === 01 · Frequencies & cross-tabs ===
 sub <- d[!is.na(d[["group"]]) & trimws(d[["group"]]) != "", ]

@@ -10,7 +10,7 @@
 
 \begin{tabular}{llll}
 \toprule
-Group & N & M & SD \\
+Group & N & Mean & Std. Dev. \\
 \midrule
 north & 20 & 32.48 & 7.47 \\
 south & 20 & 33.84 & 6.91 \\
@@ -32,5 +32,7 @@ classroom (nested in school) & 311.23 & 3 & 103.74 & 1.99 & .126 & 0.04 [0.00, 1
 Used when one factor sits inside another (e.g. classes within schools). The top factor is tested against variation among its nested units, not raw residuals --- a significant F means the top-level groups differ beyond the nested-unit variability. Your significance threshold ($\alpha$) is 0.05.
 
 A nested ANOVA for A gave F(2,3)=1.48, p = .357, $\omega$\textsuperscript{2}=.06 [.00, 1.00].
+
+Statistical basis: Nested ANOVA (upper factor tested against the nested-unit mean square) (Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver \& Boyd.); $\omega$\textsuperscript{2} effect size (Ben-Shachar MS, Lüdecke D, Makowski D (2020). "effectsize: Estimation of Effect Size Indices and Standardized Parameters." Journal of Open Source Software, 5(56), 2815.).
 
 \end{document}

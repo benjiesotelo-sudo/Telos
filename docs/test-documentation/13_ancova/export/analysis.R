@@ -6,7 +6,7 @@ library(effectsize)
 library(emmeans)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$group <- factor(d$group)
+d[["group"]] <- factor(d[["group"]])
 
 # === 01 · ANCOVA ===
 ac <- data.frame(y = d[["outcome"]], cov_1 = d[["baseline"]], fac_1 = factor(d[["group"]]))

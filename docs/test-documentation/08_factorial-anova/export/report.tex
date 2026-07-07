@@ -10,7 +10,7 @@
 
 \begin{tabular}{llll}
 \toprule
-Factor A $\times$ B & N & M & SD \\
+Factor A $\times$ B & N & Mean & Std. Dev. \\
 \midrule
 control $\times$ f & 10 & 31.14 & 8.22 \\
 drug\_a $\times$ f & 10 & 34.69 & 7.22 \\
@@ -36,5 +36,7 @@ group $\times$ gender & 250.84 & 2 & 125.42 & 2.48 & .093 & 0.08 [0.00, 1.00] \\
 Each factor's F/p is its main effect; the A$\times$B row tests whether the effect of one factor depends on the other. A significant interaction usually takes priority --- read it from the interaction plot before the main effects. A significant effect for any factor with 3+ levels tells you the levels differ somewhere, not which ones --- use the post-hoc / simple-effects (emmeans) table to find the specific pairs. Your significance threshold ($\alpha$) is 0.05.
 
 A two-way ANOVA gave A$\times$B interaction F(2,54)=2.48, p = .093, partial $\eta$\textsuperscript{2}=.08 [.00, 1.00].
+
+Statistical basis: Factorial ANOVA (main effects + interaction) (Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver \& Boyd.); Estimated marginal means for interaction / simple-effects follow-up (Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package.); $\eta$\textsuperscript{2} effect-size benchmarks (Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.).
 
 \end{document}

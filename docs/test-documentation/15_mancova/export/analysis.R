@@ -4,7 +4,7 @@
 library(emmeans)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$group <- factor(d$group)
+d[["group"]] <- factor(d[["group"]])
 
 # === 01 · MANCOVA ===
 # covariates FIRST, factor(s) LAST -> factor row matches car::Manova Type II (spike-proven)

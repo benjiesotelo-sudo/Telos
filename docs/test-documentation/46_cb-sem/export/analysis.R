@@ -8,16 +8,27 @@ library(semPlot)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · CB-SEM ===
-# ---- CB-SEM via lavaan::sem (measurement + structural + indirect) ----
+# ---- CB-SEM via lavaan::sem (measurement + structural + indirect + moderation) ----
 model_str <- "visual =~ x1 + x2 + x3\ntextual =~ x4 + x5 + x6\nspeed =~ x7 + x8 + x9\ntextual ~ p_1_2*visual\nspeed ~ p_2_3*textual + p_1_3*visual\nie_1_2_3 := p_1_2*p_2_3"
 
-# Single awaited bootstrap fit for mediation (no RNG chunking — preserves WebR≡native parity).
+# Single awaited bootstrap fit for mediation/moderation (no RNG chunking — preserves WebR≡native parity).
 gc()
 set.seed(20260620)
 fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = 5000)
-pe  <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)
+# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws — both recompute CIs off
+# fit@boot without re-running the bootstrap (design §A2; matches runCbSem.ts exactly).
+pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)
+pe_bc   <- lavaan::parameterEstimates(fit, boot.ci.type = "bca.simple", level = 0.95)
+pe <- pe_perc
 gc()
 ss <- lavaan::standardizedSolution(fit)
+
+# Row alignment by (lhs, rhs) key WITHIN an op-filtered subset, never by row position -- pe/pe_bc
+# are TWO separate parameterEstimates() calls (perc vs bca.simple); the moderation spike (docs/
+# superpowers/reviews/2026-07-06-moderation-spike.md §5.3) found position drift is not safe to
+# assume across them. Scoped to a single op (e.g. "~") so the key is unique -- keying the FULL
+# table would collide on every unlabeled row (label == "" for most non-structural parameters).
+pair_key <- function(dfr) paste(dfr$lhs, dfr$rhs, sep = "\u0001")
 
 # ---- Table 3: Measurement model (CFA) — B / SE / z / p / Std. loading ----
 cat("\n--- Table 3: Measurement model (CFA) ---\n")
@@ -41,16 +52,43 @@ if (!(as.numeric(lavaan::fitMeasures(fit, "df")) == 0)) {
   cat("\n--- Model is saturated (df = 0): fit indices not reported ---\n")
 }
 
-# ---- Table 6: Structural paths (standardized β + 95% CI + R²) ----
+# ---- Table 6: Structural paths (B / SE / z / p / std.β + dual 95% CI: percentile & bias-corrected) ----
+# Scoped to the DRAWN paths' own p_<from>_<to> labels (buildModel labels every drawn structural path
+# this way, and ONLY those) -- matches runCbSem.ts's struct_rows, which iterates the drawn path_from/
+# path_to arrays rather than filtering by bare op == "~".
+pe_reg <- pe[pe$op == "~" & grepl("^p_", pe$label), ]
+pe_bc_reg <- pe_bc[pe_bc$op == "~" & grepl("^p_", pe_bc$label), ]
+ss_reg <- ss[ss$op == "~" & grepl("^p_", ss$label), ]
+reg_key <- pair_key(pe_reg)
+rownames(pe_bc_reg) <- pair_key(pe_bc_reg); rownames(ss_reg) <- pair_key(ss_reg)
+struct_tab <- data.frame(
+  lhs = pe_reg$lhs, rhs = pe_reg$rhs, label = pe_reg$label,
+  est = pe_reg$est, se = pe_reg$se, z = pe_reg$z, pvalue = pe_reg$pvalue,
+  std = ss_reg[reg_key, "est.std"],
+  perc.lower = pe_reg$ci.lower, perc.upper = pe_reg$ci.upper,
+  bc.lower = pe_bc_reg[reg_key, "ci.lower"], bc.upper = pe_bc_reg[reg_key, "ci.upper"]
+)
 cat("\n--- Table 6: Structural paths ---\n")
-print(ss[ss$op == "~", c("lhs","rhs","est.std","se","z","pvalue","ci.lower","ci.upper")])
+print(struct_tab)
 cat("\n--- R-square (endogenous) ---\n")
 print(round(lavInspect(fit, "rsquare"), 3))
 
-# ---- Table 7: Indirect effects (bootstrap percentile 95% CI) ----
+# ---- Table 7: Indirect effects (bootstrap percentile + bias-corrected 95% CI) ----
+# := defs have no free-parameter label -- their lhs (e.g. "ie_1_2_3") is itself the unique key.
+pe_def <- pe[pe$op == ":=" & grepl("^ie_", pe$lhs), ]
+pe_bc_def <- pe_bc[pe_bc$op == ":=" & grepl("^ie_", pe_bc$lhs), ]
+rownames(pe_bc_def) <- pe_bc_def$lhs
+indirect_tab <- data.frame(
+  lhs = pe_def$lhs, est = pe_def$est, se = pe_def$se, pvalue = pe_def$pvalue,
+  perc.lower = pe_def$ci.lower, perc.upper = pe_def$ci.upper,
+  bc.lower = pe_bc_def[pe_def$lhs, "ci.lower"], bc.upper = pe_bc_def[pe_def$lhs, "ci.upper"]
+)
 cat("\n--- Table 7: Indirect effects ---\n")
-print(pe[pe$op == ":=", c("lhs","est","se","ci.lower","ci.upper","pvalue")])
+print(indirect_tab)
 
 # ---- Figure: path diagram (reproducible stand-in for the app-drawn annotated SVG) ----
 semPlot::semPaths(fit, what = "std", layout = "tree", edge.label.cex = 0.9,
                   nodeLabels = NULL, residuals = FALSE, intercepts = FALSE)
+
+# Note: this is the closest reproducible native-R rendering of the path diagram; the app's live
+# canvas draws the same structural paths (see figure_path-diagram.png from the app export).

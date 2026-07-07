@@ -8,11 +8,11 @@
 
 \section{Instrumental variables (IV / 2SLS)}
 
-\begin{tabular}{lllll}
+\begin{tabular}{llllll}
 \toprule
-Instrument & Coef. & SE & Partial F & p \\
+Endogenous & Instrument & Coef. & SE & Partial F & p \\
 \midrule
-educ\_iv & 1.16 & 0.06 & 438.50 & $<$.001 \\
+educ & educ\_iv & 1.16 & 0.06 & 438.50 & $<$.001 \\
 \bottomrule
 \end{tabular}
 
@@ -43,6 +43,8 @@ F &  & 373.44 \\
 
 Check the first-stage F first (rule of thumb $>$ 10 = strong instruments). Then read the 2SLS B for the endogenous predictor as the causal effect, with p/CI. This causal reading rests on the instrument being valid --- relevant and affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models. Method: R ivreg / AER package; weak-instrument F (Stock \& Yogo, 2005). Your significance threshold ($\alpha$) is 0.05.
 
-The 2SLS estimate for educ was B=7.82, p $<$ .001 (first-stage F=438.50).
+The 2SLS estimate for educ was B=7.82, 95\% CI [7.26, 8.38], p $<$ .001 (first-stage F=438.50).
+
+Statistical basis: Two-stage least squares (2SLS) estimation (Fox J, Kleiber C, Zeileis A (2024). ivreg: Instrumental-Variables Regression by 2SLS, 2SM, or 2SMM, with Diagnostics. R package.); Weak-instrument first-stage F rule of thumb (Stock, J. H., Yogo, M. (2005). "Testing for Weak Instruments in Linear IV Regression." In Identification and Inference for Econometric Models (Andrews \& Stock, eds.), Cambridge University Press, 80-108.); Heteroscedasticity-robust standard errors (Zeileis A, Köll S, Graham N (2020). "Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R." Journal of Statistical Software, 95(1), 1-36.); Wu-Hausman endogeneity test (Wu, D. M. (1973). "Alternative tests of independence between stochastic regressors and disturbances." Econometrica, 41(4), 733-750.); Sargan over-identification test (Sargan, J. D. (1958). "The estimation of economic relationships using instrumental variables." Econometrica, 26(3), 393-415.).
 
 \end{document}

@@ -6,8 +6,8 @@ library(ggplot2)
 library(performance)
 library(pROC)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$passed <- factor(d$passed)
-d$group <- factor(d$group)
+d[["passed"]] <- factor(d[["passed"]])
+d[["group"]] <- factor(d[["group"]])
 
 # === 01 · Logistic regression ===
 # re-level the outcome so the chosen event becomes glm's SECOND factor level
@@ -25,10 +25,16 @@ print(performance::r2_nagelkerke(m))
 # Classification table — cutoff P(event) >= 0.5, rows = predicted level
 p <- fitted(m)
 pred <- factor(ifelse(p >= 0.5, "yes", oth[1]), levels = levels(d$passed))
-print(table(pred, d$passed))
-# ROC curve + AUC
+tab <- table(pred, d$passed)
+print(tab)
+# Accuracy/sensitivity/specificity (R1 gap-fix, worked example)
+cat("Accuracy:", sum(diag(tab)) / sum(tab), "\n")
+cat("Sensitivity:", tab["yes", "yes"] / sum(tab[, "yes"]), "\n")
+cat("Specificity:", tab[oth[1], oth[1]] / sum(tab[, oth[1]]), "\n")
+# ROC curve + AUC (+ 95% CI, R1 gap-fix — pROC::ci.auc, DeLong method, deterministic)
 roc_obj <- pROC::roc(d$passed, p, quiet = TRUE)
 auc_val <- as.numeric(pROC::auc(roc_obj))
+print(pROC::ci.auc(roc_obj))
 print(ggplot(data.frame(fpr = 1 - roc_obj$specificities, tpr = roc_obj$sensitivities), aes(fpr, tpr)) +
   geom_abline(slope = 1, intercept = 0, colour = "#9cc2ec", linetype = "dashed") +
   geom_line(colour = "#0c447c", linewidth = 0.8) +

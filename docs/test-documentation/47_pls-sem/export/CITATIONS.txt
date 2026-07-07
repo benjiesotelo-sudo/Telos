@@ -26,7 +26,7 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
   ivreg
     Fox J, Kleiber C, Zeileis A (2024). ivreg: Instrumental-Variables Regression by 2SLS, 2SM, or 2SMM, with Diagnostics. R package. https://CRAN.R-project.org/package=ivreg
   lavaan
-    lavaan. https://CRAN.R-project.org/package=lavaan
+    Rosseel Y (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36. https://CRAN.R-project.org/package=lavaan
   lmtest
     Zeileis A, Hothorn T (2002). "Diagnostic Checking in Regression Relationships." R News, 2(3), 7-10. https://CRAN.R-project.org/package=lmtest
   MASS
@@ -54,14 +54,34 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
   sandwich
     Zeileis A, Köll S, Graham N (2020). "Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R." Journal of Statistical Software, 95(1), 1-36. https://CRAN.R-project.org/package=sandwich
   seminr
-    seminr. https://CRAN.R-project.org/package=seminr
+    Ray S, Danks N, Calero Valdéz A (2021). seminr: Domain-Specific Language for Building PLS Structural Equation Models. R package. https://CRAN.R-project.org/package=seminr
   semPlot
-    semPlot. https://CRAN.R-project.org/package=semPlot
+    Epskamp S (2019). semPlot: Path Diagrams and Visual Analysis of Various SEM Packages’ Output. R package. https://CRAN.R-project.org/package=semPlot
   semTools
-    semTools. https://CRAN.R-project.org/package=semTools
+    Jorgensen TD, Pornprasertmanit S, Schoemann AM, Rosseel Y (2022). semTools: Useful tools for structural equation modeling. R package. https://CRAN.R-project.org/package=semTools
   tseries
     Trapletti A, Hornik K (2024). tseries: Time Series Analysis and Computational Finance. R package. https://CRAN.R-project.org/package=tseries
   vars
     Pfaff B (2008). "VAR, SVAR and SVEC Models: Implementation Within R Package vars." Journal of Statistical Software, 27(4). https://CRAN.R-project.org/package=vars
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
+
+Statistical basis (why each test was recommended, and its methodological references)
+========================================================================================
+
+PLS-SEM
+  Why this test: Recommended when you test a variance-based structural model among latent constructs, especially with smaller samples or formative constructs.
+    Hair, J. F., Risher, J. J., Sarstedt, M., Ringle, C. M. (2019). "When to use and how to report the results of PLS-SEM." European Business Review, 31(1), 2-24. https://doi.org/10.1108/EBR-11-2018-0203
+  Statistical basis:
+    PLS-SEM estimation (seminr)
+      Ray S, Danks N, Calero Valdéz A (2021). seminr: Domain-Specific Language for Building PLS Structural Equation Models. R package. https://CRAN.R-project.org/package=seminr
+    Discriminant validity via HTMT < .85/.90
+      Henseler, J., Ringle, C. M., Sarstedt, M. (2015). "A new criterion for assessing discriminant validity in variance-based structural equation modeling." Journal of the Academy of Marketing Science, 43(1), 115-135. https://doi.org/10.1007/s11747-014-0403-8
+    f² effect-size benchmarks (.02/.15/.35)
+      Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.
+    PLS-SEM reporting standard (no global fit indices; judge by reliability/validity then R²/Q²/f²)
+      Hair, J. F., Risher, J. J., Sarstedt, M., Ringle, C. M. (2019). "When to use and how to report the results of PLS-SEM." European Business Review, 31(1), 2-24. https://doi.org/10.1108/EBR-11-2018-0203
+    Two-stage latent moderation via an interaction construct
+      Henseler, J., Chin, W. W. (2010). "A comparison of approaches for the analysis of interaction effects between latent variables using partial least squares path modeling." Structural Equation Modeling, 17(1), 82-109.
+    Simple slopes at -1SD/mean/+1SD
+      Aiken, L. S., West, S. G. (1991). Multiple Regression: Testing and Interpreting Interactions. Sage.

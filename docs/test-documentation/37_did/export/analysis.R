@@ -5,7 +5,7 @@ library(plm)
 library(lmtest)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$firm <- factor(d$firm)
+d[["firm"]] <- factor(d[["firm"]])
 
 # === 01 · Difference-in-differences (DiD) ===
 # code treated/post to 0/1 by the positive level (avoids the pre<post sign flip)
@@ -17,6 +17,8 @@ V <- plm::vcovHC(fit, method = 'arellano', type = 'HC1', cluster = 'group')
 print(lmtest::coeftest(fit, vcov. = V))
 print(lmtest::coefci(fit, vcov. = V, level = 0.95))
 print(summary(fit))
+# Raw 2x2 group-period means (R1 gap-fix) - the parallel-trends figure only shows this visually
+print(aggregate(roa ~ tr + po, data = d, FUN = mean))
 # Figure — parallel-trends plot (group means over time, treatment onset marked)
 # mirror did.ts: aggregate over LISTWISE-complete rows; rank a non-numeric time axis to integer order
 keep <- is.finite(suppressWarnings(as.numeric(d$roa))) &

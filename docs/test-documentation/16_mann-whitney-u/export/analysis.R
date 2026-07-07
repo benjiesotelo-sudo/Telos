@@ -5,7 +5,7 @@ library(coin)
 library(effectsize)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$group <- factor(d$group)
+d[["group"]] <- factor(d[["group"]])
 
 # === 01 · Mann-Whitney U ===
 df <- data.frame(score = d[["score"]], g = factor(d[["group"]]))

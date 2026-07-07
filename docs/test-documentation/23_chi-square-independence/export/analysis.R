@@ -3,8 +3,8 @@
 # install.packages(c("ggplot2"))
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$method <- factor(d$method)
-d$passed <- factor(d$passed)
+d[["method"]] <- factor(d[["method"]])
+d[["passed"]] <- factor(d[["passed"]])
 
 # === 01 · Chi-square independence ===
 sub <- d[!is.na(d[["method"]]) & trimws(d[["method"]]) != "" & !is.na(d[["passed"]]) & trimws(d[["passed"]]) != "", ]

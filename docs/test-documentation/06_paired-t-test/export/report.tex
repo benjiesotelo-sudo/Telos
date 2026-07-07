@@ -17,11 +17,11 @@ post & 6 & 82.33 & 3.78 \\
 \bottomrule
 \end{tabular}
 
-\begin{tabular}{lllllll}
+\begin{tabular}{llllllll}
 \toprule
-Pair & t & df & p & Mdiff & 95\% CI & d [95\% CI]z \\
+Pair & t & df & p & Mdiff & 95\% CI & d [95\% CI]z & r (paired) \\
 \midrule
-pre $-$ post & $-$10.39 & 5 & $<$.001 & $-$12.00 & [$-$14.97, $-$9.03] & $-$4.24 [$-$6.90, $-$1.58] \\
+pre $-$ post & $-$10.39 & 5 & $<$.001 & $-$12.00 & [$-$14.97, $-$9.03] & $-$4.24 [$-$6.90, $-$1.58] & 0.68 \\
 \bottomrule
 \end{tabular}
 
@@ -30,5 +30,7 @@ pre $-$ post & $-$10.39 & 5 & $<$.001 & $-$12.00 & [$-$14.97, $-$9.03] & $-$4.24
 Tests whether the average change between two related measurements (e.g. before vs. after) differs from zero. A p below alpha means a significant change; the mean difference, CI and dz describe its size (their sign depends on the subtraction order, A$-$B). A p at or above alpha does not prove there was no change --- only that none was detected. Your significance threshold ($\alpha$) is 0.05.
 
 A paired-samples t-test gave M=$-$12.0, t(5)=$-$10.39, p $<$ .001, dz=$-$4.24 [$-$6.90, $-$1.58].
+
+Statistical basis: Paired-samples t-test (Student (1908). "The probable error of a mean." Biometrika, 6(1), 1-25.); Cohen's dz effect size (Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.); Paired correlation (Pearson r) between the two conditions (Pearson, K. (1895). "Note on regression and inheritance in the case of two parents." Proceedings of the Royal Society of London, 58, 240-242.).
 
 \end{document}

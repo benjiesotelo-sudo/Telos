@@ -29,6 +29,9 @@ Num.Obs. & 96 \\
 N entities & 12 \\
 R\textsuperscript{2} & 0.98 \\
 R\textsuperscript{2} Adj. & 0.98 \\
+Within R\textsuperscript{2} & .91 \\
+Between R\textsuperscript{2} & 1.00 \\
+Overall R\textsuperscript{2} & .98 \\
 \bottomrule
 \end{tabular}
 
@@ -37,5 +40,7 @@ R\textsuperscript{2} Adj. & 0.98 \\
 Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each B/p as usual --- but only trust this model if the Hausman test favours random over fixed effects. Method: R plm package (Croissant \& Millo, 2008). Your significance threshold ($\alpha$) is 0.05.
 
 In a random-effects model, predictor leverage gave B=$-$4.05, p = .002.
+
+Statistical basis: Random-effects (GLS) panel estimator (Croissant, Y., Millo, G. (2008). "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2), 1-43.).
 
 \end{document}

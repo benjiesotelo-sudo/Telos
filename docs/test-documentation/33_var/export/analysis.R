@@ -3,7 +3,7 @@
 # install.packages(c("vars"))
 library(vars)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$month <- factor(d$month)
+d[["month"]] <- factor(d[["month"]])
 
 # === 01 · VAR ===
 dd_ord <- d[order(d$month), ]

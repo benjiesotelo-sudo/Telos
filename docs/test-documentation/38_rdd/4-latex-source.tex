@@ -19,6 +19,8 @@ RD treatment effect & 9.90 \\
 Bandwidth & 8.66 \\
 N (left) & 18 \\
 N (right) & 16 \\
+\multicolumn{2}{l}{Bandwidth sensitivity --- half h (4.33): estimate = 9.86, 95\% CI [8.74, 10.64]} \\
+\multicolumn{2}{l}{Bandwidth sensitivity --- double h (17.32): estimate = 9.94, 95\% CI [9.55, 10.24]} \\
 \bottomrule
 \end{tabular}
 
@@ -27,5 +29,7 @@ N (right) & 16 \\
 Estimates the jump in the outcome right at the cutoff --- the estimate is the treatment effect for cases near the threshold. p/CI assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold --- the footer reports the McCrary density test (a small p flags sorting/manipulation at the cutoff); also run covariate-balance / placebo checks. Method: R rdrobust package (Calonico, Cattaneo \& Titiunik, 2014, 2015).
 
 At the cutoff, the treatment effect was 9.90, 95\% CI [9.48, 10.28], p $<$ .001.
+
+Statistical basis: Robust bias-corrected local-polynomial regression discontinuity inference (Calonico, S., Cattaneo, M. D., Titiunik, R. (2014). "Robust Nonparametric Confidence Intervals for Regression-Discontinuity Designs." Econometrica, 82(6), 2295-2326.); Implementation (rdrobust package) (Calonico S, Cattaneo MD, Farrell MH, Titiunik R (2017). "rdrobust: Software for Regression-Discontinuity Designs." The Stata Journal, 17(2), 372-404.).
 
 \end{document}

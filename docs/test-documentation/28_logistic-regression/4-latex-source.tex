@@ -27,6 +27,10 @@ Omnibus $\chi$\textsuperscript{2} & 9.54 (p .023) &  \\
 Log.Lik. & $-$22.95 &  \\
 AIC & 53.91 &  \\
 BIC & 60.66 &  \\
+Accuracy & 65.0\% &  \\
+Sensitivity & 65.0\% &  \\
+Specificity & 65.0\% &  \\
+AUC [95\% CI] & .76 [.61, .91] &  \\
 \bottomrule
 \end{tabular}
 
@@ -41,8 +45,10 @@ yes & 7 & 13 & 65.0\% \\
 
 \includegraphics{figures/01_logistic-regression/figure_roc.png}
 
-Each predictor's odds ratio tells how the odds of the outcome change per unit ($>$1 increases, $<$1 decreases); a term carries weight when its OR confidence interval excludes 1, and the inline omnibus $\chi$\textsuperscript{2} (with its p) tests the model as a whole. Model fit and the ROC/AUC show how well it classifies overall. Your significance threshold ($\alpha$) is 0.05.
+Each predictor's odds ratio tells how the odds of the outcome change per unit ($>$1 increases, $<$1 decreases); a term carries weight when its OR confidence interval excludes 1, and the inline omnibus $\chi$\textsuperscript{2} (with its p) tests the model as a whole. Model fit and the ROC/AUC show how well it classifies overall, alongside accuracy (overall \% correct), sensitivity (\% of actual events correctly predicted), and specificity (\% of actual non-events correctly predicted). Your significance threshold ($\alpha$) is 0.05.
 
 Predictor pre\_score was associated with the outcome, OR=1.08, 95\% CI [1.01, 1.18], p = .035 (AUC=.76).
+
+Statistical basis: Logistic regression coefficients (log-odds / odds ratios) (R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna.); Nagelkerke pseudo-R\textsuperscript{2} (Lüdecke D, Ben-Shachar MS, Patil I, Waggoner P, Makowski D (2021). "performance: An R Package for Assessment, Comparison and Testing of Statistical Models." Journal of Open Source Software, 6(60), 3139.); ROC curve / AUC (Robin X, Turck N, Hainard A, et al. (2011). "pROC: an open-source package for R and S+ to analyze and compare ROC curves." BMC Bioinformatics, 12, 77.).
 
 \end{document}

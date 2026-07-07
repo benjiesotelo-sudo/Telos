@@ -66,6 +66,6 @@ R packages (each on CRAN under its own open-source licence — see the package p
 Fonts (SIL Open Font License, Version 1.1 — http://scripts.sil.org/OFL)
   Crimson Pro — Copyright 2018 The Crimson Pro Project Authors
   https://github.com/Fonthausen/CrimsonPro
-  Atkinson Hyperlegible — Copyright 2020 Braille Institute of America, Inc.
-  https://www.brailleinstitute.org/freefont
+  Archivo — Copyright 2020 The Archivo Project Authors
+  https://github.com/Omnibus-Type/Archivo
   (Full OFL text ships alongside each font in this distribution.)

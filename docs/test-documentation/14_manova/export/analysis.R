@@ -3,7 +3,7 @@
 # install.packages(c("ggplot2"))
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$group <- factor(d$group)
+d[["group"]] <- factor(d[["group"]])
 
 # === 01 · MANOVA ===
 m <- manova(cbind(d[["outcome"]], d[["outcome2"]]) ~ factor(d[["group"]]))

@@ -4,7 +4,7 @@
 library(modelsummary)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$gender <- factor(d$gender)
+d[["gender"]] <- factor(d[["gender"]])
 
 # === 01 · Summary statistics ===
 summ <- data.frame("score" = d[["score"]], "anxiety" = d[["anxiety"]], grp = d[["gender"]], check.names = FALSE)

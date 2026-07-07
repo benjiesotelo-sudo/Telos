@@ -25,6 +25,8 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
     Wickham H (2016). ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York. https://CRAN.R-project.org/package=ggplot2
   ivreg
     Fox J, Kleiber C, Zeileis A (2024). ivreg: Instrumental-Variables Regression by 2SLS, 2SM, or 2SMM, with Diagnostics. R package. https://CRAN.R-project.org/package=ivreg
+  lavaan
+    Rosseel Y (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36. https://CRAN.R-project.org/package=lavaan
   lmtest
     Zeileis A, Hothorn T (2002). "Diagnostic Checking in Regression Relationships." R News, 2(3), 7-10. https://CRAN.R-project.org/package=lmtest
   MASS
@@ -51,9 +53,34 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
     Kassambara A (2023). rstatix: Pipe-Friendly Framework for Basic Statistical Tests. R package. https://CRAN.R-project.org/package=rstatix
   sandwich
     Zeileis A, Köll S, Graham N (2020). "Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R." Journal of Statistical Software, 95(1), 1-36. https://CRAN.R-project.org/package=sandwich
+  seminr
+    Ray S, Danks N, Calero Valdéz A (2021). seminr: Domain-Specific Language for Building PLS Structural Equation Models. R package. https://CRAN.R-project.org/package=seminr
+  semPlot
+    Epskamp S (2019). semPlot: Path Diagrams and Visual Analysis of Various SEM Packages’ Output. R package. https://CRAN.R-project.org/package=semPlot
+  semTools
+    Jorgensen TD, Pornprasertmanit S, Schoemann AM, Rosseel Y (2022). semTools: Useful tools for structural equation modeling. R package. https://CRAN.R-project.org/package=semTools
   tseries
     Trapletti A, Hornik K (2024). tseries: Time Series Analysis and Computational Finance. R package. https://CRAN.R-project.org/package=tseries
   vars
     Pfaff B (2008). "VAR, SVAR and SVEC Models: Implementation Within R Package vars." Journal of Statistical Software, 27(4). https://CRAN.R-project.org/package=vars
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
+
+Statistical basis (why each test was recommended, and its methodological references)
+========================================================================================
+
+MANCOVA
+  Why this test: Recommended when you compare groups on two or more numeric outcomes while controlling for a covariate.
+    Pillai, K. C. S. (1955). "Some new test criteria in multivariate analysis." Annals of Mathematical Statistics, 26(1), 117-121.
+    Wilks, S. S. (1932). "Certain generalized distributions in multivariate analysis." Biometrika, 24(3/4), 471-494.
+  Statistical basis:
+    Pillai's trace multivariate test (headline statistic, covariate-adjusted)
+      Pillai, K. C. S. (1955). "Some new test criteria in multivariate analysis." Annals of Mathematical Statistics, 26(1), 117-121.
+    Wilks' Lambda multivariate test (covariate-adjusted)
+      Wilks, S. S. (1932). "Certain generalized distributions in multivariate analysis." Biometrika, 24(3/4), 471-494.
+    Box's M test of homogeneity of covariance matrices
+      Box, G. E. P. (1949). "A general distribution theory for a class of likelihood criteria." Biometrika, 36(3-4), 317-346. https://doi.org/10.2307/2332671
+    Multivariate effect size (partial η² from the multivariate approx. F)
+      Ben-Shachar MS, Lüdecke D, Makowski D (2020). "effectsize: Estimation of Effect Size Indices and Standardized Parameters." Journal of Open Source Software, 5(56), 2815. https://CRAN.R-project.org/package=effectsize
+    Estimated marginal (covariate-adjusted) means
+      Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package. https://CRAN.R-project.org/package=emmeans

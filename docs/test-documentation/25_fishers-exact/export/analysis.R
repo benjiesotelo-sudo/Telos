@@ -3,8 +3,8 @@
 # install.packages(c("ggplot2"))
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$passed <- factor(d$passed)
-d$gender <- factor(d$gender)
+d[["passed"]] <- factor(d[["passed"]])
+d[["gender"]] <- factor(d[["gender"]])
 
 # === 01 · Fisher's exact ===
 sub <- d[!is.na(d[["passed"]]) & trimws(d[["passed"]]) != "" & !is.na(d[["gender"]]) & trimws(d[["gender"]]) != "", ]

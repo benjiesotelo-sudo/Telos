@@ -4,7 +4,7 @@
 library(rstatix)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d$group <- factor(d$group)
+d[["group"]] <- factor(d[["group"]])
 
 # === 01 · Kruskal-Wallis ===
 kw <- kruskal.test(d[["outcome"]] ~ factor(d[["group"]]))

@@ -10,7 +10,7 @@
 
 \begin{tabular}{llll}
 \toprule
-Group & N & M & SD \\
+Group & N & Mean & Std. Dev. \\
 \midrule
 control & 20 & 32.48 & 7.47 \\
 drug\_a & 20 & 33.84 & 6.91 \\
@@ -18,11 +18,11 @@ drug\_b & 20 & 37.81 & 7.79 \\
 \bottomrule
 \end{tabular}
 
-\begin{tabular}{llll}
+\begin{tabular}{lllll}
 \toprule
-F & df1 & df2 & p \\
+F & df1 & df2 & p & $\omega$\textsuperscript{2} [95\% CI] \\
 \midrule
-2.58 & 2 & 37.90 & .089 \\
+2.58 & 2 & 37.90 & .089 & 0.07 [0.00, 1.00] \\
 \bottomrule
 \end{tabular}
 
@@ -40,6 +40,8 @@ drug\_a - drug\_b & $-$3.96 & .218 & [$-$9.65, 1.72] \\
 
 A one-way ANOVA that relaxes the equal-variance assumption but still assumes roughly normal data within each group. A significant F means at least one group mean differs from the others; the Games-Howell post-hoc (also variance-robust) then shows which specific pairs differ. Your significance threshold ($\alpha$) is 0.05.
 
-Welch's ANOVA gave F(2,37.90)=2.58, p = .089.
+Welch's ANOVA gave F(2,37.90)=2.58, p = .089, $\omega$\textsuperscript{2}=.07 [.00, 1.00].
+
+Statistical basis: Welch's ANOVA (heteroscedasticity-robust F, fractional df) (Welch, B. L. (1951). "On the comparison of several mean values: an alternative approach." Biometrika, 38(3-4), 330-336.); Games-Howell post-hoc comparisons (also variance-robust) (Kassambara A (2023). rstatix: Pipe-Friendly Framework for Basic Statistical Tests. R package.); $\omega$\textsuperscript{2} effect size (F-to-omega\textsuperscript{2} conversion, no fitted aov model needed) (Ben-Shachar MS, Lüdecke D, Makowski D (2020). "effectsize: Estimation of Effect Size Indices and Standardized Parameters." Journal of Open Source Software, 5(56), 2815.).
 
 \end{document}
