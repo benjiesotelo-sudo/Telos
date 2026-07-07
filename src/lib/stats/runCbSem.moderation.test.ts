@@ -133,6 +133,14 @@ describe('runCbSem — moderation row/slope count invariant (pure, mocked engine
     const result = await runCbSem(engine, data, setup)
     expect(result.moderation!.rows).toHaveLength(1)
     expect(result.moderation!.slopes).toHaveLength(3)
+    // ModerationRow carries the BARE path label + moderatorName as separate fields; the BUILDER
+    // composes "<pathLabel> × <moderatorName>" (buildCbSem.ts, pinned by buildCbSem.test.ts).
+    // Regression (caught on the first tourism-esg doc run): runCbSem pre-composed the moderator
+    // into pathLabel, so Table 5 rendered "norm → intent × attitude × attitude".
+    expect(result.moderation!.rows[0].pathLabel).toBe('SN → TI')
+    expect(result.moderation!.rows[0].moderatorName).toBe('TA')
+    // SlopeRow.label IS the composed form (its only label field; the figure facets on it).
+    expect(result.moderation!.slopes[0].label).toBe('SN → TI × TA')
     // Moderation forces se="bootstrap" -> the result must say so (Table 5 CI-honesty fix round).
     expect(result.bootstrapped).toBe(true)
   })

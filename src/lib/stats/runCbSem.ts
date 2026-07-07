@@ -24,8 +24,9 @@ export interface ModerationRow {
  *  parameter fit inside the SAME bootstrap run as the interaction term (design §A7 / U2-T5).
  *  `modId`/`label` disambiguate rows across MULTIPLE moderation edges (fix round, U5-T2 regression):
  *  with 2+ moderations, `moderation.slopes` holds 3 rows PER edge, all sharing the same 3 `level`
- *  values -- modId groups them back to their edge and label ("<pathLabel> × <moderatorName>", same
- *  convention as ModerationRow.pathLabel above) is what the figure facets on / the table shows when
+ *  values -- modId groups them back to their edge and label ("<pathLabel> × <moderatorName>",
+ *  COMPOSED here because it is the slope row's only label field - unlike ModerationRow, which keeps
+ *  pathLabel BARE and lets the builder compose) is what the figure facets on / the table shows when
  *  disambiguation is needed. Single-moderation callers ignore both fields (still just 3 rows). */
 export interface SlopeRow {
   level: '-1SD' | 'mean' | '+1SD'
@@ -622,7 +623,9 @@ export async function runCbSem(
           const def = modDefById.get(row.id)!
           return {
             moderatorName: def.moderatorName,
-            pathLabel: `${def.pathLabel} × ${def.moderatorName}`,
+            // BARE path label ("SN → TI") - the builder composes "<pathLabel> × <moderatorName>"
+            // (buildCbSem.ts Table 5); pre-composing here doubled the moderator in the rendered row.
+            pathLabel: def.pathLabel,
             b: row.b, se: row.se, z: row.z, p: row.p, stdBeta: row.stdBeta,
             ciPercLower: row.ciPercLower, ciPercUpper: row.ciPercUpper,
             ciBcLower: row.ciBcLower, ciBcUpper: row.ciBcUpper,
