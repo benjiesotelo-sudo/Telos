@@ -4,6 +4,19 @@ import type { Construct, StructuralPath, TestSetup } from '../../state/session'
 import type { RunProgress } from '../results/builders'
 import { MAKECLUSTER_SHIM } from '../webr/parallelShim'
 import { BC_CI_R } from './plsBcCi'
+import { renderSimpleSlopesFigure } from './simpleSlopesPlot'
+
+/** Simple slope at one of the three Aiken & West (1991) probing levels (U6-T5), derived from seminr's
+ *  ESTIMATED interaction coefficient rather than a lavaan `:=` defined parameter (PLS has no latent-
+ *  variance label to scale by - the moderator SD is the OBSERVED composite score's SD, per Aiken & West
+ *  applied to the composite/summed-indicator metric, the standard PLS treatment; see plsSem.ts's R block).
+ *  `modId`/`label` disambiguate rows across multiple moderation edges, mirroring CbSemResult.SlopeRow. */
+export interface PlsSlopeRow {
+  level: '-1SD' | 'mean' | '+1SD'
+  modId: number; label: string
+  b: number; se: number; t: number; p: number
+  ciLower: number; ciUpper: number
+}
 
 export interface PlsSemResult {
   outer: Array<Record<string, unknown>>
@@ -18,10 +31,22 @@ export interface PlsSemResult {
   structural: Array<Record<string, unknown>>
   quality: Array<Record<string, unknown>>
   indirect?: Array<Record<string, unknown>>
+  /** Conditional effects at -1SD/mean/+1SD per moderation edge (U6-T5); absent when no moderation ran.
+   *  Feeds BOTH the conditional-effects table (buildPlsSem.ts) and figModSlopesPng below - same numbers. */
+  slopes?: PlsSlopeRow[]
+  /** Whiskered simple-slopes figure (U6-T5), app-drawn via the SAME shared `simpleSlopesPlot.ts` module
+   *  CB-SEM uses, from the SAME `slopes[]` array that feeds the conditional-effects table. */
+  figModSlopesPng?: Uint8Array
   estimates: {
     paths: Array<{ from: number; to: number; beta: number }>
     loadings: Record<string, number>
     r2: Record<number, number>
+    /** Canvas moderation-arrow overlay (U6-T5, mirrors CbSemResult.estimates.moderation): one beta per
+     *  moderation edge, keyed back to the moderatorId/pathIndex the canvas drew it with, so SemCanvas can
+     *  annotate the dashed arrow post-run - the render path already reads `estimates.moderation`
+     *  structurally (SemCanvas.tsx casts `run.result` to `{ estimates?: CbSemResult['estimates'] }`, which
+     *  is a runtime-only cast; this field's identical shape is all that's needed for it to pick PLS up too). */
+    moderation?: Array<{ moderatorId: number; pathIndex: number; beta: number }>
   }
   /** Bootstrap resamples actually used (added client-side, mirroring CbSemResult.nboot — Andrews &
    *  Buchinsky (2000) BC-CI-count disclosure needs this in buildPlsSem, which never sees TestSetup).
@@ -243,6 +268,46 @@ for (a in construct_names) for (z in construct_names) {
   }
 }
 
+# ---- Simple slopes (U6-T5): -1SD/mean/+1SD conditional effects on each moderation edge, from the SAME
+# bootstrap draws that produced the interaction path's own CI (bo$boot_paths, the same [from, to, boot_index]
+# 3D array BC_CI_R reads above). mod_sd is the moderator's OBSERVED composite-score SD (pls$construct_scores) -
+# PLS-PM's estimation algorithm scales every composite to unit variance by construction, so mod_sd is always
+# ~1, but it is computed generically per Aiken & West (1991) applied to the composite/summed-indicator
+# metric (the standard PLS treatment, since there is no latent-variance label to scale by as CB-SEM's lavaan
+# ":=" form does). The level is fixed at the ORIGINAL mod_sd for every bootstrap draw (not re-derived per
+# draw) - draws differ only in b_main/b_int, so the CI is a plain percentile interval (stats::quantile,
+# matching seminr's OWN percentile-CI convention in conf_int(), confirmed via the installed package source)
+# on the per-draw slope = b_main_draw + b_int_draw * level.
+if (!exists('mod_ids', inherits = FALSE)) {
+  mod_ids <- integer(0); mod_iv_name <- character(0); mod_name <- character(0)
+  mod_int_name <- character(0); mod_target_name <- character(0)
+}
+slopes <- list()
+if (length(mod_ids) > 0) {
+  for (mi in seq_along(mod_ids)) {
+    mod_sd <- stats::sd(pls$construct_scores[, mod_name[mi]])
+    key_main <- paste0(mod_iv_name[mi], "  ->  ", mod_target_name[mi])
+    key_int  <- paste0(mod_int_name[mi], "  ->  ", mod_target_name[mi])
+    b_main <- as.numeric(bp[key_main, "Original Est."])
+    b_int  <- as.numeric(bp[key_int, "Original Est."])
+    main_draws <- bo$boot_paths[mod_iv_name[mi], mod_target_name[mi], ]
+    int_draws  <- bo$boot_paths[mod_int_name[mi], mod_target_name[mi], ]
+    levels <- c("-1SD" = -mod_sd, "mean" = 0, "+1SD" = mod_sd)
+    for (lvl_name in names(levels)) {
+      lvl <- levels[[lvl_name]]
+      draws <- main_draws + int_draws * lvl
+      se <- stats::sd(draws)
+      qs <- stats::quantile(draws, probs = c(0.025, 0.975))
+      slopes[[length(slopes) + 1]] <- list(
+        modId = mod_ids[mi], level = lvl_name,
+        b = b_main + b_int * lvl, se = se, t = (b_main + b_int * lvl) / se,
+        p = 2 * min(mean(draws <= 0), mean(draws > 0)),
+        ciLower = as.numeric(qs[1]), ciUpper = as.numeric(qs[2])
+      )
+    }
+  }
+}
+
 list(
   outer = outer,
   reliability = reliability,
@@ -250,6 +315,7 @@ list(
   structural = structural,
   quality = quality,
   indirect = indirect,
+  slopes = slopes,
   estimates = list(
     paths = estimate_paths,
     loadings = loadings_named,
@@ -335,8 +401,8 @@ export async function runPlsSem(
       ...modInteractions.map((m) => structuralLine(m.name, m.targetName)),
     ],
     // Interaction "constructs" have no real numeric construct id; `-m.id` is a harmless, collision-free
-    // sentinel for estimates.paths' `from` (unused for PLS today - SemCanvas overlay reads CbSemResult's
-    // estimates, not PlsSemResult's), while `to` stays the real target construct id.
+    // sentinel for estimates.paths' `from` - used both to keep the sentinel unique across edges AND (U6-T5)
+    // to pick the interaction path's own beta back out of estimate_paths for the canvas overlay below.
     path_from: [...paths.map((p) => p.from), ...moderations.map((m) => -m.id)],
     path_to: [...paths.map((p) => p.to), ...modInteractions.map((m) => m.targetId)],
     path_from_name: [...paths.map((p) => fromName(p.from)), ...modInteractions.map((m) => m.name)],
@@ -348,9 +414,52 @@ export async function runPlsSem(
     construct_names_real: constructs.map((c) => c.name),
     // Per-construct flag (construct order) — never an empty array (webr 0.6.0 cannot convert []).
     is_formative_flags: constructs.map((c) => c.mode === 'formative'),
+    // U6-T5 simple-slopes env - OMITTED entirely on a no-moderation run (never an empty JS array; webr's
+    // env marshalling mis-detects [] as tabular row-object data, see moderationModel.ts's INDPROD_R comment
+    // for the same guard on the CB-SEM side). R defines its own empty defaults when these are absent.
+    ...(moderations.length
+      ? {
+          mod_ids: moderations.map((m) => m.id),
+          mod_iv_name: modInteractions.map((m) => m.ivName),
+          mod_name: modInteractions.map((m) => m.modName),
+          mod_int_name: modInteractions.map((m) => m.name),
+          mod_target_name: modInteractions.map((m) => m.targetName),
+        }
+      : {}),
   }
 
   const raw = await engine.runJson<PlsSemResult>(R_STATS(MAKECLUSTER_SHIM), env)
+
+  // Simple-slopes (U6-T5): TS-shape the R block's `slopes[]` with a human label ("<iv> -> <target> x
+  // <moderator>", same convention as CbSemResult.SlopeRow.label), then render the SAME shared figure
+  // CB-SEM uses (simpleSlopesPlot.ts) from those exact rows.
+  const modLabelById = new Map(
+    moderations.map((m, i) => [m.id, `${modInteractions[i].ivName} → ${modInteractions[i].targetName} × ${modInteractions[i].modName}`]),
+  )
+  const slopes = moderations.length && raw.slopes?.length
+    ? raw.slopes.map((row): PlsSlopeRow => ({
+        level: row.level, modId: row.modId, label: modLabelById.get(row.modId)!,
+        b: row.b, se: row.se, t: row.t, p: row.p, ciLower: row.ciLower, ciUpper: row.ciUpper,
+      }))
+    : undefined
+  const figModSlopesPng = await renderSimpleSlopesFigure(
+    engine,
+    (slopes ?? []).map((s) => ({ level: s.level, modId: s.modId, label: s.label, b: s.b, ciLower: s.ciLower, ciUpper: s.ciUpper })),
+  )
+
+  // Canvas moderation-arrow overlay (U6-T5, mirrors runCbSem.ts's estModeration): the interaction path's
+  // own beta, keyed back to the moderatorId/pathIndex the canvas drew it with. estimate_paths carries one
+  // entry per path_from/path_to pair in order, so the moderation edges are its LAST `moderations.length`
+  // entries - found here by the negative `-m.id` sentinel rather than by position, so this stays correct
+  // even if the R block's iteration order ever changes.
+  const betaByNegId = new Map(raw.estimates.paths.filter((p) => p.from < 0).map((p) => [p.from, p.beta]))
+  const estModeration = moderations.length
+    ? moderations.map((m) => ({ moderatorId: m.moderatorId, pathIndex: m.pathIndex, beta: betaByNegId.get(-m.id)! }))
+    : undefined
+
   // nboot is attached client-side (mirrors runCbSem.ts) — the R block itself never echoes it back.
-  return { ...raw, nboot }
+  return {
+    ...raw, nboot, slopes, figModSlopesPng,
+    estimates: { ...raw.estimates, moderation: estModeration },
+  }
 }

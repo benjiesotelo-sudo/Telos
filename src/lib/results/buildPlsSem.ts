@@ -138,12 +138,34 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
     tables.push({ spec: tableById('indirect-effects'), rows: t5rows })
   }
 
-  // Figure — annotated path diagram rasterized via captureNode in ResultsScreen.download();
-  // carry empty PNG placeholder so the figure caption renders.
-  const fig = figuresOf(spec)[0]
+  // Conditional-effects table (U6-T5): same shape/pattern as buildCbSem.ts's Table 6 (isMultiMod dynamic
+  // 'Moderation' column when >1 distinct moderation edge is present), using PLS's OWN formatting helpers
+  // (fc/f2/fpFmt/ci already defined above) rather than CB-SEM's apa.ts imports - column label is 'β' (not
+  // 'B'/'Std. β') since PLS-SEM has no separate unstandardized-B column anywhere else on this card.
+  if (r.slopes?.length) {
+    const isMultiMod = new Set(r.slopes.map((s) => s.modId)).size > 1
+    const condRows = r.slopes.map((s) => ({
+      ...(isMultiMod ? { moderation: s.label } : {}),
+      level: s.level, b: fc(s.b), se: f2(s.se), p: fpFmt(s.p), ci: ci(s.ciLower, s.ciUpper),
+    }))
+    const baseSpec = tableById('conditional-effects')
+    const condSpec = isMultiMod
+      ? { ...baseSpec, columns: [{ key: 'moderation', label: 'Moderation' }, ...baseSpec.columns] }
+      : baseSpec
+    tables.push({ spec: condSpec, rows: condRows })
+  }
+
+  // Figure 0 - annotated path diagram rasterized via captureNode in ResultsScreen.download(); carry
+  // empty PNG placeholder so the figure caption renders. Figure 1 (U6-T5, present only when moderation
+  // ran, mirrors buildCbSem.ts): the whiskered simple-slopes plot - real PNG bytes from plsSem.ts's
+  // capturePlot via the shared simpleSlopesPlot.ts module (same figure treatment as CB-SEM).
+  const figs = figuresOf(spec)
   const figures: CardContent['figures'] = [
-    { caption: fig.caption, type: fig.type, file: fig.file, png: new Uint8Array() },
-  ]
+    { caption: figs[0].caption, type: figs[0].type, file: figs[0].file, png: new Uint8Array() },
+    r.slopes?.length && figs[1]
+      ? { caption: figs[1].caption, type: figs[1].type, file: figs[1].file, png: r.figModSlopesPng ?? new Uint8Array(0) }
+      : undefined,
+  ].filter((x): x is NonNullable<typeof x> => x != null)
 
   // Dynamic note extras (R²/f² line + bootstrap-count disclosure) append to the static registry note
   // text, same append pattern as CB-SEM's PATH_ANALYSIS legacy branch (buildCbSem.ts).

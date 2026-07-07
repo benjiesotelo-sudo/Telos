@@ -249,4 +249,54 @@ describe('plsSem', () => {
     expect(q.r2).toBeCloseTo(0.681492, 4)
     expect(q.r2adj).toBeCloseTo(0.674965, 4)
   }, 600_000)
+
+  // U6-T5: simple slopes at -1SD/mean/+1SD, derived from the SAME bootstrap draws as the interaction
+  // path's own CI (bo$boot_paths), using the moderator's OBSERVED composite-score SD (Aiken & West, 1991
+  // applied to the composite/summed-indicator metric - PLS has no latent-variance label to scale by).
+  // The spike did not compute PLS simple slopes, so this arithmetic is new: reference values were derived
+  // by running the EXACT same model/seed/nboot under native R 4.6.0 (seminr installed locally) -
+  //   mod_sd = sd(pls$construct_scores[, "Expectation"]) = 1 (PLS-PM standardizes composites to unit
+  //   variance by construction); b_main (Image->Satisfaction) = 0.1807884; b_int (interaction) = -0.01634071
+  //   lo:   b=0.197129 se=0.061656 ci=[0.095869, 0.324150]
+  //   mid:  b=0.180788 se=0.052596 ci=[0.088966, 0.291639]
+  //   hi:   b=0.164448 se=0.058062 ci=[0.060079, 0.292747]
+  it('simple slopes at -1SD/mean/+1SD match the native-R reference values (Image*Expectation -> Satisfaction)', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
+    const result = await runPlsSem(engine, data, MOBI_MOD_SETUP)
+    expect(result.slopes).toHaveLength(3)
+    const lo = result.slopes!.find((s) => s.level === '-1SD')!
+    const mid = result.slopes!.find((s) => s.level === 'mean')!
+    const hi = result.slopes!.find((s) => s.level === '+1SD')!
+    expect(lo.b).toBeCloseTo(0.197129, 4)
+    expect(lo.se).toBeCloseTo(0.061656, 4)
+    expect(lo.ciLower).toBeCloseTo(0.095869, 4)
+    expect(lo.ciUpper).toBeCloseTo(0.324150, 4)
+    expect(mid.b).toBeCloseTo(0.180788, 4)
+    expect(mid.ciLower).toBeCloseTo(0.088966, 4)
+    expect(mid.ciUpper).toBeCloseTo(0.291639, 4)
+    expect(hi.b).toBeCloseTo(0.164448, 4)
+    expect(hi.ciLower).toBeCloseTo(0.060079, 4)
+    expect(hi.ciUpper).toBeCloseTo(0.292747, 4)
+    // every slope row disambiguates back to its edge with the same modId + a human label
+    expect(new Set(result.slopes!.map((s) => s.modId)).size).toBe(1)
+    expect(lo.label).toBe('Image → Satisfaction × Expectation')
+
+    // the figure is app-drawn from these SAME rows via the shared simpleSlopesPlot.ts module
+    expect(result.figModSlopesPng).toBeDefined()
+    expect(result.figModSlopesPng!.length).toBeGreaterThan(0)
+
+    // canvas moderation-arrow overlay (U6-T5): the interaction path's own beta, keyed back to the
+    // moderatorId/pathIndex the canvas drew it with - same shape as CbSemResult.estimates.moderation.
+    expect(result.estimates.moderation).toEqual([
+      { moderatorId: 2, pathIndex: 1, beta: expect.closeTo(-0.016341, 5) },
+    ])
+  }, 600_000)
+
+  it('no-moderation runs leave slopes/figModSlopesPng/estimates.moderation undefined', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
+    const result = await runPlsSem(engine, data, REFLECTIVE_SETUP)
+    expect(result.slopes).toBeUndefined()
+    expect(result.figModSlopesPng).toBeUndefined()
+    expect(result.estimates.moderation).toBeUndefined()
+  }, 600_000)
 })

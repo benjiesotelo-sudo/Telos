@@ -13,8 +13,14 @@ const SPEC = {
     { id: 'structural', title: 'Structural paths', columns: [] },
     { id: 'structural-quality', title: 'Structural model quality', columns: [] },
     { id: 'indirect-effects', title: 'Indirect effects', columns: [] },
+    { id: 'conditional-effects', title: 'Conditional effects (simple slopes)', columns: [
+      { key: 'level', label: 'Moderator level' }, { key: 'b', label: 'β' }, { key: 'se', label: 'SE' },
+      { key: 'p', label: 'p' }, { key: 'ci', label: 'boot 95% CI' } ] },
   ],
-  figures: [{ type: 'path-diagram', caption: 'Path diagram', file: 'figure_path-diagram' }],
+  figures: [
+    { type: 'path-diagram', caption: 'Path diagram', file: 'figure_path-diagram' },
+    { caption: 'Simple slopes', type: 'conditional-effects plot', file: 'simple-slopes', optional: true },
+  ],
   howToRead: 'HOWTO',
   apaTemplate: 'APA',
   tableNote: null,
@@ -147,6 +153,37 @@ describe('buildPlsSem', () => {
     // dropping indirect removes the table
     const c2 = buildPlsSem(SPEC, { ...R, indirect: [] })
     expect(c2.tables.find((t) => t.spec.id === 'indirect-effects')).toBeUndefined()
+  })
+
+  // U6-T5: conditional-effects table + second (simple-slopes) figure entry - mirrors buildCbSem.test.ts's
+  // U5-T2 tests exactly, against PlsSemResult's new slopes/figModSlopesPng fields. Single-moderation edge
+  // (modId 1 on every row) stays on the "today's exact shape" (no dynamic Moderation column) code path.
+  const SLOPES: NonNullable<PlsSemResult['slopes']> = [
+    { level: '-1SD', modId: 1, label: 'Image → Satisfaction × Expectation', b: 0.197129, se: 0.061656, t: 3.196, p: 0, ciLower: 0.095869, ciUpper: 0.324150 },
+    { level: 'mean', modId: 1, label: 'Image → Satisfaction × Expectation', b: 0.180788, se: 0.052596, t: 3.437, p: 0, ciLower: 0.088966, ciUpper: 0.291639 },
+    { level: '+1SD', modId: 1, label: 'Image → Satisfaction × Expectation', b: 0.164448, se: 0.058062, t: 2.833, p: 0.004, ciLower: 0.060079, ciUpper: 0.292747 },
+  ]
+
+  it('emits the conditional-effects table with the SAME numbers as slopes', () => {
+    const r: PlsSemResult = { ...R, slopes: SLOPES }
+    const content = buildPlsSem(SPEC, r)
+    const table = content.tables.find((t) => t.spec.id === 'conditional-effects')!
+    expect(table.rows).toEqual([
+      { level: '-1SD', b: '.20', se: '0.06', p: '< .001', ci: '[.10, .32]' },
+      { level: 'mean', b: '.18', se: '0.05', p: '< .001', ci: '[.09, .29]' },
+      { level: '+1SD', b: '.16', se: '0.06', p: '.004', ci: '[.06, .29]' },
+    ])
+  })
+
+  it('emits a SECOND figure entry (simple-slopes) with real PNG bytes when moderation is present, none when absent', () => {
+    const withMod: PlsSemResult = { ...R, slopes: SLOPES, figModSlopesPng: new Uint8Array([1, 2, 3]) }
+    const contentWithMod = buildPlsSem(SPEC, withMod)
+    expect(contentWithMod.figures).toHaveLength(2)
+    expect(contentWithMod.figures[1].png.length).toBeGreaterThan(0)
+
+    const withoutMod: PlsSemResult = { ...R, slopes: undefined }
+    const contentWithoutMod = buildPlsSem(SPEC, withoutMod)
+    expect(contentWithoutMod.figures).toHaveLength(1)
   })
 })
 

@@ -56,6 +56,16 @@ describe('plsSem registry stays faithful to the amended output card (verbatim, c
   it('Table 5 (indirect effects) thead matches the spec columns', () => {
     expect(theadAfter('Indirect effects (mediation)')).toEqual(tableCols('indirect-effects'))
   })
+  // U6-T5: Table 6, shown only when moderation ran; same conventions as CB-SEM's ghost Table 6.
+  it('Table 6 (conditional effects / simple slopes) thead matches the spec columns', () => {
+    expect(theadAfter('Conditional effects (simple slopes)')).toEqual(tableCols('conditional-effects'))
+    expect(card).toContain('<div class="apa-cap"><b>Table 6.</b> Conditional effects (simple slopes)</div>')
+  })
+  it('a second (optional) figure entry: simple-slopes plot', () => {
+    expect(spec.figures).toHaveLength(2)
+    expect(spec.figures![1].optional).toBe(true)
+    expect(spec.figures![1].file).toBe('simple-slopes')
+  })
   it('HTMT (Table 2) is a matrix table — present as a caption, no fixed thead', () => {
     expect(card).toContain('Discriminant validity &mdash; HTMT')
     expect(spec.tables.find((t) => t.id === 'htmt')!.columns).toHaveLength(0)

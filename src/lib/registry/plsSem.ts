@@ -86,6 +86,18 @@ export const PLS_SEM: TestSpec = {
         { key: 'p', label: 'p' },
       ],
     },
+    {
+      id: 'conditional-effects',
+      domId: 'pls-sem-conditional-effects',
+      title: 'Conditional effects (simple slopes)',
+      columns: [
+        { key: 'level', label: 'Moderator level' },
+        { key: 'b', label: 'β' },
+        { key: 'se', label: 'SE' },
+        { key: 'p', label: 'p' },
+        { key: 'ci', label: 'boot 95% CI' },
+      ],
+    },
   ],
   tableNote: {
     kind: 'plain',
@@ -94,6 +106,7 @@ export const PLS_SEM: TestSpec = {
   },
   figures: [
     { caption: 'Model', type: 'path diagram (with loadings, path coefficients, R²)', file: 'path-diagram' },
+    { caption: 'Simple slopes', type: 'conditional-effects plot (whiskered 95% CI at -1SD/mean/+1SD)', file: 'simple-slopes', optional: true },
   ],
   howToRead:
     'Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does not use CB-SEM global fit indices (CFI/TLI/RMSEA) — judge it instead by reliability & validity (CR, AVE, HTMT), then R², Q² (predictive relevance) and f², with SRMR the only commonly reported approximate fit index. Read the bootstrapped path coefficients (β, p); f² is each path\'s effect size (~0.02 small, 0.15 medium, 0.35 large).',
@@ -105,6 +118,8 @@ export const PLS_SEM: TestSpec = {
     'table_structural.png',
     'table_structural-quality.png',
     'table_indirect-effects.png (when mediation paths drawn)',
+    'table_conditional-effects.png (when moderation present)',
     'figure_path-diagram.png',
+    'figure_simple-slopes.png (when moderation present)',
   ],
 }

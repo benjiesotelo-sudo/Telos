@@ -9,6 +9,7 @@ import {
   validateModerations, buildModerationLines, moderationIndProdEnv, INDPROD_R,
   MODERATION_DISCLOSURE, type ModerationDef,
 } from './moderationModel'
+import { renderSimpleSlopesFigure } from './simpleSlopesPlot'
 
 /** One interaction-term row per moderation (design §A7). `disclosure` is populated ONLY when
  *  `matched` is false (unequal indicator counts -> indProd(match=FALSE), see MODERATION_DISCLOSURE). */
@@ -633,50 +634,17 @@ export async function runCbSem(
     : undefined
 
   // Simple-slopes figure (design §U5-T2): three whiskered points (-1SD/mean/+1SD), percentile CI whiskers
-  // (binding contract: ciPercLower/ciPercUpper), no continuous band — same ggplot2-in-R capturePlot
-  // pipeline efa.ts's scree plot and latent.ts's AVE/CR bar charts already use. Fed from moderation.slopes
-  // (already TS-shaped above), so the figure and the conditional-effects table (buildCbSem.ts) render the
-  // SAME numbers from the SAME array.
-  //
-  // Fix round (multi-moderation regression): with 2+ moderation edges, moderation.slopes holds 3 rows
-  // PER edge, so `level` repeats ("-1SD","mean","+1SD","-1SD",...) — the old `factor(levels, levels =
-  // levels)` used the (duplicated) data vector itself as the level SET, which lavaan/base R rejects
-  // ("factor level [4] is duplicated"), crashing capturePlot and failing the ENTIRE run. Fix: fix the
-  // level set to the 3 canonical labels (always unique, regardless of row count) and, when >1 distinct
-  // moderation is present, facet one panel per edge (`mods` label, same convention as
-  // ModerationRow.pathLabel) so the 6 rows are visually disambiguated instead of overplotted at the
-  // same 3 x-positions. Single-moderation runs take the SAME code path but length(unique(mods)) == 1,
-  // so no facet_wrap is added — pixel-identical to the pre-fix single-moderation figure.
-  let figModSlopesPng: Uint8Array | undefined
-  if (moderation?.slopes.length) {
-    const distinctMods = new Set(moderation.slopes.map((s) => s.modId)).size
-    const slopesBlock = [
-      'library(ggplot2)',
-      'df_plot <- data.frame(',
-      '  level = factor(levels, levels = c("-1SD", "mean", "+1SD")),',
-      '  moderation = factor(mods, levels = unique(mods)),',
-      '  b = bs, lo = los, hi = his',
-      ')',
-      'p_slopes <- ggplot2::ggplot(df_plot, ggplot2::aes(x = level, y = b)) +',
-      '  ggplot2::geom_point(size = 3, colour = "#d97757") +',
-      '  ggplot2::geom_errorbar(ggplot2::aes(ymin = lo, ymax = hi), width = 0.15, colour = "#d97757") +',
-      '  ggplot2::geom_hline(yintercept = 0, linetype = "dotted", colour = "#888") +',
-      '  ggplot2::labs(x = NULL, y = "Conditional effect (simple slope)") +',
-      '  ggplot2::theme_minimal(base_size = 11)',
-      'if (length(unique(mods)) > 1) p_slopes <- p_slopes + ggplot2::facet_wrap(~ moderation, ncol = 1)',
-      'print(p_slopes)',
-    ].join('\n')
-    // Height grows with facet count so stacked panels (ncol=1) stay legible; single-moderation keeps
-    // the original 380px (no facet strip, byte-for-byte the old look).
-    const height = distinctMods > 1 ? 220 * distinctMods + 60 : 380
-    figModSlopesPng = await engine.capturePlot(slopesBlock, 500, height, {
-      levels: moderation.slopes.map((s) => s.level),
-      mods: moderation.slopes.map((s) => s.label),
-      bs: moderation.slopes.map((s) => s.b),
-      los: moderation.slopes.map((s) => s.ciPercLower),
-      his: moderation.slopes.map((s) => s.ciPercUpper),
-    })
-  }
+  // (binding contract: ciPercLower/ciPercUpper), no continuous band. Fed from moderation.slopes (already
+  // TS-shaped above), so the figure and the conditional-effects table (buildCbSem.ts) render the SAME
+  // numbers from the SAME array. U6-T5: the plotting code itself (R text, height calc, capturePlot call)
+  // moved to the shared `simpleSlopesPlot.ts` module - PLS-SEM's runner calls the SAME function with its
+  // own field-mapped slopes, so there are no longer two copies of this ggplot2 block.
+  const figModSlopesPng = await renderSimpleSlopesFigure(
+    engine,
+    (moderation?.slopes ?? []).map((s) => ({
+      level: s.level, modId: s.modId, label: s.label, b: s.b, ciLower: s.ciPercLower, ciUpper: s.ciPercUpper,
+    })),
+  )
 
   return {
     mode,

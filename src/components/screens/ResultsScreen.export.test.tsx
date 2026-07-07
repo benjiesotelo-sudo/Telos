@@ -160,6 +160,28 @@ describe('buildExportFiles (Task 10)', () => {
     expect(Object.keys(files).some((k) => k.includes('figure_simple-slopes.png'))).toBe(true)
   })
 
+  // U6-T5 (mirrors the CB-SEM test above): PLS-SEM's simple-slopes figure reaches the export bundle via
+  // the SAME generic content.figures[] pickup - no new bundler code needed for the PLS-SEM runner either.
+  it('the simple-slopes figure is included in the PLS-SEM export bundle when moderation is present', () => {
+    const s = {
+      selection: ['pls-sem'],
+      setups: { 'pls-sem': { roles: {}, options: {}, props: {}, blocked: null, constructs: [], paths: [] } },
+      runs: { 'pls-sem': { result: {
+        outer: [], reliability: [], htmt: { labels: [], cells: [] }, structural: [], quality: [],
+        estimates: { paths: [], loadings: {}, r2: {} },
+        slopes: [
+          { level: '-1SD', modId: 1, label: 'Image → Satisfaction × Expectation', b: 0.2, se: 0.06, t: 3.3, p: 0.001, ciLower: 0.1, ciUpper: 0.32 },
+        ],
+        figModSlopesPng: new Uint8Array([1, 2, 3]),
+      }, stale: false } },
+      raw: { columns: ['x1'], rows: [{ x1: 1 }] },
+      columns: [],
+      missingPolicy: 'leave',
+    } as unknown as SessionState
+    const files = buildExportFiles(s, { tables: false, figures: true, pdf: false, latex: false, r: false })
+    expect(Object.keys(files).some((k) => k.includes('figure_simple-slopes.png'))).toBe(true)
+  })
+
   it('report.tex figure NN matches the figure PNG NN when an earlier selected test is not fresh', () => {
     const s = session()
     // Self-contained runs (the shared fixture is mutated by sibling tests): A has NO run, B is fresh.

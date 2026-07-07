@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SemCanvasUI, moderationGuardReason, pathNodeCenter, latentBounds, NODE_W, NODE_H, ITEM_W, ITEM_H } from './SemCanvas'
 import type { Construct, StructuralPath, Moderation } from '../state/session'
+import type { PlsSemResult } from '../lib/stats/plsSem'
 
 const noop = () => {}
 
@@ -360,6 +361,19 @@ describe('SemCanvasUI — moderation edges (dashed clay arrows)', () => {
       estimates: { ...estimates, moderation: [{ moderatorId: 2, pathIndex: 0, beta: 0.23 }] },
     })
     expect(html).toContain('.23')
+    expect((html.match(/class="sem-mod-label"/g) ?? []).length).toBe(1)
+  })
+
+  // U6-T5 (post-review): PLS-SEM's runner now populates the SAME estimates.moderation shape (moderatorId/
+  // pathIndex/beta) as CB-SEM's - SemCanvasUI reads `estimates` structurally, with no CB/PLS branching, so
+  // a PlsSemResult['estimates'] value must annotate the dashed arrow exactly like CbSemResult's does above.
+  it('a PlsSemResult-shaped estimates.moderation labels the SAME dashed arrow (no CB-SEM-specific code path)', () => {
+    const plsEstimates: PlsSemResult['estimates'] = {
+      ...estimates,
+      moderation: [{ moderatorId: 2, pathIndex: 0, beta: -0.016341 }],
+    }
+    const html = renderLatent({ moderations, estimates: plsEstimates })
+    expect(html).toContain('-.02') // fmtCoef: leading-zero-stripped, sign kept
     expect((html.match(/class="sem-mod-label"/g) ?? []).length).toBe(1)
   })
 
