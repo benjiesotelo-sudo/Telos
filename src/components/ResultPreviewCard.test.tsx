@@ -109,4 +109,35 @@ describe('chassis renders each card shape (design §5)', () => {
     const html = render(base)
     expect(html).not.toContain('Statistical basis')
   })
+  it('U8-T1: gate explainers on populated content.values - no undefined text on live cards pre-wiring', () => {
+    // RED: id has explainers registered but NO content.values defined → "Understanding the numbers" must NOT render
+    const withExplainerIdButNoValues: CardContent = {
+      ...base,
+      values: undefined, // explicitly undefined; no explainer values wired yet (pre-U8-T3)
+    }
+    const htmlNoValues = renderToStaticMarkup(
+      <ResultPreviewCard index={1} name="Name" question="q?" content={withExplainerIdButNoValues}
+        stale={false} running={false} onRerun={() => {}} id="independent-t-test" />,
+    )
+    // Must not render the section
+    expect(htmlNoValues).not.toContain('Understanding the numbers')
+    // Must not leak undefined into the output
+    expect(htmlNoValues).not.toContain('undefined')
+    // Must not render TermExplainers at all
+    expect(htmlNoValues).not.toContain('term-explainers')
+
+    // GREEN: same id with content.values populated → section DOES render
+    const withExplainerIdAndValues: CardContent = {
+      ...base,
+      values: { df: 58, t: 2.14, p: '= .036', d: '0.56', dlo: '0.11', dhi: '1.00' },
+    }
+    const htmlWithValues = renderToStaticMarkup(
+      <ResultPreviewCard index={1} name="Name" question="q?" content={withExplainerIdAndValues}
+        stale={false} running={false} onRerun={() => {}} id="independent-t-test" />,
+    )
+    expect(htmlWithValues).toContain('Understanding the numbers')
+    expect(htmlWithValues).toContain('term-explainers')
+    // The actual interpret output appears: "How many standard errors..."
+    expect(htmlWithValues).toContain('standard errors')
+  })
 })
