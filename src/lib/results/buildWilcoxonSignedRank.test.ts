@@ -34,10 +34,10 @@ describe('buildWilcoxonSignedRank', () => {
     const cnAll = buildWilcoxonSignedRank(spec, { ...base, hl: null, hlLow: null, hlHigh: null })
     expect(cnAll.tables[1].rows[0].hl).toBe('— [—, —]')
   })
-  it('NO note (the drawn card has none); excluded pairs and how-to-read carry through', () => {
+  it('NO note (the drawn card has none); excluded pairs and how-to-read carry through, incl. the method disclosure', () => {
     expect(c.note).toBeNull()
     expect(c.nExcluded).toBe(2)
-    expect(c.howToRead).toBe(spec.howToRead + ' Your significance threshold (α) is 0.05.')
+    expect(c.howToRead).toBe(spec.howToRead + ' Your significance threshold (α) is 0.05. Method: Wilcoxon signed rank exact test.')
   })
   it('APA now reports V/W (Theme-4 completeness) alongside Z, p, r with its CI', () => {
     expect(c.apa).toBe('A Wilcoxon signed-rank test gave V=0.00, Z=−2.20, p = .031, r=−1.00 [−1.00, −1.00].')
@@ -51,7 +51,7 @@ describe('buildWilcoxonSignedRank', () => {
       meanRankPos: '—', meanRankNeg: '3.50',
       sumRanksPos: '—', sumRanksNeg: '21.00',
       v: '0.00', z: '−2.20', p: '= .031', r: '−1.00', rlo: '−1.00', rhi: '−1.00',
-      hl: '−11.50 [−17.00, −9.00]',
+      hl: '−11.50 [−17.00, −9.00]', method: 'Wilcoxon signed rank exact test',
     })
   })
   it('p-clause branch: tiny p renders p<.001 in table and sentence; midrank V keeps 2 dp; non-degenerate r CI renders both bounds', () => {

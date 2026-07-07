@@ -345,6 +345,7 @@ export const groupEmitters: Record<string, Emitter> = {
       `print(ft)`,
       `k <- ncol(mat); n <- nrow(mat); w <- unname(ft$statistic) / (n * (k - 1))`,
       `cat("Kendall's W:", w, "\\n")`,
+      `cat("N subjects:", n, "\\n")`,
       `rbar <- colMeans(t(apply(mat, 1, rank)))`,
       `for (i in 1:(k - 1)) for (j in (i + 1):k) {`,
       `  q <- (rbar[j] - rbar[i]) / sqrt(k * (k + 1) / (6 * n))`,

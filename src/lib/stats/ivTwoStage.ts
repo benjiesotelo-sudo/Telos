@@ -1,7 +1,7 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
 
-export interface IvFirstStageRow { instrument: string; coef: number; se: number; partialF: number; p: number }
+export interface IvFirstStageRow { endogenous: string; instrument: string; coef: number; se: number; partialF: number; p: number }
 // 2SLS columns drive the visible side-by-side table; the matching OLS estimate/SE/CI per term are surfaced
 // (modelsummary OLS|2SLS shape, design 2026-06-16) so the coef table can show both columns without re-fitting.
 export interface IvCoefRow {
@@ -44,9 +44,11 @@ labs <- rownames(ct)
 coef_rows <- lapply(seq_along(labs), function(i) { nm <- labs[i]; list(
   term = nm, b = ct[i, 1], se = ct[i, 2], t = ct[i, 3], p = ct[i, 4], ciLow = ci[i, 1], ciHigh = ci[i, 2],
   olsB = oct[nm, 1], olsSe = oct[nm, 2], olsCiLow = oci[nm, 1], olsCiHigh = oci[nm, 2]) })
-fs  <- lm(as.formula(paste(endo_names[1], '~', ivpart)), data = d)
-fsc <- summary(fs)$coefficients
-first_stage <- lapply(instr_names, function(nm) { r <- fsc[nm, ]; list(instrument = nm, coef = r[1], se = r[2], partialF = r[3]^2, p = r[4]) })
+first_stage <- do.call(c, lapply(endo_names, function(en) {
+  fs  <- lm(as.formula(paste(en, '~', ivpart)), data = d)
+  fsc <- summary(fs)$coefficients
+  lapply(instr_names, function(nm) { r <- fsc[nm, ]; list(endogenous = en, instrument = nm, coef = r[1], se = r[2], partialF = r[3]^2, p = r[4]) })
+}))
 sm <- summary(iv, diagnostics = TRUE); diag <- sm$diagnostics
 gd <- function(nm, col) if (nm %in% rownames(diag)) unname(diag[nm, col]) else NA_real_
 list(first_stage = first_stage, coef_rows = coef_rows,

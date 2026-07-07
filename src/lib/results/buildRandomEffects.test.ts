@@ -72,9 +72,10 @@ describe('buildRandomEffects', () => {
     expect(note.text).not.toMatch(/NaN/)
   })
 
-  it('A5: values carries the term-led explainer lookup (GOF + the first non-intercept predictor B)', () => {
+  it('A5: values carries the term-led explainer lookup (GOF + the first non-intercept predictor B + the BP LM test, R1 gap-fix)', () => {
     expect(buildRandomEffects(RANDOM_EFFECTS, mock()).values).toEqual({
       n: '96', nentities: '12', r2: '0.98', adjr2: '0.98', est: '−4.05',
+      bpLm: '0.07', bpDf: '1', bpP: '= .792',
     })
   })
 })

@@ -12,6 +12,7 @@ const overlap: MannWhitneyUResult = { // cross-verified overlap12 numbers
   u: 6, z: -1.92153785, p: 0.0649350649, rankBiserial: -0.666666667,
   rankBiserialLow: -0.9023481, rankBiserialHigh: -0.1240779, // effectsize::rank_biserial(ci=0.95) — native R ≡ WebR
   hodgesLehmann: -6, hlLow: -12, hlHigh: 1, // wilcox.test(conf.int=TRUE)$estimate / $conf.int
+  method: 'Wilcoxon rank sum exact test',
   alpha: 0.05, tails: 'two.sided', nExcluded: 0, figurePng: png,
 }
 
@@ -50,7 +51,11 @@ describe('buildMannWhitneyU', () => {
       meanRank0: '4.50', meanRank1: '8.50', median0: '70.50', median1: '76.00',
       iqr0: '3.25', iqr1: '5.50', sumRanks0: '27.00', sumRanks1: '51.00',
       u: '6', z: '−1.92', p: '= .065', r: '−0.67', rlo: '−0.90', rhi: '−0.12',
+      hl: '−6.00', hlLow: '−12.00', hlHigh: '1.00', method: 'Wilcoxon rank sum exact test',
     })
+  })
+  it('discloses the wilcox.test method (exact vs. asymptotic) in how-to-read (R1 gap-fix)', () => {
+    expect(c.howToRead).toContain('Method: Wilcoxon rank sum exact test.')
   })
   it('p-clause flips to p < .001; a midrank U renders at 2 dp', () => {
     const c2 = buildMannWhitneyU(spec, { ...overlap, u: 6.5, p: 0.0004 })

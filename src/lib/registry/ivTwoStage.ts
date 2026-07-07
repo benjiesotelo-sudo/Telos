@@ -29,9 +29,11 @@ export const IV_TWO_STAGE: TestSpec = {
   },
   tables: [
     {
+      // R1 gap-fix: first-stage strength is now reported for EVERY endogenous regressor, not just the
+      // first — the leading Endogenous column groups the instrument rows by regressor.
       id: 'first-stage', title: 'First stage (instrument strength)', domId: 'iv-first-stage',
       columns: [
-        { key: 'instrument', label: 'Instrument' }, { key: 'coef', label: 'Coef.' }, { key: 'se', label: 'SE' },
+        { key: 'endogenous', label: 'Endogenous' }, { key: 'instrument', label: 'Instrument' }, { key: 'coef', label: 'Coef.' }, { key: 'se', label: 'SE' },
         { key: 'partialF', label: 'Partial F' }, { key: 'p', label: 'p' },
       ],
     },
@@ -53,7 +55,8 @@ export const IV_TWO_STAGE: TestSpec = {
     text: 'diagnostics: weak-instrument (first-stage F), Wu-Hausman endogeneity, and Sargan over-identification (when applicable).',
     afterTableId: 'iv-2sls',
   },
-  apaTemplate: 'The 2SLS estimate for X was B={b}, p {p} (first-stage F={f}).',
+  // R1 gap-fix: the APA sentence previously omitted the CI on the 2SLS estimate (the table already carries it).
+  apaTemplate: 'The 2SLS estimate for X was B={b}, 95% CI [{lo}, {hi}], p {p} (first-stage F={f}).',
   rMap: 'lm(endog ~ instruments + covariates) → Table 1 (first-stage coef./SE/partial F) · summary(AER::ivreg(...), diagnostics=TRUE) → Table 2 (2SLS) + weak-IV F, Wu-Hausman, Sargan',
   bundleFiles: ['table_first-stage.png', 'table_2sls.png', 'figure_coefficients.png'],
 }

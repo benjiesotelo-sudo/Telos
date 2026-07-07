@@ -20,7 +20,7 @@ describe('buildKendallsTau', () => {
     const tauCol = c.tables[0].spec.columns.find((col) => col.key === 'tau')
     expect(tauCol).toMatchObject({ label: 'τ', sub: 'b' })
     // tie-corrected note threaded from the registry, anchored to the correlation table
-    expect(c.note).toEqual({ kind: 'plain', text: 'τ is Kendall’s tau-b — the tie-corrected variant (cor.test, method = "kendall").', afterTableId: 'correlation' })
+    expect(c.note).toEqual({ kind: 'plain', text: 'τ is Kendall’s tau-b — the tie-corrected variant (cor.test, method = "kendall"). τ CI from a seeded percentile bootstrap (2000 resamples); cor.test does not return one for rank correlation.', afterTableId: 'correlation' })
   })
   it('APA is a full sentence naming tau-b; tiny p becomes p<.001', () => {
     const c = buildKendallsTau(KENDALLS_TAU, res)

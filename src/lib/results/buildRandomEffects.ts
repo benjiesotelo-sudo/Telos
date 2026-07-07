@@ -41,6 +41,11 @@ export function buildRandomEffects(spec: TestSpec, r: RandomEffectsResult): Card
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
-    values: { ...gofValue, est: first ? f(first.b) : undefined },
+    values: {
+      ...gofValue, est: first ? f(first.b) : undefined,
+      // R1 gap-fix: the Breusch-Pagan LM test lives only in the note text, not a registry column — no
+      // explainers.ts entry (a hole the U8 coverage gate misses, same class as hausman chi-sq / VAR / FE poolability F).
+      bpLm: fx(r.bpLm, f), bpDf: r.bpDf != null ? fdf(r.bpDf) : undefined, bpP: r.bpP != null ? fpApa(r.bpP) : undefined,
+    },
   }
 }

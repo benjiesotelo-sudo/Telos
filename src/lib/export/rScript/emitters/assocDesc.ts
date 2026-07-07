@@ -99,6 +99,8 @@ export const assocDescEmitters: Record<string, Emitter> = {
       lines.push('w <- as.numeric(effectsize::cohens_w(tab)$Cohens_w)')
     }
     lines.push('print(g)', 'print(g$stdres)', 'cat("Cohen\'s w:", w, "\\n")')
+    // R1 gap-fix: smallest expected count — parity with the chi-square-independence emitter's own print(g$expected).
+    lines.push('print(g$expected)', 'cat("Min expected:", min(g$expected), "\\n")')
     // Observed-vs-expected dodged bars.
     lines.push('k <- length(tab)')
     lines.push("gof_d <- data.frame(category = factor(rep(names(tab), 2), levels = names(tab)),")

@@ -7,6 +7,7 @@ export interface ChiSquareGofResult {
   rows: GofRow[]
   chisq: number; df: number; p: number; w: number; n: number
   wLow: number; wHigh: number                     // effect-size CI (APA-7: report w WITH its CI); cohens_w returns a ONE-SIDED CI (upper pinned, ~1.41 for k=3)
+  minExpected: number                             // R1 gap-fix: smallest expected count — parity with the independence-card warning
   alpha: number
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
@@ -22,7 +23,8 @@ g <- suppressWarnings(chisq.test(tab, p = pr))
 ew <- suppressWarnings(effectsize::cohens_w(tab, p = pr, ci = level))
 list(categories = names(tab), observed = as.numeric(tab), expected = as.numeric(g$expected),
      stdres = as.numeric(g$stdres), chisq = unname(g$statistic), df = unname(g$parameter),
-     p = g$p.value, w = as.numeric(ew$Cohens_w), wLow = as.numeric(ew$CI_low), wHigh = as.numeric(ew$CI_high), n = sum(tab))`
+     p = g$p.value, w = as.numeric(ew$Cohens_w), wLow = as.numeric(ew$CI_low), wHigh = as.numeric(ew$CI_high), n = sum(tab),
+     minExpected = min(g$expected))`
 
 // Dodged observed-vs-expected bars (card figure: bar chart (observed vs. expected)); house palette.
 const R_BAR = String.raw`
@@ -38,7 +40,7 @@ print(ggplot2::ggplot(d, ggplot2::aes(category, count, fill = kind)) +
   ggplot2::scale_fill_manual(values = c(Observed = '#9cc2ec', Expected = '#f0efe9')) +
   ggplot2::labs(x = NULL, y = NULL, fill = NULL))`
 
-interface RawStats { categories: string[]; observed: number[]; expected: number[]; stdres: number[]; chisq: number; df: number; p: number; w: number; wLow: number; wHigh: number; n: number }
+interface RawStats { categories: string[]; observed: number[]; expected: number[]; stdres: number[]; chisq: number; df: number; p: number; w: number; wLow: number; wHigh: number; n: number; minExpected: number }
 
 /** props: alphabetical-category-order proportions (custom mode) or null (equal split). level: effect-size CI level (no UI option on this card → fixed 0.95). */
 export async function runChiSquareGof(engine: Engine, data: Dataset, variable: string, props: number[] | null, alpha = 0.05, level = 0.95): Promise<ChiSquareGofResult> {
@@ -50,5 +52,5 @@ export async function runChiSquareGof(engine: Engine, data: Dataset, variable: s
   const figurePng = await engine.capturePlot(R_BAR, 600, 450, env)
   return { variable,
     rows: s.categories.map((c, i) => ({ category: c, observed: s.observed[i], expected: s.expected[i], stdRes: s.stdres[i] })),
-    chisq: s.chisq, df: s.df, p: s.p, w: s.w, wLow: s.wLow, wHigh: s.wHigh, n: s.n, alpha, nExcluded, figurePng }
+    chisq: s.chisq, df: s.df, p: s.p, w: s.w, wLow: s.wLow, wHigh: s.wHigh, n: s.n, minExpected: s.minExpected, alpha, nExcluded, figurePng }
 }

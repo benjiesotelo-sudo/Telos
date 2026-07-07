@@ -9,6 +9,7 @@ export interface FriedmanResult {
   wLow: number; wHigh: number                     // Kendall's W CI (APA-7: report W WITH its CI); one-sided, upper pinned at 1.00
   posthoc: NemenyiRow[]
   alpha: number
+  n: number  // N subjects (rows after listwise) — R1 gap-fix: previously computed but never returned/rendered
   nExcluded: number
   figurePng: Uint8Array<ArrayBuffer>
 }
@@ -60,5 +61,5 @@ export async function runFriedman(engine: Engine, data: Dataset, subject: string
   const env = { conds: measures, scores_flat: scoresFlat, n, level }
   const s = await engine.runJson<RawStats>(R_STATS, env)
   const figurePng = await engine.capturePlot(R_FIGURE, 600, 450, env)
-  return { ranks: s.ranks, chi2: s.chi2, df: s.df, p: s.p, w: s.w, wLow: s.wLow, wHigh: s.wHigh, posthoc: s.posthoc, alpha, nExcluded, figurePng }
+  return { ranks: s.ranks, chi2: s.chi2, df: s.df, p: s.p, w: s.w, wLow: s.wLow, wHigh: s.wHigh, posthoc: s.posthoc, alpha, n, nExcluded, figurePng }
 }

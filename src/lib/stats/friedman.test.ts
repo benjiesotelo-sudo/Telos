@@ -49,6 +49,7 @@ describe('friedman stats engine (spike known answers)', () => {
 
     // Listwise: all 60 rows complete
     expect(res.nExcluded).toBe(0)
+    expect(res.n).toBe(60) // N subjects (rows after listwise) — audit gap-fix (R1)
 
     // Figure rendered
     expect(res.figurePng.length).toBeGreaterThan(1000)

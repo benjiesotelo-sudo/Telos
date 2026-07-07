@@ -22,6 +22,7 @@ describe('runChiSquareGof', () => {
     expect(r.rows[1].stdRes).toBeCloseTo(-0.1118033989, 6)
     expect(r.rows[2].stdRes).toBeCloseTo(-0.7826237921, 6)
     expect(r.n).toBe(40)
+    expect(r.minExpected).toBeCloseTo(40 / 3, 6) // equal split: all 3 categories expected 40/3 ≈ 13.33 (R1 gap-fix)
   }, 900_000)
 
   it('spike known answers — custom proportions 0.5/0.3/0.2 (w computed against the same split)', async () => {
@@ -33,6 +34,7 @@ describe('runChiSquareGof', () => {
     expect(r.wLow).toBeCloseTo(0, 3)
     expect(r.wHigh).toBeCloseTo(2.0, 3)
     expect(r.rows[0].expected).toBeCloseTo(20, 6) // 0.5 × 40
+    expect(r.minExpected).toBeCloseTo(8, 6) // 0.2 × 40 — smallest expected count under this split
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 300_000)
 })

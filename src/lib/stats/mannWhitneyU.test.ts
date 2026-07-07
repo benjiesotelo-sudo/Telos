@@ -41,6 +41,8 @@ describe('runMannWhitneyU', () => {
     expect(r.rankBiserial).toBeCloseTo(-0.6667, 3)
     expect(r.rankBiserialLow).toBeCloseTo(-0.9023, 3)  // effectsize::rank_biserial(ci=0.95)$CI_low  (native R ≡ WebR)
     expect(r.rankBiserialHigh).toBeCloseTo(-0.1241, 3) // $CI_high
+    // wilcox.test()$method discloses exact vs. asymptotic — native R: "Wilcoxon rank sum exact test" at this N/no-ties.
+    expect(r.method).toBe('Wilcoxon rank sum exact test')
     expect(r.nExcluded).toBe(0)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
@@ -51,6 +53,9 @@ describe('runMannWhitneyU', () => {
     expect(on.u).toBe(6); expect(off.u).toBe(6)
     expect(on.p).toBeCloseTo(0.065552, 5)
     expect(off.p).toBeCloseTo(0.054664, 5)    // equals the coin-Z normal p (uncorrected)
+    // method discloses which continuity branch actually ran (native R ≡ WebR).
+    expect(on.method).toBe('Wilcoxon rank sum test with continuity correction')
+    expect(off.method).toBe('Wilcoxon rank sum test')
   })
 
   it('long12 (complete separation): U=0, exact p=2/924, Z, r=−1, listwise exclusion', async () => {

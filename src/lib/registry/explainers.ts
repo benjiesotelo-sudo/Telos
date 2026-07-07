@@ -124,6 +124,10 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, U = ${v.u}.` },
     { key: 'z', term: 'Z', meaning: 'The standardized test statistic used to compute p.',
       interpret: (v) => `Here, Z = ${v.z}.` },
+    // R1 gap-fix (U9-T3 wave C): the HL estimate is rendered as a full-width span row (buildMannWhitneyU),
+    // not a registry column, but still deserves an explainer (the audit-flagged hole the coverage gate misses).
+    { key: 'hl', term: 'Hodges-Lehmann estimate', meaning: 'The median of every possible between-group score difference — a robust estimate of the location shift between the two groups.',
+      interpret: (v) => `Here, the Hodges-Lehmann estimate is ${v.hl}, 95% CI [${v.hlLow}, ${v.hlHigh}].` },
   ],
   'wilcoxon-signed-rank': [
     { key: 'hl', term: 'Hodges–Lehmann median diff', meaning: 'The estimated median of the paired differences (a location-shift estimate), with its confidence interval.',
@@ -452,6 +456,9 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, the strongest pairwise difference is ${v.padjPair}, p adj ${v.padj}.` },
     { key: 'w', term: "Kendall's W", meaning: 'The effect size for the Friedman test – the degree of agreement in ranking across conditions, from 0 to 1.',
       interpret: (v) => `Here, W = ${v.w} [${v.wlo}, ${v.whi}].` },
+    // R1 gap-fix (U9-T3 wave C): N subjects was computed but never rendered.
+    { key: 'n', term: 'N', meaning: 'The number of subjects with complete data across every condition.',
+      interpret: (v) => `Here, N = ${v.n} subjects.` },
   ],
   pearson: [
     { key: 'r', term: "Pearson's r", meaning: 'The strength and direction of the linear relationship, from -1 to +1.',
@@ -559,7 +566,8 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
     { key: 'expected', term: 'Expected', meaning: 'The count that category would have under the expected distribution (equal split, by default, unless custom proportions are set).',
       interpret: (v) => `Expected counts here range ${v.expected} across the ${v.category} categories.` },
     { key: 'stdres', term: 'Std. residual', meaning: "How many standard errors that category's observed count sits from its expected count; beyond about ±1.96 flags a category that significantly drives the result.",
-      interpret: (v) => `Std. residual magnitudes here range ${v.stdres} - values beyond about 1.96 flag the categories driving this result.` },
+      // R1 gap-fix: the smallest expected count folds into this same explainer (mirrors chi-square-independence's stdres/minExpected pairing).
+      interpret: (v) => `Std. residual magnitudes here range ${v.stdres} - values beyond about 1.96 flag the categories driving this result. The smallest expected count here is ${v.minExpected}.` },
     { key: 'chisq', term: 'χ²', meaning: 'The total discrepancy between observed and expected counts, summed across categories.',
       interpret: (v) => `Here, χ²(${v.df}, N=${v.n}) = ${v.chisq}.` },
     { key: 'df', term: 'df', meaning: 'Degrees of freedom here - the number of categories minus one (not (r−1)(c−1) as in the independence test).',
@@ -750,6 +758,12 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, the shock comes from ${v.impulse}.` },
     { key: 'share', term: 'Share', meaning: 'The share of the forecast-error variance attributable to that shock, at the chosen IRF horizon.',
       interpret: (v) => `Here, that share is ${v.share}.` },
+    // R1 gap-fix: the stability + Portmanteau span-row statistics had no explainers.ts entry (a hole the
+    // U8 coverage gate misses, same class as the hausman-test chi-sq / FE poolability F / RE BP LM).
+    { key: 'maxRootModulus', term: 'Max root modulus', meaning: 'The largest companion-matrix eigenvalue modulus - below 1 means the VAR system is stable.',
+      interpret: (v) => `Here, the max root modulus is ${v.maxRootModulus} (${v.stable}).` },
+    { key: 'serialStat', term: 'Portmanteau (serial) χ²', meaning: 'The Portmanteau test statistic for residual serial correlation - a small p suggests remaining autocorrelation the model has not captured.',
+      interpret: (v) => v.serialStat ? `Here, χ²(${v.serialDf}) = ${v.serialStat}, p ${v.serialP}.` : 'Not computable for this fit.' },
   ],
   'fixed-effects': [
     { key: 'est', term: 'B', meaning: 'The within-entity effect of a predictor: how the outcome changes when the predictor changes within the same entity over time, controlling for everything stable about that entity.',
@@ -764,6 +778,9 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, N = ${v.n}.` },
     { key: 'nentities', term: 'N entities', meaning: 'The number of distinct entities (e.g. firms, countries) whose effects are absorbed.',
       interpret: (v) => `Here, N entities = ${v.nentities}.` },
+    // R1 gap-fix: the poolability F lives only in the note text, not a registry column — no explainer.
+    { key: 'poolF', term: 'Poolability F', meaning: 'A test of whether the entity effects are jointly zero - a low p favours fixed effects over pooled OLS.',
+      interpret: (v) => `Here, the poolability F test gave F = ${v.poolF}, p ${v.poolP}.` },
   ],
   'random-effects': [
     { key: 'est', term: 'B', meaning: 'The estimated effect of a predictor, treating entity differences as random rather than fixed - only trustworthy if a Hausman test favors random effects.',
@@ -776,6 +793,9 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, N = ${v.n}.` },
     { key: 'nentities', term: 'N entities', meaning: 'The number of distinct entities in the panel.',
       interpret: (v) => `Here, N entities = ${v.nentities}.` },
+    // R1 gap-fix: the Breusch-Pagan LM test lives only in the note text, not a registry column — no explainer.
+    { key: 'bpLm', term: 'Breusch-Pagan LM', meaning: 'A test of random effects against pooled OLS - a low p favours random effects.',
+      interpret: (v) => v.bpLm !== '—' ? `Here, the Breusch-Pagan LM test gave χ²(${v.bpDf}) = ${v.bpLm}, p ${v.bpP}.` : 'Not computable for this fit.' },
   ],
   'hausman-test': [
     { key: 'fe', term: 'Fixed effects', meaning: 'The fixed-effects estimate for this predictor - consistent even if the random-effects assumption fails.',
@@ -790,6 +810,10 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, N entities = ${v.nentities}.` },
     { key: 'r2', term: 'R²', meaning: "Each model's own R², reported alongside the Hausman comparison.",
       interpret: (v) => `Here, R² is ${v.r2}.` },
+    // R1 gap-fix: the Hausman χ² headline is a full-width span row, not a registry column — no explainer
+    // key was ever wired for it (a hole the U8 coverage gate misses, same class as VAR/FE/RE span rows).
+    { key: 'chisq', term: 'Hausman χ²', meaning: 'The Hausman test statistic - how far the fixed- and random-effects estimates diverge, in aggregate across predictors.',
+      interpret: (v) => `Here, χ²(${v.df}) = ${v.chisq}, p ${v.p}.` },
   ],
   did: [
     { key: 'est', term: 'Treated×Post (B)', meaning: 'The estimated causal effect of the treatment, holding entity and period fixed effects constant.',
@@ -814,6 +838,9 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, N (right) = ${v.nright}.` },
   ],
   'iv-2sls': [
+    // R1 gap-fix: 'endogenous' is a new registry column (first-stage now reported per endogenous regressor).
+    { key: 'endogenous', term: 'Endogenous', meaning: 'Which endogenous regressor this first-stage row predicts.',
+      interpret: (v) => `Here, this row predicts ${v.endogenous}.` },
     { key: 'instrument', term: 'Instrument', meaning: 'Which instrument this first-stage row reports on.',
       interpret: (v) => `Here, this row is for the instrument ${v.instrument}.` },
     { key: 'coef', term: 'Coef.', meaning: 'The first-stage coefficient: how strongly this instrument predicts the endogenous regressor.',

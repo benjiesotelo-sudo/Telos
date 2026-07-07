@@ -50,6 +50,9 @@ export function buildHausmanTest(spec: TestSpec, r: HausmanResult): CardContent 
       fe: firstCompare ? f(firstCompare.feB) : undefined,
       re: firstCompare ? f(firstCompare.reB) : undefined,
       diff: firstCompare ? f(firstCompare.diff) : undefined,
+      // R1 gap-fix: the Hausman χ² headline is a span row, not a registry column, so it never had an
+      // explainers.ts entry (a hole the U8 coverage gate misses, same class as VAR/FE/RE span-row stats).
+      chisq: f(r.chisq), df: String(r.df), p: fp(r.p),
     },
   }
 }

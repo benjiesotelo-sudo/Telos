@@ -629,7 +629,7 @@
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table.</b> Kendall's tau</div>
       <table class="apa"><thead><tr><th>Pair</th><th>&tau;<sub>b</sub> [95% CI]</th><th>z</th><th>p</th><th>N</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">&tau; is Kendall’s tau-b &mdash; the tie-corrected variant (cor.test, method = "kendall").</p>
+      <p class="tbl-note">&tau; is Kendall’s tau-b &mdash; the tie-corrected variant (cor.test, method = "kendall"). &tau; CI from a seeded percentile bootstrap (2000 resamples); cor.test does not return one for rank correlation.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Relationship</div><div class="ftype">type: <b>scatter plot</b> (optionally on ranks &mdash; &tau; measures monotonic, not linear, association)</div></div>
       <div class="zlabel">How to read this test</div>
@@ -953,7 +953,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> First stage (instrument strength)</div>
-      <table class="apa"><thead><tr><th>Instrument</th><th>Coef.</th><th>SE</th><th>Partial F</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Endogenous</th><th>Instrument</th><th>Coef.</th><th>SE</th><th>Partial F</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> 2SLS coefficients</div>
       <table class="apa coef"><thead><tr><th></th><th>OLS</th><th>2SLS</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Endogenous regressor</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Control 1&hellip;k</td><td>&mdash;</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="3"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td></td><td>&mdash;</td></tr><tr class="row-gof"><td>RMSE</td><td></td><td>&mdash;</td></tr><tr class="row-gof"><td>F</td><td></td><td>&mdash;</td></tr><tr class="row-span"><td colspan="3">Weak-instrument F = &mdash;, p&nbsp;__ (rule of thumb: F &gt; 10)</td></tr><tr class="row-span"><td colspan="3">Wu&ndash;Hausman = &mdash;, p&nbsp;__</td></tr><tr class="row-span"><td colspan="3">Sargan: &mdash; (just-identified)</td></tr></tbody></table>
       <p class="tbl-note">diagnostics: weak-instrument (first-stage F), Wu-Hausman endogeneity, and Sargan over-identification (when applicable).</p>
@@ -962,7 +962,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Check the <b>first-stage F</b> first (rule of thumb &gt; 10 = strong instruments). Then read the 2SLS <b>B</b> for the endogenous predictor as the causal effect, with <b>p</b>/<b>CI</b>. This causal reading rests on the instrument being <b>valid</b> &mdash; relevant <i>and</i> affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models. Method: R ivreg / AER package; weak-instrument F (Stock &amp; Yogo, 2005).</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;The 2SLS estimate for X was <i>B</i>=__, <i>p</i>&nbsp;__ (first-stage F=__).&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;The 2SLS estimate for X was <i>B</i>=__, 95% CI [__, __], <i>p</i>&nbsp;__ (first-stage F=__).&rdquo;</div>
         <div class="m"><b>R map:</b> <code>lm(endog ~ instruments + covariates)</code> &rarr; Table 1 (first-stage coef./SE/partial F) &middot; <code>summary(AER::ivreg(...), diagnostics=TRUE)</code> &rarr; Table 2 (2SLS) + weak-IV F, Wu-Hausman, Sargan</div>
         <div class="m bundle">table_first-stage.png &middot; table_2sls.png &middot; figure_coefficients.png</div>
       </div>

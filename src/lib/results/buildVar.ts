@@ -131,6 +131,10 @@ export function buildVar(spec: TestSpec, r: VarResult): CardContent {
       variable: firstFevd ? firstFevd.variable : undefined,
       impulse: firstFevd ? firstFevd.impulse : undefined,
       share: firstFevd ? f01(firstFevd.share) : undefined,
+      // R1 gap-fix: the stability + Portmanteau span-row statistics had no explainers.ts entry (a hole the
+      // U8 coverage gate misses, same class as the hausman-test chi-sq / FE poolability F / RE BP LM).
+      maxRootModulus: f01(r.maxRootModulus), stable: stab,
+      serialStat: st ? f(st.stat) : undefined, serialDf: st ? String(st.df) : undefined, serialP: st ? fpApa(st.p) : undefined,
     },
   }
 }

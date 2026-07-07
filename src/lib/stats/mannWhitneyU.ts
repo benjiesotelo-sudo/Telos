@@ -7,6 +7,7 @@ export interface MannWhitneyUResult {
   u: number; z: number; p: number; rankBiserial: number
   rankBiserialLow: number; rankBiserialHigh: number  // effect-size CI (APA-7: report r WITH its CI); complete separation pins both to ±1 (boundary)
   hodgesLehmann: number | null; hlLow: number | null; hlHigh: number | null  // wilcox.test(conf.int=TRUE)$estimate / $conf.int — same branch as the test (APA-7: location-shift estimate + CI); guarded NA→null
+  method: string  // wilcox.test()$method — discloses exact vs. asymptotic (with/without continuity correction), same field wilcoxon-signed-rank already surfaces
   alpha: number
   tails: string
   nExcluded: number
@@ -32,7 +33,7 @@ z <- as.numeric(coin::statistic(coin::wilcox_test(score ~ g, data = df)))  # asy
 rb <- effectsize::rank_biserial(score ~ g, data = df, ci = 0.95)
 list(ranks = ranks, u = unname(res$statistic), z = z, p = res$p.value,
   rankBiserial = rb$r_rank_biserial, rankBiserialLow = rb$CI_low, rankBiserialHigh = rb$CI_high,
-  hodgesLehmann = hl, hlLow = hlci[1], hlHigh = hlci[2])`
+  hodgesLehmann = hl, hlLow = hlci[1], hlHigh = hlci[2], method = res$method)`
 
 // Same boxplot as the t-test's (card figure type: boxplot); print() renders into the active png() device.
 const R_BOXPLOT = String.raw`
@@ -40,7 +41,7 @@ print(ggplot2::ggplot(data.frame(group = factor(group), score = score), ggplot2:
   ggplot2::geom_boxplot(fill = '#9cc2ec', colour = '#0c447c') +
   ggplot2::labs(x = NULL, y = NULL))`
 
-interface RawStats { ranks: RankSummaryRow[]; u: number; z: number; p: number; rankBiserial: number; rankBiserialLow: number; rankBiserialHigh: number; hodgesLehmann: number | null; hlLow: number | null; hlHigh: number | null }
+interface RawStats { ranks: RankSummaryRow[]; u: number; z: number; p: number; rankBiserial: number; rankBiserialLow: number; rankBiserialHigh: number; hodgesLehmann: number | null; hlLow: number | null; hlHigh: number | null; method: string }
 
 /** forceApprox is test-only (and the implicit large-N path): exact=FALSE pins the branch where correct= matters. */
 export async function runMannWhitneyU(engine: Engine, data: Dataset, outcome: string, group: string,
@@ -54,5 +55,5 @@ export async function runMannWhitneyU(engine: Engine, data: Dataset, outcome: st
   const figurePng = await engine.capturePlot(R_BOXPLOT, 600, 450, env)
   return { ranks: [s.ranks[0], s.ranks[1]], u: s.u, z: s.z, p: s.p, rankBiserial: s.rankBiserial,
     rankBiserialLow: s.rankBiserialLow, rankBiserialHigh: s.rankBiserialHigh,
-    hodgesLehmann: s.hodgesLehmann, hlLow: s.hlLow, hlHigh: s.hlHigh, alpha, tails: alternative, nExcluded, figurePng }
+    hodgesLehmann: s.hodgesLehmann, hlLow: s.hlLow, hlHigh: s.hlHigh, method: s.method, alpha, tails: alternative, nExcluded, figurePng }
 }

@@ -24,7 +24,10 @@ export function buildMannWhitneyU(spec: TestSpec, r: MannWhitneyUResult): CardCo
     ],
     note: spec.tableNote ?? null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
+    // Method disclosure (R1 gap-fix): wilcox.test()$method names the exact branch that ran (exact vs.
+    // asymptotic, with/without continuity correction) — appended at render time, like tailsNote above,
+    // so telos_test_outputs.html's static howToRead text is untouched (same pattern as the α/tails suffix).
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails) + ` Method: ${r.method}.`,
     apa,
     nExcluded: r.nExcluded,
     // U8-T4: keyed to match the 'mann-whitney-u' EXPLAINERS entries in registry/explainers.ts.
@@ -38,6 +41,10 @@ export function buildMannWhitneyU(spec: TestSpec, r: MannWhitneyUResult): CardCo
       sumRanks0: f(r.ranks[0].sumRanks), sumRanks1: f(r.ranks[1].sumRanks),
       u: fdf(r.u), z: f(r.z), p: fpApa(r.p),
       r: f(r.rankBiserial), rlo: f(r.rankBiserialLow), rhi: f(r.rankBiserialHigh),
+      // R1 gap-fix: the HL estimate lacked an explainers.ts entry (a hole the U8 coverage gate misses,
+      // since it only checks registry COLUMN keys — 'hl' is a span-row value, same class as vifMax).
+      hl: fx(r.hodgesLehmann, f), hlLow: fx(r.hlLow, f), hlHigh: fx(r.hlHigh, f),
+      method: r.method,
     },
   }
 }

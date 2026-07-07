@@ -23,6 +23,7 @@ const result: FriedmanResult = {
     { pair: 'score_t1 - score_t3', pAdj: 1.0e-10 }, // placeholder finite value
     { pair: 'score_t2 - score_t3', pAdj: 0.0012 },
   ],
+  n: 60,
   nExcluded: 0,
   figurePng: png,
 }
@@ -83,6 +84,11 @@ describe('buildFriedman', () => {
       conditionNames: 'score_t1, score_t2, score_t3',
       meanRankLowCond: 'score_t1', meanRankLowVal: '1.08', meanRankHighCond: 'score_t3', meanRankHighVal: '2.98',
       padj: '<.001', padjPair: 'score_t1 - score_t3',
+      n: '60',
     })
+  })
+
+  it('N subjects is disclosed in how-to-read (R1 gap-fix)', () => {
+    expect(c.howToRead).toContain('N = 60 subjects.')
   })
 })

@@ -21,7 +21,10 @@ export function buildWilcoxonSignedRank(spec: TestSpec, r: WilcoxonSignedRankRes
     ],
     note: null, // the drawn Wilcoxon card has no table note (design ruling)
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
-    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
+    // Method disclosure (R1 gap-fix): wt$method was already computed but never surfaced — appended at
+    // render time (like tailsNote above), so telos_test_outputs.html's static howToRead + the "no note"
+    // consistency assertion for this card are both untouched.
+    howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails) + ` Method: ${r.method}.`,
     apa,
     nExcluded: r.nExcluded,
     // U8-T4: keyed to match the 'wilcoxon-signed-rank' EXPLAINERS entries in registry/explainers.ts.
@@ -35,6 +38,7 @@ export function buildWilcoxonSignedRank(spec: TestSpec, r: WilcoxonSignedRankRes
       v: f(r.v), z: f(r.z), p: fpApa(r.p),
       r: f(r.r), rlo: f(r.rLow), rhi: f(r.rHigh),
       hl: `${fx(r.hl, f)} [${fx(r.hlLow, f)}, ${fx(r.hlHigh, f)}]`,
+      method: r.method,
     },
   }
 }

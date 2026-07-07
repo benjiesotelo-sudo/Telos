@@ -9,7 +9,9 @@ import { f, fp, fpApa } from '../format/apa'
 // then span rows for the §2.8 diagnostics (weak-IV F, Wu–Hausman, Sargan). NO stars (D1). ivreg has NO aic/bic/logLik.
 // The First-stage table (Table 1) stays a classic table, unchanged.
 export function buildIvTwoStage(spec: TestSpec, r: IvResult): CardContent {
-  const firstStageRows = r.firstStage.map((x) => ({ instrument: x.instrument, coef: f(x.coef), se: f(x.se), partialF: f(x.partialF), p: fp(x.p) }))
+  // R1 gap-fix: one first-stage row per (endogenous, instrument) pair — every endogenous regressor gets
+  // its own first-stage fit now, not just the first.
+  const firstStageRows = r.firstStage.map((x) => ({ endogenous: x.endogenous, instrument: x.instrument, coef: f(x.coef), se: f(x.se), partialF: f(x.partialF), p: fp(x.p) }))
   const t2 = spec.tables[1]
   const gofValue: Record<string, string> = { n: String(r.nObs), rmse: f(r.rmse), structF: f(r.structF) }
   const sargan = r.sargan == null ? '— (just-identified)' : `${f(r.sargan)}, p ${fpApa(r.sarganP ?? 1)}`
@@ -31,6 +33,8 @@ export function buildIvTwoStage(spec: TestSpec, r: IvResult): CardContent {
   const apa = spec.apaTemplate
     .replace('for X was', `for ${endo ?? 'the endogenous regressor'} was`)
     .replace('{b}', endoCoef ? f(endoCoef.b) : '—')
+    // R1 gap-fix: the APA sentence previously omitted the CI (the table already carries it).
+    .replace('{lo}', endoCoef ? f(endoCoef.ciLow) : '—').replace('{hi}', endoCoef ? f(endoCoef.ciHigh) : '—')
     .replace('p {p}', `p ${endoCoef ? fpApa(endoCoef.p) : '—'}`)
     .replace('{f}', f(r.weakF))
   const figs = figuresOf(spec)
@@ -47,6 +51,7 @@ export function buildIvTwoStage(spec: TestSpec, r: IvResult): CardContent {
     apa,
     nExcluded: r.nExcluded,
     values: {
+      endogenous: firstInstrument ? firstInstrument.endogenous : undefined,
       instrument: firstInstrument ? firstInstrument.instrument : undefined,
       coef: firstInstrument ? f(firstInstrument.coef) : undefined,
       se: firstInstrument ? f(firstInstrument.se) : undefined,
@@ -54,6 +59,7 @@ export function buildIvTwoStage(spec: TestSpec, r: IvResult): CardContent {
       p: firstInstrument ? fp(firstInstrument.p) : undefined,
       ols: endoCoef ? f(endoCoef.olsB) : undefined,
       iv: endoCoef ? f(endoCoef.b) : undefined,
+      lo: endoCoef ? f(endoCoef.ciLow) : undefined, hi: endoCoef ? f(endoCoef.ciHigh) : undefined,
       n: gofValue.n, rmse: gofValue.rmse, structF: gofValue.structF,
     },
   }

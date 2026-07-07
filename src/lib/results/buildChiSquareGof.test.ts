@@ -10,7 +10,7 @@ const res: ChiSquareGofResult = { variable: 'method',
     { category: 'lecture', observed: 14, expected: 12, stdRes: 0.683 },
     { category: 'seminar', observed: 8, expected: 8, stdRes: 0 },
   ],
-  chisq: 0.5333, df: 2, p: 0.7659, w: 0.1155, wLow: 0, wHigh: 1.4142, n: 40, alpha: 0.05, nExcluded: 0, figurePng: png }
+  chisq: 0.5333, df: 2, p: 0.7659, w: 0.1155, wLow: 0, wHigh: 1.4142, n: 40, minExpected: 8, alpha: 0.05, nExcluded: 0, figurePng: png }
 
 describe('buildChiSquareGof', () => {
   it('Table 1 rows (expected 2 dp, stdres 2 dp with U+2212 minus) + Table 2', () => {
@@ -26,6 +26,14 @@ describe('buildChiSquareGof', () => {
     expect(buildChiSquareGof(CHI_SQUARE_GOF, res).values).toEqual({
       category: '3', observed: '8–18', expected: '8.00–20.00', stdres: '0.00–0.68',
       chisq: '0.53', df: '2', n: '40', p: '= .766', alpha: '0.05', w: '.12', wLow: '.00', wHigh: '1.41',
+      minExpected: '8.0',
     })
+  })
+  it('R1 gap-fix: dynamic small-expected-count warning appends when min expected < 5 (parity with the independence card)', () => {
+    const sparse = buildChiSquareGof(CHI_SQUARE_GOF, { ...res, minExpected: 3.2 })
+    expect(sparse.note!.text).toBe(CHI_SQUARE_GOF.tableNote!.text + " Smallest expected count here is 3.2 — consider Fisher's exact test.")
+  })
+  it('no warning appended when min expected >= 5', () => {
+    expect(buildChiSquareGof(CHI_SQUARE_GOF, res).note).toEqual(CHI_SQUARE_GOF.tableNote)
   })
 })

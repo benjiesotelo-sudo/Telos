@@ -5,7 +5,7 @@ import type { IvResult } from '../stats/ivTwoStage'
 
 // All values native-R verified: ivreg(.y ~ educ + exper | educ_iv + exper, causal.csv) + lm(.y ~ educ + exper), HC1.
 const mock = (over: Partial<IvResult> = {}): IvResult => ({
-  firstStage: [{ instrument: 'educ_iv', coef: 1.156964, se: 0.05525, partialF: 438.5002, p: 1e-50 }],
+  firstStage: [{ endogenous: 'educ', instrument: 'educ_iv', coef: 1.156964, se: 0.05525, partialF: 438.5002, p: 1e-50 }],
   coefRows: [
     { term: '(Intercept)', b: 202.740458, se: 4.100799, t: 49.44, p: 1e-30, ciLow: 194.653358, ciHigh: 210.827558,
       olsB: 178.904637, olsSe: 2.405887, olsCiLow: 174.160038, olsCiHigh: 183.649236 },
@@ -22,9 +22,9 @@ const mock = (over: Partial<IvResult> = {}): IvResult => ({
 })
 
 describe('buildIvTwoStage', () => {
-  it('first-stage (Table 1) stays a classic table, unchanged', () => {
+  it('first-stage (Table 1) now carries the Endogenous column (R1 gap-fix: one fit per endogenous regressor)', () => {
     const c = buildIvTwoStage(IV_TWO_STAGE, mock())
-    expect(c.tables[0].rows[0]).toEqual({ instrument: 'educ_iv', coef: '1.16', se: '0.06', partialF: '438.50', p: '<.001' })
+    expect(c.tables[0].rows[0]).toEqual({ endogenous: 'educ', instrument: 'educ_iv', coef: '1.16', se: '0.06', partialF: '438.50', p: '<.001' })
   })
   it('2SLS table is SHAPE B — per term: coef {ols,iv} → muted (SE) → muted [CI]', () => {
     const rows = buildIvTwoStage(IV_TWO_STAGE, mock()).tables[1].rows
@@ -52,9 +52,9 @@ describe('buildIvTwoStage', () => {
       .filter((x) => x._kind === 'span').map((x) => x.term)
     expect(spans[2]).toBe('Sargan: 2.31, p = .128')
   })
-  it('APA is softened — "the 2SLS estimate for X was B", no causal "had an effect"', () => {
+  it('APA is softened — "the 2SLS estimate for X was B", no causal "had an effect"; now carries the CI (R1 gap-fix)', () => {
     const apa = buildIvTwoStage(IV_TWO_STAGE, mock()).apa
-    expect(apa).toBe('The 2SLS estimate for educ was B=7.82, p < .001 (first-stage F=438.50).')
+    expect(apa).toBe('The 2SLS estimate for educ was B=7.82, 95% CI [7.26, 8.38], p < .001 (first-stage F=438.50).')
     expect(apa).not.toContain('had an effect')
   })
   it('note is the static descriptive tableNote, unchanged (live diagnostics now live in span rows)', () => {
@@ -63,8 +63,8 @@ describe('buildIvTwoStage', () => {
 
   it('A5: values carries the term-led explainer lookup (first-stage row + endogenous OLS/IV + gof)', () => {
     expect(buildIvTwoStage(IV_TWO_STAGE, mock()).values).toEqual({
-      instrument: 'educ_iv', coef: '1.16', se: '0.06', partialF: '438.50', p: '<.001',
-      ols: '9.57', iv: '7.82', n: '200', rmse: '6.67', structF: '373.44',
+      endogenous: 'educ', instrument: 'educ_iv', coef: '1.16', se: '0.06', partialF: '438.50', p: '<.001',
+      ols: '9.57', iv: '7.82', lo: '7.26', hi: '8.38', n: '200', rmse: '6.67', structF: '373.44',
     })
   })
 })

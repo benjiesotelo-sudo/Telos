@@ -47,6 +47,11 @@ export function buildFixedEffects(spec: TestSpec, r: FixedEffectsResult): CardCo
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
-    values: { ...gofValue, est: first ? f(first.b) : undefined },
+    values: {
+      ...gofValue, est: first ? f(first.b) : undefined,
+      // R1 gap-fix: the poolability F lives only in the note text, not a registry column — no explainers.ts
+      // entry (a hole the U8 coverage gate misses, same class as the hausman-test chi-sq / VAR / RE BP LM).
+      poolF: f(r.poolF), poolP: fpApa(r.poolP),
+    },
   }
 }

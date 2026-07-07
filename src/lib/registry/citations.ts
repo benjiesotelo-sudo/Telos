@@ -124,6 +124,17 @@ const EMMEANS_REF: Ref = { text: 'Lenth RV (2024). emmeans: Estimated Marginal M
 const RSTATIX_REF: Ref = { text: 'Kassambara A (2023). rstatix: Pipe-Friendly Framework for Basic Statistical Tests. R package.', url: 'https://CRAN.R-project.org/package=rstatix' }
 const NORTEST_REF: Ref = { text: 'Gross J, Ligges U (2015). nortest: Tests for Normality. R package.', url: 'https://CRAN.R-project.org/package=nortest' }
 const SEMINR_REF: Ref = { text: 'Ray S, Danks N, Calero Valdéz A (2021). seminr: Domain-Specific Language for Building PLS Structural Equation Models. R package.', url: 'https://CRAN.R-project.org/package=seminr' }
+const JANITOR_REF: Ref = { text: 'Firke S (2023). janitor: Simple Tools for Examining and Cleaning Dirty Data. R package.', url: 'https://CRAN.R-project.org/package=janitor' }
+
+// Provenance-audit fix round (U9-T3 wave C, 2026-07-06 completeness audit): Kendall's W and the Nemenyi
+// post-hoc, both rendered on the friedman card but previously uncited.
+const KENDALL_1948: Ref = { text: 'Kendall, M. G. (1948). Rank Correlation Methods. Charles Griffin & Company.' }
+const NEMENYI_1963: Ref = { text: 'Nemenyi, P. B. (1963). Distribution-free multiple comparisons [Doctoral dissertation, Princeton University].' }
+// Wu-Hausman endogeneity test and the Sargan over-identification test, both rendered on the iv-2sls card
+// (summary(ivreg, diagnostics=TRUE)) but previously uncited (a hole the U7 citation-coverage gate misses,
+// since it only checks that an entry EXISTS per card, not that every rendered diagnostic has a claim).
+const WU_1973: Ref = { text: 'Wu, D. M. (1973). "Alternative tests of independence between stochastic regressors and disturbances." Econometrica, 41(4), 733-750.', url: 'https://doi.org/10.2307/1914093' }
+const SARGAN_1958: Ref = { text: 'Sargan, J. D. (1958). "The estimation of economic relationships using instrumental variables." Econometrica, 26(3), 393-415.', url: 'https://doi.org/10.2307/1907619' }
 
 // R language itself (used for the base OLS coefficient claim, matching the brief's worked example).
 const R_CORE_REF: Ref = { text: 'R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna.' }
@@ -132,19 +143,23 @@ export const CITATIONS: Record<string, TestCitations> = {
   'summary-statistics': {
     whyThisTest: {
       text: 'Recommended when you want to summarize the central tendency and spread of one or more numeric variables.',
-      refs: [MODELSUMMARY_REF],
+      refs: [PSYCH_REF],
     },
     statisticalBasis: [
-      { claim: 'Descriptive statistics table (mean, SD, median, min/max, N, skew, kurtosis)', ref: MODELSUMMARY_REF },
+      // Provenance-audit fix (U9-T3 wave C): the app computes these via psych::describe (Revelle) — the
+      // export script's modelsummary::datasummary_skim is a documented, separate reporting-convention path
+      // (assocDesc.ts), not what the ON-SCREEN card actually runs. Re-attributed to the true computation.
+      { claim: 'Descriptive statistics table (mean, SD, median, min/max, N, skew, kurtosis)', ref: PSYCH_REF },
     ],
   },
   'frequencies-crosstabs': {
     whyThisTest: {
       text: 'Recommended when you want counts and cross-tabulations for one or more categorical variables.',
-      refs: [MODELSUMMARY_REF],
+      refs: [JANITOR_REF],
     },
     statisticalBasis: [
-      { claim: 'Frequency counts and cross-tabulations', ref: MODELSUMMARY_REF },
+      // Provenance-audit fix (U9-T3 wave C): the app computes these via janitor::tabyl (Firke), not modelsummary.
+      { claim: 'Frequency counts and cross-tabulations', ref: JANITOR_REF },
     ],
   },
   'distribution-normality': {
@@ -331,6 +346,9 @@ export const CITATIONS: Record<string, TestCitations> = {
     statisticalBasis: [
       { claim: 'Kruskal-Wallis H test (nonparametric counterpart to one-way ANOVA)', ref: KRUSKAL_WALLIS_1952 },
       { claim: "Dunn's post-hoc pairwise comparisons", ref: RSTATIX_REF },
+      // Provenance-audit fix (U9-T3 wave C): ε² is effectsize::rank_epsilon_squared, not a Kruskal-Wallis
+      // primary — cited to the package that supplies it (mirrors nested-anova's ω² precedent).
+      { claim: 'ε² effect size', ref: EFFECTSIZE_REF },
     ],
   },
   friedman: {
@@ -340,6 +358,8 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: 'Friedman rank test (nonparametric counterpart to repeated-measures ANOVA)', ref: FRIEDMAN_1937 },
+      { claim: "Kendall's W effect size (agreement among rankings)", ref: KENDALL_1948 },
+      { claim: 'Nemenyi post-hoc pairwise comparisons', ref: NEMENYI_1963 },
     ],
   },
   pearson: {
@@ -397,6 +417,9 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: "Fisher's exact test (conditional MLE odds ratio for 2x2 tables)", ref: FISHER_1922 },
+      // Provenance-audit fix (U9-T3 wave C): Cramér's V (larger-than-2x2 tables) is effectsize::cramers_v,
+      // previously rendered on-card but uncited.
+      { claim: "Cramér's V effect size (larger-than-2×2 tables)", ref: EFFECTSIZE_REF },
     ],
   },
   'simple-linear-regression': {
@@ -540,6 +563,10 @@ export const CITATIONS: Record<string, TestCitations> = {
       { claim: 'Two-stage least squares (2SLS) estimation', ref: IVREG_REF },
       { claim: 'Weak-instrument first-stage F rule of thumb', ref: STOCK_YOGO_2005 },
       { claim: 'Heteroscedasticity-robust standard errors', ref: SANDWICH_REF },
+      // Provenance-audit fix (U9-T3 wave C): Wu-Hausman endogeneity + Sargan over-identification are
+      // rendered as diagnostic span rows (summary(ivreg, diagnostics=TRUE)) but were previously uncited.
+      { claim: 'Wu-Hausman endogeneity test', ref: WU_1973 },
+      { claim: 'Sargan over-identification test', ref: SARGAN_1958 },
     ],
   },
   'propensity-score-matching': {
