@@ -1,10 +1,12 @@
 import type { Emitter } from './index'
-import type { Construct } from '../../../../state/session'
+import type { Construct, StructuralPath } from '../../../../state/session'
 import { MAKECLUSTER_SHIM } from '../../../webr/parallelShim'
 import { R_SATURATED_PREDICATE } from '../../../stats/semSaturation'
 import { lvNames } from '../../../stats/lvName'
 import { buildModel } from '../../../stats/runCbSem'
 import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE } from '../../../stats/moderationModel'
+import { BC_CI_R } from '../../../stats/plsBcCi'
+import { SIMPLE_SLOPES_PLOT_R } from '../../../stats/simpleSlopesPlot'
 
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim — same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
@@ -634,27 +636,52 @@ export const latentEmitters: Record<string, Emitter> = {
   },
 
   // seminr PLS-SEM: estimate_pls + bootstrap_model (serial-cluster shim — WASM has no PSOCK sockets).
-  // Reliability raw order is alpha/rhoC/AVE/rhoA → printed reordered to α/ρ_A/CR/AVE.
-  // Reflective = composite(..., weights = mode_A); formative = mode_B (weights + VIF, AVE suppressed).
-  // Bootstrap CI = percentile (seminr default); indirect via specific_effect_significance.
+  // U6 reshape parity (mirrors buildPlsSem.ts / runPlsSem.ts EXACTLY, same table numbering as the app card):
+  //   Table 1: Measurement model (merged construct alpha/rhoA/CR/AVE + per-item mean/sd/loading-or-weight/t/p)
+  //   Table 2: HTMT
+  //   Table 3: Structural paths (β + t/p + dual 95% CI - percentile from seminr + hand-rolled BC via BC_CI_R)
+  //   Table 4: Structural quality (R² / R²adj / Q²_predict)
+  //   Table 5: Indirect effects
+  //   Table 6: Conditional effects (simple slopes) - only when a moderation edge is present
+  // Latent moderation (U6-T4/T5): seminr's interaction_term(iv=, moderator=, method=two_stage) is spliced
+  // into the SAME constructs()/relationships() calls as an ordinary construct + path (mirrors plsSem.ts's
+  // TS assembly verbatim - no item-level product-indicator bookkeeping the way CB-SEM's indProd needs).
   'pls-sem': (_spec, setup) => {
     const constructs: Construct[] = (setup.constructs ?? []) as Construct[]
     if (constructs.length === 0) return '# No constructs defined — nothing to run for PLS-SEM.'
     const byId = new Map(constructs.map((c) => [c.id, c.name]))
-    const paths = setup.paths ?? []
+    const paths: StructuralPath[] = (setup.paths ?? []) as StructuralPath[]
     const nboot = Number(setup.options['nboot'] ?? 5000)
+    const fromName = (id: number) => byId.get(id) ?? String(id)
 
-    const mmLines = constructs
-      .map((c) => {
-        const items = `c(${c.items.map((it) => `"${it}"`).join(', ')})`
-        const wt = c.mode === 'formative' ? 'mode_B' : 'mode_A'
-        return `  composite("${c.name}", ${items}, weights = ${wt})`
-      })
-      .join(',\n')
-    const smLines = paths
-      .map((p) => `  paths(from = "${byId.get(p.from) ?? p.from}", to = "${byId.get(p.to) ?? p.to}")`)
-      .join(',\n')
+    const constructLines = constructs.map((c) => {
+      const items = `c(${c.items.map((it) => `"${it}"`).join(', ')})`
+      const wt = c.mode === 'formative' ? 'mode_B' : 'mode_A'
+      return `  composite("${c.name}", ${items}, weights = ${wt})`
+    })
+    const pathLines = paths.map((p) => `  paths(from = "${fromName(p.from)}", to = "${fromName(p.to)}")`)
     const formativeR = `c(${constructs.filter((c) => c.mode === 'formative').map((c) => `"${c.name}"`).join(', ')})`
+
+    // Moderation (U6-T4): same {ivName, modName, interaction-name, target} derivation as runPlsSem.ts -
+    // the moderated path's source construct is the iv, m.moderatorId resolves to the moderator, and
+    // seminr's literal "{iv}*{moderator}" naming convention needs no TS-side scheme of its own.
+    const moderations = setup.moderations ?? []
+    const modInteractions = moderations.map((m) => {
+      const p = paths[m.pathIndex]
+      const ivName = fromName(p.from)
+      const modName = fromName(m.moderatorId)
+      return { ivName, modName, name: `${ivName}*${modName}`, targetName: fromName(p.to) }
+    })
+    const hasModeration = modInteractions.length > 0
+    if (hasModeration) {
+      constructLines.push(
+        ...modInteractions.map(
+          ({ ivName, modName }) =>
+            `  interaction_term(iv = "${ivName}", moderator = "${modName}", method = two_stage, weights = mode_A)`,
+        ),
+      )
+      pathLines.push(...modInteractions.map(({ name, targetName }) => `  paths(from = "${name}", to = "${targetName}")`))
+    }
 
     const lines: string[] = [
       '# ---- PLS-SEM via seminr (estimate_pls + bootstrap_model) ----',
@@ -662,16 +689,31 @@ export const latentEmitters: Record<string, Emitter> = {
       MAKECLUSTER_SHIM,
       'library(seminr)',
       '',
+      '# Hand-rolled z0-adjusted percentile BC (U6-T3) - reused verbatim from the lavaan-verified text',
+      '# (src/lib/stats/plsBcCi.ts); seminr has no built-in bca.simple, so bc_ci() runs here against',
+      '# bo$boot_paths\' raw draws (a [from, to, boot_index] 3D array).',
+      BC_CI_R,
+      '',
       '# Measurement model (reflective = mode_A; formative = mode_B)',
       `mm <- constructs(`,
-      mmLines,
+      constructLines.join(',\n'),
       `)`,
       '',
       '# Structural model (paths by construct name)',
       `sm <- relationships(`,
-      smLines,
+      pathLines.join(',\n'),
       `)`,
       '',
+      ...(hasModeration
+        ? [
+            '# Moderation (U6-T4): interaction_term construct(s) added to the measurement model above.',
+            ...modInteractions.map(
+              ({ ivName, modName }) =>
+                `cat("interaction_term(iv = \\"${ivName}\\", moderator = \\"${modName}\\", method = two_stage)\\n")`,
+            ),
+            '',
+          ]
+        : []),
       '# Estimate + bootstrap (percentile CI; serial cores under the shim)',
       'gc()',
       'pls <- estimate_pls(data = d, measurement_model = mm, structural_model = sm)',
@@ -681,62 +723,162 @@ export const latentEmitters: Record<string, Emitter> = {
       'sb <- summary(bo)',
       'gc()',
       '',
-      '# Table 1: Outer model (loadings/weights + t/p)',
-      'cat("\\n--- Table 1: Outer model ---\\n")',
-      'print(round(sb$bootstrapped_loadings, 3))',
-      'print(round(sb$bootstrapped_weights, 3))',
-      '',
-      '# Table 2: Reliability — raw seminr order alpha/rhoC/AVE/rhoA → display α / ρ_A / CR / AVE',
-      'cat("\\n--- Table 2: Reliability & convergent validity (alpha / rhoA / rhoC=CR / AVE) ---\\n")',
-      'rel <- s$reliability[, c("alpha", "rhoA", "rhoC", "AVE"), drop = FALSE]',
+      "# The DRAWN construct names only - excludes seminr's derived interaction construct (no meaningful",
+      '# alpha/AVE/HTMT/outer rows; its structural row still flows through the path loop below).',
+      `construct_names <- c(${constructs.map((c) => `"${c.name}"`).join(', ')})`,
       `formative_names <- ${formativeR}`,
+      '',
+      '# ---- Table 1: Measurement model (construct alpha/rhoA/CR/AVE + item mean/sd/loading-or-weight/t/p) ----',
+      '# Raw seminr reliability order is alpha/rhoC/AVE/rhoA - reordered here to the display tuple.',
+      'rel <- s$reliability[, c("alpha", "rhoA", "rhoC", "AVE"), drop = FALSE]',
       'if (length(formative_names)) rel[rownames(rel) %in% formative_names, "AVE"] <- NA',
-      'print(round(rel, 4))',
+      'cat("\\n--- Table 1: Measurement model ---\\n")',
+      'for (nm in construct_names) {',
+      '  is_form <- nm %in% formative_names',
+      '  cat(sprintf("%s: alpha=%.3f rhoA=%.3f CR=%.3f AVE=%s\\n",',
+      '              nm, rel[nm, "alpha"], rel[nm, "rhoA"], rel[nm, "rhoC"],',
+      '              if (is_form) "NA" else sprintf("%.3f", rel[nm, "AVE"])))',
+      '  items_nm <- pls$mmMatrix[pls$mmMatrix[, "construct"] == nm, "measurement"]',
+      '  for (it in items_nm) {',
+      '    key <- paste0(it, "  ->  ", nm)',
+      '    m <- mean(d[[it]], na.rm = TRUE); sdv <- sd(d[[it]], na.rm = TRUE)',
+      '    if (is_form) {',
+      '      w <- as.numeric(sb$bootstrapped_weights[key, "Original Est."])',
+      '      tval <- as.numeric(sb$bootstrapped_weights[key, "T Stat."])',
+      '      cat(sprintf("  %s: weight=%.3f t=%.3f p=%.4f mean=%.3f sd=%.3f\\n",',
+      '                  it, w, tval, 2 * pnorm(-abs(tval)), m, sdv))',
+      '    } else {',
+      '      l <- as.numeric(sb$bootstrapped_loadings[key, "Original Est."])',
+      '      tval <- as.numeric(sb$bootstrapped_loadings[key, "T Stat."])',
+      '      cat(sprintf("  %s: loading=%.3f t=%.3f p=%.4f mean=%.3f sd=%.3f\\n",',
+      '                  it, l, tval, 2 * pnorm(-abs(tval)), m, sdv))',
+      '    }',
+      '  }',
+      '}',
       '',
-      '# Table 3: Discriminant validity (HTMT)',
-      'cat("\\n--- Table 3: HTMT ---\\n")',
-      'print(round(s$validity$htmt, 3))',
+      '# ---- Table 2: HTMT ----',
+      'cat("\\n--- Table 2: HTMT ---\\n")',
+      'print(round(s$validity$htmt[construct_names, construct_names, drop = FALSE], 3))',
       '',
-      '# Table 4: Structural paths (β + t/p + 95% CI + f²)',
-      'cat("\\n--- Table 4: Structural paths ---\\n")',
-      'print(round(sb$bootstrapped_paths, 4))',
-      'cat("\\n--- f-squared ---\\n")',
-      'print(round(s$fSquare, 4))',
+      '# ---- Table 3: Structural paths (β + t/p + dual 95% CI: percentile & hand-rolled BC) ----',
+      'bp <- sb$bootstrapped_paths',
+      'fsq <- s$fSquare',
+    ]
+
+    const pathFromNames = [...paths.map((p) => fromName(p.from)), ...modInteractions.map((m) => m.name)]
+    const pathToNames = [...paths.map((p) => fromName(p.to)), ...modInteractions.map((m) => m.targetName)]
+    lines.push(
+      `path_from_all <- c(${pathFromNames.map((n) => `"${n}"`).join(', ')})`,
+      `path_to_all   <- c(${pathToNames.map((n) => `"${n}"`).join(', ')})`,
+      'struct_beta <- numeric(length(path_from_all)); struct_t <- numeric(length(path_from_all))',
+      'struct_p <- numeric(length(path_from_all))',
+      'struct_perc_lo <- numeric(length(path_from_all)); struct_perc_hi <- numeric(length(path_from_all))',
+      'struct_bc_lo <- numeric(length(path_from_all)); struct_bc_hi <- numeric(length(path_from_all))',
+      'for (e in seq_along(path_from_all)) {',
+      '  fr <- path_from_all[e]; to <- path_to_all[e]',
+      '  key <- paste0(fr, "  ->  ", to)',
+      '  beta_e <- as.numeric(bp[key, "Original Est."])',
+      '  tval_e <- as.numeric(bp[key, "T Stat."])',
+      '  bcc <- bc_ci(bo$boot_paths[fr, to, ], beta_e)',
+      '  struct_beta[e] <- beta_e; struct_t[e] <- tval_e; struct_p[e] <- 2 * pnorm(-abs(tval_e))',
+      '  struct_perc_lo[e] <- as.numeric(bp[key, "2.5% CI"]); struct_perc_hi[e] <- as.numeric(bp[key, "97.5% CI"])',
+      '  struct_bc_lo[e] <- as.numeric(bcc[1]); struct_bc_hi[e] <- as.numeric(bcc[2])',
+      '}',
+      'struct_tab <- data.frame(',
+      '  h = paste0("H", seq_along(path_from_all)),',
+      '  path = paste(path_from_all, "->", path_to_all),',
+      '  beta = struct_beta, t = struct_t, pvalue = struct_p,',
+      '  perc.lower = struct_perc_lo, perc.upper = struct_perc_hi,',
+      '  bc.lower = struct_bc_lo, bc.upper = struct_bc_hi',
+      ')',
+      'cat("\\n--- Table 3: Structural paths ---\\n")',
+      'print(struct_tab)',
       '',
-      '# Table 5: Structural quality (R² / R²adj / Q²_predict)',
-      'cat("\\n--- Table 5: Structural quality (R^2 / AdjR^2 / Q^2_predict) ---\\n")',
-      'print(round(s$paths[c("R^2", "AdjR^2"), , drop = FALSE], 4))',
-      'cat("\\n--- Q^2_predict (PLSpredict; >0 = predictive relevance) ---\\n")',
+      '# ---- Table 4: Structural quality (R² / R²adj / Q²_predict) ----',
+      'paths_tbl <- s$paths',
+      'endo <- colnames(paths_tbl)',
       'set.seed(20260620)',
       'q2_pred <- tryCatch({',
       '  pp <- predict_pls(pls)',
       '  sp <- summary(pp)',
-      '  q2_items <- 1 - sp$PLS_out_of_sample["RMSE", ]^2 / sp$LM_out_of_sample["RMSE", ]^2',
-      '  endo <- colnames(s$paths)',
-      '  sapply(endo, function(nm) {',
+      '  1 - sp$PLS_out_of_sample["RMSE", ]^2 / sp$LM_out_of_sample["RMSE", ]^2',
+      '}, error = function(e) NULL)',
+      'quality_tab <- data.frame(',
+      '  construct = endo,',
+      '  r2 = as.numeric(paths_tbl["R^2", endo]), r2adj = as.numeric(paths_tbl["AdjR^2", endo]),',
+      '  q2 = sapply(endo, function(nm) {',
+      '    if (is.null(q2_pred)) return(NA)',
       '    its <- pls$mmMatrix[pls$mmMatrix[, "construct"] == nm, "measurement"]',
-      '    its <- its[its %in% names(q2_items)]',
-      '    if (length(its)) mean(q2_items[its]) else NA',
+      '    its <- its[its %in% names(q2_pred)]',
+      '    if (length(its)) mean(q2_pred[its]) else NA',
       '  })',
-      '}, error = function(e) { cat("(Q^2_predict skipped:", conditionMessage(e), ")\\n"); NULL })',
-      'if (!is.null(q2_pred)) print(round(q2_pred, 4))',
+      ')',
+      'cat("\\n--- Table 4: Structural quality (R^2 / AdjR^2 / Q^2_predict) ---\\n")',
+      'print(round(quality_tab[, c("r2", "r2adj", "q2")], 4))',
       '',
-      '# Table 6: Indirect effects (specific_effect_significance over each mediated triple)',
-      'cat("\\n--- Table 6: Indirect effects ---\\n")',
-      'cn <- pls$constructs',
-      'adj <- matrix(FALSE, length(cn), length(cn), dimnames = list(cn, cn))',
-    ]
+      '# ---- Table 5: Indirect effects (specific_effect_significance over each mediated triple) ----',
+      '# Interaction edges are skipped: the interaction construct is not a dimname of adj and never',
+      '# participates in a mediation chain (no incoming paths) - matches plsSem.ts\'s R block exactly.',
+      'cat("\\n--- Table 5: Indirect effects ---\\n")',
+      'k_cn <- length(construct_names)',
+      'adj <- matrix(FALSE, k_cn, k_cn, dimnames = list(construct_names, construct_names))',
+    )
     paths.forEach((p) => {
-      lines.push(`adj["${byId.get(p.from) ?? p.from}", "${byId.get(p.to) ?? p.to}"] <- TRUE`)
+      lines.push(`adj["${fromName(p.from)}", "${fromName(p.to)}"] <- TRUE`)
     })
     lines.push(
-      'for (a in cn) for (z in cn) if (a != z) {',
-      '  for (m in cn[adj[a, ] & adj[, z]]) {',
+      'for (a in construct_names) for (z in construct_names) if (a != z) {',
+      '  for (m in construct_names[adj[a, ] & adj[, z]]) {',
       '    sig <- tryCatch(specific_effect_significance(bo, from = a, through = m, to = z, alpha = 0.05),',
       '                    error = function(e) NULL)',
       '    if (!is.null(sig)) { cat(sprintf("  %s -> %s -> %s: ", a, m, z)); print(round(sig, 4)) }',
       '  }',
       '}',
+    )
+
+    if (hasModeration) {
+      lines.push(
+        '',
+        '# ---- Table 6: Conditional effects (simple slopes at -1SD/mean/+1SD, percentile 95% CI) ----',
+        '# Same derivation as plsSem.ts\'s R block: mod_sd is the moderator\'s OBSERVED composite-score SD',
+        '# (Aiken & West 1991 applied to the composite/summed-indicator metric); levels are fixed at the',
+        '# original mod_sd for every bootstrap draw (draws differ only in the main/interaction path terms).',
+        `mod_iv_name <- c(${modInteractions.map((m) => `"${m.ivName}"`).join(', ')})`,
+        `mod_name    <- c(${modInteractions.map((m) => `"${m.modName}"`).join(', ')})`,
+        `mod_int_name <- c(${modInteractions.map((m) => `"${m.name}"`).join(', ')})`,
+        `mod_target_name <- c(${modInteractions.map((m) => `"${m.targetName}"`).join(', ')})`,
+        'slope_levels <- character(0); slope_mods <- character(0)',
+        'slope_bs <- numeric(0); slope_los <- numeric(0); slope_his <- numeric(0)',
+        'cat("\\n--- Table 6: Conditional effects (simple slopes) ---\\n")',
+        'for (mi in seq_along(mod_iv_name)) {',
+        '  mod_sd <- stats::sd(pls$construct_scores[, mod_name[mi]])',
+        '  key_main <- paste0(mod_iv_name[mi], "  ->  ", mod_target_name[mi])',
+        '  key_int  <- paste0(mod_int_name[mi], "  ->  ", mod_target_name[mi])',
+        '  b_main <- as.numeric(bp[key_main, "Original Est."])',
+        '  b_int  <- as.numeric(bp[key_int, "Original Est."])',
+        '  main_draws <- bo$boot_paths[mod_iv_name[mi], mod_target_name[mi], ]',
+        '  int_draws  <- bo$boot_paths[mod_int_name[mi], mod_target_name[mi], ]',
+        '  levels <- c("-1SD" = -mod_sd, "mean" = 0, "+1SD" = mod_sd)',
+        '  for (lvl_name in names(levels)) {',
+        '    lvl <- levels[[lvl_name]]',
+        '    draws <- main_draws + int_draws * lvl',
+        '    se <- stats::sd(draws)',
+        '    qs <- stats::quantile(draws, probs = c(0.025, 0.975))',
+        '    b_lvl <- b_main + b_int * lvl',
+        '    cat(sprintf("  %s (%s): b=%.6f se=%.6f ci=[%.6f, %.6f]\\n",',
+        '                mod_int_name[mi], lvl_name, b_lvl, se, qs[1], qs[2]))',
+        '    slope_levels <- c(slope_levels, lvl_name); slope_mods <- c(slope_mods, mod_int_name[mi])',
+        '    slope_bs <- c(slope_bs, b_lvl); slope_los <- c(slope_los, as.numeric(qs[1])); slope_his <- c(slope_his, as.numeric(qs[2]))',
+        '  }',
+        '}',
+        '',
+        '# ---- Figure: whiskered simple-slopes plot (same R text as simpleSlopesPlot.ts - export = app) ----',
+        'levels <- slope_levels; mods <- slope_mods; bs <- slope_bs; los <- slope_los; his <- slope_his',
+        SIMPLE_SLOPES_PLOT_R,
+      )
+    }
+
+    lines.push(
       '',
       '# Figure: path diagram — semPaths stand-in (the app exports the annotated SVG via html-to-image)',
       'cat("\\n--- Figure: PLS path diagram (semPaths reproducible stand-in) ---\\n")',
@@ -757,6 +899,6 @@ export const latentPackages: Record<string, string[]> = {
   'efa': ['psych', 'ggplot2'],
   'pca': ['ggplot2'],
   'cb-sem': ['lavaan', 'semTools', 'psych', 'semPlot'],
-  'pls-sem': ['seminr'],
+  'pls-sem': ['seminr', 'ggplot2'],
   'path-analysis': ['lavaan', 'semTools', 'psych', 'semPlot'],
 }

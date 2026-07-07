@@ -160,7 +160,8 @@ const REPS: Rep[] = [
 
   // pls-sem: 3 reflective constructs from the seminr 'mobi' example; nboot reduced to 300 for gate time.
   // native-R verified 2026-06-21 (seminr 2.5.0): reliability rhoC Image≈0.833, Satisfaction≈0.871;
-  // R^2 Satisfaction≈0.616; HTMT + bootstrapped paths reach stdout.
+  // R^2 Satisfaction≈0.616. Table numbering here is POST-reshape (U6-T6): Table 1 = merged measurement
+  // (was Table 1 Outer model + Table 2 Reliability, pre-Unit-6), Table 2 = HTMT, Table 3 = structural paths.
   { id: 'pls-sem', fixture: 'mobi.csv',
     setup: {
       roles: {},
@@ -179,7 +180,36 @@ const REPS: Rep[] = [
         { from: 2, to: 3 },
       ],
     },
-    expect: ['Table 2: Reliability', 'Table 3: HTMT', 'Table 4: Structural paths'],
+    expect: ['Table 1: Measurement model', 'Table 2: HTMT', 'Table 3: Structural paths'],
+  },
+
+  // pls-sem moderation: full 7-construct mobi model (moderation spike §3 / plsSem.test.ts's MOBI_MOD_SETUP)
+  // Expectation moderates Image -> Satisfaction (pathIndex 1). nboot=500 at the runner's pinned seed
+  // 20260620 matches plsSem.test.ts's own native-R-verified reference EXACTLY (WebR proved byte-identical
+  // to native R at this seed): interaction beta = -0.016341, t = -0.570661, perc CI = [-0.073773, 0.039758].
+  { id: 'pls-sem', fixture: 'mobi.csv',
+    setup: {
+      roles: {}, options: { nboot: 500 }, props: {}, blocked: null, modelKind: 'latent' as const,
+      constructs: [
+        { id: 1, name: 'Image', mode: 'reflective' as const, items: ['IMAG1', 'IMAG2', 'IMAG3', 'IMAG4', 'IMAG5'] },
+        { id: 2, name: 'Expectation', mode: 'reflective' as const, items: ['CUEX1', 'CUEX2', 'CUEX3'] },
+        { id: 3, name: 'Quality', mode: 'reflective' as const, items: ['PERQ1', 'PERQ2', 'PERQ3', 'PERQ4', 'PERQ5', 'PERQ6', 'PERQ7'] },
+        { id: 4, name: 'Value', mode: 'reflective' as const, items: ['PERV1', 'PERV2'] },
+        { id: 5, name: 'Satisfaction', mode: 'reflective' as const, items: ['CUSA1', 'CUSA2', 'CUSA3'] },
+        { id: 6, name: 'Complaints', mode: 'reflective' as const, items: ['CUSCO'] },
+        { id: 7, name: 'Loyalty', mode: 'reflective' as const, items: ['CUSL1', 'CUSL2', 'CUSL3'] },
+      ],
+      paths: [
+        { from: 1, to: 2 }, { from: 1, to: 5 }, { from: 1, to: 7 },
+        { from: 2, to: 3 }, { from: 2, to: 4 }, { from: 2, to: 5 },
+        { from: 3, to: 4 }, { from: 3, to: 5 },
+        { from: 4, to: 5 },
+        { from: 5, to: 6 }, { from: 5, to: 7 },
+        { from: 6, to: 7 },
+      ],
+      moderations: [{ id: 1, moderatorId: 2, pathIndex: 1 }],
+    },
+    expect: ['Table 1: Measurement model', 'Table 2: HTMT', 'Table 3: Structural paths', 'interaction_term'],
   },
 
   // cb-sem: Bollen PoliticalDemocracy (ind60→dem60→dem65 + direct). df=41 (NOT saturated → fit table prints).
@@ -411,4 +441,44 @@ describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
     // (3) pint_1 (the interaction term) reaches Table 8 — its only home.
     expect(table8Block).toContain('pint_1')
   }, 120_000)
+
+  // U6-T6: PLS-SEM moderation numeric precision (mirrors the cb-sem moderation test above). The interaction
+  // path's own beta/t in Table 3's printed data.frame must match plsSem.test.ts's native-R-verified reference
+  // EXACTLY - same seed (20260620) and nboot (500), so this is a genuine cross-check of the export emitter
+  // against the already WebR≡native-verified runner, not a fresh derivation.
+  it(
+    'pls-sem moderation - interaction path beta/t match the native-R reference to 5 decimals, table titles/scoping post-reshape',
+    () => {
+      const modRep = REPS.filter((r) => r.id === 'pls-sem').find((r) => (r.setup.moderations?.length ?? 0) > 0)!
+      const ds = parseCsv(readFileSync(join(FIXTURES, modRep.fixture), 'utf8'))
+      const R = emitRScript([modRep.id], { [modRep.id]: modRep.setup }, SPECS, ds)
+      const csv = toCsv(ds)
+      const dir = mkdtempSync(join(tmpdir(), 'telos-r-pls-mod-'))
+      writeFileSync(join(dir, 'analysis.R'), R)
+      writeFileSync(join(dir, 'cleaned.csv'), csv)
+      const out = execSync('Rscript analysis.R', { cwd: dir, encoding: 'utf8', stdio: 'pipe' })
+
+      const t3start = out.indexOf('--- Table 3: Structural paths ---')
+      const t3end = out.indexOf('--- Table 4: Structural quality')
+      const t6start = out.indexOf('--- Table 6: Conditional effects (simple slopes) ---')
+      expect(t3start).toBeGreaterThan(-1)
+      expect(t3end).toBeGreaterThan(t3start)
+      expect(t6start).toBeGreaterThan(t3end) // Table 6 only present because moderation ran
+
+      const table3Block = out.slice(t3start, t3end)
+      expect(table3Block).toContain('Image*Expectation -> Satisfaction')
+      const rowMatch = table3Block.match(/Image\*Expectation -> Satisfaction\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)/)
+      expect(rowMatch).not.toBeNull()
+      // Native-R verified (plsSem.test.ts's MOBI_MOD_SETUP, same seed 20260620/nboot 500): beta = -0.016341, t = -0.570661
+      expect(Number(rowMatch![1])).toBeCloseTo(-0.016341, 5)
+      expect(Number(rowMatch![2])).toBeCloseTo(-0.570661, 5)
+
+      // Table 1 (measurement) scoping: the DRAWN constructs only, never the derived interaction pseudo-construct.
+      const t1start = out.indexOf('--- Table 1: Measurement model ---')
+      const t1end = out.indexOf('--- Table 2: HTMT ---')
+      const table1Block = out.slice(t1start, t1end)
+      expect(table1Block).not.toContain('Image*Expectation')
+    },
+    180_000,
+  )
 })

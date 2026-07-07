@@ -58,6 +58,34 @@ describe('pls-sem emitter', () => {
   })
 
   it('declares the seminr package set', () => {
-    expect(latentPackages['pls-sem']).toEqual(['seminr'])
+    expect(latentPackages['pls-sem']).toEqual(['seminr', 'ggplot2'])
+  })
+
+  // U6-T6: reshape parity - merged measurement table, HTMT, structural paths with dual CI, moderation.
+  it('emits the post-reshape table numbering (Measurement model / HTMT / Structural paths / quality / indirect)', () => {
+    const R = latentEmitters['pls-sem'](SPEC, SETUP, { columns: [], rows: [] } as never)
+    expect(R).toContain('--- Table 1: Measurement model ---')
+    expect(R).toContain('--- Table 2: HTMT ---')
+    expect(R).toContain('--- Table 3: Structural paths ---')
+    expect(R).toContain('--- Table 4: Structural quality (R^2 / AdjR^2 / Q^2_predict) ---')
+    expect(R).toContain('--- Table 5: Indirect effects ---')
+  })
+
+  it('pls-sem emitter includes interaction_term when setup.moderations is present', () => {
+    // Image -> Satisfaction (paths[1]) moderated by Expectation (id 2) - mirrors the real mobi moderation config.
+    const R = latentEmitters['pls-sem'](
+      SPEC,
+      { ...SETUP, moderations: [{ id: 1, moderatorId: 2, pathIndex: 1 }] },
+      { columns: [], rows: [] } as never,
+    )
+    expect(R).toContain('interaction_term(iv =')
+    expect(R).toContain('method = two_stage')
+    expect(R).toContain('--- Table 6: Conditional effects (simple slopes) ---')
+  })
+
+  it('pls-sem emitter includes the hand-rolled BC_CI_R text for the structural table', () => {
+    const R = latentEmitters['pls-sem'](SPEC, SETUP, { columns: [], rows: [] } as never)
+    expect(R).toContain('norm_inter <- function')
+    expect(R).toContain('bc_ci <- function')
   })
 })
