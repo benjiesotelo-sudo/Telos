@@ -31,7 +31,7 @@ const R: PlsSemResult = {
   ],
   htmt: { labels: ['Image', 'Expectation'], cells: [[null, null], [0.41, null]] },
   structural: [
-    { path: 'Image → Expectation', beta: 0.30, t: 4.1, p: 0.001, ciLower: 0.16, ciUpper: 0.44, fSquare: 0.10 },
+    { path: 'Image → Expectation', beta: 0.30, t: 4.1, p: 0.001, ciLower: 0.16, ciUpper: 0.44, ciBcLower: 0.15, ciBcUpper: 0.43, fSquare: 0.10 },
   ],
   quality: [
     { construct: 'Expectation', r2: 0.092, r2adj: 0.090, q2: 0.05 },
@@ -88,16 +88,38 @@ describe('buildPlsSem', () => {
     expect(htmt.matrix!.cells[0][1]).toBeNull()
   })
 
-  it('renders structural paths with f² and the quality table with R²/adj/Q²', () => {
+  it('renders structural paths with H-ids, dual CIs (percentile + BC), and the Result rule; quality table keeps R²/adj/Q²', () => {
     const c = buildPlsSem(SPEC, R)
     const struct = c.tables.find((t) => t.spec.id === 'structural')!
+    expect(struct.rows[0].h).toBe('H1')
     expect(struct.rows[0].path).toBe('Image → Expectation')
     expect(struct.rows[0].beta).toBe('.30')
-    expect(struct.rows[0].f2).toBe('0.10')
-    expect(struct.rows[0].ci).toBe('[.16, .44]')
+    expect(struct.rows[0].ciPercLo).toBe('.16'); expect(struct.rows[0].ciPercHi).toBe('.44')
+    expect(struct.rows[0].ciBcLo).toBe('.15'); expect(struct.rows[0].ciBcHi).toBe('.43')
+    expect(struct.rows[0].result).toBe('Supported') // percentile CI [.16, .44] excludes zero
     const qual = c.tables.find((t) => t.spec.id === 'structural-quality')!
     expect(qual.rows[0].r2).toBe('.09')
     expect(qual.rows[0].q2).toBe('0.05')
+  })
+
+  // U6-T3 RED: H-ordering (creation order) + the Result rule derived from the PERCENTILE CI, independent
+  // of what the BC column says (a BC CI is comparative context only, never the Result source).
+  it('structural table carries H-ids, dual CIs, and the Result rule (percentile CI excludes zero)', () => {
+    const content = buildPlsSem(SPEC, { ...R, structural: [
+      { path: 'Image → Expectation', beta: 0.5, p: 0.001, ciLower: 0.3, ciUpper: 0.7, ciBcLower: 0.29, ciBcUpper: 0.71, fSquare: 0.2 },
+      { path: 'Complaints → Loyalty', beta: 0.05, p: 0.4, ciLower: -0.1, ciUpper: 0.2, ciBcLower: -0.11, ciBcUpper: 0.21, fSquare: 0.01 },
+    ] })
+    const table = content.tables.find((t) => t.spec.id === 'structural')!
+    expect(table.rows[0].h).toBe('H1'); expect(table.rows[0].result).toBe('Supported')
+    expect(table.rows[1].h).toBe('H2'); expect(table.rows[1].result).toBe('Not supported')
+  })
+
+  // U6-T3 RED: f² is not a structural-table column any more (dual CIs took its place) — it must reach the
+  // R² note line, keyed by target construct, never vanish as a silently-unrendered orphan row key.
+  it('the R²/f² note line reports f² per incoming path, not as a silent orphan row key', () => {
+    const content = buildPlsSem(PLS_SEM, R)
+    expect(content.note!.text).toMatch(/R²\(Expectation\)/)
+    expect(content.note!.text).toMatch(/f²/i)
   })
 
   it('emits the indirect-effects table only when present', () => {

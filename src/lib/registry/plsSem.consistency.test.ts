@@ -9,11 +9,29 @@ const card = outputsHtml.slice(
   outputsHtml.indexOf('FAMILY 7'),
 )
 
+// Flattens a <thead> to its LEAF column labels in visual left-to-right order, regardless of
+// rowspan/colspan (U6-T3 spanned dual-CI header, same convention as cbSem.consistency.test.ts's Table 5):
+// with a single header <tr> this is just the <th> texts; with two header <tr>s (a spanned header), each
+// row-1 <th colspan="n"> is a GROUP label (not a leaf) and is replaced by the next n leaves pulled from
+// row 2, while a row-1 <th rowspan="2"> (or any row-1 <th> without a colspan) IS a leaf and is kept in place.
 const theadAfter = (cap: string) => {
   const at = card.indexOf(cap)
   const th = card.indexOf('<thead>', at)
   const end = card.indexOf('</thead>', th)
-  return [...card.slice(th, end).matchAll(/<th>(.*?)<\/th>/gs)].map((m) => strip(m[1]))
+  const theadHtml = card.slice(th, end)
+  const trs = [...theadHtml.matchAll(/<tr>(.*?)<\/tr>/gs)].map((m) => m[1])
+  if (trs.length < 2) {
+    return [...theadHtml.matchAll(/<th[^>]*>(.*?)<\/th>/gs)].map((m) => strip(m[1]))
+  }
+  const row2Leaves = [...trs[1].matchAll(/<th[^>]*>(.*?)<\/th>/gs)].map((m) => strip(m[1]))
+  let row2i = 0
+  const leaves: string[] = []
+  for (const m of trs[0].matchAll(/<th([^>]*)>(.*?)<\/th>/gs)) {
+    const colspan = m[1].match(/colspan="(\d+)"/)
+    if (colspan) { for (let i = 0; i < Number(colspan[1]); i++) leaves.push(row2Leaves[row2i++]) }
+    else leaves.push(strip(m[2]))
+  }
+  return leaves
 }
 const tableCols = (id: string) => {
   const t = spec.tables.find((x) => x.id === id)!

@@ -28,6 +28,9 @@ import type { TestSetup } from '../../state/session'
 //   f2  Image->Expectation=0.3506 ; Image->Satisfaction=0.5129 ; Expectation->Satisfaction=0.0706
 //   indirect Image->Expectation->Satisfaction: est=0.110409 ci=[0.050992, 0.176165] t=3.3587
 //     (specific_effect_significance is a 1×7 MATRIX → index sig[1,"Original Est."]; sig["..."] is all-NA)
+//   BC CI (U6-T3, hand-rolled bc_ci() on bo$boot_paths["Image","Expectation",] — the same [from,to,boot]
+//     3D array this test's structural[0] now reads): beta=0.5094926, perc CI=[0.407967, 0.625370],
+//     BC CI=[0.329951, 0.604472] (native R 4.6.0, seed 20260620, nboot=300).
 //   Q²_predict (PLSpredict, set.seed(20260620) before predict_pls; mean over a construct's indicators):
 //     Expectation=0.030362  Satisfaction=0.031243  (derived for THIS 3-construct sub-model — NOT the
 //     spike's full-model 0.043/0.039). Image is exogenous → no out-of-sample column → no Q² (not in table).
@@ -105,6 +108,15 @@ describe('plsSem', () => {
     // f² present on structural rows; r2 keyed by numeric id in estimates
     expect(typeof r.structural[0].fSquare).toBe('number')
     expect(typeof r.estimates.r2[3]).toBe('number')
+
+    // BC CI (U6-T3) — hand-rolled via plsBcCi.ts's bc_ci() on bo$boot_paths["Image","Expectation",];
+    // native-R-verified (see file header): beta=0.5094926, BC CI=[0.329951, 0.604472].
+    const pImExRow = r.structural.find((row) => row.path === 'Image → Expectation')!
+    expect(Number(pImExRow.ciBcLower)).toBeCloseTo(0.329951, 3)
+    expect(Number(pImExRow.ciBcUpper)).toBeCloseTo(0.604472, 3)
+    // BC brackets the point estimate, same as the percentile CI
+    expect(Number(pImExRow.ciBcLower)).toBeLessThan(Number(pImExRow.beta))
+    expect(Number(pImExRow.beta)).toBeLessThan(Number(pImExRow.ciBcUpper))
 
     // indirect effect Image → Expectation → Satisfaction: matrix-indexing fix → finite + native-matched
     const ind = (r.indirect ?? []).find((row) => row.path === 'Image → Expectation → Satisfaction')!

@@ -3,6 +3,7 @@ import type { Dataset } from './types'
 import type { Construct, StructuralPath, TestSetup } from '../../state/session'
 import type { RunProgress } from '../results/builders'
 import { MAKECLUSTER_SHIM } from '../webr/parallelShim'
+import { BC_CI_R } from './plsBcCi'
 
 export interface PlsSemResult {
   outer: Array<Record<string, unknown>>
@@ -16,6 +17,11 @@ export interface PlsSemResult {
     loadings: Record<string, number>
     r2: Record<number, number>
   }
+  /** Bootstrap resamples actually used (added client-side, mirroring CbSemResult.nboot — Andrews &
+   *  Buchinsky (2000) BC-CI-count disclosure needs this in buildPlsSem, which never sees TestSetup).
+   *  Optional so pre-existing hand-built PlsSemResult fixtures (predating U6-T3) keep passing unmodified;
+   *  buildPlsSem defaults it to 5000, same as CbSemResult's convention. */
+  nboot?: number
 }
 
 // PLS-SEM via seminr: measurement model (composite reflective/formative) + structural paths.
@@ -50,6 +56,11 @@ export interface PlsSemResult {
 const R_STATS = (shim: string) => String.raw`
 ${shim}
 library(seminr)
+
+# Hand-rolled z0-adjusted percentile BC (U6-T3) — reused verbatim from the CB-SEM/lavaan-verified text
+# (src/lib/stats/plsBcCi.ts); seminr has no built-in bca.simple, so bc_ci() runs here against bo$boot_paths'
+# raw draws (a [from, to, boot_index] 3D array — confirmed via str(bootstrap_model(...))).
+${BC_CI_R}
 
 # Rebuild the indicator data frame from the flat column-major array
 p_all <- length(all_items)
@@ -133,7 +144,7 @@ htmt_cells <- lapply(seq_len(k), function(i) {
   })
 })
 
-# ---- Structural paths: β + t/p + 95% CI (percentile) + f² ----
+# ---- Structural paths: β + t/p + dual 95% CI (percentile + hand-rolled BC) + f² ----
 bp <- sb$bootstrapped_paths       # rows "From  ->  To"
 fsq <- s$fSquare                   # square matrix: fSquare[from, to]
 estimate_paths <- list()
@@ -142,6 +153,9 @@ structural <- lapply(seq_along(path_from), function(e) {
   key <- paste0(fr, "  ->  ", to)
   beta <- as.numeric(bp[key, "Original Est."])
   estimate_paths[[length(estimate_paths) + 1]] <<- list(from = path_from[e], to = path_to[e], beta = beta)
+  # bc_ci() (spliced in above from BC_CI_R) on this path's raw bootstrap draws — bo$boot_paths is a
+  # [from, to, boot_index] 3D array (NOT the sb summary object, which only carries the percentile CI).
+  bcc <- bc_ci(bo$boot_paths[fr, to, ], beta)
   list(
     path = paste0(fr, " → ", to),
     beta = beta,
@@ -149,6 +163,8 @@ structural <- lapply(seq_along(path_from), function(e) {
     p = 2 * pnorm(-abs(as.numeric(bp[key, "T Stat."]))),
     ciLower = as.numeric(bp[key, "2.5% CI"]),
     ciUpper = as.numeric(bp[key, "97.5% CI"]),
+    ciBcLower = as.numeric(bcc[1]),
+    ciBcUpper = as.numeric(bcc[2]),
     fSquare = as.numeric(fsq[fr, to])
   )
 })
@@ -285,5 +301,7 @@ export async function runPlsSem(
     is_formative_flags: constructs.map((c) => c.mode === 'formative'),
   }
 
-  return engine.runJson<PlsSemResult>(R_STATS(MAKECLUSTER_SHIM), env)
+  const raw = await engine.runJson<PlsSemResult>(R_STATS(MAKECLUSTER_SHIM), env)
+  // nboot is attached client-side (mirrors runCbSem.ts) — the R block itself never echoes it back.
+  return { ...raw, nboot }
 }

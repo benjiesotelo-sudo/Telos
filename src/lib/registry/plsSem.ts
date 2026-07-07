@@ -53,12 +53,15 @@ export const PLS_SEM: TestSpec = {
       id: 'structural',
       title: 'Structural paths',
       columns: [
+        { key: 'h', label: 'H' },
         { key: 'path', label: 'Path' },
         { key: 'beta', label: 'β' },
-        { key: 't', label: 't' },
         { key: 'p', label: 'p' },
-        { key: 'ci', label: '95% CI' },
-        { key: 'f2', label: 'f²' },
+        { key: 'ciPercLo', label: 'Lower', span: { group: 'Percentile 95% CI' } },
+        { key: 'ciPercHi', label: 'Upper', span: { group: 'Percentile 95% CI' } },
+        { key: 'ciBcLo', label: 'Lower', span: { group: 'BC 95% CI' } },
+        { key: 'ciBcHi', label: 'Upper', span: { group: 'BC 95% CI' } },
+        { key: 'result', label: 'Result' },
       ],
     },
     {
@@ -86,7 +89,7 @@ export const PLS_SEM: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'HTMT is a construct-by-construct matrix (not a per-construct value) — columns expand to the number of constructs in the model; HTMT < .85/.90 supports discriminant validity (Henseler, Ringle & Sarstedt, 2015). Significance comes from bootstrapping (percentile 95% CIs, 5000 resamples); R² and Q² assess the structural model (f²: ~0.02 small, 0.15 medium, 0.35 large; Cohen, 1988). PLS-SEM deliberately has no global fit indices (CFI/TLI/RMSEA) — judge it by reliability & validity, then R²/Q²/f² (Hair et al., 2019). The indirect-effects table appears only when the drawn paths form a chain (X → M → Y). Formative constructs suppress AVE/HTMT and are judged by indicator weights, VIF, and redundancy convergent validity. Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup. Moderation is planned for a later version.',
+    text: 'HTMT is a construct-by-construct matrix (not a per-construct value) — columns expand to the number of constructs in the model; HTMT < .85/.90 supports discriminant validity (Henseler, Ringle & Sarstedt, 2015). Structural paths carry dual bootstrap 95% CIs from ONE run — percentile (primary) and a hand-rolled bias-corrected, non-accelerated interval (the same z0-adjusted-percentile algorithm as lavaan’s boot.ci.type=“bca.simple”, applied to seminr’s raw bootstrap draws since seminr has no built-in BC option; verified to match lavaan to 6 decimals on a shared fixture). Result is Supported/Not supported from the percentile CI excluding zero (α=.05); the BC column is comparative context. R² and Q² assess the structural model (f²: ~0.02 small, 0.15 medium, 0.35 large; Cohen, 1988). PLS-SEM deliberately has no global fit indices (CFI/TLI/RMSEA) — judge it by reliability & validity, then R²/Q²/f² (Hair et al., 2019). The indirect-effects table appears only when the drawn paths form a chain (X → M → Y). Formative constructs suppress AVE/HTMT and are judged by indicator weights, VIF, and redundancy convergent validity. Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup. Moderation is planned for a later version.',
     afterTableId: 'indirect-effects',
   },
   figures: [
