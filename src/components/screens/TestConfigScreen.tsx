@@ -7,6 +7,8 @@ import { categoriesOf, propsArray, propsSumOk } from '../../lib/data/props'
 import { optionGroup } from '../../lib/registry/optionGroups'
 import { OptionRows } from '../OptionRows'
 import { TestSwitcher } from '../TestSwitcher'
+import { WhyThisTest } from '../WhyThisTest'
+import { CITATIONS } from '../../lib/registry/citations'
 
 export function TestConfigScreen({ testId }: { testId: string }) {
   const s = useSession()
@@ -24,6 +26,7 @@ export function TestConfigScreen({ testId }: { testId: string }) {
     <section>
       <div className="eyebrow">{idx} · {spec.name}</div>
       <h1 className="title">Drag columns into roles</h1>
+      <WhyThisTest text={CITATIONS[testId]?.whyThisTest.text ?? ''} />
       <TestSwitcher onGo={(id) => s.goTo(`test:${id}` as never)} tests={s.selection.map((tid, ti) => ({
         id: tid, n: ti + 1,
         label: CATALOG.find((c) => c.id === tid)?.short ?? SPECS[tid]?.name ?? tid,
