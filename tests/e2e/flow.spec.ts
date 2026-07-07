@@ -57,6 +57,9 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await expect(t2).toContainText('Mdiff')
   await expect(t2).toContainText('−5.98'); await expect(t2).toContainText('9.68')
   await expect(t2).toContainText('<.001'); await expect(t2).toContainText('[−16.49, −7.51]'); await expect(t2).toContainText('−3.45')
+  // A5 term-led explainers, live-value-woven: independent-t-test's registry entries include t and
+  // Cohen's d, both interpreted with THIS run's own numbers (not verbatim placeholders).
+  await expect(page.locator('.term-explainers')).toContainText(/t\.|Cohen/i)
   await expect(page.getByText('How to read this test')).toBeVisible()
   await expect(page.getByRole('img', { name: /boxplot/i })).toBeVisible()
   await expect(page.getByText('Statistical basis:')).toBeVisible()
