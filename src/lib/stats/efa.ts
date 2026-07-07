@@ -29,6 +29,8 @@ export interface EfaResult {
   nCases: number
   rotation: string
   extraction: string
+  /** Echoes opts.retention ?? 'parallel' — the retention rule actually used, for the APA sentence (U9-T3). */
+  retention: 'parallel' | 'kaiser' | 'fixed'
 }
 
 interface RawStats {
@@ -232,5 +234,6 @@ export async function runEfa(
     nCases: raw.nCases,
     rotation,
     extraction,
+    retention,
   }
 }

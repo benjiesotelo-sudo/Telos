@@ -72,7 +72,7 @@ export const EFA: TestSpec = {
     'For oblique rotation (oblimin), the Φ matrix shows interfactor correlations — if all |Φ| < .32, orthogonal rotation (varimax) may be preferred. ' +
     'EFA is exploratory — it discovers structure; to confirm a proposed factor structure run a CFA, ideally on a separate sample (Watkins, 2018).',
   apaTemplate:
-    "EFA (KMO = __, Bartlett's χ²(__) = __, p < .001) with parallel analysis retained __ factors explaining __% of variance (__ rotation).",
+    "EFA (KMO = {kmo}, Bartlett's χ²({df}) = {chisq}, p {p}) with {retention} retained {n} factors explaining {pct}% of variance ({rotation} rotation).",
   rMap: 'psych::KMO()/cortest.bartlett() → Table 1 · R_PARALLEL_ANALYSIS → retention · psych::fa() → Tables 2–3 · fa()$Phi → Table 4 (oblimin only) · ggplot2 → scree figure',
   bundleFiles: [
     'table_suitability.png',

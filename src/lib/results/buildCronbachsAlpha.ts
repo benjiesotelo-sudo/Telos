@@ -17,7 +17,12 @@ export function buildCronbachsAlpha(spec: TestSpec, r: CronbachResult): CardCont
 
   const fig = figuresOf(spec)[0]
 
+  // U9-T3 fix (2026-07-06 audit): the verdict adjective used to be hardcoded "high" regardless of the
+  // run's own omega -- a low-reliability run still claimed "high". Condition it on the card's OWN stated
+  // thresholds (howToRead: >= .70 acceptable, >= .80 good; > .95 flags redundancy via separate prose).
+  const verdict = r.omega >= 0.8 ? 'good' : r.omega >= 0.7 ? 'acceptable' : 'below the conventional .70 threshold'
   const apa = spec.apaTemplate
+    .replace('{verdict}', verdict)
     .replace('{omega}', f01(r.omega))
     .replace('{ciLow}', f(r.omegaCi[0]))
     .replace('{ciHigh}', f(r.omegaCi[1]))

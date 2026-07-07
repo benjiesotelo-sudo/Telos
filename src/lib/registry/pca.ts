@@ -53,7 +53,7 @@ export const PCA: TestSpec = {
   howToRead:
     'PCA compresses correlated variables into a few components. The variance explained (Table 1) shows how much information each component retains; the component loadings (Table 2) show how strongly each variable contributes. Loadings are correlation-scaled (eigenvector × √eigenvalue) so they share the unit of a correlation coefficient. PCA is data reduction — components are weighted composites of the observed variables, not reflective latent factors; do not interpret them as constructs and do not report communalities (which belong to factor analysis, not PCA). For a latent-construct model use EFA (psych::fa) or CFA (lavaan). The scree plot overlays the parallel-analysis 95th-percentile threshold — retain components where the observed eigenvalue exceeds that line; the Kaiser eigenvalue > 1 rule is shown for reference but tends to over-extract (Zwick & Velicer, 1986). Cumulative variance ≥ 70% is a common but explicitly subjective target (Jolliffe & Cadima, 2016).',
   apaTemplate:
-    'PCA (correlation matrix; parallel analysis) retained __ components explaining __% of total variance.',
+    'PCA ({matrixType}; {retention}) retained {n} components explaining {pct}% of total variance.',
   rMap: 'prcomp(scale.=TRUE) → eigenvalues · R_PARALLEL_ANALYSIS (kind="pca") → retention · correlation-scaled loadings (rotation × sdev) → Table 2 · ggplot2 → scree figure',
   bundleFiles: [
     'table_variance-explained.png',

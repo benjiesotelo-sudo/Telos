@@ -48,11 +48,11 @@ describe('ave registry stays faithful to the spec HTML (verbatim, card-scoped)',
   it('how-to-read matches verbatim', () => {
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)
   })
-  it('APA line equals the template (no {placeholder} tokens — this card has a fixed APA string)', () => {
+  it('APA line equals the template with every {placeholder} as __', () => {
     const line = strip(card.match(/<b>APA template:<\/b>(.*?)<\/div>/s)![1])
     // &ldquo; / &rdquo; decode to curly double-quote chars (U+201C / U+201D); strip them before comparing.
     const inner = line.replace(/^[“”]/u, '').replace(/[””]$/u, '')
-    expect(inner).toBe(spec.apaTemplate)
+    expect(inner).toBe(spec.apaTemplate.replace(/\{\w+\}/g, '__'))
   })
   it('R map matches verbatim', () => {
     expect(strip(card.match(/<b>R map:<\/b>(.*?)<\/div>/s)![1])).toBe(spec.rMap)

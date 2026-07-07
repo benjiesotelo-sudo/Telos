@@ -26,12 +26,21 @@ export function buildCompositeReliability(spec: TestSpec, r: CompositeReliabilit
     { caption: fig.caption, type: fig.type, file: fig.file, png: figReliabilityPng },
   ]
 
+  // U9-T3 fix (2026-07-06 audit): the ".__" placeholder was NEVER filled -- the builder returned
+  // spec.apaTemplate verbatim. Worked-example convention (mirrors multiple-linear-regression's "predictor
+  // X" -> the first term): report the FIRST construct's own name, CR value, and a live verdict.
+  const first = perConstruct[0]
+  const apa = spec.apaTemplate
+    .replace('{construct}', first.name)
+    .replace('{verdict}', first.cr >= 0.7 ? 'satisfactory' : 'not satisfactory')
+    .replace('{cr}', f01(first.cr))
+
   return {
     tables,
     note: spec.tableNote ?? null,
     figures,
     howToRead: spec.howToRead,
-    apa: spec.apaTemplate,
+    apa,
     nExcluded: 0,
     // U8-T4: keyed to match the 'composite-reliability' EXPLAINERS entries (alpha, ave, cr, omega) in
     // registry/explainers.ts. All four are per-construct (open-cardinality), so their explainers read

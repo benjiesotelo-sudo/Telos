@@ -84,13 +84,28 @@ export function buildAve(spec: TestSpec, r: AveResult): CardContent {
           { label: 'Scope', text: 'When only 1 construct is defined, Tables 2 and 3 are suppressed (discriminant validity requires ≥ 2 constructs). Applies to reflective constructs only.', afterTableId: 'htmt' },
         ]
 
+  // U9-T3 fix (2026-07-06 audit): the APA sentence asserted "was supported" / "held" unconditionally,
+  // regardless of the run's own numbers. Condition both clauses on THIS run's AVE/CR (convergent) and
+  // HTMT (discriminant, only when computed — needs >= 2 constructs).
+  const allAveOk = perConstruct.every((c) => c.ave >= 0.5)
+  const allCrOk = perConstruct.every((c) => c.cr >= 0.7)
+  const convVerdict = allAveOk && allCrOk ? 'supported' : 'not fully supported'
+  let apa: string
+  if (k >= 2) {
+    const allHtmtOk = htmt.every((row, i) => row.every((val, j) => j >= i || val < 0.85))
+    const discVerdict = allHtmtOk ? 'held' : 'did not hold'
+    apa = spec.apaTemplate.replace('{convVerdict}', convVerdict).replace('{discVerdict}', discVerdict)
+  } else {
+    apa = `Convergent validity was ${convVerdict}, all AVE ≥ .50 and CR ≥ .70; discriminant validity was not assessed (fewer than 2 constructs).`
+  }
+
   return {
     tables,
     note: null,
     notes,
     figures,
     howToRead: spec.howToRead,
-    apa: spec.apaTemplate,
+    apa,
     nExcluded: 0,
     // U8-T4: keyed to match the 'ave' EXPLAINERS entries (alpha, ave, cr, omega) in registry/explainers.ts.
     // All four are per-construct (open-cardinality — 1+ constructs), so their explainers read generically

@@ -3,7 +3,7 @@ import { figuresOf } from '../registry/types'
 import type { EfaResult } from '../stats/efa'
 import type { MatrixTable } from './types'
 import type { CardContent, BuiltTable } from './builders'
-import { f, f01, fp } from '../format/apa'
+import { f, f01, fp, fpApa } from '../format/apa'
 
 const SUPPRESS = 0.32 // |loading| < this → blank cell (Tabachnick & Fidell)
 
@@ -85,15 +85,22 @@ export function buildEfa(spec: TestSpec, r: EfaResult): CardContent {
     { caption: fig.caption, type: fig.type, file: fig.file, png: r.figScreePng },
   ]
 
-  // APA
+  // APA (U9-T3 fix, 2026-07-06 audit): "p < .001" and "parallel analysis" used to be hardcoded, wrong
+  // when Bartlett p >= .001 or the retention rule wasn't parallel analysis. Read both live off the run.
+  const retentionLabel =
+    r.retention === 'kaiser' ? 'the Kaiser eigenvalue > 1 rule'
+    : r.retention === 'fixed' ? 'a fixed-factor criterion'
+    : 'parallel analysis'
   const cumPct = r.varianceExplained.at(-1)?.cumPct ?? 0
   const apa = spec.apaTemplate
-    .replace('__', f01(r.kmo))
-    .replace('__', String(r.bartlettDf))
-    .replace('__', r.bartlettChisq.toFixed(1))
-    .replace('__', String(r.retain))
-    .replace('__', cumPct.toFixed(1))
-    .replace('__', r.rotation)
+    .replace('{kmo}', f01(r.kmo))
+    .replace('{df}', String(r.bartlettDf))
+    .replace('{chisq}', r.bartlettChisq.toFixed(1))
+    .replace('{p}', fpApa(r.bartlettP))
+    .replace('{retention}', retentionLabel)
+    .replace('{n}', String(r.retain))
+    .replace('{pct}', cumPct.toFixed(1))
+    .replace('{rotation}', r.rotation)
 
   return {
     tables,

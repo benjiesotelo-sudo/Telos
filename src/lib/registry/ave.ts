@@ -54,7 +54,7 @@ export const AVE: TestSpec = {
   ],
   howToRead:
     'AVE (Average Variance Extracted) is the average share of item variance a construct captures; ≥ .50 means items converge on their construct (Fornell & Larcker, 1981). CR (Composite Reliability) ≥ .70 indicates acceptable construct reliability. ω (McDonald\'s omega) is the preferred headline reliability coefficient; α (Cronbach\'s) is shown as a secondary/legacy coefficient. For discriminant validity, Fornell–Larcker (Table 2): each construct\'s √AVE (bold diagonal) should exceed its correlations with other constructs. HTMT (Table 3): values < .85 support discriminant validity for conceptually distinct constructs — use HTMT as the primary criterion and Fornell–Larcker as a legacy check. AVE < .50 may still be acceptable when CR > .60 (F&L caveat), but treat this as a caution, not a lenient pass. All cutoffs are heuristics, not pass/fail gates. Applies to reflective constructs only.',
-  apaTemplate: 'Convergent validity was supported, all AVE ≥ .50 and CR ≥ .70; discriminant validity held, all HTMT < .85.',
+  apaTemplate: 'Convergent validity was {convVerdict}, all AVE ≥ .50 and CR ≥ .70; discriminant validity {discVerdict}, all HTMT < .85.',
   rMap: 'lavaan::cfa() → fit · semTools::AVE() → AVE · semTools::compRelSEM() → CR / ω · psych::alpha() → α · lavInspect(fit,"cor.lv") + sqrt(AVE) on diagonal → Table 2 (Fornell–Larcker) · semTools::htmt() → Table 3 (HTMT) · ggplot2 → figure',
   bundleFiles: ['table_convergent-validity.png', 'table_fornell-larcker.png', 'table_htmt.png', 'figure_validity.png'],
 }

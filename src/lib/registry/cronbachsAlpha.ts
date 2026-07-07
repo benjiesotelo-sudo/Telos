@@ -52,7 +52,7 @@ export const CRONBACHS_ALPHA: TestSpec = {
     'Both range 0–1; ≥ .70 is commonly considered acceptable, ≥ .80 good, > .95 suggests item redundancy — treat these as heuristics, not pass/fail thresholds. ' +
     'The "α if item dropped" column flags items that, if removed, would raise α — candidates for review. ' +
     'A high coefficient does not prove unidimensionality.',
-  apaTemplate: "Internal consistency was high, ω={omega} (95% CI [{ciLow}, {ciHigh}]); Cronbach's α={alpha}.",
+  apaTemplate: "Internal consistency was {verdict}, ω={omega} (95% CI [{ciLow}, {ciHigh}]); Cronbach's α={alpha}.",
   rMap: 'psych::alpha() → α + item-total · lavaan::cfa() + semTools::compRelSEM() → ω + 95% CI · ggplot2 → figure',
   bundleFiles: ['table_reliability.png', 'table_item-total-statistics.png', 'figure_item-total-correlation.png'],
 }

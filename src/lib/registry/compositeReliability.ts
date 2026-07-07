@@ -43,7 +43,7 @@ export const COMPOSITE_RELIABILITY: TestSpec = {
   ],
   howToRead:
     'CR (Composite Reliability) measures how reliably a set of items captures its construct (0–1); ≥ .70 is the conventional threshold (Nunnally, 1978; Bagozzi & Yi, 1988). CR is computed from the CFA loadings via semTools::compRelSEM() — for a congeneric (unidimensional) factor CR equals McDonald\'s ω, so the two columns will always match. AVE is shown alongside for quick convergent-validity reference (≥ .50; Fornell & Larcker, 1981) — for the full discriminant-validity assessment (Fornell–Larcker + HTMT matrices) run the AVE card. α (Cronbach\'s) is a secondary/legacy coefficient — it assumes tau-equivalence (equal loadings) and is a lower bound when loadings differ (McNeish, 2018). All cutoffs are labelled guidelines, not pass/fail gates. Applies to reflective constructs only.',
-  apaTemplate: 'Composite reliability was satisfactory (CR = .__ ≥ .70).',
+  apaTemplate: 'Composite reliability for {construct} was {verdict} (CR = {cr} ≥ .70).',
   rMap: 'lavaan::cfa() → fit · semTools::compRelSEM() → CR / ω · semTools::AVE() → AVE · psych::alpha() → α · ggplot2 → figure',
   bundleFiles: ['table_composite-reliability.png', 'figure_reliability.png'],
 }

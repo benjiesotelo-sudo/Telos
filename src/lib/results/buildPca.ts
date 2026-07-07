@@ -49,11 +49,19 @@ export function buildPca(spec: TestSpec, r: PcaResult): CardContent {
     { caption: fig.caption, type: fig.type, file: fig.file, png: r.figScreePng },
   ]
 
-  // APA
+  // APA (U9-T3 fix, 2026-07-06 audit): "correlation matrix; parallel analysis" used to be hardcoded,
+  // wrong when standardize is off (covariance matrix) or the retention rule wasn't parallel analysis.
+  const matrixType = r.standardize ? 'correlation matrix' : 'covariance matrix'
+  const retentionLabel =
+    r.retention === 'kaiser' ? 'the Kaiser eigenvalue > 1 rule'
+    : r.retention === 'fixed' ? 'a fixed-component criterion'
+    : 'parallel analysis'
   const cumPct = r.varianceExplained.at(-1)?.cumPct ?? 0
   const apa = spec.apaTemplate
-    .replace('__', String(r.retain))
-    .replace('__', cumPct.toFixed(1))
+    .replace('{matrixType}', matrixType)
+    .replace('{retention}', retentionLabel)
+    .replace('{n}', String(r.retain))
+    .replace('{pct}', cumPct.toFixed(1))
 
   // Notes (U8-T4 labelled-notes sweep, mirrors buildCbSem.ts's U3-T5 pilot): pca.ts's single tableNote.text
   // is split into short labelled one-liners, content-preserving — every clause below maps back to a

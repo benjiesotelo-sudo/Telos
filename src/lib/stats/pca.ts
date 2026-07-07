@@ -20,6 +20,10 @@ export interface PcaResult {
   loadings: PcaLoadingRow[]
   figScreePng: Uint8Array
   nCases: number
+  /** Echoes opts.standardize (default true) — correlation- vs covariance-matrix basis, for the APA sentence (U9-T3). */
+  standardize: boolean
+  /** Echoes opts.retention ?? 'parallel' — the retention rule actually used, for the APA sentence (U9-T3). */
+  retention: 'parallel' | 'kaiser' | 'fixed'
 }
 
 interface RawStats {
@@ -180,5 +184,7 @@ export async function runPca(
     loadings,
     figScreePng,
     nCases: raw.nCases,
+    standardize,
+    retention,
   }
 }
