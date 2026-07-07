@@ -969,8 +969,9 @@ export const latentEmitters: Record<string, Emitter> = {
         '    se <- stats::sd(draws)',
         '    qs <- stats::quantile(draws, probs = c(0.025, 0.975))',
         '    b_lvl <- b_main + b_int * lvl',
-        '    cat(sprintf("  %s (%s): b=%.6f se=%.6f ci=[%.6f, %.6f]\\n",',
-        '                mod_int_name[mi], lvl_name, b_lvl, se, qs[1], qs[2]))',
+        '    p_lvl <- 2 * min(mean(draws <= 0), mean(draws > 0))', // Same bootstrap-proportion p as plsSem.ts's app-side slope runner (matches exactly, no normal-theory approximation).
+        '    cat(sprintf("  %s (%s): b=%.6f se=%.6f p=%.6f ci=[%.6f, %.6f]\\n",',
+        '                mod_int_name[mi], lvl_name, b_lvl, se, p_lvl, qs[1], qs[2]))',
         '    slope_levels <- c(slope_levels, lvl_name); slope_mods <- c(slope_mods, mod_int_name[mi])',
         '    slope_bs <- c(slope_bs, b_lvl); slope_los <- c(slope_los, as.numeric(qs[1])); slope_his <- c(slope_his, as.numeric(qs[2]))',
         '  }',

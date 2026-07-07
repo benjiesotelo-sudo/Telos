@@ -518,6 +518,19 @@ describe.skipIf(!hasR)('native-R correctness gate (export rScript)', () => {
       const t1end = out.indexOf('--- Table 2: HTMT ---')
       const table1Block = out.slice(t1start, t1end)
       expect(table1Block).not.toContain('Image*Expectation')
+
+      // Export ≡ app: Table 6's printed row now carries p (the SAME bootstrap-proportion formula as
+      // plsSem.ts's app-side slope runner - p = 2 * min(mean(draws <= 0), mean(draws > 0)) - not a
+      // normal-theory approximation), matching the conditional-effects table the card renders.
+      const table6Block = out.slice(t6start)
+      const midRowMatch = table6Block.match(/Image\*Expectation \(mean\): b=([-.\d]+) se=([-.\d]+) p=([-.\d]+) ci=/)
+      expect(midRowMatch).not.toBeNull()
+      // Native-R verified at this seed/nboot (plsSem.test.ts's MOBI_MOD_SETUP reference: mid b=0.180788,
+      // ciLower=0.088966/ciUpper=0.291639, both > 0 -> every one of the 500 draws lands on the same side
+      // of zero, so the bootstrap-proportion formula gives an exact 0).
+      expect(Number(midRowMatch![1])).toBeCloseTo(0.180788, 4)
+      const pMid = Number(midRowMatch![3])
+      expect(pMid).toBe(0)
     },
     180_000,
   )
