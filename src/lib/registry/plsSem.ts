@@ -3,10 +3,10 @@ import type { TestSpec } from './types'
 // Encoded from telos_test_outputs.html (PLS-SEM card, lines 1160-1188) — display strings verbatim.
 // Convention (SEM reporting, approved 2026-06-18; measurement table merged U6-T1):
 //   - Variance-based SEM (seminr); NO global fit indices (CFI/TLI/RMSEA).
-//   - Measurement model (Table 1, A6 grouped device): construct rows (group header) carry CR (ρ_C) · α ·
+//   - Measurement model (Table 1, A6 grouped device): construct rows (group header) carry α · ρ_A · CR (ρ_C) ·
 //     AVE once; indicator child rows carry Mean · SD · the merged Loading/weight column · t · p. seminr
-//     emits reliability as alpha/rhoC/AVE/rhoA → buildPlsSem SELECTS+REORDERS the group-row triple to
-//     ρC/α/AVE (ρ_A is not displayed on the merged table).
+//     emits reliability as alpha/rhoC/AVE/rhoA → buildPlsSem SELECTS+REORDERS the group-row quadruple to
+//     α/ρ_A/CR/AVE (Hair 2019 recommends ρ_A for PLS reliability reporting).
 //   - HTMT (primary discriminant criterion) = construct × construct matrix (rendered via the matrix branch).
 //   - Bootstrap 5000 (percentile CI); structural f² from summary(pls)$fSquare; Q² per §5.2 (blindfolding else PLSpredict).
 //   - Indirect effects via seminr::specific_effect_significance() on the bootstrapped model.
@@ -32,8 +32,9 @@ export const PLS_SEM: TestSpec = {
       title: 'Measurement model',
       columns: [
         { key: 'path', label: 'Construct / item' },
-        { key: 'rhoC', label: 'CR (ρ', sub: 'C', suffix: ')' },
         { key: 'alpha', label: 'α' },
+        { key: 'rhoA', label: 'ρ', sub: 'A' },
+        { key: 'rhoC', label: 'CR (ρ', sub: 'C', suffix: ')' },
         { key: 'ave', label: 'AVE' },
         { key: 'mean', label: 'Mean' },
         { key: 'sd', label: 'SD' },

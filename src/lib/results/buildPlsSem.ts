@@ -21,7 +21,7 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
   const tableById = (id: string) => spec.tables.find((t) => t.id === id)!
 
   // T1 (merged, U6-T1): Measurement model — construct rows (__group marker, A6 renderer device) carry
-  // CR (ρC)/α/AVE once; indicator rows (indented by the renderer) carry Mean/SD (item descriptives) and
+  // α/ρA/CR (ρC)/AVE once; indicator rows (indented by the renderer) carry Mean/SD (item descriptives) and
   // the merged Loading/weight column (loading for reflective indicators, weight for formative ones) plus
   // t/p, leaving the construct-level columns blank. Row keys MUST match the registry spec's column keys
   // (ApaTable renders row[column.key]) — mirrors buildCbSem's cfa-loadings __group shape (U3-T1).
@@ -30,13 +30,13 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
     measurementRows.push({
       __group: String(rel.construct),
       path: String(rel.construct),
-      rhoC: fc(rel.cr), alpha: fc(rel.alpha), ave: fc(rel.ave),
+      alpha: fc(rel.alpha), rhoA: fc(rel.rhoA), rhoC: fc(rel.cr), ave: fc(rel.ave),
       mean: '', sd: '', loading: '', t: '', p: '',
     })
     for (const row of r.outer.filter((o) => o.construct === rel.construct)) {
       measurementRows.push({
         path: String(row.item), // indented child — CSS/LaTeX render the indent via __group, not the string itself
-        rhoC: '', alpha: '', ave: '',
+        alpha: '', rhoA: '', rhoC: '', ave: '',
         mean: f2(row.mean), sd: f2(row.sd),
         loading: fc(row.loading ?? row.weight), t: f2(row.t), p: fpFmt(row.p),
       })

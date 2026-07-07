@@ -51,13 +51,13 @@ describe('SEM-B output cards carry the §6B amendments (B/SE/z/p, ω, reordered 
     )
   })
   // U6-T1 (2026-07-07): PLS Table 1 (outer model) and Table 2 (reliability) were merged into ONE
-  // grouped measurement table — construct rows carry CR (ρC)/α/AVE once, indicator rows carry
+  // grouped measurement table — construct rows carry α/ρA/CR (ρC)/AVE once, indicator rows carry
   // Mean/SD/Loading-or-weight/t/p. See plsSem.consistency.test.ts's 'Table 1 (measurement model,
-  // grouped)' assertion for the up-to-date check; this test now confirms the merge kept the
-  // construct-level reliability columns (ρA no longer displayed on the merged table).
-  it('PLS Table 1 (measurement model, merged) = Construct/item · CR (ρC) · α · AVE · Mean · SD · Loading/weight · t · p', () => {
+  // grouped)' assertion for the up-to-date check; this test now confirms the merge keeps the
+  // construct-level reliability columns (ρA restored 2026-07-07, Hair 2019 recommends ρA for PLS).
+  it('PLS Table 1 (measurement model, merged) = Construct/item · α · ρA · CR (ρC) · AVE · Mean · SD · Loading/weight · t · p', () => {
     expect(theadAfter(pls, 'Measurement model')).toEqual(
-      ['Construct / item', 'CR (ρC)', 'α', 'AVE', 'Mean', 'SD', 'Loading / weight', 't', 'p'],
+      ['Construct / item', 'α', 'ρA', 'CR (ρC)', 'AVE', 'Mean', 'SD', 'Loading / weight', 't', 'p'],
     )
   })
   it('PLS rMap no longer cites plspm (seminr only)', () => {

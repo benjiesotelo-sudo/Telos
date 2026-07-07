@@ -43,16 +43,18 @@ const R: PlsSemResult = {
 }
 
 describe('buildPlsSem', () => {
-  it('measurement table groups indicator rows under their construct, carrying ρC/α/AVE once on the group row', () => {
+  it('measurement table groups indicator rows under their construct, carrying α/ρA/ρC/AVE once on the group row', () => {
     const c = buildPlsSem(SPEC, R)
     const table = c.tables.find((t) => t.spec.id === 'measurement')!
     const groupRow = table.rows.find((r) => (r as Record<string, unknown>).__group === 'Image')!
-    expect(groupRow.rhoC).not.toBe('')
     expect(groupRow.alpha).toBe('.77')
+    expect(groupRow.rhoA).toBe('.78')
+    expect(groupRow.rhoC).not.toBe('')
     expect(groupRow.ave).toBe('.50')
     const childRow = table.rows[table.rows.indexOf(groupRow) + 1]
-    expect(childRow.rhoC).toBe('')
     expect(childRow.alpha).toBe('')
+    expect(childRow.rhoA).toBe('')
+    expect(childRow.rhoC).toBe('')
     expect(childRow.ave).toBe('')
     expect(childRow.mean).not.toBe('')
     expect(childRow.path).toBe('IMAG1')
@@ -60,6 +62,7 @@ describe('buildPlsSem', () => {
     // formative Expectation: AVE rendered as an em-dash on the group row, not a number
     const expGroup = table.rows.find((r) => (r as Record<string, unknown>).__group === 'Expectation')!
     expect(expGroup.ave).toBe('—')
+    expect(expGroup.rhoA).toBe('.60')
   })
 
   it('renders measurement child rows with loading OR weight (+ Mean/SD) per indicator', () => {
