@@ -4,16 +4,23 @@ import { WELCOME_COPY, LINKEDIN_URL, CREDIT_SUFFIX } from '../../content/copy'
 const PRIVACY = 'Your data never leaves your browser.'
 const BYLINE = 'Built by Benjamin Sotelo'
 
+// Splits the body itself into two short paragraphs at its existing sentence boundary (F1
+// readability sweep) - no word added, removed, or reordered, just a mid-sentence-space cut.
+const EXPORT_SENTENCE = 'Export everything'
+
 /** Split the spec-pinned paragraph for layout WITHOUT changing a word of it (spec F1a):
  *  body ¶ = everything before the privacy sentence · subline = the privacy sentence ·
- *  credit = the byline (+ the new CREDIT_SUFFIX) with the LinkedIn link. */
+ *  credit = the byline (+ the new CREDIT_SUFFIX) with the LinkedIn link.
+ *  body is then split into intro/capability paragraphs at EXPORT_SENTENCE (F1). */
 function segments() {
-  return { body: WELCOME_COPY.split(PRIVACY)[0].trim() }
+  const body = WELCOME_COPY.split(PRIVACY)[0].trim()
+  const cut = body.indexOf(EXPORT_SENTENCE)
+  return { intro: body.slice(0, cut).trim(), capability: body.slice(cut).trim() }
 }
 
 export function WelcomeScreen() {
   const goTo = useSession((s) => s.goTo)
-  const { body } = segments()
+  const { intro, capability } = segments()
   return (
     <section style={{ textAlign: 'center', paddingTop: 40 }}>
       <div className="eyebrow enter-1">In-browser statistics for thesis students</div>
@@ -27,7 +34,10 @@ export function WelcomeScreen() {
           <circle cx="362" cy="53" r="2.1" opacity=".45" />
         </g>
       </svg>
-      <p className="prose enter-4" style={{ maxWidth: 520, margin: '8px auto 4px', textAlign: 'center' }}>{body}</p>
+      <div className="welcome-copy enter-4" style={{ maxWidth: 520, margin: '8px auto 4px' }}>
+        <p className="prose" style={{ margin: 0, textAlign: 'center' }}>{intro}</p>
+        <p className="prose" style={{ margin: '8px 0 0', textAlign: 'center' }}>{capability}</p>
+      </div>
       <p className="hint" style={{ margin: '2px 0 22px' }}>{PRIVACY}</p>
       <button className="btn enter-5" onClick={() => goTo('upload')}>Get started</button>
       <br />
