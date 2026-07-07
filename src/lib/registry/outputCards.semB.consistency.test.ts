@@ -50,9 +50,14 @@ describe('SEM-B output cards carry the §6B amendments (B/SE/z/p, ω, reordered 
       ['H', 'Path', 'B', 'Std. β', 'p', 'Lower', 'Upper', 'Lower', 'Upper', 'Result'],
     )
   })
-  it('PLS Table 2 (reliability) final order = Construct · α · ρA · CR (ρC) · AVE', () => {
-    expect(theadAfter(pls, 'Reliability &amp; convergent validity')).toEqual(
-      ['Construct', 'α', 'ρA', 'CR (ρC)', 'AVE'],
+  // U6-T1 (2026-07-07): PLS Table 1 (outer model) and Table 2 (reliability) were merged into ONE
+  // grouped measurement table — construct rows carry CR (ρC)/α/AVE once, indicator rows carry
+  // Mean/SD/Loading-or-weight/t/p. See plsSem.consistency.test.ts's 'Table 1 (measurement model,
+  // grouped)' assertion for the up-to-date check; this test now confirms the merge kept the
+  // construct-level reliability columns (ρA no longer displayed on the merged table).
+  it('PLS Table 1 (measurement model, merged) = Construct/item · CR (ρC) · α · AVE · Mean · SD · Loading/weight · t · p', () => {
+    expect(theadAfter(pls, 'Measurement model')).toEqual(
+      ['Construct / item', 'CR (ρC)', 'α', 'AVE', 'Mean', 'SD', 'Loading / weight', 't', 'p'],
     )
   })
   it('PLS rMap no longer cites plspm (seminr only)', () => {

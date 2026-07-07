@@ -8,8 +8,7 @@ const SPEC = {
   id: 'pls-sem',
   name: 'PLS-SEM',
   tables: [
-    { id: 'outer-model', title: 'Outer model', columns: [] },
-    { id: 'reliability', title: 'Reliability & convergent validity', columns: [] },
+    { id: 'measurement', title: 'Measurement model', columns: [] },
     { id: 'htmt', title: 'Discriminant validity (HTMT)', columns: [] },
     { id: 'structural', title: 'Structural paths', columns: [] },
     { id: 'structural-quality', title: 'Structural model quality', columns: [] },
@@ -23,8 +22,8 @@ const SPEC = {
 
 const R: PlsSemResult = {
   outer: [
-    { construct: 'Image', item: 'IMAG1', weight: null, loading: 0.81, vif: null, t: 12.3, p: 0.0001 },
-    { construct: 'Expectation', item: 'CUEX1', weight: 0.44, loading: null, vif: 1.9, t: 3.1, p: 0.002 },
+    { construct: 'Image', item: 'IMAG1', weight: null, loading: 0.81, vif: null, t: 12.3, p: 0.0001, mean: 7.64, sd: 1.7 },
+    { construct: 'Expectation', item: 'CUEX1', weight: 0.44, loading: null, vif: 1.9, t: 3.1, p: 0.002, mean: 6.8, sd: 1.2 },
   ],
   reliability: [
     { construct: 'Image', alpha: 0.77, rhoA: 0.78, cr: 0.83, ave: 0.50 },
@@ -44,26 +43,36 @@ const R: PlsSemResult = {
 }
 
 describe('buildPlsSem', () => {
-  it('reorders reliability to α / ρ_A / CR / AVE and suppresses AVE for formative constructs', () => {
+  it('measurement table groups indicator rows under their construct, carrying ρC/α/AVE once on the group row', () => {
     const c = buildPlsSem(SPEC, R)
-    const rel = c.tables.find((t) => t.spec.id === 'reliability')!
-    expect(Object.keys(rel.rows[0])).toEqual(['construct', 'alpha', 'rhoA', 'cr', 'ave'])
-    expect(rel.rows[0].construct).toBe('Image')
-    expect(rel.rows[0].alpha).toBe('.77')
-    expect(rel.rows[0].ave).toBe('.50')
-    // formative Expectation: AVE rendered as an em-dash, not a number
-    expect(rel.rows[1].ave).toBe('—')
+    const table = c.tables.find((t) => t.spec.id === 'measurement')!
+    const groupRow = table.rows.find((r) => (r as Record<string, unknown>).__group === 'Image')!
+    expect(groupRow.rhoC).not.toBe('')
+    expect(groupRow.alpha).toBe('.77')
+    expect(groupRow.ave).toBe('.50')
+    const childRow = table.rows[table.rows.indexOf(groupRow) + 1]
+    expect(childRow.rhoC).toBe('')
+    expect(childRow.alpha).toBe('')
+    expect(childRow.ave).toBe('')
+    expect(childRow.mean).not.toBe('')
+    expect(childRow.path).toBe('IMAG1')
+
+    // formative Expectation: AVE rendered as an em-dash on the group row, not a number
+    const expGroup = table.rows.find((r) => (r as Record<string, unknown>).__group === 'Expectation')!
+    expect(expGroup.ave).toBe('—')
   })
 
-  it('renders outer model with loading OR weight (+ VIF) per indicator', () => {
+  it('renders measurement child rows with loading OR weight (+ Mean/SD) per indicator', () => {
     const c = buildPlsSem(SPEC, R)
-    const outer = c.tables.find((t) => t.spec.id === 'outer-model')!
-    expect(outer.rows[0].loading).toBe('.81')
-    expect(outer.rows[0].weight).toBe('—')
-    expect(outer.rows[1].weight).toBe('.44')
+    const table = c.tables.find((t) => t.spec.id === 'measurement')!
+    const imag1 = table.rows.find((r) => r.path === 'IMAG1')!
+    expect(imag1.loading).toBe('.81')
+    expect(imag1.mean).toBe('7.64')
+    expect(imag1.sd).toBe('1.70')
+    const cuex1 = table.rows.find((r) => r.path === 'CUEX1')!
     // merged display column ("Loading / weight"): formative rows surface the WEIGHT here
-    expect(outer.rows[1].loading).toBe('.44')
-    expect(outer.rows[1].vif).toBe('1.90')
+    expect(cuex1.loading).toBe('.44')
+    expect(cuex1.mean).toBe('6.80')
   })
 
   it('renders HTMT as a lowerOnly matrix table', () => {
@@ -103,13 +112,25 @@ describe('buildPlsSem', () => {
 // spec — the mock SPEC above has empty columns, so builder/spec key mismatches rendered EMPTY
 // "Construct → Item" (spec key 'path') and "f²" (spec key 'f2') columns in the app while the builder
 // unit tests stayed green. Assert against the REAL PLS_SEM spec: every spec column key must be present
-// and non-empty in every built row (the em-dash placeholder counts as non-empty).
+// and non-empty in every built row (the em-dash placeholder counts as non-empty). Relaxed to a
+// per-COLUMN rule for 'measurement' (U6-T1, mirrors U3-T1's cfa-loadings relaxation): the merged
+// table intentionally leaves group rows blank on item columns and item rows blank on group columns.
 describe('buildPlsSem — real registry spec (row keys must cover every spec column key)', () => {
   it('PLS_SEM: every rows-table row fills every spec column', () => {
     const c = buildPlsSem(PLS_SEM, R)
     for (const table of c.tables) {
       if (table.matrix) continue // HTMT matrix renders via the matrix branch; spec.columns unused
       expect(table.rows.length).toBeGreaterThan(0)
+      if (table.spec.id === 'measurement') {
+        for (const col of table.spec.columns) {
+          const filled = table.rows.some((row) => {
+            const v = row[col.key as keyof typeof row]
+            return v != null && String(v).trim() !== ''
+          })
+          expect(filled, `table ${table.spec.id} column '${col.key}' (${col.label}) is blank in EVERY row`).toBe(true)
+        }
+        continue
+      }
       for (const col of table.spec.columns) {
         for (const [ri, row] of table.rows.entries()) {
           const v = row[col.key as keyof typeof row]
@@ -120,12 +141,12 @@ describe('buildPlsSem — real registry spec (row keys must cover every spec col
     }
   })
 
-  it('PLS_SEM outer-model: formative rows surface the WEIGHT in the merged Loading / weight column', () => {
+  it('PLS_SEM measurement: formative rows surface the WEIGHT in the merged Loading / weight column', () => {
     const c = buildPlsSem(PLS_SEM, R)
-    const outer = c.tables.find((t) => t.spec.id === 'outer-model')!
-    expect(outer.rows[0].path).toBe('Image → IMAG1')
-    expect(outer.rows[0].loading).toBe('.81')       // reflective: loading
-    expect(outer.rows[1].path).toBe('Expectation → CUEX1')
-    expect(outer.rows[1].loading).toBe('.44')       // formative: weight surfaces in the merged column
+    const table = c.tables.find((t) => t.spec.id === 'measurement')!
+    const imag1 = table.rows.find((r) => r.path === 'IMAG1')!
+    expect(imag1.loading).toBe('.81')       // reflective: loading
+    const cuex1 = table.rows.find((r) => r.path === 'CUEX1')!
+    expect(cuex1.loading).toBe('.44')       // formative: weight surfaces in the merged column
   })
 })

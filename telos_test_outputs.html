@@ -1168,19 +1168,18 @@
     <div class="rt-h"><span class="rt-name">PLS-SEM</span><span class="rt-q">variance-based structural model</span></div>
     <div class="rt-body">
       <div class="zlabel">Tables</div>
-      <div class="apa-cap"><b>Table 1.</b> Measurement model (outer loadings / weights)</div>
-      <table class="apa"><thead><tr><th>Construct &rarr; Item</th><th>Loading / weight</th><th>t</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 2.</b> Reliability &amp; convergent validity (per construct)</div>
-      <table class="apa"><thead><tr><th>Construct</th><th>&alpha;</th><th>&rho;<sub>A</sub></th><th>CR (&rho;<sub>C</sub>)</th><th>AVE</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 3.</b> Discriminant validity &mdash; HTMT (construct &times; construct)</div>
+      <div class="apa-cap"><b>Table 1.</b> Measurement model</div>
+      <table class="apa"><thead><tr><th>Construct / item</th><th>CR (&rho;<sub>C</sub>)</th><th>&alpha;</th><th>AVE</th><th>Mean</th><th>SD</th><th>Loading / weight</th><th>t</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">construct rows (italic) carry CR (&rho;<sub>C</sub>)/&alpha;/AVE once; indicator rows carry Mean/SD (item descriptives, on the estimation sample) and the merged Loading/weight column (loading for reflective indicators, weight for formative ones) with t/p.</p>
+      <div class="apa-cap"><b>Table 2.</b> Discriminant validity &mdash; HTMT (construct &times; construct)</div>
       <table class="apa"><thead><tr><th>Construct</th><th>C1</th><th>C2</th><th>C3</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">HTMT is a construct-by-construct matrix (not a per-construct value) &mdash; columns expand to the number of constructs in the model; HTMT &lt; .85/.90 supports discriminant validity.</p>
-      <div class="apa-cap"><b>Table 4.</b> Structural paths</div>
+      <div class="apa-cap"><b>Table 3.</b> Structural paths</div>
       <table class="apa"><thead><tr><th>Path</th><th>&beta;</th><th>t</th><th>p</th><th>95% CI</th><th>f&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <div class="apa-cap"><b>Table 5.</b> Structural model quality (per endogenous construct)</div>
+      <div class="apa-cap"><b>Table 4.</b> Structural model quality (per endogenous construct)</div>
       <table class="apa"><thead><tr><th>Construct</th><th>R&sup2;</th><th>R&sup2;<sub>adj</sub></th><th>Q&sup2;</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">significance from bootstrapping; R&sup2; and Q&sup2; assess the structural model.</p>
-      <div class="apa-cap"><b>Table 6.</b> Indirect effects (mediation)</div>
+      <div class="apa-cap"><b>Table 5.</b> Indirect effects (mediation)</div>
       <table class="apa"><thead><tr><th>Path</th><th>Estimate</th><th>SE</th><th>boot 95% CI</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">appears only when the drawn structural paths form a chain (X &rarr; M &rarr; Y); each indirect effect is estimated from the PLS bootstrap with its 95% CI. Moderation is planned for a later version.</p>
       <div class="zlabel">Figure</div>
@@ -1189,8 +1188,8 @@
       <div class="howread"><p>Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does <b>not</b> use CB-SEM global fit indices (CFI/TLI/RMSEA) &mdash; judge it instead by reliability &amp; validity (CR, AVE, HTMT), then R&sup2;, Q&sup2; (predictive relevance) and f&sup2;, with SRMR the only commonly reported approximate fit index. Read the bootstrapped <b>path coefficients</b> (&beta;, p); <b>f&sup2;</b> is each path's effect size (~0.02 small, 0.15 medium, 0.35 large).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;In the PLS-SEM, the path from X to Y gave &beta;=__, <i>p</i>=__ (bootstrap); R&sup2;<sub>Y</sub>=__.&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>seminr</code> &rarr; Tables &amp; bootstrap &middot; <code>summary()</code> &rarr; R&sup2;/R&sup2;adj &middot; <code>seminr::predict_pls()</code> &rarr; Q&sup2; &middot; <code>seminr::specific_effect_significance()</code> (on the bootstrapped model) &rarr; Table 6 indirect effects &middot; <code>seminr::plot()</code> &rarr; diagram</div>
-        <div class="m bundle">table_outer-model.png &middot; table_reliability.png &middot; table_htmt.png &middot; table_structural.png &middot; table_structural-quality.png &middot; table_indirect-effects.png (when mediation paths drawn) &middot; figure_path-diagram.png</div>
+        <div class="m"><b>R map:</b> <code>seminr</code> &rarr; Tables &amp; bootstrap &middot; <code>summary()</code> &rarr; R&sup2;/R&sup2;adj &middot; <code>seminr::predict_pls()</code> &rarr; Q&sup2; &middot; <code>seminr::specific_effect_significance()</code> (on the bootstrapped model) &rarr; Table 5 indirect effects &middot; <code>seminr::plot()</code> &rarr; diagram</div>
+        <div class="m bundle">table_measurement.png &middot; table_htmt.png &middot; table_structural.png &middot; table_structural-quality.png &middot; table_indirect-effects.png (when mediation paths drawn) &middot; figure_path-diagram.png</div>
       </div>
     </div>
   </div>

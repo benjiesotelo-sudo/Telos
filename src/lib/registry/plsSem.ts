@@ -1,10 +1,12 @@
 import type { TestSpec } from './types'
 
 // Encoded from telos_test_outputs.html (PLS-SEM card, lines 1160-1188) — display strings verbatim.
-// Convention (SEM reporting, approved 2026-06-18):
+// Convention (SEM reporting, approved 2026-06-18; measurement table merged U6-T1):
 //   - Variance-based SEM (seminr); NO global fit indices (CFI/TLI/RMSEA).
-//   - Reliability display order = Construct · α · ρ_A · CR (ρ_C) · AVE; seminr emits alpha/rhoC/AVE/rhoA
-//     in a different order → buildPlsSem must SELECT+REORDER into this tuple.
+//   - Measurement model (Table 1, A6 grouped device): construct rows (group header) carry CR (ρ_C) · α ·
+//     AVE once; indicator child rows carry Mean · SD · the merged Loading/weight column · t · p. seminr
+//     emits reliability as alpha/rhoC/AVE/rhoA → buildPlsSem SELECTS+REORDERS the group-row triple to
+//     ρC/α/AVE (ρ_A is not displayed on the merged table).
 //   - HTMT (primary discriminant criterion) = construct × construct matrix (rendered via the matrix branch).
 //   - Bootstrap 5000 (percentile CI); structural f² from summary(pls)$fSquare; Q² per §5.2 (blindfolding else PLSpredict).
 //   - Indirect effects via seminr::specific_effect_significance() on the bootstrapped model.
@@ -25,25 +27,19 @@ export const PLS_SEM: TestSpec = {
   },
   tables: [
     {
-      id: 'outer-model',
-      title: 'Measurement model (outer loadings / weights)',
+      id: 'measurement',
+      domId: 'pls-sem-measurement',
+      title: 'Measurement model',
       columns: [
-        { key: 'path', label: 'Construct → Item' },
+        { key: 'path', label: 'Construct / item' },
+        { key: 'rhoC', label: 'CR (ρ', sub: 'C', suffix: ')' },
+        { key: 'alpha', label: 'α' },
+        { key: 'ave', label: 'AVE' },
+        { key: 'mean', label: 'Mean' },
+        { key: 'sd', label: 'SD' },
         { key: 'loading', label: 'Loading / weight' },
         { key: 't', label: 't' },
         { key: 'p', label: 'p' },
-      ],
-    },
-    {
-      id: 'reliability',
-      domId: 'pls-sem-reliability',
-      title: 'Reliability & convergent validity (per construct)',
-      columns: [
-        { key: 'construct', label: 'Construct' },
-        { key: 'alpha', label: 'α' },
-        { key: 'rhoA', label: 'ρ', sub: 'A' },
-        { key: 'cr', label: 'CR (ρ', sub: 'C', suffix: ')' },
-        { key: 'ave', label: 'AVE' },
       ],
     },
     {
@@ -98,10 +94,9 @@ export const PLS_SEM: TestSpec = {
   howToRead:
     'Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does not use CB-SEM global fit indices (CFI/TLI/RMSEA) — judge it instead by reliability & validity (CR, AVE, HTMT), then R², Q² (predictive relevance) and f², with SRMR the only commonly reported approximate fit index. Read the bootstrapped path coefficients (β, p); f² is each path\'s effect size (~0.02 small, 0.15 medium, 0.35 large).',
   apaTemplate: 'In the PLS-SEM, the path from X to Y gave β=__, p=__ (bootstrap); R²Y=__.',
-  rMap: 'seminr → Tables & bootstrap · summary() → R²/R²adj · seminr::predict_pls() → Q² · seminr::specific_effect_significance() (on the bootstrapped model) → Table 6 indirect effects · seminr::plot() → diagram',
+  rMap: 'seminr → Tables & bootstrap · summary() → R²/R²adj · seminr::predict_pls() → Q² · seminr::specific_effect_significance() (on the bootstrapped model) → Table 5 indirect effects · seminr::plot() → diagram',
   bundleFiles: [
-    'table_outer-model.png',
-    'table_reliability.png',
+    'table_measurement.png',
     'table_htmt.png',
     'table_structural.png',
     'table_structural-quality.png',

@@ -20,36 +20,34 @@ const ci = (lo: unknown, hi: unknown): string => `[${fc(lo)}, ${fc(hi)}]`
 export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
   const tableById = (id: string) => spec.tables.find((t) => t.id === id)!
 
-  // T1: Outer model. Row keys must match the registry spec's column keys (ApaTable renders
-  // row[column.key]): the spec displays 'path' ("Construct → Item") and a single merged 'loading'
-  // ("Loading / weight" — the loading for reflective indicators, the weight for formative ones).
-  // construct/item/weight/vif stay as extra keys for programmatic consumers.
-  const t1rows = r.outer.map((row) => ({
-    path: `${row.construct} → ${row.item}`,
-    construct: String(row.construct),
-    item: String(row.item),
-    loading: fc(row.loading ?? row.weight),
-    weight: fc(row.weight),
-    vif: f2(row.vif),
-    t: f2(row.t),
-    p: fpFmt(row.p),
-  }))
-
-  // T2: Reliability & convergent validity — Construct · α · ρ_A · CR · AVE (AVE em-dash for formative)
-  const t2rows = r.reliability.map((row) => ({
-    construct: String(row.construct),
-    alpha: fc(row.alpha),
-    rhoA: fc(row.rhoA),
-    cr: fc(row.cr),
-    ave: fc(row.ave),
-  }))
+  // T1 (merged, U6-T1): Measurement model — construct rows (__group marker, A6 renderer device) carry
+  // CR (ρC)/α/AVE once; indicator rows (indented by the renderer) carry Mean/SD (item descriptives) and
+  // the merged Loading/weight column (loading for reflective indicators, weight for formative ones) plus
+  // t/p, leaving the construct-level columns blank. Row keys MUST match the registry spec's column keys
+  // (ApaTable renders row[column.key]) — mirrors buildCbSem's cfa-loadings __group shape (U3-T1).
+  const measurementRows: BuiltTable['rows'] = []
+  for (const rel of r.reliability) {
+    measurementRows.push({
+      __group: String(rel.construct),
+      path: String(rel.construct),
+      rhoC: fc(rel.cr), alpha: fc(rel.alpha), ave: fc(rel.ave),
+      mean: '', sd: '', loading: '', t: '', p: '',
+    })
+    for (const row of r.outer.filter((o) => o.construct === rel.construct)) {
+      measurementRows.push({
+        path: String(row.item), // indented child — CSS/LaTeX render the indent via __group, not the string itself
+        rhoC: '', alpha: '', ave: '',
+        mean: f2(row.mean), sd: f2(row.sd),
+        loading: fc(row.loading ?? row.weight), t: f2(row.t), p: fpFmt(row.p),
+      })
+    }
+  }
 
   const tables: BuiltTable[] = [
-    { spec: tableById('outer-model'), rows: t1rows },
-    { spec: tableById('reliability'), rows: t2rows },
+    { spec: tableById('measurement'), rows: measurementRows },
   ]
 
-  // T3: HTMT matrix (lowerOnly) — only when ≥ 2 constructs
+  // T2: HTMT matrix (lowerOnly) — only when ≥ 2 constructs
   const labels = r.htmt.labels
   if (labels.length >= 2) {
     const htmtCells: (string | null)[][] = r.htmt.cells.map((rowCells, i) =>
@@ -67,8 +65,8 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
     tables.push({ spec: tableById('htmt'), rows: [], matrix: htmtMatrix })
   }
 
-  // T4: Structural paths — Path · β · t · p · 95% CI · f² (spec column key 'f2')
-  const t4rows = r.structural.map((row) => ({
+  // T3: Structural paths — Path · β · t · p · 95% CI · f² (spec column key 'f2')
+  const t3rows = r.structural.map((row) => ({
     path: String(row.path),
     beta: fc(row.beta),
     t: f2(row.t),
@@ -76,27 +74,27 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
     ci: ci(row.ciLower, row.ciUpper),
     f2: f2(row.fSquare),
   }))
-  tables.push({ spec: tableById('structural'), rows: t4rows })
+  tables.push({ spec: tableById('structural'), rows: t3rows })
 
-  // T5: Structural quality — Construct · R² · R²adj · Q²_predict
-  const t5rows = r.quality.map((row) => ({
+  // T4: Structural quality — Construct · R² · R²adj · Q²_predict
+  const t4rows = r.quality.map((row) => ({
     construct: String(row.construct),
     r2: fc(row.r2),
     r2adj: fc(row.r2adj),
     q2: f2(row.q2),
   }))
-  tables.push({ spec: tableById('structural-quality'), rows: t5rows })
+  tables.push({ spec: tableById('structural-quality'), rows: t4rows })
 
-  // T6: Indirect effects — only when chained paths exist
+  // T5: Indirect effects — only when chained paths exist
   if (r.indirect && r.indirect.length > 0) {
-    const t6rows = r.indirect.map((row) => ({
+    const t5rows = r.indirect.map((row) => ({
       path: String(row.path),
       est: fc(row.est),
       se: f2(row.se),
       ci: ci(row.ciLower, row.ciUpper),
       p: fpFmt(row.p),
     }))
-    tables.push({ spec: tableById('indirect-effects'), rows: t6rows })
+    tables.push({ spec: tableById('indirect-effects'), rows: t5rows })
   }
 
   // Figure — annotated path diagram rasterized via captureNode in ResultsScreen.download();

@@ -165,6 +165,15 @@ describe('plsSem', () => {
     expect(Number(ind!.est)).toBeCloseTo(0.1104, 2)
   }, 600_000)
 
+  it('outer rows carry item mean/sd computed on the listwise sample', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
+    const r = await runPlsSem(engine, data, REFLECTIVE_SETUP)
+    // native R 4.6.0: mean(mobi$IMAG1)=7.64, sd(mobi$IMAG1)=1.6999881880 (N=250, no NAs, seminr::mobi)
+    const row = r.outer.find((row) => row.item === 'IMAG1')!
+    expect(Number(row.mean)).toBeCloseTo(7.64, 2)
+    expect(Number(row.sd)).toBeCloseTo(1.69999, 3)
+  }, 600_000)
+
   it('mixed reflective/formative model suppresses AVE for the formative construct and reports weights', async () => {
     const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
     const r = await runPlsSem(engine, data, MIXED_SETUP)

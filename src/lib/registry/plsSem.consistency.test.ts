@@ -25,24 +25,20 @@ describe('plsSem registry stays faithful to the amended output card (verbatim, c
     expect(spec.inputKind).toBe('sem-canvas')
     expect(spec.roles).toHaveLength(0)
   })
-  it('Table 1 (outer model) thead matches the spec columns', () => {
-    expect(theadAfter('outer loadings / weights')).toEqual(tableCols('outer-model'))
+  it('Table 1 (measurement model, grouped) thead matches the spec columns', () => {
+    expect(theadAfter('Measurement model')).toEqual(tableCols('measurement'))
+    expect(card).toContain('<div class="apa-cap"><b>Table 1.</b> Measurement model</div>')
   })
-  it('Table 2 (reliability) thead matches the spec columns — exact order Construct · α · ρA · CR (ρC) · AVE', () => {
-    expect(theadAfter('Reliability &amp; convergent validity')).toEqual(tableCols('reliability'))
-    // load-bearing: the display order buildPlsSem must SELECT+REORDER seminr output into
-    expect(tableCols('reliability')).toEqual(['Construct', 'α', 'ρA', 'CR (ρC)', 'AVE'])
-  })
-  it('Table 4 (structural paths) thead matches the spec columns', () => {
+  it('Table 3 (structural paths) thead matches the spec columns', () => {
     expect(theadAfter('Structural paths')).toEqual(tableCols('structural'))
   })
-  it('Table 5 (structural quality) thead matches the spec columns', () => {
+  it('Table 4 (structural quality) thead matches the spec columns', () => {
     expect(theadAfter('Structural model quality')).toEqual(tableCols('structural-quality'))
   })
-  it('Table 6 (indirect effects) thead matches the spec columns', () => {
+  it('Table 5 (indirect effects) thead matches the spec columns', () => {
     expect(theadAfter('Indirect effects (mediation)')).toEqual(tableCols('indirect-effects'))
   })
-  it('HTMT (Table 3) is a matrix table — present as a caption, no fixed thead', () => {
+  it('HTMT (Table 2) is a matrix table — present as a caption, no fixed thead', () => {
     expect(card).toContain('Discriminant validity &mdash; HTMT')
     expect(spec.tables.find((t) => t.id === 'htmt')!.columns).toHaveLength(0)
   })

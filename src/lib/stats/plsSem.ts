@@ -56,6 +56,12 @@ p_all <- length(all_items)
 d_all <- as.data.frame(lapply(seq_len(p_all), function(i) item_cols_flat[((i - 1) * n + 1):(i * n)]))
 colnames(d_all) <- all_items
 
+# Item Mean/SD (measurement table, U6-T1) — on the estimation sample (d_all is already the listwise-
+# clean frame the model fits on; PLS has no separate missing-data toggle, matching CB-SEM's item-stats
+# convention when the fit itself is always listwise).
+item_means <- sapply(all_items, function(it) mean(d_all[[it]], na.rm = TRUE))
+item_sds   <- sapply(all_items, function(it) sd(d_all[[it]], na.rm = TRUE))
+
 # Measurement + structural model from emitted seminr source lines
 mm <- eval(parse(text = paste0("constructs(", paste(mm_lines, collapse = ", "), ")")))
 sm <- eval(parse(text = paste0("relationships(", paste(sm_lines, collapse = ", "), ")")))
@@ -103,13 +109,15 @@ for (ci in seq_along(construct_names)) {
       tval <- as.numeric(sb$bootstrapped_weights[key, "T Stat."])
       vif_v <- if (!is.null(vifs) && nm %in% names(vifs) && it %in% names(vifs[[nm]])) as.numeric(vifs[[nm]][it]) else NA
       outer[[length(outer) + 1]] <- list(construct = nm, item = it,
-        weight = w, loading = NA, vif = vif_v, t = tval, p = 2 * pnorm(-abs(tval)))
+        weight = w, loading = NA, vif = vif_v, t = tval, p = 2 * pnorm(-abs(tval)),
+        mean = as.numeric(item_means[[it]]), sd = as.numeric(item_sds[[it]]))
     } else {
       l <- as.numeric(sb$bootstrapped_loadings[key, "Original Est."])
       tval <- as.numeric(sb$bootstrapped_loadings[key, "T Stat."])
       loadings_named[[it]] <- l
       outer[[length(outer) + 1]] <- list(construct = nm, item = it,
-        weight = NA, loading = l, vif = NA, t = tval, p = 2 * pnorm(-abs(tval)))
+        weight = NA, loading = l, vif = NA, t = tval, p = 2 * pnorm(-abs(tval)),
+        mean = as.numeric(item_means[[it]]), sd = as.numeric(item_sds[[it]]))
     }
   }
 }
