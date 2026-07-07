@@ -15,6 +15,7 @@ export interface AncovaResult {
   posthoc: PosthocRow[]
   slopes: SlopeCheck[]
   levene: { F: number | null; p: number | null }
+  shapiro: { W: number | null; p: number | null } // residual normality (audit gap, STANDARD) — shapiro.test(residuals(m)), mirrors one-way-anova's own residual check
   ciLevel: number
   alpha: number
   nExcluded: number
@@ -53,7 +54,10 @@ slopes <- lapply(slope_terms, function(t) list(term = gsub(':', ' × ', t), p = 
 cellf <- interaction(d[fnames], sep = ' × ')
 lev <- tryCatch({ ls <- summary(aov(abs(y - ave(y, cellf, FUN = median)) ~ cellf))[[1]]
   list(F = ls[1, 'F value'], p = ls[1, 'Pr(>F)']) }, error = function(e) list(F = NULL, p = NULL))
-list(rows = rows, dfRes = dfres, adjusted = adj, posthoc = ph, slopes = slopes, levene = lev)`
+# Residual normality (audit gap, STANDARD): shapiro.test(residuals(m)), mirrors one-way-anova's own check.
+sh <- tryCatch({ t <- shapiro.test(residuals(m)); list(W = unname(t$statistic), p = t$p.value) },
+  error = function(e) list(W = NULL, p = NULL))
+list(rows = rows, dfRes = dfres, adjusted = adj, posthoc = ph, slopes = slopes, levene = lev, shapiro = sh)`
 
 // Adjusted means pointrange plot — self-contained, uses same env as R_STATS.
 // Reconstructs the lm+emmeans to get the emm data frame.
@@ -82,6 +86,7 @@ interface RawResult {
   posthoc: PosthocRow[]
   slopes: SlopeCheck[]
   levene: { F: number | null; p: number | null }
+  shapiro: { W: number | null; p: number | null }
 }
 
 export async function runAncova(

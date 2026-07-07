@@ -7,6 +7,9 @@ export interface MultivarRow {
   f: number; df1: number; df2: number; p: number
   // Pillai fields always carried for APA (regardless of statistic choice — recorded decision 1)
   pillai: number; pillaiF: number; pillaiDf1: number; pillaiDf2: number; pillaiP: number
+  /** Multivariate effect size (audit gap, STANDARD): effectsize::F_to_eta2(f, df1, df2) applied to the
+   *  SELECTED statistic's own approx F/dfs — mirrors manova.ts's identical addition. */
+  mpes: number; mpesLow: number; mpesHigh: number
 }
 export interface UnivariateFollowupRow { dv: string; f: number; df1: number; df2: number; p: number; pes: number; pesLow: number; pesHigh: number }
 export interface MancovaResult {
@@ -39,11 +42,15 @@ m <- manova(fml, data = d)
 grab <- function(test) { s <- summary(m, test = test)$stats; s[setdiff(rownames(s), 'Residuals'), , drop = FALSE] }
 sc <- grab(statistic)
 sp <- grab('Pillai')
-mv <- lapply(rownames(sc), function(t) list(
+mv <- lapply(rownames(sc), function(t) {
+  # Multivariate effect size (audit gap, STANDARD): F_to_eta2 on the SELECTED statistic's own approx F/dfs.
+  mes <- effectsize::F_to_eta2(sc[t, 'approx F'], sc[t, 'num Df'], sc[t, 'den Df'], ci = 0.95)
+  list(
   effect = gsub(':', ' × ', t),
   stat = sc[t, 2], f = sc[t, 'approx F'], df1 = sc[t, 'num Df'], df2 = sc[t, 'den Df'], p = sc[t, 'Pr(>F)'],
   pillai = sp[t, 2], pillaiF = sp[t, 'approx F'], pillaiDf1 = sp[t, 'num Df'], pillaiDf2 = sp[t, 'den Df'],
-  pillaiP = sp[t, 'Pr(>F)']))
+  pillaiP = sp[t, 'Pr(>F)'], mpes = mes$Eta2_partial, mpesLow = mes$CI_low, mpesHigh = mes$CI_high)
+})
 # Follow-ups per DV: aov(dv ~ covs + factors), FACTOR rows only; pes = partial η² with one-sided CI (ci=level).
 # effectsize::eta_squared(partial=TRUE) matches SS/(SS+SSres); its CI_low/CI_high carry the [pct% CI] for the ES cell.
 fu <- list()

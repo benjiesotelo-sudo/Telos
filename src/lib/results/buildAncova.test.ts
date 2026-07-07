@@ -25,6 +25,7 @@ const spikeResult: AncovaResult = {
   ],
   slopes: [{ term: 'baseline × group', p: 0.875021940147328 }],
   levene: { F: 0.512, p: 0.602 },
+  shapiro: { W: 0.9810569968, p: 0.4748567750 }, // native R (see ancova.test.ts) on this same model
   ciLevel: 0.95,
   alpha: 0.05,
   nExcluded: 0,
@@ -73,12 +74,26 @@ describe('buildAncova', () => {
     )
   })
 
-  it('note: assume kind with card text + slopes clause + Levene clause + afterTableId', () => {
+  it('note: assume kind with card text + slopes clause + Levene clause + residual-Shapiro clause + afterTableId', () => {
     expect(c.note!.kind).toBe('assume')
-    expect(c.note!.text).toContain("assumption checks: homogeneity of regression slopes (factor×covariate interaction) & Levene's; post-hoc on adjusted means.")
+    expect(c.note!.text).toContain("assumption checks: homogeneity of regression slopes (factor×covariate interaction), Levene's, & residual normality (Shapiro-Wilk); post-hoc on adjusted means.")
     expect(c.note!.text).toContain('slopes p(baseline × group)=.875')
     expect(c.note!.text).toContain('Levene F=0.51')
+    expect(c.note!.text).toContain('Shapiro W=0.98')
     expect(c.note!.afterTableId).toBe('ancova')
+  })
+
+  it('audit V: all three checks report a "met" verdict here (slopes p=.875, Levene p=.602, Shapiro p=.475 — none below alpha)', () => {
+    expect(c.note!.text).toContain('the regression slopes look homogeneous across groups')
+    expect(c.note!.text).toContain('equal variances look reasonable')
+    expect(c.note!.text).toContain('residual normality looks reasonable')
+  })
+
+  it('audit V: flags violated verdicts when slopes/Levene/Shapiro all cross alpha', () => {
+    const c2 = buildAncova(spec, { ...spikeResult, slopes: [{ term: 'baseline × group', p: 0.01 }], levene: { F: 9, p: 0.001 }, shapiro: { W: 0.7, p: 0.001 } })
+    expect(c2.note!.text).toContain("at least one covariate's slope differs across groups; the adjusted-means comparison may not be valid")
+    expect(c2.note!.text).toContain('equal variances look doubtful; interpret the F-tests with extra caution')
+    expect(c2.note!.text).toContain('residual normality looks doubtful; interpret the F-tests with extra caution')
   })
 
   it('figure: adjusted means type + png', () => {

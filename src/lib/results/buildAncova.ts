@@ -4,6 +4,7 @@ import type { AncovaResult } from '../stats/ancova'
 import type { CardContent } from './builders'
 import { f, f01, fdf, fp, fpApa, fx } from '../format/apa'
 import { posthocTableRows } from '../stats/posthoc'
+import { verdictClause, verdictFromBoolean } from '../format/verdict'
 
 export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
   const pct = Math.round(r.ciLevel * 100)
@@ -24,10 +25,20 @@ export function buildAncova(spec: TestSpec, r: AncovaResult): CardContent {
     .replace('{pes}', f01(firstFactorRow.pes))
     .replace('{plo}', f(firstFactorRow.pesLow)).replace('{phi}', f(firstFactorRow.pesHigh))
 
-  // Note: card text + slopes per-term + Levene
+  // Note: card text + slopes per-term + Levene + residual Shapiro (audit gap, STANDARD)
   const slopesStr = r.slopes.map((s) => `slopes p(${s.term})=${fp(s.p)}`).join(' · ')
   const levStr = `Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)}`
-  const noteText = `${spec.tableNote!.text} (${slopesStr} · ${levStr})`
+  const shStr = `Shapiro W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)}`
+  // Audit V (2026-07-06 completeness audit): plain-language verdicts for all three reported checks.
+  const slopesViolated = r.slopes.some((s) => s.p != null && s.p < r.alpha)
+  const slopesVerdict = verdictFromBoolean(slopesViolated,
+    'the regression slopes look homogeneous across groups',
+    "at least one covariate's slope differs across groups; the adjusted-means comparison may not be valid")
+  const leveneVerdict = verdictClause(r.levene.p, r.alpha, 'equal variances look reasonable',
+    'equal variances look doubtful; interpret the F-tests with extra caution')
+  const shapiroVerdict = verdictClause(r.shapiro.p, r.alpha, 'residual normality looks reasonable',
+    'residual normality looks doubtful; interpret the F-tests with extra caution')
+  const noteText = `${spec.tableNote!.text} (${slopesStr} · ${levStr} · ${shStr})${slopesVerdict}${leveneVerdict}${shapiroVerdict}`
 
   const fig = figuresOf(spec)[0]
 

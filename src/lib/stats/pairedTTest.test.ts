@@ -37,6 +37,10 @@ describe('runPairedTTest', () => {
     // Shapiro-Wilk on the difference scores (pre − post): native R 4.6.0 shapiro.test(d$pre - d$post) on paired.csv
     expect(r.shapiro.W).toBeCloseTo(0.9223854, 5)
     expect(r.shapiro.p).toBeCloseTo(0.5227052, 5)
+    // Paired correlation r (audit gap, STANDARD): native R 4.6.0 cor.test(pre, post) on the same 6 pairs
+    // -> r=0.6799040465, p=0.1372933863 (verified locally via Rscript -e 'cor.test(c(72,68,75,70,66,71), c(81,79,85,83,78,88))')
+    expect(r.r).toBeCloseTo(0.6799040465, 6)
+    expect(r.rP).toBeCloseTo(0.1372933863, 6)
     expect(Array.from(r.figurePng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   })
 })

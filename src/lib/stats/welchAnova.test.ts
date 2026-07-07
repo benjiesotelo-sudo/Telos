@@ -17,6 +17,15 @@ describe("Welch's ANOVA stats engine (spike known answers)", () => {
     expect(res.df2).toBeCloseTo(37.9023295774865, 6)
     expect(res.p).toBeCloseTo(0.0890313047549131, 6)
 
+    // Effect size (audit gap, STANDARD): effectsize::F_to_omega2(F, df1, df2, ci=0.95) — no fitted aov
+    // model exists for Welch's F (no SS decomposition), so the conventional F-to-omega2 conversion is
+    // used directly. Verified locally via Rscript against the SAME F/df1/df2 this test already asserts:
+    //   Rscript -e 'library(effectsize); print(F_to_omega2(2.57990466333335, 2, 37.9023295774865, ci=0.95))'
+    //   -> Omega2_partial=0.07171257241, CI_low=0, CI_high=1 (one-sided, upper pinned at 1.00)
+    expect(res.omega2).toBeCloseTo(0.07171257241, 6)
+    expect(res.omega2Low).toBeCloseTo(0, 6)
+    expect(res.omega2High).toBeCloseTo(1, 6)
+
     // Descriptives
     expect(res.desc).toHaveLength(3)
     expect(res.desc.find((d) => d.group === 'control')?.n).toBe(20)

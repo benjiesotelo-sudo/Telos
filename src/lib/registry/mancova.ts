@@ -35,6 +35,9 @@ export const MANCOVA: TestSpec = {
         { key: 'df1', label: 'df1' },
         { key: 'df2', label: 'df2' },
         { key: 'p', label: 'p' },
+        // Multivariate effect size (audit gap, STANDARD): effectsize::F_to_eta2() on the multivariate
+        // approx F/dfs — the conventional conversion when no per-cell SS decomposition exists.
+        { key: 'mpes', label: 'partial η² [95% CI]' },
       ] },
     { id: 'univariate-followups', domId: 'mancova-univariate-followups', title: 'Adjusted univariate follow-ups',
       columns: [
@@ -51,7 +54,7 @@ export const MANCOVA: TestSpec = {
   howToRead:
     'Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. ' +
     'Interpret the univariate follow-ups only if the multivariate p is significant, and adjust them for the number of DVs (e.g. Bonferroni) to control familywise error.',
-  apaTemplate: "A MANCOVA gave a covariate-adjusted group effect, Pillai's V={v}, F({df1},{df2})={f}, p {p}.",
+  apaTemplate: "A MANCOVA gave a covariate-adjusted group effect, Pillai's V={v}, F({df1},{df2})={f}, p {p}, partial η²={mpes} [{mpeslo}, {mpeshi}].",
   rMap: 'manova() + summary(.., test=) (covariates first — matches car::Manova) → Table 1 · summary.aov() → Table 2 (F/df/p) · effectsize::eta_squared(partial=TRUE) → partial η² · emmeans → adjusted means',
   bundleFiles: ['table_multivariate.png', 'table_univariate-followups.png', 'figure_adjusted-means.png'],
 }

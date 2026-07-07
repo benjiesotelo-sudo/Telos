@@ -26,7 +26,9 @@ export const WELCH_ANOVA: TestSpec = {
     { id: 'descriptives', domId: 'welch-anova-descriptives', title: 'Descriptives by group',
       columns: [{ key: 'group', label: 'Group' }, { key: 'n', label: 'N' }, { key: 'm', label: 'Mean' }, { key: 'sd', label: 'Std. Dev.' }] },
     { id: 'welch-anova', domId: 'welch-anova-welch-anova', title: "Welch's ANOVA",
-      columns: [{ key: 'f', label: 'F' }, { key: 'df1', label: 'df1' }, { key: 'df2', label: 'df2' }, { key: 'p', label: 'p' }] },
+      // ω² (audit gap, STANDARD): effectsize::F_to_omega2(F, df1, df2) — the conventional Welch-ANOVA
+      // effect size when no fitted aov model exists to feed the model-based omega_squared() path.
+      columns: [{ key: 'f', label: 'F' }, { key: 'df1', label: 'df1' }, { key: 'df2', label: 'df2' }, { key: 'p', label: 'p' }, { key: 'omega2', label: 'ω² [95% CI]' }] },
     { id: 'posthoc', domId: 'welch-anova-posthoc', title: 'Games-Howell post-hoc',
       columns: [{ key: 'pair', label: 'Pair' }, { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'padj', label: 'p', sub: 'adj' }, { key: 'ci', label: '95% CI' }] },
   ],
@@ -35,7 +37,7 @@ export const WELCH_ANOVA: TestSpec = {
   howToRead:
     'A one-way ANOVA that relaxes the equal-variance assumption but still assumes roughly normal data within each group. ' +
     'A significant F means at least one group mean differs from the others; the Games-Howell post-hoc (also variance-robust) then shows which specific pairs differ.',
-  apaTemplate: "Welch's ANOVA gave F({df1},{df2})={f}, p {p}.",
+  apaTemplate: "Welch's ANOVA gave F({df1},{df2})={f}, p {p}, ω²={omega2} [{omega2lo}, {omega2hi}].",
   rMap: 'oneway.test(var.equal=FALSE) → Table 2 · rstatix::games_howell_test() → Table 3',
   bundleFiles: ['table_descriptives.png', 'table_welch-anova.png', 'table_posthoc.png', 'figure_means-plot.png'],
 }

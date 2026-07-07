@@ -277,7 +277,7 @@
       <div class="apa-cap"><b>Table 1.</b> Paired descriptives</div>
       <table class="apa"><thead><tr><th>Condition</th><th>N</th><th>M</th><th>SD</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Paired-samples t-test</div>
-      <table class="apa"><thead><tr><th>Pair</th><th>t</th><th>df</th><th>p</th><th>M<sub>diff</sub></th><th>95% CI</th><th>d [95% CI]<sub>z</sub></th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Pair</th><th>t</th><th>df</th><th>p</th><th>M<sub>diff</sub></th><th>95% CI</th><th>d [95% CI]<sub>z</sub></th><th>r (paired)</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption check: normality of the difference scores.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Change per case</div><div class="ftype">type: <b>paired-lines / difference plot</b></div></div>
@@ -415,7 +415,7 @@
       <div class="apa-cap"><b>Table 1.</b> Descriptives by group</div>
       <table class="apa"><thead><tr><th>Group</th><th>N</th><th>Mean</th><th>Std. Dev.</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Welch's ANOVA</div>
-      <table class="apa"><thead><tr><th>F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>F</th><th>df1</th><th>df2</th><th>p</th><th>ω² [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 3.</b> Games-Howell post-hoc</div>
       <table class="apa"><thead><tr><th>Pair</th><th>M<sub>diff</sub></th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional); within-group normality is still assumed and checked with Shapiro-Wilk per group.</p>
@@ -424,7 +424,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>A one-way ANOVA that relaxes the equal-variance assumption but still assumes roughly normal data within each group. A significant <b>F</b> means at least one group mean differs from the others; the Games-Howell post-hoc (also variance-robust) then shows which specific pairs differ.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;Welch's ANOVA gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;Welch's ANOVA gave <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, <i>&omega;&sup2;</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>oneway.test(var.equal=FALSE)</code> &rarr; Table 2 &middot; <code>rstatix::games_howell_test()</code> &rarr; Table 3</div>
         <div class="m bundle">table_descriptives.png &middot; table_welch-anova.png &middot; table_posthoc.png &middot; figure_means-plot.png</div>
       </div>
@@ -439,7 +439,7 @@
       <table class="apa"><thead><tr><th>Group</th><th>Adj. M</th><th>SE</th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> ANCOVA</div>
       <table class="apa"><thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>Covariate</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Factor</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note assume">assumption checks: homogeneity of regression slopes (factor&times;covariate interaction) &amp; Levene's; post-hoc on adjusted means.</p>
+      <p class="tbl-note assume">assumption checks: homogeneity of regression slopes (factor&times;covariate interaction), Levene's, &amp; residual normality (Shapiro-Wilk); post-hoc on adjusted means.</p>
       <div class="apa-cap"><b>Table 3.</b> Post-hoc comparisons (adjusted means)</div>
       <table class="apa"><thead><tr><th>Pair</th><th>M<sub>diff</sub> (adj.)</th><th>SE</th><th>p<sub>adj</sub></th><th>95% CI</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
@@ -459,7 +459,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Multivariate tests</div>
-      <table class="apa"><thead><tr><th>Effect</th><th>Pillai / Wilks</th><th>approx F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Effect</th><th>Pillai / Wilks</th><th>approx F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption check: homogeneity of covariance matrices (Box's M).</p>
       <div class="apa-cap"><b>Table 2.</b> Follow-up univariate ANOVAs (per DV)</div>
       <table class="apa"><thead><tr><th>DV</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
@@ -468,7 +468,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Tests whether groups differ on a <i>set</i> of outcomes jointly. Read the multivariate <b>p</b> (Pillai's trace is robust) first; if significant, the per-DV follow-up ANOVAs show which individual outcomes drive it. Because you run one ANOVA per outcome, correct those follow-up p-values for multiple comparisons (e.g. Bonferroni: divide alpha by the number of outcomes) before calling each significant.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A MANOVA gave Pillai's <i>V</i>=__, <i>F</i>(__,__)=__, <i>p</i>&nbsp;__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A MANOVA gave Pillai's <i>V</i>=__, <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial <i>&eta;&sup2;</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>manova()</code> + <code>summary(.., test="Pillai")</code> &rarr; Table 1 &middot; <code>summary.aov()</code> &rarr; Table 2 (F/df/p) &middot; <code>effectsize::eta_squared(partial=TRUE)</code> &rarr; partial &eta;&sup2;</div>
         <div class="m bundle">table_multivariate.png &middot; table_univariate-followups.png &middot; figure_means.png</div>
       </div>
@@ -480,7 +480,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Multivariate tests (covariate-adjusted)</div>
-      <table class="apa"><thead><tr><th>Effect</th><th>Pillai / Wilks</th><th>approx F</th><th>df1</th><th>df2</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa"><thead><tr><th>Effect</th><th>Pillai / Wilks</th><th>approx F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="apa-cap"><b>Table 2.</b> Adjusted univariate follow-ups</div>
       <table class="apa"><thead><tr><th>DV</th><th>F</th><th>df1</th><th>df2</th><th>p</th><th>partial &eta;&sup2; [95% CI]</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">assumption checks include homogeneity of covariance matrices (Box's M) and homogeneity of regression slopes for each covariate.</p>
@@ -489,7 +489,7 @@
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>Like MANOVA, but group differences on the set of outcomes are assessed after controlling for one or more covariates. Interpret the univariate follow-ups only if the multivariate <b>p</b> is significant, and adjust them for the number of DVs (e.g. Bonferroni) to control familywise error.</p></div>
       <div class="meta">
-        <div class="m"><b>APA template:</b> &ldquo;A MANCOVA gave a covariate-adjusted group effect, Pillai's <i>V</i>=__, <i>F</i>(__,__)=__, <i>p</i>&nbsp;__.&rdquo;</div>
+        <div class="m"><b>APA template:</b> &ldquo;A MANCOVA gave a covariate-adjusted group effect, Pillai's <i>V</i>=__, <i>F</i>(__,__)=__, <i>p</i>&nbsp;__, partial <i>&eta;&sup2;</i>=__ [__, __].&rdquo;</div>
         <div class="m"><b>R map:</b> <code>manova()</code> + <code>summary(.., test=)</code> (covariates first &mdash; matches <code>car::Manova</code>) &rarr; Table 1 &middot; <code>summary.aov()</code> &rarr; Table 2 (F/df/p) &middot; <code>effectsize::eta_squared(partial=TRUE)</code> &rarr; partial &eta;&sup2; &middot; <code>emmeans</code> &rarr; adjusted means</div>
         <div class="m bundle">table_multivariate.png &middot; table_univariate-followups.png &middot; figure_adjusted-means.png</div>
       </div>

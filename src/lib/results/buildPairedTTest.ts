@@ -3,6 +3,7 @@ import { figuresOf } from '../registry/types'
 import type { PairedTTestResult } from '../stats/pairedTTest'
 import type { CardContent } from './builders'
 import { f, f1, fdf, fp, fpApa, fx } from '../format/apa'
+import { verdictClause } from '../format/verdict'
 
 const tailsNote = (t: string) => t === 'two.sided' ? '' : ` This was a one-tailed test (${t}).`
 
@@ -19,9 +20,9 @@ export function buildPairedTTest(spec: TestSpec, r: PairedTTestResult): CardCont
   return {
     tables: [
       { spec: spec.tables[0], rows: r.conditions.map((c) => ({ condition: c.condition, n: c.n, mean: f(c.mean), sd: f(c.sd) })) },
-      { spec: { ...spec.tables[1], columns: t2cols }, rows: [{ pair: r.pair, t: f(r.t), df: fdf(r.df), p: fp(r.p), mdiff: f(r.meanDiff), ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: `${f(r.dz)} [${f(r.dzLow)}, ${f(r.dzHigh)}]` }] },
+      { spec: { ...spec.tables[1], columns: t2cols }, rows: [{ pair: r.pair, t: f(r.t), df: fdf(r.df), p: fp(r.p), mdiff: f(r.meanDiff), ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: `${f(r.dz)} [${f(r.dzLow)}, ${f(r.dzHigh)}]`, r: f(r.r) }] },
     ],
-    note: { kind: 'assume', text: `${spec.tableNote!.text} (Shapiro-Wilk W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})` },
+    note: { kind: 'assume', text: `${spec.tableNote!.text} (Shapiro-Wilk W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})${verdictClause(r.shapiro.p, r.alpha, 'normality of the differences looks reasonable', 'normality of the differences looks doubtful; consider the Wilcoxon signed-rank test or interpreting with caution')}` },
     figures: figuresOf(spec).map((fg) => ({ caption: fg.caption, type: fg.type, png: r.figurePng })),
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails),
     apa,
@@ -36,6 +37,7 @@ export function buildPairedTTest(spec: TestSpec, r: PairedTTestResult): CardCont
       sdA: f(r.conditions[0].sd), sdB: f(r.conditions[1].sd),
       t: f(r.t), df: fdf(r.df), p: fpApa(r.p), mdiff: f(r.meanDiff),
       ci: `[${f(r.ci[0])}, ${f(r.ci[1])}]`, d: f(r.dz), dlo: f(r.dzLow), dhi: f(r.dzHigh),
+      r: f(r.r),
     },
   }
 }

@@ -48,6 +48,14 @@ describe('runAncova — spike-known answers (outcome ~ baseline + group)', () =>
     expect(r.slopes).toHaveLength(1)
     expect(r.slopes[0].p).toBeCloseTo(0.875021940147328, 6)
 
+    // Residual normality (audit gap, STANDARD): shapiro.test(residuals(m)) on the same lm(outcome ~
+    // baseline + group, contr.sum) model as the SS/F/p rows above. Verified locally via Rscript:
+    //   d <- read.csv("src/lib/stats/fixtures/anova.csv"); d$group <- factor(d$group)
+    //   m <- lm(outcome ~ baseline + group, data=d, contrasts=list(group='contr.sum'))
+    //   shapiro.test(residuals(m)) -> W=0.9810569968, p=0.4748567750
+    expect(r.shapiro.W).toBeCloseTo(0.9810569968, 6)
+    expect(r.shapiro.p).toBeCloseTo(0.4748567750, 6)
+
     // Post-hoc control - drug_a pair
     const ph = r.posthoc.find((x) => x.pair === 'control - drug_a')!
     expect(ph).toBeDefined()

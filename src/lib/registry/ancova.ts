@@ -53,7 +53,7 @@ export const ANCOVA: TestSpec = {
         { key: 'ci', label: '95% CI' },
       ] },
   ],
-  tableNote: { kind: 'assume', text: "assumption checks: homogeneity of regression slopes (factor×covariate interaction) & Levene's; post-hoc on adjusted means.", afterTableId: 'ancova' },
+  tableNote: { kind: 'assume', text: "assumption checks: homogeneity of regression slopes (factor×covariate interaction), Levene's, & residual normality (Shapiro-Wilk); post-hoc on adjusted means.", afterTableId: 'ancova' },
   figures: [{ caption: 'Adjusted means', type: 'adjusted means plot (covariate-controlled, ± CI)' , file: 'adjusted-means' }],
   howToRead:
     'Compares group means after statistically removing the influence of a numeric covariate. First confirm the ' +

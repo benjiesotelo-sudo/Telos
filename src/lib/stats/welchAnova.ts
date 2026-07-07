@@ -7,6 +7,7 @@ export interface ShapiroGroupRow { group: string; W: number | null; p: number | 
 export interface WelchAnovaResult {
   desc: GroupDescRow[]
   f: number; df1: number; df2: number; p: number
+  omega2: number; omega2Low: number; omega2High: number // audit gap (STANDARD): effect size for Welch's ANOVA — effectsize::F_to_omega2(f, df1, df2), the conventional approach when there's no fitted aov model (Welch's F has no SS decomposition to feed omega_squared()'s model-based path)
   posthoc: GamesHowellRow[]
   shapiro: ShapiroGroupRow[]  // within-group normality (Welch relaxes equal variance, still assumes normality per group)
   alpha: number
@@ -25,8 +26,12 @@ sh <- lapply(levels(gf), function(l) { v <- y[gf == l]; n <- length(v)
   if (n >= 3 && n <= 5000) { t <- tryCatch(shapiro.test(v), error = function(e) NULL)
     if (is.null(t)) list(group = l, W = NULL, p = NULL) else list(group = l, W = unname(t$statistic), p = t$p.value) }
   else list(group = l, W = NULL, p = NULL) })
+# Effect size (audit gap, STANDARD): Welch's F has no SS decomposition (no fitted aov model), so the
+# conventional approach converts F/df1/df2 directly — effectsize::F_to_omega2 (Field 2013's approximation).
+om <- effectsize::F_to_omega2(unname(res$statistic), unname(res$parameter[1]), unname(res$parameter[2]), ci = 0.95)
 list(desc = desc, f = unname(res$statistic), df1 = unname(res$parameter[1]), df2 = unname(res$parameter[2]),
-  p = res$p.value, posthoc = ph, shapiro = sh)`
+  p = res$p.value, omega2 = om$Omega2_partial, omega2Low = om$CI_low, omega2High = om$CI_high,
+  posthoc = ph, shapiro = sh)`
 
 // Means plot with t-based 95% CI error bars (card figure; no Hmisc — computed in R).
 const R_FIGURE = String.raw`
@@ -39,7 +44,7 @@ print(ggplot2::ggplot(agg, ggplot2::aes(g, m)) +
   ggplot2::geom_pointrange(ggplot2::aes(ymin = lo, ymax = hi), colour = '#0c447c') +
   ggplot2::labs(x = NULL, y = NULL))`
 
-interface RawStats { desc: GroupDescRow[]; f: number; df1: number; df2: number; p: number; posthoc: GamesHowellRow[]; shapiro: ShapiroGroupRow[] }
+interface RawStats { desc: GroupDescRow[]; f: number; df1: number; df2: number; p: number; omega2: number; omega2Low: number; omega2High: number; posthoc: GamesHowellRow[]; shapiro: ShapiroGroupRow[] }
 
 export async function runWelchAnova(engine: Engine, data: Dataset, outcome: string, factor: string, alpha = 0.05): Promise<WelchAnovaResult> {
   // Per-test listwise: drop rows missing/non-numeric in outcome or blank in factor.

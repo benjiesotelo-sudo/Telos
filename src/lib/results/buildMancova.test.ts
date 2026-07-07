@@ -11,12 +11,14 @@ const spikeResult: MancovaResult = {
   multivariate: [
     // covariate row
     { effect: 'baseline', stat: 0.55, f: 20.0, df1: 2, df2: 114, p: 0.00001,
-      pillai: 0.55, pillaiF: 20.0, pillaiDf1: 2, pillaiDf2: 114, pillaiP: 0.00001 },
+      pillai: 0.55, pillaiF: 20.0, pillaiDf1: 2, pillaiDf2: 114, pillaiP: 0.00001,
+      mpes: 0.2597402597, mpesLow: 0.1469755457, mpesHigh: 1 },
     // factor row — spike values
     { effect: 'group', stat: 0.367525003974141, f: 6.30374133529023, df1: 4, df2: 112,
       p: 0.000130150921618041,
       pillai: 0.367525003974141, pillaiF: 6.30374133529023,
-      pillaiDf1: 4, pillaiDf2: 112, pillaiP: 0.000130150921618041 },
+      pillaiDf1: 4, pillaiDf2: 112, pillaiP: 0.000130150921618041,
+      mpes: 0.183762502, mpesLow: 0.06867047272, mpesHigh: 1 }, // effectsize::F_to_eta2(F,df1,df2,ci=0.95) — native R verified (see mancova.test.ts)
   ],
   followups: [
     { dv: 'outcome', f: 8.0678942699764, df1: 2, df2: 56, p: 0.000833763379568619,
@@ -39,7 +41,7 @@ describe('buildMancova', () => {
     expect(c.tables[0].spec.id).toBe('multivariate')
     expect(c.tables[0].rows).toHaveLength(2)
     expect(c.tables[0].rows[1]).toEqual({
-      effect: 'group', stat: '0.37', f: '6.30', df1: '4', df2: '112', p: '<.001',
+      effect: 'group', stat: '0.37', f: '6.30', df1: '4', df2: '112', p: '<.001', mpes: '0.18 [0.07, 1.00]',
     })
     expect(c.tables[0].rows[0].effect).toBe('baseline')
   })
@@ -54,23 +56,32 @@ describe('buildMancova', () => {
     })
   })
 
-  it('APA from selected stat (Pillai): V=.37, F(4,112)=6.30, p < .001', () => {
+  it('APA from selected stat (Pillai): V=.37, F(4,112)=6.30, p < .001, partial η² with its one-sided CI', () => {
     expect(c.apa).toBe(
-      "A MANCOVA gave a covariate-adjusted group effect, Pillai's V=.37, F(4,112)=6.30, p < .001.",
+      "A MANCOVA gave a covariate-adjusted group effect, Pillai's V=.37, F(4,112)=6.30, p < .001, partial η²=.18 [.07, 1.00].",
     )
   })
 
-  it('note carries card assume text plus Box M and slopes p clause', () => {
+  it('note carries card assume text plus Box M and slopes p clause + plain-language verdicts (audit V: Box p=.076 met, slopes p=.875 met)', () => {
     expect(c.note!.kind).toBe('assume')
     expect(c.note!.text).toContain("assumption checks include homogeneity of covariance matrices (Box's M) and homogeneity of regression slopes for each covariate.")
     expect(c.note!.text).toContain("Box's M χ²(6)=11.44, p=.076")
     expect(c.note!.text).toContain('slopes p(baseline × group)=.875')
+    expect(c.note!.text).toContain('covariance matrices look homogeneous')
+    expect(c.note!.text).toContain('the regression slopes look homogeneous across groups')
   })
 
-  it('Box M NA (null fields) renders em-dashes in the assume note', () => {
+  it('Box M NA (null fields) renders em-dashes in the assume note; no Box-M verdict when nothing to judge', () => {
     const naResult: MancovaResult = { ...spikeResult, boxM: { chisq: null, df: null, p: null } }
     const cNa = buildMancova(spec, naResult)
     expect(cNa.note!.text).toContain("Box's M χ²(—)=—, p=—")
+  })
+
+  it('audit V: flags violated verdicts when Box M / slopes cross alpha', () => {
+    const violated: MancovaResult = { ...spikeResult, boxM: { chisq: 30, df: 6, p: 0.001 }, slopes: [{ term: 'baseline × group', p: 0.01 }] }
+    const cV = buildMancova(spec, violated)
+    expect(cV.note!.text).toContain("covariance matrices look heterogeneous; interpret with extra caution (Pillai's trace is comparatively robust to this violation)")
+    expect(cV.note!.text).toContain("at least one covariate's slope differs across groups; the covariate adjustment may not be valid")
   })
 
   it('figure caption and type match spec', () => {
@@ -87,6 +98,7 @@ describe('buildMancova', () => {
       effect: factorRow.effect, stat: f(factorRow.stat), statLabel: "Pillai's V",
       f: f(factorRow.f), df1: fdf(factorRow.df1), df2: fdf(factorRow.df2),
       p: fpApa(factorRow.p), pSig: 'below', alpha: '0.05',
+      mpes: '.18', mpesLow: '.07', mpesHigh: '1.00',
       nDVs: '2',
     })
   })

@@ -23,6 +23,13 @@ describe('runMancova (spike known answers — sequential manova, covariates-firs
     expect(groupRow.stat).toBeCloseTo(0.367525003974141, 6)
     expect(groupRow.f).toBeCloseTo(6.30374133529023, 6)
     expect(groupRow.p).toBeCloseTo(0.000130150921618041, 6)
+    // Multivariate effect size (audit gap, STANDARD): effectsize::F_to_eta2(F, df1, df2, ci=0.95) on the
+    // SAME group-row F/df1/df2 asserted above. Verified locally via Rscript:
+    //   library(effectsize); F_to_eta2(6.30374133529023, 4, 112, ci=0.95)
+    //   -> Eta2_partial=0.183762502, CI_low=0.06867047272, CI_high=1 (one-sided, upper pinned at 1.00)
+    expect(groupRow.mpes).toBeCloseTo(0.183762502, 6)
+    expect(groupRow.mpesLow).toBeCloseTo(0.06867047272, 6)
+    expect(groupRow.mpesHigh).toBeCloseTo(1, 6)
     // covariate row present with finite values
     const covRow = r.multivariate.find((m) => m.effect === 'baseline')!
     expect(covRow).toBeDefined()

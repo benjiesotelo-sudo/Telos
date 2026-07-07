@@ -6,6 +6,10 @@ export interface MultivarRow {
   stat: number; f: number; df1: number; df2: number; p: number
   /** Pillai's trace fields — always computed (APA always from Pillai per recorded decision 1). */
   pillai: number; pillaiF: number; pillaiDf1: number; pillaiDf2: number; pillaiP: number
+  /** Multivariate effect size (audit gap, STANDARD): effectsize::F_to_eta2(f, df1, df2) — a generic
+   *  F-to-partial-eta2 conversion applied to the multivariate test's own approx F (no per-cell SS
+   *  decomposition exists for a multivariate statistic, so this mirrors the Welch-ANOVA omega2 approach). */
+  mpes: number; mpesLow: number; mpesHigh: number
 }
 
 export interface FollowupRow {
@@ -35,9 +39,14 @@ fml <- as.formula(paste('cbind(', paste(dvnames, collapse = ', '), ') ~', frhs))
 m <- manova(fml, data = d)
 grab <- function(test) { s <- summary(m, test = test)$stats; s[setdiff(rownames(s), 'Residuals'), , drop = FALSE] }
 sc <- grab(statistic); sp <- grab('Pillai')
-mv <- lapply(rownames(sc), function(t) list(effect = gsub(':', ' × ', t),
+mv <- lapply(rownames(sc), function(t) {
+  # Multivariate effect size (audit gap, STANDARD): F_to_eta2 on the SELECTED statistic's own approx F/dfs.
+  mes <- effectsize::F_to_eta2(sc[t, 'approx F'], sc[t, 'num Df'], sc[t, 'den Df'], ci = 0.95)
+  list(effect = gsub(':', ' × ', t),
   stat = sc[t, 2], f = sc[t, 'approx F'], df1 = sc[t, 'num Df'], df2 = sc[t, 'den Df'], p = sc[t, 'Pr(>F)'],
-  pillai = sp[t, 2], pillaiF = sp[t, 'approx F'], pillaiDf1 = sp[t, 'num Df'], pillaiDf2 = sp[t, 'den Df'], pillaiP = sp[t, 'Pr(>F)']))
+  pillai = sp[t, 2], pillaiF = sp[t, 'approx F'], pillaiDf1 = sp[t, 'num Df'], pillaiDf2 = sp[t, 'den Df'], pillaiP = sp[t, 'Pr(>F)'],
+  mpes = mes$Eta2_partial, mpesLow = mes$CI_low, mpesHigh = mes$CI_high)
+})
 fu <- list()
 if (followups) for (dv in dvnames) {
   a <- aov(as.formula(paste(dv, '~', frhs)), data = d)

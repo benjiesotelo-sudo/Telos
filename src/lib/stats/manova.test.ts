@@ -31,6 +31,14 @@ describe('runManova (spike known answers: outcome+outcome2 ~ group)', () => {
     expect(mv.pillaiDf2).toBe(114)
     expect(mv.pillaiP).toBeCloseTo(0.00140868628003122, 6)
 
+    // Multivariate effect size (audit gap, STANDARD): effectsize::F_to_eta2(F, df1, df2, ci=0.95) applied
+    // to the SAME Pillai F/df1/df2 asserted above. Verified locally via Rscript:
+    //   library(effectsize); F_to_eta2(4.74451724627428, 4, 114, ci=0.95)
+    //   -> Eta2_partial=0.1427157811, CI_low=0.03854031422, CI_high=1 (one-sided, upper pinned at 1.00)
+    expect(mv.mpes).toBeCloseTo(0.1427157811, 6)
+    expect(mv.mpesLow).toBeCloseTo(0.03854031422, 6)
+    expect(mv.mpesHigh).toBeCloseTo(1, 6)
+
     // Follow-ups
     expect(r.followups).toHaveLength(2)
     const fu1 = r.followups.find((x) => x.dv === 'outcome')!

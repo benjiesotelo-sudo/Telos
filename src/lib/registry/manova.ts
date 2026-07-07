@@ -33,6 +33,9 @@ export const MANOVA: TestSpec = {
         { key: 'df1', label: 'df1' },
         { key: 'df2', label: 'df2' },
         { key: 'p', label: 'p' },
+        // Multivariate effect size (audit gap, STANDARD): effectsize::F_to_eta2() on the multivariate
+        // approx F/dfs — the conventional conversion when no per-cell SS decomposition exists.
+        { key: 'mpes', label: 'partial η² [95% CI]' },
       ] },
     { id: 'univariate-followups', domId: 'manova-univariate-followups', title: 'Follow-up univariate ANOVAs (per DV)',
       columns: [
@@ -48,7 +51,7 @@ export const MANOVA: TestSpec = {
   howToRead:
     'Tests whether groups differ on a set of outcomes jointly. Read the multivariate p (Pillai\'s trace is robust) first; if significant, the per-DV follow-up ANOVAs show which individual outcomes drive it. Because you run one ANOVA per outcome, correct those follow-up p-values for multiple comparisons (e.g. Bonferroni: divide alpha by the number of outcomes) before calling each significant.',
   tableNote: { kind: 'assume', text: "assumption check: homogeneity of covariance matrices (Box's M).", afterTableId: 'multivariate' },
-  apaTemplate: "A MANOVA gave Pillai's V={v}, F({df1},{df2})={f}, p {p}.",
+  apaTemplate: "A MANOVA gave Pillai's V={v}, F({df1},{df2})={f}, p {p}, partial η²={mpes} [{mpeslo}, {mpeshi}].",
   rMap: 'manova() + summary(.., test="Pillai") → Table 1 · summary.aov() → Table 2 (F/df/p) · effectsize::eta_squared(partial=TRUE) → partial η²',
   bundleFiles: ['table_multivariate.png', 'table_univariate-followups.png', 'figure_means.png'],
 }

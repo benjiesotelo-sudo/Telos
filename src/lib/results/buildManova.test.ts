@@ -12,6 +12,7 @@ const pillaiResult: ManovaResult = {
     effect: 'group',
     stat: 0.285431562210818, f: 4.74451724627428, df1: 4, df2: 114, p: 0.00140868628003122,
     pillai: 0.285431562210818, pillaiF: 4.74451724627428, pillaiDf1: 4, pillaiDf2: 114, pillaiP: 0.00140868628003122,
+    mpes: 0.1427157811, mpesLow: 0.03854031422, mpesHigh: 1, // effectsize::F_to_eta2(F,df1,df2,ci=0.95) — native R verified (see manova.test.ts)
   }],
   followups: [
     { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843, pesLow: 0, pesHigh: 1 },
@@ -30,6 +31,7 @@ const wilksResult: ManovaResult = {
     effect: 'group',
     stat: 0.715289868403666, f: 5.10678393890843, df1: 4, df2: 114, p: 0.000811876083019458,
     pillai: 0.285431562210818, pillaiF: 4.74451724627428, pillaiDf1: 4, pillaiDf2: 114, pillaiP: 0.00140868628003122,
+    mpes: 0.1519569367, mpesLow: 0.04522537813, mpesHigh: 1, // effectsize::F_to_eta2(5.10678393890843,4,114,ci=0.95) — native R verified via Rscript
   }],
   followups: [
     { dv: 'outcome', f: 2.80500665877123, df1: 2, df2: 57, p: 0.0688787403297547, pes: 0.0896024935993843, pesLow: 0, pesHigh: 1 },
@@ -62,6 +64,7 @@ describe('buildManova', () => {
         df1: '4',
         df2: '114',
         p: '.001',
+        mpes: '0.14 [0.04, 1.00]', // multivariate partial η² with its one-sided CI
       })
     })
 
@@ -78,25 +81,30 @@ describe('buildManova', () => {
       })
     })
 
-    it('assume-note: static text + runtime Box\'s M, rendered after the multivariate table', () => {
+    it('assume-note: static text + runtime Box\'s M + a plain-language verdict (audit V: p=.076 >= alpha, so "homogeneous"), rendered after the multivariate table', () => {
       expect(c.note).toEqual({
         kind: 'assume',
-        text: "assumption check: homogeneity of covariance matrices (Box's M). (Box's M χ²=11.44, df=6, p=.076)",
+        text: "assumption check: homogeneity of covariance matrices (Box's M). (Box's M χ²=11.44, df=6, p=.076) — covariance matrices look homogeneous",
         afterTableId: 'multivariate',
       })
     })
 
-    it('Box\'s M NA (not estimable) renders em-dashes', () => {
+    it('Box\'s M NA (not estimable) renders em-dashes; no verdict clause when nothing to judge', () => {
       const c2 = buildManova(spec, { ...pillaiResult, boxM: { chisq: null, df: null, p: null } })
       expect(c2.note!.text).toBe("assumption check: homogeneity of covariance matrices (Box's M). (Box's M χ²=—, df=—, p=—)")
+    })
+
+    it('audit V: flags a heterogeneous verdict when Box\'s M p < alpha', () => {
+      const c2 = buildManova(spec, { ...pillaiResult, boxM: { chisq: 20, df: 6, p: 0.01 } })
+      expect(c2.note!.text).toContain("covariance matrices look heterogeneous; interpret with extra caution (Pillai's trace is comparatively robust to this violation)")
     })
 
     it('figure caption and type', () => {
       expect(c.figures).toEqual([{ caption: 'Group means per outcome', type: 'means plot faceted by DV', file: 'means', png }])
     })
 
-    it('APA from selected stat fields: Pillai run gives Pillai label', () => {
-      expect(c.apa).toBe("A MANOVA gave Pillai's V=.29, F(4,114)=4.74, p = .001.")
+    it('APA from selected stat fields: Pillai run gives Pillai label + multivariate partial η² with its one-sided CI', () => {
+      expect(c.apa).toBe("A MANOVA gave Pillai's V=.29, F(4,114)=4.74, p = .001, partial η²=.14 [.04, 1.00].")
     })
 
     it('nExcluded passthrough', () => {
@@ -109,6 +117,7 @@ describe('buildManova', () => {
         effect: mv.effect, stat: f(mv.stat), statLabel: "Pillai's V",
         f: f(mv.f), df1: fdf(mv.df1), df2: fdf(mv.df2),
         p: fpApa(mv.p), pSig: 'below', alpha: '0.05',
+        mpes: '.14', mpesLow: '.04', mpesHigh: '1.00',
         nDVs: '2',
       })
     })
@@ -118,11 +127,12 @@ describe('buildManova', () => {
     const c = buildManova(spec, wilksResult)
 
     it('APA uses Wilks label and values when statistic=Wilks', () => {
-      expect(c.apa).toBe("A MANOVA gave Wilks' Λ=.72, F(4,114)=5.11, p < .001.")
+      expect(c.apa).toBe("A MANOVA gave Wilks' Λ=.72, F(4,114)=5.11, p < .001, partial η²=.15 [.05, 1.00].")
     })
 
     it('Table 1 stat column shows Wilks value (the selected statistic)', () => {
       expect(c.tables[0].rows[0].stat).toBe('0.72')
+      expect(c.tables[0].rows[0].mpes).toBe('0.15 [0.05, 1.00]')
     })
   })
 

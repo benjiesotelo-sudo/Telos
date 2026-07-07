@@ -11,6 +11,7 @@ const r: PairedTTestResult = {
   pair: 'pre − post',
   t: -10.39230, df: 5, p: 0.000142, meanDiff: -12, ci: [-14.96825, -9.03175], dz: -4.24264,
   dzLow: -6.903444, dzHigh: -1.582139,
+  r: 0.6799040465, rP: 0.1372933863,
   shapiro: { W: 0.92238542, p: 0.52270524 },
   ciLevel: 0.95, alpha: 0.05, tails: 'two.sided', nExcluded: 2, figurePng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
 }
@@ -24,18 +25,22 @@ describe('buildPairedTTest', () => {
       { condition: 'post', n: 6, mean: '82.33', sd: '3.78' },
     ])
   })
-  it('Table 2: the pair row with M_diff, difference CI and d_z', () => {
+  it('Table 2: the pair row with M_diff, difference CI, d_z and the paired correlation r', () => {
     expect(c.tables[1].rows).toEqual([
-      { pair: 'pre − post', t: '−10.39', df: '5', p: '<.001', mdiff: '−12.00', ci: '[−14.97, −9.03]', d: '−4.24 [−6.90, −1.58]' },
+      { pair: 'pre − post', t: '−10.39', df: '5', p: '<.001', mdiff: '−12.00', ci: '[−14.97, −9.03]', d: '−4.24 [−6.90, −1.58]', r: '0.68' },
     ])
   })
-  it('renders the assume-note with the computed Shapiro-Wilk on the difference scores + excluded-pairs count', () => {
-    expect(c.note).toEqual({ kind: 'assume', text: 'assumption check: normality of the difference scores. (Shapiro-Wilk W=0.92, p=.523)' })
+  it('renders the assume-note with the computed Shapiro-Wilk on the difference scores + a plain-language verdict (audit V: p=.523 >= alpha) + excluded-pairs count', () => {
+    expect(c.note).toEqual({ kind: 'assume', text: 'assumption check: normality of the difference scores. (Shapiro-Wilk W=0.92, p=.523) — normality of the differences looks reasonable' })
     expect(c.nExcluded).toBe(2)
   })
-  it('renders an em-dash when Shapiro is null (N outside 3–5000)', () => {
+  it('renders an em-dash when Shapiro is null (N outside 3–5000) — and no verdict clause (nothing to judge)', () => {
     const note = buildPairedTTest(spec, { ...r, shapiro: { W: null, p: null } }).note
     expect(note).toEqual({ kind: 'assume', text: 'assumption check: normality of the difference scores. (Shapiro-Wilk W=—, p=—)' })
+  })
+  it('audit V: flags a violated verdict when Shapiro p < alpha', () => {
+    const note = buildPairedTTest(spec, { ...r, shapiro: { W: 0.7, p: 0.01 } }).note
+    expect(note!.text).toContain('normality of the differences looks doubtful; consider the Wilcoxon signed-rank test or interpreting with caution')
   })
   it('fills the APA sentence with the p-clause rule and 1-dp change', () => {
     expect(c.apa).toBe('A paired-samples t-test gave M=−12.0, t(5)=−10.39, p < .001, dz=−4.24 [−6.90, −1.58].')
@@ -50,7 +55,7 @@ describe('buildPairedTTest', () => {
     expect(c.values).toEqual({
       conditionA: 'pre', conditionB: 'post', n: '6', meanA: '70.33', meanB: '82.33', sdA: '3.14', sdB: '3.78',
       t: '−10.39', df: '5', p: '< .001', mdiff: '−12.00', ci: '[−14.97, −9.03]',
-      d: '−4.24', dlo: '−6.90', dhi: '−1.58',
+      d: '−4.24', dlo: '−6.90', dhi: '−1.58', r: '0.68',
     })
   })
 })

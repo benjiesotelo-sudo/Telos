@@ -26,7 +26,10 @@ export const PAIRED_T_TEST: TestSpec = {
       columns: [{ key: 'condition', label: 'Condition' }, { key: 'n', label: 'N' }, { key: 'mean', label: 'M' }, { key: 'sd', label: 'SD' }] },
     { id: 't-test', domId: 'paired-t-test', title: 'Paired-samples t-test', // domId: '#table-t-test' would collide with the independent/one-sample Table 2 on a combined page; the zip keeps table_t-test.png
       columns: [{ key: 'pair', label: 'Pair' }, { key: 't', label: 't' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' },
-        { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: 'd [95% CI]', sub: 'z' }] },
+        { key: 'mdiff', label: 'M', sub: 'diff' }, { key: 'ci', label: '95% CI' }, { key: 'd', label: 'd [95% CI]', sub: 'z' },
+        // audit gap (STANDARD, borderline item): the paired correlation r between the two conditions —
+        // conventional alongside a paired t-test (e.g. SPSS's "Paired Samples Correlations" table).
+        { key: 'r', label: 'r (paired)' }] },
   ],
   tableNote: { kind: 'assume', text: 'assumption check: normality of the difference scores.' },
   // type 'difference' derives the card's bundle name figure_difference.png; the drawn

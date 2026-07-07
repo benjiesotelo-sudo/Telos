@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildWelchAnova } from './buildWelchAnova'
 import { WELCH_ANOVA as spec } from '../registry/welchAnova'
 import type { WelchAnovaResult } from '../stats/welchAnova'
-import { f, fdf, fpApa } from '../format/apa'
+import { f, f01, fdf, fpApa } from '../format/apa'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 
@@ -17,6 +17,7 @@ const spikeResult: WelchAnovaResult = {
   df1: 2,
   df2: 37.9023295774865,
   p: 0.0890313047549131,
+  omega2: 0.07171257241, omega2Low: 0, omega2High: 1, // effectsize::F_to_omega2(f, df1, df2, ci=0.95) — native R verified (see welchAnova.test.ts)
   posthoc: [
     { pair: 'control - drug_a', diff: -1.37, pAdj: 0.82, ciLo: -6.9179984409316, ciHi: 4.1779984409316 },
     { pair: 'control - drug_b', diff: -3.70, pAdj: 0.15, ciLo: -7.9, ciHi: 0.5 },
@@ -41,9 +42,9 @@ describe('buildWelchAnova', () => {
     expect(c.tables[0].rows.length).toBe(3)
   })
 
-  it("Table 2: Welch's ANOVA row — df2 renders '37.90' (fractional via fdf)", () => {
+  it("Table 2: Welch's ANOVA row — df2 renders '37.90' (fractional via fdf), ω² cell carries its one-sided CI", () => {
     expect(c.tables[1].spec.id).toBe('welch-anova')
-    expect(c.tables[1].rows).toEqual([{ f: '2.58', df1: '2', df2: '37.90', p: '.089' }])
+    expect(c.tables[1].rows).toEqual([{ f: '2.58', df1: '2', df2: '37.90', p: '.089', omega2: '0.07 [0.00, 1.00]' }])
   })
 
   it('Table 3: Games-Howell post-hoc — NO SE column, pair/mdiff/padj/ci only', () => {
@@ -56,8 +57,8 @@ describe('buildWelchAnova', () => {
     expect(row.ci).toBe('[−6.92, 4.18]')
   })
 
-  it('APA string: neutral verb, p spaced (p ≥ .001 branch)', () => {
-    expect(c.apa).toBe("Welch's ANOVA gave F(2,37.90)=2.58, p = .089.")
+  it('APA string: neutral verb, p spaced (p ≥ .001 branch), ω² with its one-sided CI (leading zero dropped)', () => {
+    expect(c.apa).toBe("Welch's ANOVA gave F(2,37.90)=2.58, p = .089, ω²=.07 [.00, 1.00].")
   })
 
   it('p<.001 branch renders correctly', () => {
@@ -65,16 +66,22 @@ describe('buildWelchAnova', () => {
     expect(c2.apa).toContain('p < .001')
   })
 
-  it('note is an assume-note: static tableNote + per-group Shapiro-Wilk W/p (em-dash NA via fx)', () => {
+  it('note is an assume-note: static tableNote + per-group Shapiro-Wilk W/p (em-dash NA via fx) + a plain-language verdict (audit V: min p=.050 > alpha=.05, so "reasonable")', () => {
     expect(c.note).toEqual({
       kind: 'assume',
-      text: "Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional); within-group normality is still assumed and checked with Shapiro-Wilk per group. (Shapiro per group: control W=0.97, p=.688; drug_a W=0.90, p=.050; drug_b W=0.92, p=.113)",
+      text: "Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional); within-group normality is still assumed and checked with Shapiro-Wilk per group. (Shapiro per group: control W=0.97, p=.688; drug_a W=0.90, p=.050; drug_b W=0.92, p=.113) — normality looks reasonable across groups",
     })
   })
 
-  it('Shapiro per-group NA renders as em-dash via fx (W/p null → —)', () => {
+  it('Shapiro per-group NA renders as em-dash via fx (W/p null → —); no verdict clause when nothing to judge', () => {
     const c2 = buildWelchAnova(spec, { ...spikeResult, shapiro: [{ group: 'tiny', W: null, p: null }] })
     expect(c2.note!.text).toContain('tiny W=—, p=—')
+    expect(c2.note!.text).not.toContain('normality looks')
+  })
+
+  it('audit V: flags a doubtful verdict when any group violates normality', () => {
+    const c3 = buildWelchAnova(spec, { ...spikeResult, shapiro: [{ group: 'control', W: 0.7, p: 0.01 }, ...spikeResult.shapiro.slice(1)] })
+    expect(c3.note!.text).toContain('normality looks doubtful in at least one group; interpret the post-hoc comparisons with extra caution')
   })
 
   it('figure carries caption, type, and png bytes', () => {
@@ -89,6 +96,7 @@ describe('buildWelchAnova', () => {
     expect(c.values).toEqual({
       f: f(spikeResult.f), df1: fdf(spikeResult.df1), df2: fdf(spikeResult.df2),
       p: fpApa(spikeResult.p), pSig: 'at or above', alpha: '0.05',
+      omega2: f01(spikeResult.omega2), omega2Low: f01(spikeResult.omega2Low), omega2High: f01(spikeResult.omega2High),
       nGroups: '3',
     })
   })
