@@ -17,14 +17,23 @@ export interface TestCitations {
 // ---------------------------------------------------------------------------
 const STUDENT_1908: Ref = { text: 'Student (1908). "The probable error of a mean." Biometrika, 6(1), 1-25.', url: 'https://doi.org/10.1093/biomet/6.1.1' }
 const WELCH_1947: Ref = { text: "Welch, B. L. (1947). \"The generalization of Student's problem when several different population variances are involved.\" Biometrika, 34(1-2), 28-35.", url: 'https://doi.org/10.1093/biomet/34.1-2.28' }
+// Welch's OTHER paper: the k-sample (one-way ANOVA) generalization, distinct from the 1947 two-sample
+// paper above. Provenance-audit fix round (2026-07-07): welch-anova cites this one, not 1947.
+const WELCH_1951: Ref = { text: 'Welch, B. L. (1951). "On the comparison of several mean values: an alternative approach." Biometrika, 38(3-4), 330-336.', url: 'https://doi.org/10.1093/biomet/38.3-4.330' }
 const COHEN_1988: Ref = { text: 'Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.' }
 const FISHER_1925: Ref = { text: 'Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver & Boyd.' }
+const GREENHOUSE_GEISSER_1959: Ref = { text: 'Greenhouse, S. W., Geisser, S. (1959). "On methods in the analysis of profile data." Psychometrika, 24(2), 95-112.' }
+const HUYNH_FELDT_1976: Ref = { text: 'Huynh, H., Feldt, L. S. (1976). "Estimation of the Box correction for degrees of freedom from sample data in randomized block and split-plot designs." Journal of Educational Statistics, 1(1), 69-82.' }
+const PILLAI_1955: Ref = { text: 'Pillai, K. C. S. (1955). "Some new test criteria in multivariate analysis." Annals of Mathematical Statistics, 26(1), 117-121.' }
 const TUKEY_1949: Ref = { text: 'Tukey, J. W. (1949). "Comparing individual means in the analysis of variance." Biometrics, 5(2), 99-114.' }
 const PEARSON_1895: Ref = { text: 'Pearson, K. (1895). "Note on regression and inheritance in the case of two parents." Proceedings of the Royal Society of London, 58, 240-242.' }
 const OBRIEN_2007: Ref = { text: 'O’Brien, R. M. (2007). "A caution regarding rules of thumb for variance inflation factors." Quality & Quantity, 41(5), 673-690.', url: 'https://doi.org/10.1007/s11135-006-9018-6' }
 const CROISSANT_MILLO_2008: Ref = { text: 'Croissant, Y., Millo, G. (2008). "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2), 1-43.', url: 'https://doi.org/10.18637/jss.v027.i02' }
 const BERTRAND_DUFLO_MULLAINATHAN_2004: Ref = { text: 'Bertrand, M., Duflo, E., Mullainathan, S. (2004). "How Much Should We Trust Differences-in-Differences Estimates?" Quarterly Journal of Economics, 119(1), 249-275.' }
 const HU_BENTLER_1999: Ref = { text: 'Hu, L., Bentler, P. M. (1999). "Cutoff criteria for fit indexes in covariance structure analysis: Conventional criteria versus new alternatives." Structural Equation Modeling, 6(1), 1-55.', url: 'https://doi.org/10.1080/10705519909540118' }
+// Two distinct real Marsh (2004) papers - do not conflate: MARSH_HAU_WEN_2004 (author order Marsh, Hau,
+// Wen) is the "golden rules" fit-index cutoff commentary; MARSH_WEN_HAU_2004 (author order Marsh, Wen,
+// Hau, defined further below near the moderation additions) is the latent-interactions estimation paper.
 const MARSH_HAU_WEN_2004: Ref = { text: 'Marsh, H. W., Hau, K. T., Wen, Z. (2004). "In search of golden rules: Comment on hypothesis-testing approaches to setting cutoff values for fit indices." Structural Equation Modeling, 11(3), 320-341.', url: 'https://doi.org/10.1207/s15328007sem1103_2' }
 const MACCALLUM_1996: Ref = { text: 'MacCallum, R. C., Browne, M. W., Sugawara, H. M. (1996). "Power analysis and determination of sample size for covariance structure modeling." Psychological Methods, 1(2), 130-149.', url: 'https://doi.org/10.1037/1082-989X.1.2.130' }
 const FORNELL_LARCKER_1981: Ref = { text: 'Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50.', url: 'https://doi.org/10.1177/002224378101800104' }
@@ -98,6 +107,7 @@ const IVREG_REF: Ref = { text: 'Fox J, Kleiber C, Zeileis A (2024). ivreg: Instr
 const SANDWICH_REF: Ref = { text: 'Zeileis A, Köll S, Graham N (2020). "Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R." Journal of Statistical Software, 95(1), 1-36.', url: 'https://CRAN.R-project.org/package=sandwich' }
 const MATCHIT_REF: Ref = { text: 'Ho DE, Imai K, King G, Stuart EA (2011). "MatchIt: Nonparametric Preprocessing for Parametric Causal Inference." Journal of Statistical Software, 42(8), 1-28.', url: 'https://CRAN.R-project.org/package=MatchIt' }
 const PSYCH_REF: Ref = { text: 'Revelle W (2024). psych: Procedures for Psychological, Psychometric, and Personality Research. Northwestern University, Evanston.', url: 'https://CRAN.R-project.org/package=psych' }
+const EFFECTSIZE_REF: Ref = { text: 'Ben-Shachar MS, Lüdecke D, Makowski D (2020). "effectsize: Estimation of Effect Size Indices and Standardized Parameters." Journal of Open Source Software, 5(56), 2815.', url: 'https://CRAN.R-project.org/package=effectsize' }
 const EMMEANS_REF: Ref = { text: 'Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package.', url: 'https://CRAN.R-project.org/package=emmeans' }
 const RSTATIX_REF: Ref = { text: 'Kassambara A (2023). rstatix: Pipe-Friendly Framework for Basic Statistical Tests. R package.', url: 'https://CRAN.R-project.org/package=rstatix' }
 const NORTEST_REF: Ref = { text: 'Gross J, Ligges U (2015). nortest: Tests for Normality. R package.', url: 'https://CRAN.R-project.org/package=nortest' }
@@ -164,7 +174,7 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: 'Paired-samples t-test', ref: STUDENT_1908 },
-      { claim: 'Cohen’s dz effect-size benchmarks (.2/.5/.8)', ref: COHEN_1988 },
+      { claim: "Cohen's dz effect size", ref: COHEN_1988 },
     ],
   },
   'one-way-anova': {
@@ -195,7 +205,9 @@ export const CITATIONS: Record<string, TestCitations> = {
       refs: [FISHER_1925],
     },
     statisticalBasis: [
-      { claim: 'Repeated-measures ANOVA (with Greenhouse-Geisser / Huynh-Feldt correction when sphericity is violated)', ref: FISHER_1925 },
+      { claim: 'Repeated-measures ANOVA (F-test for within-subjects conditions)', ref: FISHER_1925 },
+      { claim: 'Greenhouse-Geisser correction (sphericity violated)', ref: GREENHOUSE_GEISSER_1959 },
+      { claim: 'Huynh-Feldt correction (sphericity violated)', ref: HUYNH_FELDT_1976 },
       { claim: 'Estimated marginal means for post-hoc comparisons', ref: EMMEANS_REF },
     ],
   },
@@ -216,16 +228,16 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: 'Nested ANOVA (upper factor tested against the nested-unit mean square)', ref: FISHER_1925 },
-      { claim: 'ω² effect-size benchmarks', ref: COHEN_1988 },
+      { claim: 'ω² effect size', ref: EFFECTSIZE_REF },
     ],
   },
   'welch-anova': {
     whyThisTest: {
       text: 'Recommended when you compare three or more group means without assuming equal variances.',
-      refs: [WELCH_1947],
+      refs: [WELCH_1951],
     },
     statisticalBasis: [
-      { claim: "Welch's ANOVA (heteroscedasticity-robust F, fractional df)", ref: WELCH_1947 },
+      { claim: "Welch's ANOVA (heteroscedasticity-robust F, fractional df)", ref: WELCH_1951 },
       { claim: 'Games-Howell post-hoc comparisons (also variance-robust)', ref: RSTATIX_REF },
     ],
   },
@@ -244,19 +256,21 @@ export const CITATIONS: Record<string, TestCitations> = {
   manova: {
     whyThisTest: {
       text: 'Recommended when you compare groups on two or more numeric outcomes at once.',
-      refs: [WILKS_1932],
+      refs: [PILLAI_1955, WILKS_1932],
     },
     statisticalBasis: [
-      { claim: "Wilks' Lambda / Pillai's trace multivariate test", ref: WILKS_1932 },
+      { claim: "Pillai's trace multivariate test (headline statistic)", ref: PILLAI_1955 },
+      { claim: "Wilks' Lambda multivariate test", ref: WILKS_1932 },
     ],
   },
   mancova: {
     whyThisTest: {
       text: 'Recommended when you compare groups on two or more numeric outcomes while controlling for a covariate.',
-      refs: [WILKS_1932],
+      refs: [PILLAI_1955, WILKS_1932],
     },
     statisticalBasis: [
-      { claim: "Wilks' Lambda / Pillai's trace multivariate test (covariate-adjusted)", ref: WILKS_1932 },
+      { claim: "Pillai's trace multivariate test (headline statistic, covariate-adjusted)", ref: PILLAI_1955 },
+      { claim: "Wilks' Lambda multivariate test (covariate-adjusted)", ref: WILKS_1932 },
       { claim: 'Estimated marginal (covariate-adjusted) means', ref: EMMEANS_REF },
     ],
   },
@@ -267,7 +281,7 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: 'Mann-Whitney U test', ref: MANN_WHITNEY_1947 },
-      { claim: 'Rank-biserial effect-size benchmarks', ref: COHEN_1988 },
+      { claim: 'Rank-biserial effect size r', ref: EFFECTSIZE_REF },
     ],
   },
   'wilcoxon-signed-rank': {
@@ -277,7 +291,7 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: 'Wilcoxon signed-rank test', ref: WILCOXON_1945 },
-      { claim: 'Matched-pairs rank-biserial effect-size benchmarks', ref: COHEN_1988 },
+      { claim: 'Matched-pairs rank-biserial effect size', ref: EFFECTSIZE_REF },
     ],
   },
   'kruskal-wallis': {
@@ -334,7 +348,7 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: 'Chi-square test of independence', ref: PEARSON_1900 },
-      { claim: "Cramér's V effect-size benchmark", ref: COHEN_1988 },
+      { claim: "Cramér's V effect size (w-family; Cohen, 1988)", ref: COHEN_1988 },
     ],
   },
   'chi-square-goodness-of-fit': {
@@ -526,7 +540,10 @@ export const CITATIONS: Record<string, TestCitations> = {
     },
     statisticalBasis: [
       { claim: 'AVE (average variance extracted) convergent validity, ≥ .50', ref: FORNELL_LARCKER_1981 },
-      { claim: 'CR (composite reliability) ≥ .70 acceptable - NOT cited to Fornell & Larcker', ref: NUNNALLY_1978 },
+      // NOTE: the ≥ .70 CR threshold is commonly mis-cited to Fornell & Larcker; the correct primary is
+      // Nunnally (1978)'s general reliability-coefficient cutoff, corroborated independently below by
+      // Bagozzi & Yi (1988). Keep NUNNALLY_1978 (not FORNELL_LARCKER_1981) as this claim's ref.
+      { claim: 'CR (composite reliability) ≥ .70 acceptable', ref: NUNNALLY_1978 },
       { claim: 'CR ≥ .70 threshold, independent corroboration', ref: BAGOZZI_YI_1988 },
       { claim: 'HTMT < .85 discriminant validity (primary criterion)', ref: HENSELER_2015 },
       { claim: 'Reliability preference (ω over α)', ref: MCNEISH_2018 },
@@ -538,7 +555,9 @@ export const CITATIONS: Record<string, TestCitations> = {
       refs: [NUNNALLY_1978],
     },
     statisticalBasis: [
-      { claim: 'CR (composite reliability) ≥ .70 acceptable - NOT cited to Fornell & Larcker', ref: NUNNALLY_1978 },
+      // NOTE: same mis-citation trap as the ave entry above - the ≥ .70 CR threshold is commonly
+      // mis-cited to Fornell & Larcker; Nunnally (1978) is the correct primary.
+      { claim: 'CR (composite reliability) ≥ .70 acceptable', ref: NUNNALLY_1978 },
       { claim: 'CR ≥ .70 threshold, independent corroboration', ref: BAGOZZI_YI_1988 },
       { claim: 'AVE shown alongside for convergent-validity reference (≥ .50)', ref: FORNELL_LARCKER_1981 },
       { claim: 'α retained as a secondary/legacy coefficient (lower bound when loadings differ)', ref: MCNEISH_2018 },
@@ -550,7 +569,9 @@ export const CITATIONS: Record<string, TestCitations> = {
       refs: [WATKINS_2018],
     },
     statisticalBasis: [
-      { claim: 'KMO sampling-adequacy verbal labels (≥ .60 acceptable, ≥ .70 preferred) - NOT "Kaiser 1974"', ref: KAISER_RICE_1974 },
+      // NOTE: the KMO verbal labels are commonly mis-cited to "Kaiser (1974)" (the factorial-simplicity
+      // paper); the correct primary is Kaiser & Rice (1974) "Little Jiffy, Mark IV", a distinct paper.
+      { claim: 'KMO sampling-adequacy verbal labels (≥ .60 acceptable, ≥ .70 preferred)', ref: KAISER_RICE_1974 },
       { claim: 'Parallel analysis as the preferred factor-retention rule', ref: HORN_1965 },
       { claim: 'Kaiser eigenvalue > 1 rule systematically over-extracts', ref: ZWICK_VELICER_1986 },
       { claim: 'EFA best-practice reporting standard', ref: WATKINS_2018 },
