@@ -59,7 +59,7 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
     files['analysis.R'] = enc(emitRScript(fresh, exportSetups, SPECS, workingDataset(s))); files['cleaned.csv'] = enc(toCsv(workingDataset(s)))
   }
   if (formats.r || formats.latex) files['LICENSES.txt'] = enc(licensesText())
-  if (formats.r || formats.latex) files['CITATIONS.txt'] = enc(citationsText())
+  if (formats.r || formats.latex) files['CITATIONS.txt'] = enc(citationsText(s.selection))
   return files
 }
 

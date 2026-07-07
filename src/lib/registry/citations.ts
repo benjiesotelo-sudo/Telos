@@ -6,6 +6,8 @@
 // test), or the two-track SEM convention docs (docs/superpowers/reviews/2026-06-18-sem-reporting-
 // convention.md and 2026-07-06-moderation-spike.md). No new claims are introduced.
 
+import { CATALOG } from './catalog'
+
 export interface Ref { text: string; url?: string }
 export interface TestCitations {
   whyThisTest: { text: string; refs: Ref[] } // rendered verbatim as the config-screen "Why this test" line
@@ -111,7 +113,6 @@ const EFFECTSIZE_REF: Ref = { text: 'Ben-Shachar MS, Lüdecke D, Makowski D (202
 const EMMEANS_REF: Ref = { text: 'Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package.', url: 'https://CRAN.R-project.org/package=emmeans' }
 const RSTATIX_REF: Ref = { text: 'Kassambara A (2023). rstatix: Pipe-Friendly Framework for Basic Statistical Tests. R package.', url: 'https://CRAN.R-project.org/package=rstatix' }
 const NORTEST_REF: Ref = { text: 'Gross J, Ligges U (2015). nortest: Tests for Normality. R package.', url: 'https://CRAN.R-project.org/package=nortest' }
-const LAVAAN_REF: Ref = { text: 'Rosseel Y (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36.', url: 'https://CRAN.R-project.org/package=lavaan' }
 const SEMINR_REF: Ref = { text: 'Ray S, Danks N, Calero Valdéz A (2021). seminr: Domain-Specific Language for Building PLS Structural Equation Models. R package.', url: 'https://CRAN.R-project.org/package=seminr' }
 
 // R language itself (used for the base OLS coefficient claim, matching the brief's worked example).
@@ -631,4 +632,29 @@ export const CITATIONS: Record<string, TestCitations> = {
       { claim: 'Kaiser eigenvalue > 1 rule tends to over-extract', ref: ZWICK_VELICER_1986 },
     ],
   },
+}
+
+// Renders the "why this test" + "statistical basis" section of the export bundle's CITATIONS.txt for
+// the given selection (catalog ids, in selection order). The existing package-references section
+// (src/lib/export/citations.ts's citationsText) is untouched and appends this output after its own.
+export function citationsTxt(selection: string[]): string {
+  const lines: string[] = []
+  lines.push('Statistical basis (why each test was recommended, and its methodological references)')
+  lines.push('='.repeat(88))
+  lines.push('')
+  for (const id of selection) {
+    const c = CITATIONS[id]
+    if (!c) continue
+    const name = CATALOG.find((x) => x.id === id)?.name ?? id
+    lines.push(name)
+    lines.push(`  Why this test: ${c.whyThisTest.text}`)
+    for (const r of c.whyThisTest.refs) lines.push(`    ${r.text}${r.url ? ' ' + r.url : ''}`)
+    lines.push('  Statistical basis:')
+    for (const b of c.statisticalBasis) {
+      lines.push(`    ${b.claim}`)
+      lines.push(`      ${b.ref.text}${b.ref.url ? ' ' + b.ref.url : ''}`)
+    }
+    lines.push('')
+  }
+  return lines.join('\n')
 }

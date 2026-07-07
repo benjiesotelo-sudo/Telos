@@ -6,6 +6,7 @@
 // citation("<pkg>") would surface (authors, year, title, CRAN URL).
 
 import { PACKAGES } from './rScript/emitters'
+import { citationsTxt } from '../registry/citations'
 
 const R_VERSION = 'R 4.6.0'
 
@@ -68,7 +69,7 @@ function emittedPackages(): string[] {
   return [...set].sort((a, b) => a.localeCompare(b))
 }
 
-export function citationsText(): string {
+export function citationsText(selection: string[] = []): string {
   const lines: string[] = []
   lines.push('Telos — Citations for the Exported Analysis')
   lines.push('===========================================')
@@ -97,5 +98,5 @@ export function citationsText(): string {
   )
   lines.push('')
 
-  return lines.join('\n')
+  return lines.join('\n') + '\n' + citationsTxt(selection)
 }
