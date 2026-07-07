@@ -561,6 +561,25 @@ describe('buildCbSem — real registry specs (row keys must cover every spec col
     assertRowsCoverSpecColumns(PATH_ANALYSIS, path, ['structural-paths', 'indirect-effects'])
   })
 
+  // U9-T3 fix (2026-07-06 audit): the card's own note/howToRead promised "an over-identified model
+  // (df > 0) reports fit" but PATH_ANALYSIS had no fit-indices table -- buildCbSem fell back to a blank
+  // spec (id/title/columns all empty), so the runner-computed fit indices never rendered in path mode.
+  it('PATH_ANALYSIS: renders the fit-indices table (df > 0) using the REAL registry spec, not a blank fallback', () => {
+    const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
+    assertRowsCoverSpecColumns(PATH_ANALYSIS, path, ['fit-indices', 'structural-paths', 'indirect-effects'])
+    const c = buildCbSem(PATH_ANALYSIS, path)
+    const fit = c.tables.find((t) => t.spec.id === 'fit-indices')!
+    expect(fit.spec.title).toBe('Fit indices') // the real registry title, not the blank-fallback ''
+    expect(fit.spec.columns.length).toBeGreaterThan(0)
+    expect(String(fit.rows[0].rmsea)).toContain('[.06, .14]')
+  })
+
+  it('PATH_ANALYSIS: suppresses the fit-indices table when saturated (df = 0), same rule as CB-SEM', () => {
+    const sat: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [], saturated: true, fit: { ...base.fit!, df: 0 } }
+    const c = buildCbSem(PATH_ANALYSIS, sat)
+    expect(c.tables.some((t) => t.spec.id === 'fit-indices')).toBe(false)
+  })
+
   it('PATH_ANALYSIS: labelled notes (U8-T4 sweep) replace the old single note, content-preserving, through the same `notes` field CB-SEM already uses', () => {
     const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
     const c = buildCbSem(PATH_ANALYSIS, path)
@@ -583,11 +602,41 @@ describe('buildCbSem — real registry specs (row keys must cover every spec col
     const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
     const c = buildCbSem(PATH_ANALYSIS, path)
     expect(c.values).toEqual({
+      // U9-T3: fit values now populate in path mode too (df > 0, same keys/shapes as CB-SEM's own fit
+      // explainer values), since the fit-indices table now actually renders here.
+      cfi: '.95', tli: '.94', rmsea: '.10', rmseaLower: '.06', rmseaUpper: '.14', srmr: '.06',
+      chisq: '72.46', chisqDf: '1.77', fitDf: '41', fitP: '.002',
       pathBLo: '0.84', pathBHi: '1.47', pathSeLo: '0.04', pathSeHi: '0.39', pathZLo: '3.70', pathZHi: '19.10',
       pathPLo: '<.001', pathPHi: '<.001', pathBetaLo: '.45', pathBetaHi: '.91', pathR2Lo: '.20', pathR2Hi: '.97',
       indEstLo: '1.27', indEstHi: '1.27', nPaths: 2, nIndirect: 1,
     })
     expect(c.values).not.toHaveProperty('hCount') // cb-sem-only structural aggregate
     expect(c.values).not.toHaveProperty('itemMeanLo') // cb-sem-only measurement aggregate
+  })
+
+  // U9-T3 fix (2026-07-06 audit): the static APA sentence asserted "was significant ... excluding 0"
+  // unconditionally, regardless of the run's own indirect-effect CI. Condition it on the FIRST indirect
+  // effect's actual percentile bootstrap CI.
+  it('PATH_ANALYSIS APA: conditions "significant"/CI-excludes-0 on the actual first indirect-effect CI', () => {
+    const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
+    const c = buildCbSem(PATH_ANALYSIS, path)
+    expect(c.apa).toBe('A path model fit to the observed variables; the indirect effect of X on Y through M was significant, bootstrap 95% CI excluding 0.')
+  })
+
+  it('PATH_ANALYSIS APA: reports "not significant" / "including 0" when the CI straddles zero', () => {
+    const path: CbSemResult = {
+      ...base, mode: 'path', cfaLoadings: [], reliability: [],
+      indirect: [{ ...base.indirect![0], ciPercLower: -0.2, ciPercUpper: 0.4 }],
+    }
+    const c = buildCbSem(PATH_ANALYSIS, path)
+    expect(c.apa).toBe('A path model fit to the observed variables; the indirect effect of X on Y through M was not significant, bootstrap 95% CI including 0.')
+  })
+
+  it('PATH_ANALYSIS APA: falls back to an honest "no indirect effect" statement when the model has no mediation chain', () => {
+    const direct: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [], indirect: [] }
+    const c = buildCbSem(PATH_ANALYSIS, direct)
+    expect(c.apa).not.toMatch(/\{[a-zA-Z]+\}/)
+    expect(c.apa).not.toContain('significant')
+    expect(c.apa.toLowerCase()).toContain('no indirect')
   })
 })

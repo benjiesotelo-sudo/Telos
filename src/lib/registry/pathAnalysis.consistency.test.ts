@@ -32,8 +32,9 @@ describe('path-analysis — observed-only CB-SEM picker entry', () => {
     expect(ids).toContain('indirect-effects')
   })
 
-  it('bundle files omit measurement PNGs and keep the path diagram', () => {
+  it('bundle files omit measurement PNGs, include the (conditional) fit-indices table, and keep the path diagram', () => {
     expect(PATH_ANALYSIS.bundleFiles).toEqual([
+      'table_fit-indices.png (when df > 0)',
       'table_structural-paths.png',
       'table_indirect-effects.png',
       'figure_path-diagram.png',

@@ -351,10 +351,10 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   // (design §U3-T4) isn't wired into this runner yet (r.efaSuitability/efaLoadings are still-undefined
   // placeholders on CbSemResult), so those lines correctly self-skip via TermExplainers' guard, exactly
   // as the E1/E2 TABLES themselves are omitted today.
-  // path-analysis's own registry spec has no 'fit-indices' table at all (only structural-paths +
-  // indirect-effects — its saturation handling is a note/flag, not a rendered fit table), so fit values
-  // are cb-sem-only, same gate as measurementValues/structuralValues below.
-  const fitValues: CardContent['values'] = !isPath && r.fit && !saturated
+  // U9-T3 fix (2026-07-06 audit): path-analysis's registry spec now HAS a 'fit-indices' table (df > 0
+  // over-identified models report fit, per the card's own note/howToRead) sharing the SAME columns as
+  // CB-SEM's, so fit values are shared across both modes -- no longer gated on !isPath.
+  const fitValues: CardContent['values'] = r.fit && !saturated
     ? {
         cfi: f01(r.fit.cfi), tli: f01(r.fit.tli), rmsea: f01(r.fit.rmsea),
         rmseaLower: f01(r.fit.rmseaLower), rmseaUpper: f01(r.fit.rmseaUpper), srmr: f01(r.fit.srmr),
@@ -438,6 +438,22 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     apa = r.fit && !saturated
       ? apa.replace('{cfi}', f01(r.fit.cfi)).replace('{rmsea}', f01(r.fit.rmsea)).replace('{srmr}', f01(r.fit.srmr))
       : apa.replace('The model fit well (CFI={cfi}, RMSEA={rmsea}, SRMR={srmr});', 'The model was saturated (df = 0; fit indices are not applicable);')
+  } else {
+    // PATH_ANALYSIS APA (U9-T3 fix): the sentence used to assert "was significant ... excluding 0"
+    // unconditionally, regardless of the run's own indirect-effect CI -- condition it on the FIRST
+    // indirect effect's actual percentile bootstrap CI (same nullish-first dash-guard convention as the
+    // Result column above). A direct-paths-only model has no mediation chain to report at all.
+    const firstIndirect = r.indirect?.[0]
+    if (firstIndirect) {
+      const loN = firstIndirect.ciPercLower == null ? NaN : Number(firstIndirect.ciPercLower)
+      const hiN = firstIndirect.ciPercUpper == null ? NaN : Number(firstIndirect.ciPercUpper)
+      const excludesZero = Number.isFinite(loN) && Number.isFinite(hiN) && (loN > 0 || hiN < 0)
+      apa = apa
+        .replace('{verdict}', excludesZero ? 'significant' : 'not significant')
+        .replace('{ci}', excludesZero ? 'excluding 0' : 'including 0')
+    } else {
+      apa = 'A path model fit to the observed variables; this model has no indirect (mediated) effect to report (no chained structural paths were drawn).'
+    }
   }
 
   return {

@@ -28,6 +28,23 @@ export const PATH_ANALYSIS: TestSpec = {
   },
   tables: [
     {
+      // U9-T3 fix (2026-07-06 audit): the card's own note/howToRead promised "an over-identified model
+      // (df > 0) reports fit" but the registry had NO fit-indices table -- buildCbSem fell back to a
+      // blank spec, so runner-computed fit indices never rendered. Same shape/id as CB_SEM's own
+      // fit-indices table (buildCbSem.ts pushes it before structural-paths for both cards).
+      id: 'fit-indices',
+      domId: 'path-analysis-fit-indices',
+      title: 'Fit indices',
+      columns: [
+        { key: 'chisq', label: 'χ² (df, p)' },
+        { key: 'chisqDf', label: 'χ²/df' },
+        { key: 'cfi', label: 'CFI' },
+        { key: 'tli', label: 'TLI' },
+        { key: 'rmsea', label: 'RMSEA [90% CI]' },
+        { key: 'srmr', label: 'SRMR' },
+      ],
+    },
+    {
       id: 'structural-paths',
       domId: 'path-analysis-structural-paths',
       title: 'Structural paths',
@@ -65,7 +82,7 @@ export const PATH_ANALYSIS: TestSpec = {
   ],
   howToRead:
     'Path analysis estimates a system of regressions among observed variables at once, letting one variable be both an outcome and a predictor (mediation). Structural paths: each B is the unstandardized effect, Std. β the standardized effect, with z, p, and a 95% CI; R² is the variance explained in each endogenous variable. Indirect effects: the product of the paths through a mediator (e.g. X → M → Y), judged by its bootstrap 95% CI — an interval excluding 0 indicates mediation. When df = 0 the model is saturated (it reproduces the data exactly), so fit indices are not informative and are omitted; only with extra constraints (df > 0) do global fit indices apply, and even then read RMSEA cautiously at small df / small N. All thresholds are heuristics, not pass/fail gates.',
-  apaTemplate: 'A path model fit to the observed variables; the indirect effect of X on Y through M was significant, bootstrap 95% CI excluding 0.',
-  rMap: 'lavaan::sem() on observed variables (regressions only; no =~) → fit · standardizedSolution() + lavInspect(fit,"rsquare") → Table 1 (structural paths + R²) · auto := indirect-effect definitions + bootstrap (boot.ci.type="perc", R = 5000) → Table 2 (indirect effects) · fit indices suppressed when fitMeasures(fit,"df") == 0 (saturated) · semPlot::semPaths() → figure (rectangles = observed)',
-  bundleFiles: ['table_structural-paths.png', 'table_indirect-effects.png', 'figure_path-diagram.png'],
+  apaTemplate: 'A path model fit to the observed variables; the indirect effect of X on Y through M was {verdict}, bootstrap 95% CI {ci}.',
+  rMap: 'lavaan::sem() on observed variables (regressions only; no =~) → fit · lavaan::fitMeasures() → Table 1 (fit indices, df > 0 only; suppressed when fitMeasures(fit,"df") == 0, saturated) · standardizedSolution() + lavInspect(fit,"rsquare") → Table 2 (structural paths + R²) · auto := indirect-effect definitions + bootstrap (boot.ci.type="perc", R = 5000) → Table 3 (indirect effects) · semPlot::semPaths() → figure (rectangles = observed)',
+  bundleFiles: ['table_fit-indices.png (when df > 0)', 'table_structural-paths.png', 'table_indirect-effects.png', 'figure_path-diagram.png'],
 }

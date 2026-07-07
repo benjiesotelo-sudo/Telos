@@ -1042,6 +1042,21 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: () => `Here, communalities appear in the E2 preamble table when the EFA stage is run.` },
   ],
   'path-analysis': [
+    // U9-T3 (2026-07-06 audit fix): the card's own note/howToRead promised fit indices for an
+    // over-identified model (df > 0); the fit-indices table now actually renders in that case, sharing
+    // the same 6 columns as cb-sem's own fit table (same meanings, same rmseaLower/rmseaUpper convention).
+    { key: 'cfi', term: 'CFI', meaning: 'How much better the model fits than a baseline with no relationships at all (≥ .95 is a common, non-binding guideline).',
+      interpret: (v) => `Here, CFI = ${v.cfi}.` },
+    { key: 'rmsea', term: 'RMSEA', meaning: 'The average model misfit per degree of freedom, penalizing complexity (≤ .06 is a common, non-binding guideline); read cautiously at small df / small N.',
+      interpret: (v) => `Here, RMSEA = ${v.rmsea} [90% CI ${v.rmseaLower}, ${v.rmseaUpper}].` },
+    { key: 'tli', term: 'TLI', meaning: 'Like CFI, compares the model to a baseline with no relationships, penalizing complexity more than CFI does (≥ .95 is a common, non-binding guideline).',
+      interpret: (v) => `Here, TLI = ${v.tli}.` },
+    { key: 'srmr', term: 'SRMR', meaning: 'The average standardized difference between the observed and model-implied correlations (≤ .08 is a common, non-binding guideline).',
+      interpret: (v) => `Here, SRMR = ${v.srmr}.` },
+    { key: 'chisq', term: 'χ² (model fit)', meaning: 'Tests whether the model-implied covariances differ from the observed ones; only reported when the model is over-identified (df > 0).',
+      interpret: (v) => `Here, χ²(${v.fitDf}) = ${v.chisq}, p ${v.fitP}.` },
+    { key: 'chisqDf', term: 'χ²/df', meaning: 'The chi-square divided by its degrees of freedom - a size-adjusted view of the same model-fit discrepancy.',
+      interpret: (v) => `Here, χ²/df = ${v.chisqDf}.` },
     { key: 'b', term: 'B', meaning: 'The unstandardized structural-path estimate: the raw-unit effect of one variable on another.',
       interpret: (v) => `Here, path B's range from ${v.pathBLo} to ${v.pathBHi} across the ${v.nPaths} structural paths.` },
     { key: 'se', term: 'SE', meaning: 'The standard error of a structural-path or indirect-effect estimate.',
