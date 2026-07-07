@@ -4,7 +4,7 @@ import type { CbSemResult } from '../stats/runCbSem'
 import { isSaturated } from '../stats/semSaturation'
 import type { CardContent, BuiltTable } from './builders'
 import type { MatrixTable } from './types'
-import { f, f01, fp, fdf, fx } from '../format/apa'
+import { f, f01, fp, fdf, fx, fpApa } from '../format/apa'
 
 const SATURATION_NOTE =
   'The model is saturated (df = 0): it has zero degrees of freedom, so global fit indices are not informative and are suppressed. Estimated paths and effects below are still interpretable.'
@@ -418,13 +418,35 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     : {}
   const values: CardContent['values'] = { ...fitValues, ...measurementValues, ...structuralValues, ...pathValues }
 
+  // APA (U9-T3 fix, 2026-07-06 audit): CB-SEM's template used to be returned VERBATIM, every "__" left
+  // unfilled. Worked-example convention (mirrors multiple-linear-regression's "predictor X" -> the real
+  // term name): the path clause is filled from the FIRST structural path; the fit clause from the fit
+  // indices, or an honest saturation statement when df=0 (fit is not informative, never left as "__").
+  let apa = spec.apaTemplate
+  if (isMerged) {
+    const firstPath = r.structural?.[0]
+    if (firstPath) {
+      const fromName = firstPath.fromName != null ? String(firstPath.fromName) : String(firstPath.from)
+      const toName = firstPath.toName != null ? String(firstPath.toName) : String(firstPath.to)
+      apa = apa
+        .replace('X to Y', `${fromName} to ${toName}`)
+        .replace('{beta}', f01(Number(firstPath.stdBeta)))
+        .replace('p={p}', `p ${fpApa(Number(firstPath.p))}`)
+    } else {
+      apa = apa.replace('{beta}', '—').replace('p={p}', 'p —')
+    }
+    apa = r.fit && !saturated
+      ? apa.replace('{cfi}', f01(r.fit.cfi)).replace('{rmsea}', f01(r.fit.rmsea)).replace('{srmr}', f01(r.fit.srmr))
+      : apa.replace('The model fit well (CFI={cfi}, RMSEA={rmsea}, SRMR={srmr});', 'The model was saturated (df = 0; fit indices are not applicable);')
+  }
+
   return {
     tables,
     note,
     notes,
     figures,
     howToRead: spec.howToRead,
-    apa: spec.apaTemplate,
+    apa,
     nExcluded: 0,
     values,
   }

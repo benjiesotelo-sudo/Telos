@@ -110,7 +110,7 @@ export const PLS_SEM: TestSpec = {
   ],
   howToRead:
     'Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does not use CB-SEM global fit indices (CFI/TLI/RMSEA) — judge it instead by reliability & validity (CR, AVE, HTMT), then R², Q² (predictive relevance) and f², with SRMR the only commonly reported approximate fit index. Read the bootstrapped path coefficients (β, p); f² is each path\'s effect size (~0.02 small, 0.15 medium, 0.35 large).',
-  apaTemplate: 'In the PLS-SEM, the path from X to Y gave β=__, p=__ (bootstrap); R²Y=__.',
+  apaTemplate: 'In the PLS-SEM, the path from X to Y gave β={beta}, p={p} (bootstrap); R²Y={r2y}.',
   rMap: 'seminr → Tables & bootstrap · summary() → R²/R²adj · seminr::predict_pls() → Q² · seminr::specific_effect_significance() (on the bootstrapped model) → Table 5 indirect effects · seminr::plot() → diagram',
   bundleFiles: [
     'table_measurement.png',

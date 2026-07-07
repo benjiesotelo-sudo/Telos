@@ -187,10 +187,10 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
   it('how-to-read matches verbatim', () => {
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)
   })
-  it('APA line equals the template', () => {
+  it('APA line equals the template with every {placeholder} as __', () => {
     const line = strip(card.match(/<b>APA template:<\/b>(.*?)<\/div>/s)![1])
     const inner = line.replace(/^[“”]/u, '').replace(/[“”]$/u, '')
-    expect(inner).toBe(spec.apaTemplate)
+    expect(inner).toBe(spec.apaTemplate.replace(/\{\w+\}/g, '__'))
   })
   it('R map matches verbatim', () => {
     expect(strip(card.match(/<b>R map:<\/b>(.*?)<\/div>/s)![1])).toBe(spec.rMap)

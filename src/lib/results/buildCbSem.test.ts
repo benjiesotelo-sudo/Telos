@@ -490,6 +490,39 @@ describe('buildCbSem', () => {
   })
 })
 
+// U9-T3 (2026-07-06 audit): CB-SEM's APA template was returned VERBATIM -- CFI/RMSEA/SRMR/beta/p were
+// never filled. The registry template now carries {cfi}/{rmsea}/{srmr}/{beta}/{p} tokens plus the
+// generic "X to Y" descriptor (same convention as multiple-linear-regression's "predictor X"), filled
+// from the fit indices + the FIRST structural path (worked-example convention). Uses the REAL CB_SEM
+// spec so the registry's actual apaTemplate string is exercised, not the mock SPEC's placeholder 'apa'.
+describe('buildCbSem — APA template filled with live values (worked example = first structural path)', () => {
+  it('fills CFI/RMSEA/SRMR from the fit indices and beta/p/names from the first structural path', () => {
+    const c = buildCbSem(CB_SEM, base)
+    expect(c.apa).toBe('The model fit well (CFI=.95, RMSEA=.10, SRMR=.06); the path from ind60 to dem60 gave β=.45, p < .001.')
+  })
+
+  it('every {token} resolves to a live value (no literal braces, no "__" survives)', () => {
+    const c = buildCbSem(CB_SEM, base)
+    expect(c.apa).not.toMatch(/\{[a-zA-Z]+\}/)
+    expect(c.apa).not.toContain('__')
+  })
+
+  it('when saturated (df=0), swaps the fit clause for an honest saturation statement instead of leaving CFI/RMSEA/SRMR unfilled', () => {
+    const sat: CbSemResult = { ...base, saturated: true, fit: { ...base.fit!, df: 0 } }
+    const c = buildCbSem(CB_SEM, sat)
+    expect(c.apa).not.toMatch(/\{[a-zA-Z]+\}/)
+    expect(c.apa).not.toContain('__')
+    expect(c.apa.toLowerCase()).toContain('saturated')
+    expect(c.apa).toContain('the path from ind60 to dem60 gave β=.45, p < .001.')
+  })
+
+  it('falls back to dashes (never a bare token) when there are no structural paths', () => {
+    const c = buildCbSem(CB_SEM, { ...base, structural: [] })
+    expect(c.apa).not.toMatch(/\{[a-zA-Z]+\}/)
+    expect(c.apa).toContain('β=—')
+  })
+})
+
 // REGRESSION (2026-07-06 live-run finding): ApaTable renders row[column.key] against the REAL registry
 // spec — the mock SPEC above used the builder's own row keys, so a builder/spec key mismatch rendered
 // EMPTY "Std. loading" (cfa-loadings, spec key 'std') and "Std. β" (structural-paths, spec key 'beta')

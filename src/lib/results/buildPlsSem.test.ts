@@ -229,3 +229,26 @@ describe('buildPlsSem — real registry spec (row keys must cover every spec col
     expect(cuex1.loading).toBe('.44')       // formative: weight surfaces in the merged column
   })
 })
+
+// U9-T3 (2026-07-06 audit): the APA template was returned VERBATIM -- every "__" placeholder
+// (beta/p/R²Y) was never filled. The registry template now carries {beta}/{p}/{r2y} tokens plus the
+// generic "X to Y" descriptor (same convention as multiple-linear-regression's "predictor X"), filled
+// here from the FIRST structural path (the worked-example convention).
+describe('buildPlsSem — APA template filled with live values (worked example = first structural path)', () => {
+  it('fills the path names, beta, p, and the R²Y for the first path\'s target construct', () => {
+    const c = buildPlsSem(PLS_SEM, R)
+    expect(c.apa).toBe('In the PLS-SEM, the path from Image to Expectation gave β=.30, p = .001 (bootstrap); R²Y=.09.')
+  })
+
+  it('every {token} in the template resolves to a live value (no literal braces, no "__" survives)', () => {
+    const c = buildPlsSem(PLS_SEM, R)
+    expect(c.apa).not.toMatch(/\{[a-zA-Z]+\}/)
+    expect(c.apa).not.toContain('__')
+  })
+
+  it('falls back to dashes (never a bare "__") when there are no structural paths', () => {
+    const c = buildPlsSem(PLS_SEM, { ...R, structural: [] })
+    expect(c.apa).not.toContain('__')
+    expect(c.apa).toContain('β=—')
+  })
+})

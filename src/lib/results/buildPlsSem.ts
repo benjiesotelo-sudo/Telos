@@ -3,7 +3,7 @@ import { figuresOf } from '../registry/types'
 import type { PlsSemResult } from '../stats/plsSem'
 import type { MatrixTable } from './types'
 import type { CardContent, BuiltTable } from './builders'
-import { f01 } from '../format/apa'
+import { f01, fpApa } from '../format/apa'
 
 const DASH = '—'
 /** Bounded value (|x| ≤ 1): leading-dot 2dp, or em-dash when null/NA. */
@@ -176,12 +176,30 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
       ? { kind: 'plain', text: noteExtras.join(' ') }
       : null
 
+  // APA (U9-T3 fix, 2026-07-06 audit): the template used to be returned VERBATIM, "__" never filled.
+  // Worked-example convention (mirrors multiple-linear-regression's "predictor X" -> real term name):
+  // fill from the FIRST structural path, plus its target construct's R² from the quality table.
+  const firstStruct = r.structural[0] as Record<string, unknown> | undefined
+  let apa = spec.apaTemplate
+  if (firstStruct) {
+    const [fromName, toName] = String(firstStruct.path).split(' → ')
+    const target = r.quality.find((q) => String((q as Record<string, unknown>).construct) === toName) as Record<string, unknown> | undefined
+    const pNum = Number(firstStruct.p)
+    apa = apa
+      .replace('X to Y', `${fromName} to ${toName}`)
+      .replace('{beta}', fc(firstStruct.beta))
+      .replace('p={p}', Number.isFinite(pNum) ? `p ${fpApa(pNum)}` : 'p —')
+      .replace('{r2y}', target ? fc(target.r2) : DASH)
+  } else {
+    apa = apa.replace('X to Y', 'X to Y').replace('{beta}', DASH).replace('p={p}', 'p —').replace('{r2y}', DASH)
+  }
+
   return {
     tables,
     note,
     figures,
     howToRead: spec.howToRead,
-    apa: spec.apaTemplate,
+    apa,
     nExcluded: 0,
     // U8-T4: keyed to match the 'pls-sem' EXPLAINERS entries in registry/explainers.ts. Every table on
     // this card (measurement/structural/quality/indirect/conditional) is open-cardinality (1+ constructs,
