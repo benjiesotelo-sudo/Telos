@@ -20,10 +20,13 @@ export function buildMultipleLinearRegression(spec: TestSpec, r: MultipleLinearR
       const isInt = x.term === '(Intercept)'
       const beta = isInt ? '' : r.standardize ? f(x.beta!) : '—'
       const vif = isInt ? '' : x.vif == null ? '—' : f(x.vif)
+      // R1 gap-fix: β CI stacks under the β point estimate on the muted [CI] row (ApaTable renders any
+      // populated cell — no new column/renderer change needed), masked by the same standardize toggle.
+      const betaCi = isInt || !r.standardize || x.betaLo == null || x.betaHi == null ? '' : `[${f(x.betaLo)}, ${f(x.betaHi)}]`
       return [
         { _kind: 'coef', term: x.term, est: f(x.b), beta, vif },
         { _kind: 'se', term: '', est: `(${f(x.se)})`, beta: '', vif: '' },
-        { _kind: 'ci', term: '', est: `[${f(x.ciLow)}, ${f(x.ciHigh)}]`, beta: '', vif: '' },
+        { _kind: 'ci', term: '', est: `[${f(x.ciLow)}, ${f(x.ciHigh)}]`, beta: betaCi, vif: '' },
       ]
     }),
     { _kind: 'rule' },
@@ -61,6 +64,8 @@ export function buildMultipleLinearRegression(spec: TestSpec, r: MultipleLinearR
     values: {
       r2: f01(r.r2), vifMax, rmse: f(r.rmse), adjr2: f(r.adjR2), aic: f(r.aic), bic: f(r.bic), ll: f(r.logLik), n: r.n, f: f(r.f),
       est: f(first.b), beta: r.standardize && first.beta != null ? f(first.beta) : undefined, term: first.term,
+      betaLo: r.standardize && first.betaLo != null ? f(first.betaLo) : undefined,
+      betaHi: r.standardize && first.betaHi != null ? f(first.betaHi) : undefined,
     },
   }
 }

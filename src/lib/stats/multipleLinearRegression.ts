@@ -1,7 +1,7 @@
 import type { Engine } from '../webr/engine'
 import type { Dataset } from './types'
 
-export interface MultipleLinearTerm { term: string; b: number; se: number; beta: number | null; t: number; p: number; ciLow: number; ciHigh: number; vif: number | null }
+export interface MultipleLinearTerm { term: string; b: number; se: number; beta: number | null; betaLo: number | null; betaHi: number | null; t: number; p: number; ciLow: number; ciHigh: number; vif: number | null }
 export interface MultipleLinearResult {
   outcome: string
   standardize: boolean // R1 display toggle — β is always computed; the builder masks
@@ -51,9 +51,18 @@ pretty <- vapply(seq_along(labs), function(i) {
   else if (parent[i] %in% catnames) paste0(parent[i], ': ', substring(labs[i], nchar(parent[i]) + 1))
   else labs[i]
 }, character(1))
+# β CI (R1 gap-fix): scale the raw B's CI bounds by the SAME rescaling factor used for the β point estimate
+# (numeric: sd(x)/sd(y); dummy: 1/sd(y)) — identical recipe already spike-pinned for R_COEFPLOT's forest plot.
+betaFac <- vapply(labs, function(t) {
+  if (t == '(Intercept)') return(NA_real_)
+  if (parent[t] %in% catnames) return(1 / sd_y)
+  sd(d[[t]]) / sd_y
+}, numeric(1))
 terms <- lapply(seq_along(labs), function(i) list(
   term = pretty[i], b = cf[i, 1], se = cf[i, 2],
   beta = if (labs[i] == '(Intercept)') NA_real_ else unname(betas[labs[i]]),
+  betaLo = if (labs[i] == '(Intercept)') NA_real_ else unname(ci[i, 1] * betaFac[labs[i]]),
+  betaHi = if (labs[i] == '(Intercept)') NA_real_ else unname(ci[i, 2] * betaFac[labs[i]]),
   t = cf[i, 3], p = cf[i, 4], ciLow = ci[i, 1], ciHigh = ci[i, 2],
   vif = if (is.null(vift) || labs[i] == '(Intercept)') NA_real_ else unname(vift[parent[i]])))
 fst <- s$fstatistic

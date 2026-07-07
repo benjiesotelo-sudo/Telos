@@ -22,6 +22,7 @@ describe('runMultipleLinearRegression', () => {
     expect(int.b).toBeCloseTo(20.361340940, 5)
     expect(int.se).toBeCloseTo(6.030400820, 5)
     expect(int.beta).toBeNull()
+    expect(int.betaLo).toBeNull(); expect(int.betaHi).toBeNull()
     expect(int.vif).toBeNull()
     expect(pre.b).toBeCloseTo(0.612871402, 6)
     expect(pre.se).toBeCloseTo(0.075712457, 6)
@@ -31,6 +32,9 @@ describe('runMultipleLinearRegression', () => {
     expect(pre.ciHigh).toBeCloseTo(0.766737627, 6)
     expect(pre.beta).toBeCloseTo(0.775421855, 6)   // numeric refit β ≡ hand B·SD(x)/SD(y)
     expect(pre.vif).toBeCloseTo(1.249106308, 6)
+    // β CI (R1 gap-fix): raw B's CI scaled by the same rescaling factor sd(x)/sd(y) — native R verified directly.
+    expect(pre.betaLo).toBeCloseTo(0.5807461, 5)
+    expect(pre.betaHi).toBeCloseTo(0.9700977, 5)
     expect(age.b).toBeCloseTo(0.018242579, 6)
     expect(age.p).toBeCloseTo(0.788294904, 6)
     expect(age.beta).toBeCloseTo(0.027593357, 6)

@@ -8,6 +8,7 @@ const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 // GOF verified in native R 4.6.0: AIC 202.3685105 · BIC 207.4351488 · logLik −98.18425523 · dev 67.56546304 · disp 1.686886555.
 const poisson: PoissonNbResult = { outcome: 'complaints', model: 'Poisson',
   aic: 202.368510500, bic: 207.435148800, logLik: -98.184255230, deviance: 67.565463040, dfResid: 37, dispersion: 1.686886555,
+  dispersionP: null,
   terms: [
     { term: '(Intercept)', b: -1.463347276, se: 0.234537250, z: -6.239295777, p: 4.395451914e-10, irr: 0.231460215, irrLow: 0.145023055, irrHigh: 0.363902957 },
     { term: 'age', b: 0.013258484, se: 0.004919987, z: 2.694820707, p: 0.007042652, irr: 1.013346767, irrLow: 1.003600186, irrHigh: 1.023164956 },

@@ -12,6 +12,8 @@ export interface LogisticResult {
   classCounts: number[][]          // rows = PREDICTED level (levels order), cols = observed (levels order)
   pctCorrect: (number | null)[]    // per-predicted-row 100·diag/rowsum; null when a row predicts nothing
   auc: number
+  aucLow: number; aucHigh: number  // pROC::ci.auc (DeLong, deterministic — no seed needed) — R1 gap-fix
+  accuracy: number; sensitivity: number; specificity: number  // R1 gap-fix (worked example): named scalars alongside the classification table
   ciLevel: number
   alpha: number
   n: number; nExcluded: number
@@ -53,13 +55,21 @@ p <- fitted(m)
 pred <- factor(ifelse(p >= 0.5, event, oth), levels = levels(d$y))
 tab <- table(pred, d$y)
 pct <- ifelse(rowSums(tab) > 0, 100 * diag(tab) / rowSums(tab), NA_real_)
-auc <- as.numeric(pROC::auc(pROC::roc(d$y, p, quiet = TRUE)))
+roc_obj <- pROC::roc(d$y, p, quiet = TRUE)
+auc <- as.numeric(pROC::auc(roc_obj))
+auc_ci <- pROC::ci.auc(roc_obj)  # DeLong method — deterministic, no seed needed (R1 gap-fix)
+# Accuracy/sensitivity/specificity (R1 gap-fix, worked example): sens/spec are the TRUE positive/negative
+# rates among ACTUAL events/non-events (column sums), not the row-normalized pctCorrect already above.
+acc <- sum(diag(tab)) / sum(tab)
+sens <- tab[event, event] / sum(tab[, event])
+spec <- tab[oth, oth] / sum(tab[, oth])
 list(m2ll = -2 * as.numeric(logLik(m)), logLik = as.numeric(logLik(m)), aic = AIC(m), bic = BIC(m),
      nagelkerke = as.numeric(performance::r2_nagelkerke(m)),
      omnibusChisq = omni, omnibusDf = odf, omnibusP = pchisq(omni, odf, lower.tail = FALSE),
      terms = terms, levels = levels(d$y),
      classCounts = lapply(seq_len(nrow(tab)), function(i) as.numeric(tab[i, ])),
-     pctCorrect = as.numeric(pct), auc = auc, n = nrow(d))`
+     pctCorrect = as.numeric(pct), auc = auc, aucLow = unname(auc_ci[1]), aucHigh = unname(auc_ci[3]),
+     accuracy = unname(acc), sensitivity = unname(sens), specificity = unname(spec), n = nrow(d))`
 
 // ROC figure (convention 9, spike recipe): hand threshold sweep — thresholds = −Inf, midpoints of sorted unique
 // fitted probs, +Inf; the polyline IS the staircase (consecutive points differ in one coordinate). AUC annotated
@@ -87,7 +97,8 @@ print(ggplot2::ggplot(data.frame(fpr = fpr[ord], tpr = tpr[ord]), ggplot2::aes(f
 interface RawStats {
   m2ll: number; logLik: number; aic: number; bic: number; nagelkerke: number
   omnibusChisq: number; omnibusDf: number; omnibusP: number
-  terms: LogisticTerm[]; levels: string[]; classCounts: number[][]; pctCorrect: (number | null)[]; auc: number; n: number
+  terms: LogisticTerm[]; levels: string[]; classCounts: number[][]; pctCorrect: (number | null)[]
+  auc: number; aucLow: number; aucHigh: number; accuracy: number; sensitivity: number; specificity: number; n: number
 }
 
 /** Storage-type classification (recorded decision 1): all-numeric non-missing values → linear term; else factor. */

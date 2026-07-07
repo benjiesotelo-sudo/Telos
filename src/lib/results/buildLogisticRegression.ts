@@ -19,6 +19,10 @@ export function buildLogisticRegression(spec: TestSpec, r: LogisticResult): Card
     n: String(r.n), nagelkerke: f(r.nagelkerke),
     chi2: `${f(r.omnibusChisq)} (p ${fp(r.omnibusP)})`, // omnibus χ² with its p inline (report-only, no verdict)
     ll: f(r.logLik), aic: f(r.aic), bic: f(r.bic),
+    // R1 gap-fix (worked example): named accuracy/sensitivity/specificity scalars + AUC with its CI, all
+    // alongside the classification table/ROC figure that already carried the raw numbers.
+    accuracy: pc(r.accuracy * 100), sensitivity: pc(r.sensitivity * 100), specificity: pc(r.specificity * 100),
+    auc: `${f01(r.auc)} [${f01(r.aucLow)}, ${f01(r.aucHigh)}]`,
   }
   const rows: Record<string, string | number>[] = [
     ...r.terms.flatMap((x) => [
@@ -43,10 +47,6 @@ export function buildLogisticRegression(spec: TestSpec, r: LogisticResult): Card
     .replace('{p}', fpApa(first.p))                             // policy (3): spaced APA p, "p = .035" / "p < .001"
     .replace('{auc}', f01(r.auc))                               // policy (3): bounded stat drops leading zero
   const fig = figuresOf(spec)[0]
-  // A5 (U8-T4): overall classification accuracy — the diagonal (correct) cells over N; a simple aggregate of
-  // the classCounts already in the table, not a new statistic (cf. the vif-max aggregate precedent).
-  const totalCorrect = r.classCounts[0][0] + r.classCounts[1][1]
-  const overallPct = r.n > 0 ? `${((totalCorrect / r.n) * 100).toFixed(1)}%` : '—'
   return {
     tables: [
       { spec: t, rows },
@@ -60,7 +60,9 @@ export function buildLogisticRegression(spec: TestSpec, r: LogisticResult): Card
     values: {
       ...gofValue,
       b: f(first.b), or: r.reportOR ? fOr(first.or) : '—',
-      c0: String(r.classCounts[0][0]), c1: String(r.classCounts[1][1]), pct: overallPct,
+      // R1 gap-fix: 'pct' now reuses the native-R accuracy scalar directly (gofValue.accuracy), not a
+      // hand-summed diagonal aggregate — same number, computed once, in R.
+      c0: String(r.classCounts[0][0]), c1: String(r.classCounts[1][1]), pct: gofValue.accuracy,
     },
   }
 }

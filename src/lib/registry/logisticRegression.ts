@@ -42,7 +42,11 @@ export const LOGISTIC_REGRESSION: TestSpec = {
       columns: [{ key: 'term', label: '' }, { key: 'b', label: 'Log-odds (B)' }, { key: 'or', label: 'Odds ratio (OR)' }],
       models: [{ key: 'b', label: 'Log-odds (B)' }, { key: 'or', label: 'Odds ratio (OR)' }],
       gof: [{ key: 'n', label: 'Num.Obs.' }, { key: 'nagelkerke', label: 'Nagelkerke R²' }, { key: 'chi2', label: 'Omnibus χ²' },
-        { key: 'll', label: 'Log.Lik.' }, { key: 'aic', label: 'AIC' }, { key: 'bic', label: 'BIC' }] },
+        { key: 'll', label: 'Log.Lik.' }, { key: 'aic', label: 'AIC' }, { key: 'bic', label: 'BIC' },
+        // R1 gap-fix: named accuracy/sensitivity/specificity scalars alongside the classification table
+        // (previously only raw counts + per-row %correct), plus an AUC [95% CI] row (was point-only, only in the figure).
+        { key: 'accuracy', label: 'Accuracy' }, { key: 'sensitivity', label: 'Sensitivity' }, { key: 'specificity', label: 'Specificity' },
+        { key: 'auc', label: 'AUC [95% CI]' }] },
     { id: 'classification', title: 'Classification', // unique id across all shipped specs — no domId needed
       // Drawn placeholders; the builder replaces 0/1 with the REAL outcome level names (convention 7).
       columns: [{ key: 'pred', label: 'Predicted \\ Observed' }, { key: 'c0', label: '0' }, { key: 'c1', label: '1' }, { key: 'pct', label: '% correct' }] },
@@ -51,7 +55,8 @@ export const LOGISTIC_REGRESSION: TestSpec = {
   howToRead:
     "Each predictor's odds ratio tells how the odds of the outcome change per unit (>1 increases, <1 decreases); " +
     'a term carries weight when its OR confidence interval excludes 1, and the inline omnibus χ² (with its p) tests the model as a whole. ' +
-    'Model fit and the ROC/AUC show how well it classifies overall.',
+    'Model fit and the ROC/AUC show how well it classifies overall, alongside accuracy (overall % correct), ' +
+    'sensitivity (% of actual events correctly predicted), and specificity (% of actual non-events correctly predicted).',
   apaTemplate: 'Predictor X was associated with the outcome, OR={or}, 95% CI [{ciLow}, {ciHigh}], p {p} (AUC={auc}).',
   rMap: 'glm(family=binomial) → B/SE/z/p · exp(cbind(OR=coef(m), confint(m))) → OR + 95% CI · performance::r2_nagelkerke(m) → Nagelkerke R² · anova(m, test="Chisq") → omnibus χ² · logLik(m)/AIC(m)/BIC(m) → Log.Lik./AIC/BIC · table(predicted, observed) → Table 2 (classification) · pROC → ROC/AUC',
   bundleFiles: ['table_coefficients.png', 'table_classification.png', 'figure_roc.png'],

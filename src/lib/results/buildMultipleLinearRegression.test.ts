@@ -10,12 +10,12 @@ const res: MultipleLinearResult = { outcome: 'post_score', standardize: false,
   r2: 0.750223512, adjR2: 0.713491675, f: 20.424339860, df1: 5, df2: 34, p: 2.245462388e-9,
   rmse: 4.678702977, aic: 250.9567571, bic: 262.7789132, logLik: -118.4783785,
   terms: [
-    { term: '(Intercept)', b: 20.361340940, se: 6.030400820, beta: null, t: 3.376449021, p: 0.001851288, ciLow: 8.106091987, ciHigh: 32.616589900, vif: null },
-    { term: 'pre_score', b: 0.612871402, se: 0.075712457, beta: 0.775421855, t: 8.094723475, p: 1.941055777e-9, ciLow: 0.459005177, ciHigh: 0.766737627, vif: 1.249106308 },
-    { term: 'age', b: 0.018242579, se: 0.067402312, beta: 0.027593357, t: 0.270652118, p: 0.788294904, ciLow: -0.118735401, ciHigh: 0.155220558, vif: 1.414860417 },
-    { term: 'group: b', b: 5.353172626, se: 1.642693905, beta: 0.564629882, t: 3.258776701, p: 0.002542392, ciLow: 2.014816956, ciHigh: 8.691528296, vif: 1.037328861 },
-    { term: 'method: online', b: -2.049172535, se: 2.021575603, beta: -0.216138004, t: -1.013651199, p: 0.317908726, ciLow: -6.157508455, ciHigh: 2.059163385, vif: 1.247536921 },
-    { term: 'method: workshop', b: -3.247840455, se: 2.272989373, beta: -0.342568398, t: -1.428885016, p: 0.162160847, ciLow: -7.867110628, ciHigh: 1.371429717, vif: 1.247536921 },
+    { term: '(Intercept)', b: 20.361340940, se: 6.030400820, beta: null, betaLo: null, betaHi: null, t: 3.376449021, p: 0.001851288, ciLow: 8.106091987, ciHigh: 32.616589900, vif: null },
+    { term: 'pre_score', b: 0.612871402, se: 0.075712457, beta: 0.775421855, betaLo: 0.5807461, betaHi: 0.9700977, t: 8.094723475, p: 1.941055777e-9, ciLow: 0.459005177, ciHigh: 0.766737627, vif: 1.249106308 },
+    { term: 'age', b: 0.018242579, se: 0.067402312, beta: 0.027593357, betaLo: -0.1795968, betaHi: 0.2347835, t: 0.270652118, p: 0.788294904, ciLow: -0.118735401, ciHigh: 0.155220558, vif: 1.414860417 },
+    { term: 'group: b', b: 5.353172626, se: 1.642693905, beta: 0.564629882, betaLo: 0.2125143, betaHi: 0.9167454, t: 3.258776701, p: 0.002542392, ciLow: 2.014816956, ciHigh: 8.691528296, vif: 1.037328861 },
+    { term: 'method: online', b: -2.049172535, se: 2.021575603, beta: -0.216138004, betaLo: -0.6494678, betaHi: 0.2171918, t: -1.013651199, p: 0.317908726, ciLow: -6.157508455, ciHigh: 2.059163385, vif: 1.247536921 },
+    { term: 'method: workshop', b: -3.247840455, se: 2.272989373, beta: -0.342568398, betaLo: -0.8297894, betaHi: 0.1446526, t: -1.428885016, p: 0.162160847, ciLow: -7.867110628, ciHigh: 1.371429717, vif: 1.247536921 },
   ],
   ciLevel: 0.95, alpha: 0.05, n: 40, nExcluded: 0, figResidualsPng: png, figCoefPlotPng: png }
 
@@ -59,6 +59,14 @@ describe('buildMultipleLinearRegression', () => {
     expect(c.tables[0].rows.filter((row) => row._kind === 'coef').map((row) => row.beta))
       .toEqual(['', '0.78', '0.03', '0.56', '−0.22', '−0.34'])
   })
+  it('R1 gap-fix: standardize ON → β CI stacks on the muted [CI] row under the same β column; OFF → blank', () => {
+    const on = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, { ...res, standardize: true })
+    expect(on.tables[0].rows.filter((row) => row._kind === 'ci').map((row) => row.beta))
+      .toEqual(['', '[0.58, 0.97]', '[−0.18, 0.23]', '[0.21, 0.92]', '[−0.65, 0.22]', '[−0.83, 0.14]'])
+    const off = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res)
+    expect(off.tables[0].rows.filter((row) => row._kind === 'ci').map((row) => row.beta))
+      .toEqual(['', '', '', '', '', ''])
+  })
   it('k = 1 (vif null) → predictor VIF cells em-dash', () => {
     const one = { ...res, terms: res.terms.slice(0, 2).map((t) => ({ ...t, vif: null })) }
     const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, one)
@@ -78,7 +86,7 @@ describe('buildMultipleLinearRegression', () => {
     const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res)
     expect(c.values).toEqual({
       r2: '.75', vifMax: '1.41', rmse: '4.68', adjr2: '0.71', aic: '250.96', bic: '262.78', ll: '−118.48', n: 40, f: '20.42',
-      est: '0.61', beta: undefined, term: 'pre_score',
+      est: '0.61', beta: undefined, term: 'pre_score', betaLo: undefined, betaHi: undefined,
     })
   })
   it('values.vifMax is undefined (not NaN/0) when every term VIF is null (k = 1)', () => {
@@ -89,5 +97,10 @@ describe('buildMultipleLinearRegression', () => {
   it('values.beta carries the standardized β for the first predictor when standardize is ON', () => {
     const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, { ...res, standardize: true })
     expect(c.values!.beta).toBe('0.78')
+  })
+  it('values.betaLo/betaHi carry the β CI for the first predictor when standardize is ON (R1 gap-fix)', () => {
+    const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, { ...res, standardize: true })
+    expect(c.values!.betaLo).toBe('0.58')
+    expect(c.values!.betaHi).toBe('0.97')
   })
 })

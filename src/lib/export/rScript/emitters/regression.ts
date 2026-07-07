@@ -41,8 +41,9 @@ export const regressionEmitters: Record<string, Emitter> = {
     return [
       `m <- lm(${y} ~ ${rhs}, data = d)`,
       modelsummaryCall('m', { gof: 'lm' }),
-      `# standardized betas + VIF (display extras)`,
-      `print(parameters::standardise_parameters(m, method = "refit"))`,
+      // standardized betas + VIF (display extras); ci= matches the chosen CI level (R1 gap-fix: the β CI now
+      // reported in-app uses this same level, not the function's own 0.95 default).
+      `print(parameters::standardise_parameters(m, method = "refit", ci = ${level}))`,
       // car::vif needs >= 2 predictor TERMS (mirrors multipleLinearRegression.ts: length(prednames) >= 2);
       // with a single categorical predictor coef(m) >= 3 but there is only ONE term, which car::vif rejects.
       ...(preds.length >= 2 ? [`print(car::vif(m))`] : []),
@@ -92,10 +93,16 @@ export const regressionEmitters: Record<string, Emitter> = {
       `# Classification table — cutoff P(event) >= 0.5, rows = predicted level`,
       `p <- fitted(m)`,
       `pred <- factor(ifelse(p >= 0.5, ${q(event)}, oth[1]), levels = levels(d$${y}))`,
-      `print(table(pred, d$${y}))`,
-      `# ROC curve + AUC`,
+      `tab <- table(pred, d$${y})`,
+      `print(tab)`,
+      `# Accuracy/sensitivity/specificity (R1 gap-fix, worked example)`,
+      `cat("Accuracy:", sum(diag(tab)) / sum(tab), "\\n")`,
+      `cat("Sensitivity:", tab[${q(event)}, ${q(event)}] / sum(tab[, ${q(event)}]), "\\n")`,
+      `cat("Specificity:", tab[oth[1], oth[1]] / sum(tab[, oth[1]]), "\\n")`,
+      `# ROC curve + AUC (+ 95% CI, R1 gap-fix — pROC::ci.auc, DeLong method, deterministic)`,
       `roc_obj <- pROC::roc(d$${y}, p, quiet = TRUE)`,
       `auc_val <- as.numeric(pROC::auc(roc_obj))`,
+      `print(pROC::ci.auc(roc_obj))`,
       `print(ggplot(data.frame(fpr = 1 - roc_obj$specificities, tpr = roc_obj$sensitivities), aes(fpr, tpr)) +`,
       `  geom_abline(slope = 1, intercept = 0, colour = "${LIGHT}", linetype = "dashed") +`,
       `  geom_line(colour = "${BLUE}", linewidth = 0.8) +`,

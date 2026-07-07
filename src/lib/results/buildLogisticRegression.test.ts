@@ -16,6 +16,7 @@ const res: LogisticResult = { outcome: 'passed', event: 'yes', reportOR: true,
     { term: 'group: b', b: 1.240356431, se: 0.724147424, z: 1.712850712, p: 0.086740008, or: 3.456845371, orLow: 0.866707308, orHigh: 15.442995620 },
   ],
   levels: ['no', 'yes'], classCounts: [[13, 7], [7, 13]], pctCorrect: [65, 65], auc: 0.76,
+  aucLow: 0.6088157, aucHigh: 0.9111843, accuracy: 0.65, sensitivity: 0.65, specificity: 0.65,
   ciLevel: 0.95, alpha: 0.05, n: 40, nExcluded: 0, figRocPng: png }
 
 describe('buildLogisticRegression', () => {
@@ -39,6 +40,10 @@ describe('buildLogisticRegression', () => {
       { _kind: 'gof', term: 'Log.Lik.', b: '−22.95' },
       { _kind: 'gof', term: 'AIC', b: '53.91' },
       { _kind: 'gof', term: 'BIC', b: '60.66' },
+      { _kind: 'gof', term: 'Accuracy', b: '65.0%' },
+      { _kind: 'gof', term: 'Sensitivity', b: '65.0%' },
+      { _kind: 'gof', term: 'Specificity', b: '65.0%' },
+      { _kind: 'gof', term: 'AUC [95% CI]', b: '.76 [.61, .91]' },
     ])
     expect(c.note).toBeNull()
   })
@@ -66,9 +71,10 @@ describe('buildLogisticRegression', () => {
     expect(h).toContain('omnibus χ²')
     expect(h).not.toMatch(/z column|z = B\/SE/)
   })
-  it('A5: values carries the term-led explainer lookup (GOF + first predictor + classification counts)', () => {
+  it('A5: values carries the term-led explainer lookup (GOF + first predictor + classification counts + R1 gap-fix scalars)', () => {
     expect(buildLogisticRegression(LOGISTIC_REGRESSION, res).values).toEqual({
       n: '40', nagelkerke: '0.28', chi2: '9.54 (p .023)', ll: '−22.95', aic: '53.91', bic: '60.66',
+      accuracy: '65.0%', sensitivity: '65.0%', specificity: '65.0%', auc: '.76 [.61, .91]',
       b: '0.08', or: '1.08', c0: '13', c1: '13', pct: '65.0%',
     })
   })

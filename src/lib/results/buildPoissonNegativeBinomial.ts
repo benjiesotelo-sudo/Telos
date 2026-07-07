@@ -3,6 +3,7 @@ import { figuresOf } from '../registry/types'
 import type { PoissonNbResult } from '../stats/poissonNegativeBinomial'
 import type { CardContent } from './builders'
 import { f, fdf, fpApa } from '../format/apa'
+import { verdictClause } from '../format/verdict'
 
 // SE (and B) cells: fall back to 3-decimal precision when the value rounds to 0.00 at 2 dp (|x| < 0.01).
 const fCoef = (n: number) => Math.abs(n) < 0.01 ? (n < 0 ? '−' : '') + Math.abs(n).toFixed(3) : f(n)
@@ -36,9 +37,14 @@ export function buildPoissonNegativeBinomial(spec: TestSpec, r: PoissonNbResult)
     .replace('{p}', fpApa(first.p))
   const fig = figuresOf(spec)[0]
   // Dispersion note is model-aware: Poisson advises on the ratio; NB describes theta.
+  // R1 gap-fix: the Poisson branch's overdispersion TEST was computed (performance::check_overdispersion)
+  // but only its ratio was ever kept — the verdict/p is appended at render time (dynamic, so the static
+  // registry/HTML tableNote text is untouched), mirroring check_overdispersion's own print() verdict text.
+  const overdispVerdict = r.dispersionP == null ? '' :
+    ` Overdispersion test: χ²(${fdf(r.dfResid)}) test p ${fpApa(r.dispersionP)}${verdictClause(r.dispersionP, r.alpha, 'no overdispersion detected', 'overdispersion detected')}.`
   const note: CardContent['note'] = r.model === 'negative binomial'
     ? { kind: 'assume', text: 'Dispersion footer = theta (the negative binomial overdispersion parameter); larger theta means the model is less over-dispersed relative to Poisson.' }
-    : (spec.tableNote ?? null)
+    : spec.tableNote ? { ...spec.tableNote, text: spec.tableNote.text + overdispVerdict } : null
   return {
     tables: [{ spec: t, rows }],
     note,
@@ -46,6 +52,6 @@ export function buildPoissonNegativeBinomial(spec: TestSpec, r: PoissonNbResult)
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
     apa,
     nExcluded: r.nExcluded,
-    values: { ...gofValue, b: fCoef(first.b), irr: f(first.irr) },
+    values: { ...gofValue, b: fCoef(first.b), irr: f(first.irr), dispersionP: r.dispersionP != null ? fpApa(r.dispersionP) : undefined },
   }
 }

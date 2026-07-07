@@ -638,8 +638,9 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, F = ${v.f}.` },
     { key: 'est', term: 'B', meaning: "Each predictor's effect holding the others constant, in that predictor's own units.",
       interpret: (v) => `Here, predictor ${v.term} gave B = ${v.est}.` },
+    // R1 gap-fix: β now carries a CI (the same rescaling-factor recipe already used for the point estimate).
     { key: 'beta', term: 'β', meaning: 'The standardized coefficient - use it (not B) to compare which predictors matter most, since it puts every predictor on the same scale.',
-      interpret: (v) => `Here, predictor ${v.term} gave β = ${v.beta}.` },
+      interpret: (v) => `Here, predictor ${v.term} gave β = ${v.beta}${v.betaLo !== undefined ? ` [${v.betaLo}, ${v.betaHi}]` : ''}.` },
   ],
   'logistic-regression': [
     { key: 'or', term: 'Odds ratio (OR)', meaning: 'How the odds of the outcome multiply per one-unit increase in the predictor (>1 raises the odds, <1 lowers them).',
@@ -664,14 +665,24 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, ${v.c1} cases were predicted and observed in the second category.` },
     { key: 'pct', term: '% correct', meaning: 'The overall share of cases the model classified correctly - model fit and the ROC/AUC show how well it classifies overall.',
       interpret: (v) => `Here, the model classified ${v.pct} of cases correctly.` },
+    // R1 gap-fix (worked example): named accuracy/sensitivity/specificity scalars + AUC with its CI.
+    { key: 'accuracy', term: 'Accuracy', meaning: 'The overall share of cases classified correctly (same number as % correct, reported as a named scalar here).',
+      interpret: (v) => `Here, accuracy = ${v.accuracy}.` },
+    { key: 'sensitivity', term: 'Sensitivity', meaning: 'The share of ACTUAL events the model correctly predicted as events (the true positive rate).',
+      interpret: (v) => `Here, sensitivity = ${v.sensitivity}.` },
+    { key: 'specificity', term: 'Specificity', meaning: 'The share of ACTUAL non-events the model correctly predicted as non-events (the true negative rate).',
+      interpret: (v) => `Here, specificity = ${v.specificity}.` },
+    { key: 'auc', term: 'AUC [95% CI]', meaning: "The area under the ROC curve, with its confidence interval (pROC's DeLong method) - 0.5 is chance, 1.0 is perfect discrimination.",
+      interpret: (v) => `Here, AUC = ${v.auc}.` },
   ],
   'poisson-negative-binomial': [
     { key: 'irr', term: 'Incidence-rate ratio (IRR)', meaning: 'The multiplicative change in the expected count per one-unit increase in the predictor (>1 more, <1 fewer).',
       interpret: (v) => `Here, IRR = ${v.irr}.` },
     { key: 'b', term: 'Log-count (B)', meaning: 'The raw coefficient on the log-count scale that the IRR is exponentiated from.',
       interpret: (v) => `Here, B = ${v.b} on the log-count scale.` },
+    // R1 gap-fix: the overdispersion TEST's p (Poisson only) folds into this same explainer.
     { key: 'dispersion', term: 'Dispersion', meaning: 'Checks whether the counts are over-dispersed (variance much greater than the mean) - if so, a negative-binomial model (reporting θ instead) fits better than Poisson.',
-      interpret: (v) => `Here, dispersion = ${v.dispersion}.` },
+      interpret: (v) => `Here, dispersion = ${v.dispersion}${v.dispersionP !== undefined ? `, overdispersion test p ${v.dispersionP}` : ''}.` },
     { key: 'dev', term: 'Residual deviance', meaning: 'How much variation in the counts remains unexplained by the model - compare it to its degrees of freedom to gauge fit.',
       interpret: (v) => `Here, residual deviance = ${v.dev}.` },
     { key: 'df', term: 'df', meaning: 'The degrees of freedom for the residual deviance, i.e. observations minus estimated parameters.',

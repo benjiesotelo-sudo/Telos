@@ -38,6 +38,13 @@ describe('runLogisticRegression', () => {
     expect(r.classCounts).toEqual([[13, 7], [7, 13]])
     expect(r.pctCorrect).toEqual([65, 65])
     expect(r.auc).toBeCloseTo(0.76, 9)
+    // Accuracy/sensitivity/specificity (R1 gap-fix, worked example) — native R verified directly.
+    expect(r.accuracy).toBeCloseTo(0.65, 9)
+    expect(r.sensitivity).toBeCloseTo(0.65, 9)
+    expect(r.specificity).toBeCloseTo(0.65, 9)
+    // AUC CI (R1 gap-fix): pROC::ci.auc, DeLong method (deterministic, no seed needed) — native R verified.
+    expect(r.aucLow).toBeCloseTo(0.6088157, 5)
+    expect(r.aucHigh).toBeCloseTo(0.9111843, 5)
     expect(r.n).toBe(40)
     expect(r.nExcluded).toBe(0)
     expect(Array.from(r.figRocPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
@@ -60,5 +67,8 @@ describe('runLogisticRegression', () => {
     expect(r.auc).toBeCloseTo(0.76, 9)              // INVARIANT — not 1 − AUC (spike surprise 4)
     expect(r.classCounts).toEqual([[13, 7], [7, 13]]) // mirrored table (symmetric here), rows now predicted yes/no
     expect(r.pctCorrect).toEqual([65, 65])
+    expect(r.accuracy).toBeCloseTo(0.65, 9)          // INVARIANT to the event choice (symmetric fixture)
+    expect(r.aucLow).toBeCloseTo(0.6088157, 5)       // AUC CI invariant too (same ROC curve)
+    expect(r.aucHigh).toBeCloseTo(0.9111843, 5)
   }, 300_000)
 })

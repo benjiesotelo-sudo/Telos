@@ -14,6 +14,8 @@ describe('runPoissonNegativeBinomial', () => {
     expect(r.deviance).toBeCloseTo(87.564440000, 4)
     expect(r.dfResid).toBe(37)
     expect(r.dispersion).toBeCloseTo(2.107972385, 6) // check_overdispersion $dispersion_ratio ≡ hand Pearson χ²/df
+    // R1 gap-fix: the overdispersion-test verdict/p was computed by check_overdispersion but discarded — native R verified.
+    expect(r.dispersionP).toBeCloseTo(9.454383e-05, 8)
     expect(r.terms.map((t) => t.term)).toEqual(['(Intercept)', 'age', 'group: b'])
     const [, age, grp] = r.terms
     expect(age.b).toBeCloseTo(0.010598371, 6)
@@ -50,6 +52,8 @@ describe('runPoissonNegativeBinomial', () => {
     expect(r.dispersion).toBeCloseTo(4.474253358, 6) // m$theta
     expect(r.terms[1].irr).toBeCloseTo(1.010798495, 6)
     expect(r.model).toBe('negative binomial')
+    // R1 gap-fix: the overdispersion TEST doesn't apply to NB (theta already models it) — no verdict/p.
+    expect(r.dispersionP).toBeNull()
   }, 300_000)
 
   it('spike known answers — negative binomial WITH exposure: theta + profile IRR CIs (glm.nb in-formula offset)', async () => {

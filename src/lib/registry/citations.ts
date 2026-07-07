@@ -104,7 +104,6 @@ const MACKINNON_2004: Ref = { text: 'MacKinnon, D. P., Lockwood, C. M., Williams
 // R package references, transcribed verbatim from src/lib/export/citations.ts's REFS dict (CRAN
 // suffix split into `url` since Ref already carries a separate url field).
 // ---------------------------------------------------------------------------
-const MODELSUMMARY_REF: Ref = { text: 'Arel-Bundock V (2022). "modelsummary: Data and Model Summaries in R." Journal of Statistical Software, 103(1), 1-23.', url: 'https://CRAN.R-project.org/package=modelsummary' }
 const PARAMETERS_REF: Ref = { text: 'Lüdecke D, Ben-Shachar MS, Patil I, Makowski D (2020). "Extracting, Computing and Exploring the Parameters of Statistical Models using R." Journal of Open Source Software, 5(53), 2445.', url: 'https://CRAN.R-project.org/package=parameters' }
 const PERFORMANCE_REF: Ref = { text: 'Lüdecke D, Ben-Shachar MS, Patil I, Waggoner P, Makowski D (2021). "performance: An R Package for Assessment, Comparison and Testing of Statistical Models." Journal of Open Source Software, 6(60), 3139.', url: 'https://CRAN.R-project.org/package=performance' }
 const CAR_REF: Ref = { text: 'Fox J, Weisberg S (2019). An R Companion to Applied Regression, Third edition. Sage, Thousand Oaks CA.', url: 'https://CRAN.R-project.org/package=car' }

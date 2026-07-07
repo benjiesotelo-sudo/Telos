@@ -7,6 +7,7 @@ export interface PoissonNbResult {
   model: 'Poisson' | 'negative binomial'
   aic: number; bic: number; logLik: number; deviance: number; dfResid: number
   dispersion: number // Poisson: check_overdispersion $dispersion_ratio (≡ hand Pearson χ²/df); NB: theta (convention 10)
+  dispersionP: number | null // R1 gap-fix: the overdispersion TEST's p (Poisson only — NB's theta already models it, no test applies)
   terms: PoissonNbTerm[]
   ciLevel: number
   alpha: number
@@ -42,9 +43,13 @@ pretty <- vapply(seq_along(labs), function(i) {
 terms <- lapply(seq_along(labs), function(i) list(
   term = pretty[i], b = cf[i, 1], se = cf[i, 2], z = cf[i, 3], p = cf[i, 4],
   irr = exp(cf[i, 1]), irrLow = exp(ci[i, 1]), irrHigh = exp(ci[i, 2])))
-disp <- if (negbin) m$theta else as.numeric(performance::check_overdispersion(m)$dispersion_ratio)
+# R1 gap-fix: the overdispersion TEST verdict/p (Poisson only) was already computed by check_overdispersion
+# but discarded — only $dispersion_ratio was kept. NB has no such test (theta already models overdispersion).
+od <- if (negbin) NULL else performance::check_overdispersion(m)
+disp <- if (negbin) m$theta else as.numeric(od$dispersion_ratio)
+dispP <- if (negbin) NA_real_ else as.numeric(od$p_value)
 list(aic = AIC(m), bic = BIC(m), logLik = as.numeric(logLik(m)), deviance = m$deviance,
-  dfResid = m$df.residual, dispersion = disp, terms = terms, n = nrow(d))`
+  dfResid = m$df.residual, dispersion = disp, dispersionP = dispP, terms = terms, n = nrow(d))`
 
 // Card figure: fitted vs. Pearson residuals + dashed y = 0 (spike recipe, house styling).
 const R_FITRES = String.raw`
@@ -61,7 +66,7 @@ print(ggplot2::ggplot(pd, ggplot2::aes(fitted, resid)) +
   ggplot2::geom_point(colour = '#0c447c') +
   ggplot2::labs(x = 'Fitted values', y = 'Pearson residuals'))`
 
-interface RawStats { aic: number; bic: number; logLik: number; deviance: number; dfResid: number; dispersion: number; terms: PoissonNbTerm[]; n: number }
+interface RawStats { aic: number; bic: number; logLik: number; deviance: number; dfResid: number; dispersion: number; dispersionP: number | null; terms: PoissonNbTerm[]; n: number }
 
 /** Storage-type classification (recorded decision 1): all-numeric non-missing values → linear term; else factor. */
 const isNumericColumn = (data: Dataset, col: string): boolean => {
