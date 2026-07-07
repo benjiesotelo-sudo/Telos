@@ -44,7 +44,7 @@ describe('buildWelchAnova', () => {
 
   it("Table 2: Welch's ANOVA row — df2 renders '37.90' (fractional via fdf), ω² cell carries its one-sided CI", () => {
     expect(c.tables[1].spec.id).toBe('welch-anova')
-    expect(c.tables[1].rows).toEqual([{ f: '2.58', df1: '2', df2: '37.90', p: '.089', omega2: '0.07 [0.00, 1.00]' }])
+    expect(c.tables[1].rows).toEqual([{ f: '2.58', df1: '2', df2: '37.90', p: '.089', omega2: '.07 [.00, 1.00]' }])
   })
 
   it('Table 3: Games-Howell post-hoc — NO SE column, pair/mdiff/padj/ci only', () => {

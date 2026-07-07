@@ -169,8 +169,8 @@ describe('buildPlsSem', () => {
     const content = buildPlsSem(SPEC, r)
     const table = content.tables.find((t) => t.spec.id === 'conditional-effects')!
     expect(table.rows).toEqual([
-      { level: '-1SD', b: '.20', se: '0.06', p: '< .001', ci: '[.10, .32]' },
-      { level: 'mean', b: '.18', se: '0.05', p: '< .001', ci: '[.09, .29]' },
+      { level: '-1SD', b: '.20', se: '0.06', p: '<.001', ci: '[.10, .32]' },
+      { level: 'mean', b: '.18', se: '0.05', p: '<.001', ci: '[.09, .29]' },
       { level: '+1SD', b: '.16', se: '0.06', p: '.004', ci: '[.06, .29]' },
     ])
   })

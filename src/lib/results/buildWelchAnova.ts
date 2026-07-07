@@ -19,7 +19,7 @@ export function buildWelchAnova(spec: TestSpec, r: WelchAnovaResult): CardConten
   return {
     tables: [
       { spec: spec.tables[0], rows: r.desc.map((g) => ({ group: g.group, n: g.n, m: f(g.m), sd: f(g.sd) })) },
-      { spec: spec.tables[1], rows: [{ f: f(r.f), df1: fdf(r.df1), df2: fdf(r.df2), p: fp(r.p), omega2: `${f(r.omega2)} [${f(r.omega2Low)}, ${f(r.omega2High)}]` }] },
+      { spec: spec.tables[1], rows: [{ f: f(r.f), df1: fdf(r.df1), df2: fdf(r.df2), p: fp(r.p), omega2: `${f01(r.omega2)} [${f01(r.omega2Low)}, ${f01(r.omega2High)}]` }] },
       { spec: spec.tables[2], rows: r.posthoc.map((row) => ({
           pair: row.pair,
           mdiff: f(row.diff),

@@ -3,17 +3,18 @@ import { figuresOf } from '../registry/types'
 import type { PlsSemResult } from '../stats/plsSem'
 import type { MatrixTable } from './types'
 import type { CardContent, BuiltTable } from './builders'
-import { f01, fpApa } from '../format/apa'
+import { f, f01, fp, fpApa } from '../format/apa'
 
 const DASH = '—'
 /** Bounded value (|x| ≤ 1): leading-dot 2dp, or em-dash when null/NA. */
 const fc = (v: unknown): string => (v == null || !Number.isFinite(Number(v)) ? DASH : f01(Number(v)))
-/** Plain 2-dp value (f², VIF, Q², SE — these carry a leading 0). */
-const f2 = (v: unknown): string => (v == null || !Number.isFinite(Number(v)) ? DASH : Number(v).toFixed(2))
+/** Plain 2-dp value (f², VIF, Q², SE — these carry a leading 0). U+2212 minus via house f() so a negative
+ *  t or Q²_predict (a real, expected value for poor predictive relevance) never renders an ASCII hyphen. */
+const f2 = (v: unknown): string => (v == null || !Number.isFinite(Number(v)) ? DASH : f(Number(v)))
+/** Table-cell p, compact no-space house style (fp), not the spaced APA-sentence form (fpApa). */
 const fpFmt = (v: unknown): string => {
   const n = Number(v)
-  if (!Number.isFinite(n)) return DASH
-  return n < 0.001 ? '< .001' : f01(n, 3)
+  return Number.isFinite(n) ? fp(n) : DASH
 }
 const ci = (lo: unknown, hi: unknown): string => `[${fc(lo)}, ${fc(hi)}]`
 
