@@ -64,4 +64,9 @@ describe('plsSem registry stays faithful to the amended output card (verbatim, c
   it('bundle line equals bundleFiles', () => {
     expect(strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')).toEqual(spec.bundleFiles)
   })
+  it('HTMT table note cross-references the standalone AVE card (mirrors the CB-SEM Tables 3-4 convention)', () => {
+    expect(spec.tableNote!.text).toMatch(/AVE.*card|convergent validity.*own card/i)
+    const crossRef = 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.'
+    expect(strip(card)).toContain(crossRef)
+  })
 })
