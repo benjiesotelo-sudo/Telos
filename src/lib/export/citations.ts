@@ -51,6 +51,14 @@ const REFS: Record<string, string> = {
   coin: 'Hothorn T, Hornik K, van de Wiel MA, Zeileis A (2008). "Implementing a Class of Permutation Tests: The coin Package." Journal of Statistical Software, 28(8), 1-23. https://CRAN.R-project.org/package=coin',
   nortest:
     'Gross J, Ligges U (2015). nortest: Tests for Normality. R package. https://CRAN.R-project.org/package=nortest',
+  lavaan:
+    'Rosseel Y (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36. https://CRAN.R-project.org/package=lavaan',
+  semTools:
+    'Jorgensen TD, Pornprasertmanit S, Schoemann AM, Rosseel Y (2022). semTools: Useful tools for structural equation modeling. R package. https://CRAN.R-project.org/package=semTools',
+  seminr:
+    'Ray S, Danks N, Calero Valdéz A (2021). seminr: Domain-Specific Language for Building PLS Structural Equation Models. R package. https://CRAN.R-project.org/package=seminr',
+  semPlot:
+    'Epskamp S (2019). semPlot: Path Diagrams and Visual Analysis of Various SEM Packages’ Output. R package. https://CRAN.R-project.org/package=semPlot',
 }
 
 // The reconciled union of every package the emitters install/use, sorted for stable output.
