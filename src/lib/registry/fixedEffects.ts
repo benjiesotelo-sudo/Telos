@@ -39,6 +39,8 @@ export const FIXED_EFFECTS: TestSpec = {
       gof: [
         { key: 'n', label: 'Num.Obs.' }, { key: 'nentities', label: 'N entities' },
         { key: 'r2within', label: 'Within R²' }, { key: 'adjr2within', label: 'Adj. within R²' },
+        // R1 gap-fix: Stata xtreg-convention between/overall R² (within-only previously).
+        { key: 'r2between', label: 'Between R²' }, { key: 'r2overall', label: 'Overall R²' },
         // Theme-4: the value cell now self-describes as "F(df1, df2) = stat, p", so the stub reads "F-test" (was a bare "F").
         { key: 'f', label: 'F-test' },
       ],

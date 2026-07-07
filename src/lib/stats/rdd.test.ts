@@ -27,6 +27,15 @@ describe('runRdd', () => {
     expect(r.bwSelect).toBe('mserd')
     expect(r.kernel).toBe('Triangular')
     expect(Array.from(r.figRdPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+    // R1 gap-fix: bandwidth-sensitivity re-estimates (fixed h=h0/2 and h=h0*2) — native R verified.
+    expect(r.bwSensitivity.half.h).toBeCloseTo(8.659617 / 2, 3)
+    expect(r.bwSensitivity.half.estimate).toBeCloseTo(9.859443, 4)
+    expect(r.bwSensitivity.half.ciLow).toBeCloseTo(8.743573, 3)
+    expect(r.bwSensitivity.half.ciHigh).toBeCloseTo(10.63558, 3)
+    expect(r.bwSensitivity.double.h).toBeCloseTo(8.659617 * 2, 3)
+    expect(r.bwSensitivity.double.estimate).toBeCloseTo(9.942434, 4)
+    expect(r.bwSensitivity.double.ciLow).toBeCloseTo(9.552166, 3)
+    expect(r.bwSensitivity.double.ciHigh).toBeCloseTo(10.23671, 3)
   }, 900_000)
 
   // McCrary density manipulation test (rddensity::rddensity(running_var, c=50)$test, jackknife-robust):

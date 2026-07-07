@@ -44,6 +44,11 @@ export const DID: TestSpec = {
         { key: 'r2within', label: 'Within R²' }, { key: 'f', label: 'F' },
       ],
     },
+    // R1 gap-fix: raw 2x2 group-period mean table — the parallel-trends figure showed this only visually.
+    {
+      id: 'group-period-means', title: 'Group × period means', domId: 'did-group-period-means',
+      columns: [{ key: 'group', label: 'Group' }, { key: 'pre', label: 'Pre' }, { key: 'post', label: 'Post' }],
+    },
   ],
   tableNote: {
     kind: 'assume',
@@ -54,6 +59,6 @@ export const DID: TestSpec = {
   howToRead:
     'The Treated×Post coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups would have moved together absent treatment. Similar pre-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it — a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated×time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends. Method: R plm package with clustered standard errors (Croissant & Millo, 2008; Bertrand, Duflo & Mullainathan, 2004).',
   apaTemplate: 'The DiD estimate was B={b}, 95% CI [{lo}, {hi}], p {p} (clustered SE).',
-  rMap: 'plm(model="within") with clustered SE → table · ggplot2 → trends plot',
-  bundleFiles: ['table_did.png', 'figure_parallel-trends.png'],
+  rMap: 'plm(model="within") with clustered SE → table · aggregate(outcome ~ treated + post, mean) → group × period means · ggplot2 → trends plot',
+  bundleFiles: ['table_did.png', 'table_group-period-means.png', 'figure_parallel-trends.png'],
 }

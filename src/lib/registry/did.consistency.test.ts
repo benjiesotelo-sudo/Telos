@@ -23,7 +23,11 @@ describe('did registry stays faithful to the spec HTML (verbatim, card-scoped)',
   })
   it('bare table caption matches the card caption (no digit)', () => {
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
-    expect(caps).toEqual(spec.tables.map((t) => t.title))
+    expect(caps).toEqual([spec.tables[0].title])
+  })
+  it('R1 gap-fix: the numbered group-period-means table caption matches Table 2', () => {
+    const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
+    expect(caps).toEqual([spec.tables[1].title])
   })
   it('the GOF footer stub labels in the card equal spec.tables[0].gof labels in order', () => {
     const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))

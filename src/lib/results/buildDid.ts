@@ -46,8 +46,10 @@ export function buildDid(spec: TestSpec, r: DidResult): CardContent {
     ? { ...spec.tableNote, text: `${spec.tableNote.text} Standard errors in parentheses are ${seLabel === 'clustered SE' ? 'clustered by entity' : 'classical'}; the bracketed line is the ${Math.round(r.ciLevel * 100)}% CI. ${preTrendText}` }
     : null
   const figs = figuresOf(spec)
+  // R1 gap-fix: raw 2x2 group-period mean table — the parallel-trends figure showed this only visually.
+  const meansRows = r.groupMeans.map((gm) => ({ group: gm.group, pre: f(gm.pre), post: f(gm.post) }))
   return {
-    tables: [{ spec: t, rows }],
+    tables: [{ spec: t, rows }, { spec: spec.tables[1], rows: meansRows }],
     note,
     figures: [{ caption: figs[0].caption, type: figs[0].type, file: figs[0].file, png: r.figTrendsPng }],
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.`,
@@ -63,6 +65,8 @@ export function buildDid(spec: TestSpec, r: DidResult): CardContent {
     values: {
       n: gofValue.n, nentities: gofValue.nentities, r2within: gofValue.r2within, f: gofValue.f,
       ...(did ? { est: f(did.b), lo: f(did.ciLow), hi: f(did.ciHigh), p: fpApa(did.p) } : {}),
+      // R1 gap-fix: the new group-period-means table's columns need explainer entries (Control row stands in).
+      group: r.groupMeans[0].group, pre: f(r.groupMeans[0].pre), post: f(r.groupMeans[0].post),
     },
   }
 }

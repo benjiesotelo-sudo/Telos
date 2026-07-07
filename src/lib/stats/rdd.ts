@@ -6,6 +6,8 @@ export interface RddResult {
   bandwidth: number; nLeft: number; nRight: number
   bwSelect: string; kernel: string
   mccrary: { t: number | null; p: number | null }
+  // R1 gap-fix: bandwidth-sensitivity re-estimates at half/double the MSE-optimal h (fixed h=, same p/kernel).
+  bwSensitivity: { half: { h: number; estimate: number; ciLow: number; ciHigh: number }; double: { h: number; estimate: number; ciLow: number; ciHigh: number } }
   cutoff: number; polyOrder: number
   ciLevel: number; alpha: number
   nObs: number; nExcluded: number
@@ -21,12 +23,18 @@ const R_RDD = String.raw`
 rd <- rdrobust::rdrobust(y, x, c = cutoff, p = poly_order, level = ci_pct)
 nanull <- function(v) if (length(v) != 1 || is.na(v)) NULL else unname(v)
 mc <- tryCatch(rddensity::rddensity(x, c = cutoff)$test, error = function(e) list(t_jk = NA, p_jk = NA))
+# R1 gap-fix: bandwidth-sensitivity re-estimates at half/double the MSE-optimal h (fixed h=, same p/level/kernel).
+h0 <- unname(rd$bws[1, 1])
+rd_half <- rdrobust::rdrobust(y, x, c = cutoff, p = poly_order, level = ci_pct, h = h0 / 2)
+rd_double <- rdrobust::rdrobust(y, x, c = cutoff, p = poly_order, level = ci_pct, h = h0 * 2)
 list(
   estimate = unname(rd$coef[1, 1]), se = unname(rd$se[3, 1]), z = unname(rd$z[3, 1]), p = unname(rd$pv[3, 1]),
-  ci_low = unname(rd$ci[3, 1]), ci_high = unname(rd$ci[3, 2]), bandwidth = unname(rd$bws[1, 1]),
+  ci_low = unname(rd$ci[3, 1]), ci_high = unname(rd$ci[3, 2]), bandwidth = h0,
   n_left = unname(rd$N_h[1]), n_right = unname(rd$N_h[2]),
   bw_select = unname(rd$bwselect), kernel = unname(rd$kernel),
-  mccrary_t = nanull(mc$t_jk), mccrary_p = nanull(mc$p_jk))`
+  mccrary_t = nanull(mc$t_jk), mccrary_p = nanull(mc$p_jk),
+  bw_half = list(h = h0 / 2, estimate = unname(rd_half$coef[1, 1]), ciLow = unname(rd_half$ci[3, 1]), ciHigh = unname(rd_half$ci[3, 2])),
+  bw_double = list(h = h0 * 2, estimate = unname(rd_double$coef[1, 1]), ciLow = unname(rd_double$ci[3, 1]), ciHigh = unname(rd_double$ci[3, 2])))`
 
 const R_RD_PLOT = String.raw`print(rdrobust::rdplot(y, x, c = cutoff, hide = TRUE)$rdplot)`
 
@@ -35,6 +43,8 @@ interface RawRdd {
   bandwidth: number; n_left: number; n_right: number
   bw_select: string; kernel: string
   mccrary_t: number | null; mccrary_p: number | null
+  bw_half: { h: number; estimate: number; ciLow: number; ciHigh: number }
+  bw_double: { h: number; estimate: number; ciLow: number; ciHigh: number }
 }
 
 export async function runRdd(
@@ -63,6 +73,7 @@ export async function runRdd(
     bandwidth: raw.bandwidth, nLeft: raw.n_left, nRight: raw.n_right,
     bwSelect: raw.bw_select, kernel: raw.kernel,
     mccrary: { t: raw.mccrary_t ?? null, p: raw.mccrary_p ?? null },
+    bwSensitivity: { half: raw.bw_half, double: raw.bw_double },
     cutoff, polyOrder, ciLevel: ciLvl, alpha, nObs: rows.length, nExcluded, figRdPng,
   }
 }

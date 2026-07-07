@@ -840,14 +840,16 @@
       <div class="apa-cap"><b>Table.</b> Granger tests (both directions)</div>
       <table class="apa"><thead><tr><th>Direction</th><th>F</th><th>df</th><th>p</th></tr></thead><tbody class="ghost"><tr><td>X &rarr; Y</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr><tr><td>Y &rarr; X</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">tests predictive precedence, not true causation; both series should be stationary first. Tests use a max lag of 4; select the lag on theory or by AIC/BIC (vars::VARselect) and report it.</p>
+      <div class="apa-cap"><b>Table 2.</b> Lag-order selection (advisory)</div>
+      <table class="apa"><thead><tr><th>Lag</th><th>AIC</th><th>BIC</th><th>HQ</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Series together</div><div class="ftype">type: <b>cross-series time plot</b></div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>A significant <b>X&rarr;Y</b> p means past values of X help predict Y beyond Y's own past &mdash; this is <i>predictive precedence</i>, not proof that X causes Y. Check both directions. The result depends entirely on the <b>lag order</b> (this card uses a max lag of 4): choose it on theory or by an information criterion &mdash; <code>vars::VARselect</code> reports the AIC- and BIC-minimising lag &mdash; and report it, since different lags can flip the conclusion. Make both series stationary first. Method: R lmtest::grangertest (Granger, 1969).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;Granger test X&rarr;Y: F(__,__)=__, p __; Y&rarr;X: F(__,__)=__, p __ (lag=__).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>lmtest::grangertest()</code> run once per direction (or <code>vars::causality()</code>) &rarr; the two table rows &middot; <code>ggplot2</code> &rarr; figure</div>
-        <div class="m bundle">table_granger.png &middot; figure_cross-series.png</div>
+        <div class="m"><b>R map:</b> <code>lmtest::grangertest()</code> run once per direction (or <code>vars::causality()</code>) &rarr; the two table rows &middot; <code>vars::VARselect()</code> &rarr; lag-order selection table &middot; <code>ggplot2</code> &rarr; figure</div>
+        <div class="m bundle">table_granger.png &middot; table_lag-selection.png &middot; figure_cross-series.png</div>
       </div>
     </div>
   </div>
@@ -878,7 +880,7 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Coefficients (within estimator)</div>
-      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Predictor 1&hellip;k</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>Within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Adj. within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>F-test</td><td>&mdash;</td></tr></tbody></table>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Predictor 1&hellip;k</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>Within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Adj. within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Between R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Overall R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>F-test</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note">time-invariant predictors are absorbed by the entity effects and drop out; a predictor must also <b>change within entities over time</b> to be estimable &mdash; predictors with little within-entity variation give large standard errors and unreliable estimates.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b> (estimate &plusmn; CI)</div></div>
@@ -897,8 +899,8 @@
     <div class="rt-body">
       <div class="zlabel">Tables</div>
       <div class="apa-cap"><b>Table 1.</b> Coefficients</div>
-      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Regressor 1&hellip;k</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>R&sup2; Adj.</td><td>&mdash;</td></tr></tbody></table>
-      <p class="tbl-note">standard errors are clustered by entity. unlike fixed effects, time-invariant predictors can be retained. <code>summary(plm)</code> returns a single R&sup2; / adj. R&sup2; (not a within/between/overall split).</p>
+      <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>(Intercept)</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Regressor 1&hellip;k</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>R&sup2; Adj.</td><td>&mdash;</td></tr><tr class="row-gof"><td>Within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Between R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>Overall R&sup2;</td><td>&mdash;</td></tr></tbody></table>
+      <p class="tbl-note">standard errors are clustered by entity. unlike fixed effects, time-invariant predictors can be retained. <code>summary(plm)</code> returns a single R&sup2; / adj. R&sup2; above; within/between/overall R&sup2; (Stata xtreg convention) are also reported below.</p>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Coefficients</div><div class="ftype">type: <b>coefficient plot</b></div></div>
       <div class="zlabel">How to read this test</div>
@@ -997,14 +999,16 @@
       <div class="apa-cap"><b>Table.</b> DiD model</div>
       <table class="apa coef"><thead><tr><th></th><th>(1)</th></tr></thead><tbody class="ghost"><tr class="row-coef"><td>Post</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="row-coef"><td>Treated &times; Post</td><td>&mdash;</td></tr><tr class="row-se"><td></td><td>(&mdash;)</td></tr><tr class="row-ci"><td></td><td>[&mdash;, &mdash;]</td></tr><tr class="gofrule"><td colspan="2"></td></tr><tr class="row-gof"><td>Num.Obs.</td><td>&mdash;</td></tr><tr class="row-gof"><td>N entities</td><td>&mdash;</td></tr><tr class="row-gof"><td>Within R&sup2;</td><td>&mdash;</td></tr><tr class="row-gof"><td>F</td><td>&mdash;</td></tr></tbody></table>
       <p class="tbl-note assume">the <b>Treated &times; Post</b> interaction is the DiD effect; valid only if pre-treatment trends are parallel. Under entity fixed effects the time-invariant <b>Treated</b> main effect is absorbed (only Post and Treated&times;Post are estimated).</p>
+      <div class="apa-cap"><b>Table 2.</b> Group &times; period means</div>
+      <table class="apa"><thead><tr><th>Group</th><th>Pre</th><th>Post</th></tr></thead><tbody class="ghost"><tr><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr></tbody></table>
       <div class="zlabel">Figure</div>
       <div class="figbox"><div class="fcap"><b>Figure.</b> Parallel trends</div><div class="ftype">type: <b>parallel-trends plot</b> (group means over time, treatment marked)</div></div>
       <div class="zlabel">How to read this test</div>
       <div class="howread"><p>The <b>Treated&times;Post</b> coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups <i>would have</i> moved together absent treatment. Similar <b>pre</b>-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it &mdash; a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated&times;time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends. Method: R plm package with clustered standard errors (Croissant &amp; Millo, 2008; Bertrand, Duflo &amp; Mullainathan, 2004).</p></div>
       <div class="meta">
         <div class="m"><b>APA template:</b> &ldquo;The DiD estimate was <i>B</i>=__, 95% CI [__, __], <i>p</i>&nbsp;__ (clustered SE).&rdquo;</div>
-        <div class="m"><b>R map:</b> <code>plm(model="within")</code> with clustered SE &rarr; table &middot; <code>ggplot2</code> &rarr; trends plot</div>
-        <div class="m bundle">table_did.png &middot; figure_parallel-trends.png</div>
+        <div class="m"><b>R map:</b> <code>plm(model="within")</code> with clustered SE &rarr; table &middot; <code>aggregate(outcome ~ treated + post, mean)</code> &rarr; group &times; period means &middot; <code>ggplot2</code> &rarr; trends plot</div>
+        <div class="m bundle">table_did.png &middot; table_group-period-means.png &middot; figure_parallel-trends.png</div>
       </div>
     </div>
   </div>

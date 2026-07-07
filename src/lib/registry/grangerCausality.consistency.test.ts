@@ -25,12 +25,19 @@ describe('granger-causality registry stays faithful to the spec HTML (verbatim, 
 
   it('bare table caption equals the card caption', () => {
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
-    expect(caps).toEqual(spec.tables.map((t) => t.title))
+    expect(caps).toEqual([spec.tables[0].title])
     expect(spec.tables[0].captionStyle).toBe('bare')
   })
 
-  it('single table has a distinct domId (zip-filename collision guard)', () => {
+  it('R1 gap-fix: the numbered lag-selection table caption matches Table 2', () => {
+    const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
+    expect(caps).toEqual([spec.tables[1].title])
+  })
+
+  it('every table has a distinct domId (zip-filename collision guard)', () => {
     expect(spec.tables[0].domId).toBe('granger-causality-granger')
+    const ids = spec.tables.map((t) => t.domId)
+    expect(new Set(ids).size).toBe(ids.length)
   })
 
   it('plain table note equals the drawn card note', () => {

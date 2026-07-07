@@ -3,8 +3,11 @@ import type { Dataset } from './types'
 import { binaryCode, positiveLevel } from './binaryCoding'
 
 export interface DidCoefRow { term: string; b: number; se: number; t: number; p: number; ciLow: number; ciHigh: number }
+// R1 gap-fix: raw 2x2 group-period mean table — was figure-only (parallel-trends plot), no tabulated cells.
+export interface DidGroupMeansRow { group: string; pre: number; post: number }
 export interface DidResult {
   coefRows: DidCoefRow[]   // po, po:tr — builder relabels (Treated main effect absorbed by the within transform)
+  groupMeans: [DidGroupMeansRow, DidGroupMeansRow]  // [Control, Treated]
   seType: 'clustered' | 'classical'
   ciLevel: number; alpha: number
   // Overall model F (within fit): statistic + its numerator/denominator df + p — rendered as F(df1, df2), p.
@@ -49,9 +52,16 @@ pt <- tryCatch({
     if (is.na(fval)) NULL else list(F = fval, df1 = an[['Df']][2], df2 = an[['Res.Df']][2], p = an[['Pr(>F)']][2])
   }
 }, error = function(e) NULL)
+# R1 gap-fix: raw 2x2 group-period mean table (Control/Treated x Pre/Post) — descriptive, alongside the
+# parallel-trends figure which only shows this visually.
+gm <- aggregate(.y ~ tr + po, data = d, FUN = mean)
+cellMean <- function(trv, pov) { v <- gm$.y[gm$tr == trv & gm$po == pov]; if (length(v)) v[1] else NA_real_ }
+group_means <- list(
+  list(group = 'Control', pre = cellMean(0, 0), post = cellMean(0, 1)),
+  list(group = 'Treated', pre = cellMean(1, 0), post = cellMean(1, 1)))
 list(coef_rows = coef_rows, within_r2 = unname(s$r.squared['rsq']),
   f_stat = unname(fst$statistic), f_df1 = naNull(fst$parameter[1]), f_df2 = naNull(fst$parameter[2]), f_p = naNull(fst$p.value),
-  pre_trend = pt, n_obs = nrow(d), n_entities = plm::pdim(fit)$nT$n)`
+  pre_trend = pt, group_means = group_means, n_obs = nrow(d), n_entities = plm::pdim(fit)$nT$n)`
 
 // Parallel-trends plot: mean outcome over time by treatment group, with treatment onset marked.
 const R_TRENDS = String.raw`
@@ -67,6 +77,7 @@ interface RawDid {
   coef_rows: DidCoefRow[]; within_r2: number; f_stat: number; n_obs: number; n_entities: number
   f_df1: number | null; f_df2: number | null; f_p: number | null
   pre_trend: { F: number; df1: number; df2: number; p: number } | null
+  group_means: [DidGroupMeansRow, DidGroupMeansRow]
 }
 
 const levelsOf = (data: Dataset, col: string): string[] =>
@@ -111,7 +122,7 @@ export async function runDid(
   const raw = await engine.runJson<RawDid>(R_DID, env)
   const figTrendsPng = await engine.capturePlot(R_TRENDS, 600, 450, env)
   return {
-    coefRows: raw.coef_rows, seType: seClustered ? 'clustered' : 'classical',
+    coefRows: raw.coef_rows, groupMeans: raw.group_means, seType: seClustered ? 'clustered' : 'classical',
     ciLevel: ciLvl, alpha, withinR2: raw.within_r2, fStat: raw.f_stat,
     fDf1: raw.f_df1 ?? null, fDf2: raw.f_df2 ?? null, fP: raw.f_p ?? null,
     preTrend: raw.pre_trend ?? null,

@@ -4,7 +4,9 @@ import type { Dataset } from './types'
 export interface FeCoefRow { term: string; b: number; se: number; t: number; p: number; ciLow: number; ciHigh: number }
 export interface FixedEffectsResult {
   coefRows: FeCoefRow[]
-  withinR2: number; adjR2: number; fStat: number; fDf1: number; fDf2: number; fP: number
+  withinR2: number; adjR2: number
+  betweenR2: number; overallR2: number  // R1 gap-fix: xtreg-convention split (Stata [XT] xtreg) — within already equalled s$r.squared exactly (native-R verified)
+  fStat: number; fDf1: number; fDf2: number; fP: number
   nObs: number; nEntities: number
   poolF: number; poolP: number          // §2.8 poolability: F-test of individual effects (within vs pooling)
   effect: string; seType: 'clustered' | 'classical'
@@ -35,9 +37,18 @@ s   <- summary(fit)
 fst <- s$fstatistic
 pooled <- plm::plm(form, data = pdat, model = 'pooling')
 pf <- plm::pFtest(fit, pooled)
+# R1 gap-fix: between/overall R² (Stata [XT] xtreg convention) — correlation² of the FE-fitted linear
+# predictor (raw, untransformed X · FE coefficients, no intercept) against entity-mean-collapsed /
+# untransformed y respectively. Native-R verified: within (this same recipe, demeaned) reproduces
+# s$r.squared['rsq'] EXACTLY on both a textbook (Grunfeld) and this app's own panel.csv fixture.
+xb <- as.numeric(as.matrix(df[, xnames, drop = FALSE]) %*% coef(fit)[xnames])
+agg <- aggregate(cbind(yy, xbxb) ~ idid, data.frame(idid = df$.entity, yy = df$.y, xbxb = xb), mean)
+between_r2 <- unname(cor(agg$yy, agg$xbxb)^2)
+overall_r2 <- unname(cor(df$.y, xb)^2)
 list(
   coef_rows = coef_rows,
   within_r2 = unname(s$r.squared['rsq']), adj_r2 = unname(s$r.squared['adjrsq']),
+  between_r2 = between_r2, overall_r2 = overall_r2,
   f_stat = unname(fst$statistic), f_df1 = unname(fst$parameter[1]), f_df2 = unname(fst$parameter[2]), f_p = unname(fst$p.value),
   n_obs = nrow(df), n_entities = plm::pdim(fit)$nT$n,
   pool_f = unname(pf$statistic), pool_p = unname(pf$p.value)
@@ -62,7 +73,8 @@ print(ggplot2::ggplot(pf, ggplot2::aes(x = b, y = term)) +
 
 interface RawFe {
   coef_rows: FeCoefRow[]
-  within_r2: number; adj_r2: number; f_stat: number; f_df1: number; f_df2: number; f_p: number
+  within_r2: number; adj_r2: number; between_r2: number; overall_r2: number
+  f_stat: number; f_df1: number; f_df2: number; f_p: number
   n_obs: number; n_entities: number; pool_f: number; pool_p: number
 }
 
@@ -97,6 +109,7 @@ export async function runFixedEffects(
   const figCoefPng = await engine.capturePlot(R_FE_PLOT, 600, 450, env)
   return {
     coefRows: raw.coef_rows, withinR2: raw.within_r2, adjR2: raw.adj_r2,
+    betweenR2: raw.between_r2, overallR2: raw.overall_r2,
     fStat: raw.f_stat, fDf1: raw.f_df1, fDf2: raw.f_df2, fP: raw.f_p,
     nObs: raw.n_obs, nEntities: raw.n_entities, poolF: raw.pool_f, poolP: raw.pool_p,
     effect, seType: seClustered ? 'clustered' : 'classical', ciLevel: ciLvl, alpha, nExcluded, figCoefPng,

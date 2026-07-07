@@ -2,7 +2,7 @@ import type { TestSpec } from '../registry/types'
 import { figuresOf } from '../registry/types'
 import type { RandomEffectsResult } from '../stats/randomEffects'
 import type { CardContent } from './builders'
-import { f, fdf, fpApa, fx } from '../format/apa'
+import { f, f01, fdf, fpApa, fx } from '../format/apa'
 
 // modelsummary coef table (design 2026-06-16) — merges the old Coefficients + Model fit into one stacked table.
 // Per term: B row → muted (clustered SE) row → muted [CI] row. Then a rule, then one gof row per spec.tables[0].gof.
@@ -11,6 +11,8 @@ export function buildRandomEffects(spec: TestSpec, r: RandomEffectsResult): Card
   const t = spec.tables[0]
   const gofValue: Record<string, string> = {
     n: String(r.nObs), nentities: String(r.nEntities), r2: f(r.r2), adjr2: f(r.adjR2),
+    // R1 gap-fix: Stata xtreg-convention within/between/overall R² split, additive alongside plm's own R²/R² Adj.
+    r2within: f01(r.withinR2), r2between: f01(r.betweenR2), r2overall: f01(r.overallR2),
   }
   const rows: Record<string, string | number>[] = [
     ...r.coefRows.flatMap((x) => [

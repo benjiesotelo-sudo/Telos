@@ -8,6 +8,10 @@ const mock = (over: Partial<RddResult> = {}): RddResult => ({
   bandwidth: 8.659617, nLeft: 18, nRight: 16, cutoff: 50, polyOrder: 1,
   bwSelect: 'mserd', kernel: 'Triangular',
   mccrary: { t: 0.07806802, p: 0.9377739 },
+  bwSensitivity: {
+    half: { h: 4.3298085, estimate: 9.859443, ciLow: 8.743573, ciHigh: 10.63558 },
+    double: { h: 17.319234, estimate: 9.942434, ciLow: 9.552166, ciHigh: 10.23671 },
+  },
   ciLevel: 0.95, alpha: 0.05, nObs: 200, nExcluded: 0,
   figRdPng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
   ...over,
@@ -27,12 +31,17 @@ describe('buildRdd', () => {
   })
   it('a rule then the GOF footer = Bandwidth + N (left) + N (right) (no R²/AIC/etc — rdrobust has no method)', () => {
     const rows = buildRdd(RDD, mock()).tables[0].rows
-    expect(rows.slice(3)).toEqual([
+    expect(rows.slice(3, 7)).toEqual([
       { _kind: 'rule' },
       { _kind: 'gof', term: 'Bandwidth', est: '8.66' },
       { _kind: 'gof', term: 'N (left)', est: '18' },
       { _kind: 'gof', term: 'N (right)', est: '16' },
     ])
+  })
+  it('R1 gap-fix: bandwidth-sensitivity re-estimates render as span rows after the GOF footer', () => {
+    const rows = buildRdd(RDD, mock()).tables[0].rows
+    expect(rows[7]).toEqual({ _kind: 'span', term: 'Bandwidth sensitivity — half h (4.33): estimate = 9.86, 95% CI [8.74, 10.64]' })
+    expect(rows[8]).toEqual({ _kind: 'span', term: 'Bandwidth sensitivity — double h (17.32): estimate = 9.94, 95% CI [9.55, 10.24]' })
   })
   it('APA reports the estimate at the cutoff with literal 95% CI (report-only)', () => {
     expect(buildRdd(RDD, mock()).apa).toBe('At the cutoff, the treatment effect was 9.90, 95% CI [9.48, 10.28], p < .001.')
@@ -64,9 +73,11 @@ describe('buildRdd', () => {
     expect(c.howToRead).not.toContain('significance threshold')
   })
 
-  it('A5: values carries the term-led explainer lookup (bandwidth/N-left/N-right + the estimate)', () => {
+  it('A5: values carries the term-led explainer lookup (bandwidth/N-left/N-right + the estimate + bandwidth-sensitivity, R1 gap-fix)', () => {
     expect(buildRdd(RDD, mock()).values).toEqual({
       bandwidth: '8.66', nleft: '18', nright: '16', est: '9.90',
+      bwHalfH: '4.33', bwHalfEst: '9.86', bwHalfLo: '8.74', bwHalfHi: '10.64',
+      bwDoubleH: '17.32', bwDoubleEst: '9.94', bwDoubleLo: '9.55', bwDoubleHi: '10.24',
     })
   })
 })

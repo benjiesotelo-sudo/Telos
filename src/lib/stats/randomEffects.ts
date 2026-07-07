@@ -5,6 +5,10 @@ export interface ReCoefRow { term: string; b: number; se: number; t: number; p: 
 export interface RandomEffectsResult {
   coefRows: ReCoefRow[]
   r2: number; adjR2: number
+  // R1 gap-fix: xtreg-convention (Stata [XT] xtreg) within/between/overall R² split, ADDITIVE alongside
+  // the existing single r2/adjR2 (plm's own GLS-transformed-regression R² — a different, pre-existing
+  // quantity; this split is computed independently via the standard correlation² recipe, native-R verified).
+  withinR2: number; betweenR2: number; overallR2: number
   nObs: number; nEntities: number
   // Theme-4: Breusch–Pagan LM test (RE vs pooled OLS) + Swamy–Arora variance components / theta (guarded NA→null).
   bpLm: number | null; bpDf: number | null; bpP: number | null
@@ -44,9 +48,22 @@ ec   <- fit$ercomp
 theta <- if (is.null(ec$theta)) NA_real_ else nz(as.numeric(ec$theta))
 v_id  <- if (is.null(ec$sigma2)) NA_real_ else nz(unname(ec$sigma2['idios']))
 v_en  <- if (is.null(ec$sigma2)) NA_real_ else nz(unname(ec$sigma2['id']))
+# R1 gap-fix: within/between/overall R² (Stata xtreg convention) — correlation² of the RE-fitted linear
+# predictor (intercept + raw X · RE coefficients) against demeaned / entity-mean-collapsed / raw y.
+# Native-R verified against this app's own panel.csv fixture (differs from plm's own summary r.squared,
+# which is a distinct GLS-transformed-regression quantity, kept unchanged above).
+b_re <- coef(fit)
+xb <- b_re[['(Intercept)']] + as.numeric(as.matrix(df[, xnames, drop = FALSE]) %*% b_re[xnames])
+id2 <- df$.entity
+dm2 <- function(v) ave(v, id2, FUN = function(x) x - mean(x))
+within_r2 <- unname(cor(dm2(df$.y), dm2(xb))^2)
+agg2 <- aggregate(cbind(yy, xbxb) ~ idid, data.frame(idid = id2, yy = df$.y, xbxb = xb), mean)
+between_r2 <- unname(cor(agg2$yy, agg2$xbxb)^2)
+overall_r2 <- unname(cor(df$.y, xb)^2)
 list(
   coef_rows = coef_rows,
   r2 = unname(s$r.squared['rsq']), adj_r2 = unname(s$r.squared['adjrsq']),
+  within_r2 = within_r2, between_r2 = between_r2, overall_r2 = overall_r2,
   n_obs = nrow(df), n_entities = plm::pdim(fit)$nT$n,
   bp_lm = bp_lm, bp_df = bp_df, bp_p = bp_p,
   theta = theta, var_idiosyncratic = v_id, var_entity = v_en
@@ -72,7 +89,9 @@ print(ggplot2::ggplot(pf, ggplot2::aes(x = b, y = term)) +
 
 interface RawRe {
   coef_rows: ReCoefRow[]
-  r2: number; adj_r2: number; n_obs: number; n_entities: number
+  r2: number; adj_r2: number
+  within_r2: number; between_r2: number; overall_r2: number
+  n_obs: number; n_entities: number
   bp_lm: number | null; bp_df: number | null; bp_p: number | null
   theta: number | null; var_idiosyncratic: number | null; var_entity: number | null
 }
@@ -106,6 +125,7 @@ export async function runRandomEffects(
   const figCoefPng = await engine.capturePlot(R_RE_PLOT, 600, 450, env)
   return {
     coefRows: raw.coef_rows, r2: raw.r2, adjR2: raw.adj_r2,
+    withinR2: raw.within_r2, betweenR2: raw.between_r2, overallR2: raw.overall_r2,
     nObs: raw.n_obs, nEntities: raw.n_entities,
     bpLm: raw.bp_lm, bpDf: raw.bp_df, bpP: raw.bp_p,
     theta: raw.theta, varIdiosyncratic: raw.var_idiosyncratic, varEntity: raw.var_entity,

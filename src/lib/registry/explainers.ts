@@ -741,6 +741,15 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, df = (${v.df}).` },
     { key: 'p', term: 'p', meaning: "A significant p means past values of X help predict Y beyond Y's own past - predictive precedence, not proof of causation.",
       interpret: (v) => `Here, p ${v.p}.` },
+    // R1 gap-fix: lag-order selection table (vars::VARselect) - advisory, the test above uses a fixed max lag.
+    { key: 'lag', term: 'Lag', meaning: 'A candidate lag order compared by information criteria - the note above uses a fixed max lag regardless of what this table recommends.',
+      interpret: (v) => v.lag !== undefined ? `Here, AIC is minimized at lag = ${v.lag}.` : 'Not computable for this run.' },
+    { key: 'aic', term: 'AIC', meaning: 'An information criterion used to pick the lag order - lower is better relative to the alternatives compared.',
+      interpret: (v) => `Here, AIC = ${v.aic} at the AIC-minimizing lag.` },
+    { key: 'bic', term: 'BIC', meaning: 'Like AIC but penalizes complexity more heavily; used alongside it to pick the lag order.',
+      interpret: (v) => `Here, BIC = ${v.bic} at the AIC-minimizing lag.` },
+    { key: 'hq', term: 'HQ', meaning: 'The Hannan-Quinn criterion: another information criterion for comparing candidate lag orders.',
+      interpret: (v) => `Here, HQ = ${v.hq} at the AIC-minimizing lag.` },
   ],
   var: [
     { key: 'lag', term: 'Lag', meaning: 'A candidate lag order (how many past periods are included) compared by information criteria to pick the model.',
@@ -783,6 +792,11 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, within R² = ${v.r2within}.` },
     { key: 'adjr2within', term: 'Adj. within R²', meaning: 'The within R², adjusted for the number of predictors - the fairer figure when comparing models with a different predictor count.',
       interpret: (v) => `Here, adjusted within R² = ${v.adjr2within}.` },
+    // R1 gap-fix: Stata xtreg-convention split (within-only previously).
+    { key: 'r2between', term: 'Between R²', meaning: 'How well the predictors explain differences in the ENTITY-level averages (collapsing out time variation).',
+      interpret: (v) => `Here, between R² = ${v.r2between}.` },
+    { key: 'r2overall', term: 'Overall R²', meaning: 'How well the predictors explain the outcome using the raw, untransformed data (mixing within- and between-entity variation).',
+      interpret: (v) => `Here, overall R² = ${v.r2overall}.` },
     { key: 'f', term: 'F-test', meaning: 'The overall F-test of whether the predictors jointly explain more within-entity variation than a model with none.',
       interpret: (v) => `Here, ${v.f}.` },
     { key: 'n', term: 'N', meaning: 'The total number of entity-period observations used to fit the model.',
@@ -796,10 +810,18 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
   'random-effects': [
     { key: 'est', term: 'B', meaning: 'The estimated effect of a predictor, treating entity differences as random rather than fixed - only trustworthy if a Hausman test favors random effects.',
       interpret: (v) => `Here, B = ${v.est}.` },
-    { key: 'r2', term: 'R²', meaning: 'A single overall R² (plm does not split it into within/between/overall for random effects).',
+    // R1 gap-fix: plm's own single R² is a distinct (GLS-transformed-regression) quantity from the
+    // within/between/overall split now reported below - the meaning text no longer claims "no split".
+    { key: 'r2', term: 'R²', meaning: "plm's own overall model R² for the random-effects fit.",
       interpret: (v) => `Here, R² = ${v.r2}.` },
     { key: 'adjr2', term: 'R² Adj.', meaning: 'That R², adjusted for the number of predictors.',
       interpret: (v) => `Here, adjusted R² = ${v.adjr2}.` },
+    { key: 'r2within', term: 'Within R²', meaning: 'How well the predictors explain variation WITHIN each entity over time (Stata xtreg convention).',
+      interpret: (v) => `Here, within R² = ${v.r2within}.` },
+    { key: 'r2between', term: 'Between R²', meaning: 'How well the predictors explain differences in the ENTITY-level averages.',
+      interpret: (v) => `Here, between R² = ${v.r2between}.` },
+    { key: 'r2overall', term: 'Overall R²', meaning: 'How well the predictors explain the outcome using the raw, untransformed data.',
+      interpret: (v) => `Here, overall R² = ${v.r2overall}.` },
     { key: 'n', term: 'N', meaning: 'The total number of entity-period observations used to fit the model.',
       interpret: (v) => `Here, N = ${v.n}.` },
     { key: 'nentities', term: 'N entities', meaning: 'The number of distinct entities in the panel.',
@@ -837,6 +859,12 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, within R² = ${v.r2within}.` },
     { key: 'f', term: 'F', meaning: 'The overall model F-test for the within regression.',
       interpret: (v) => `Here, the overall model test is ${v.f}.` },
+    // R1 gap-fix: raw 2x2 group-period mean table (Control/Treated x Pre/Post) — new registry columns
+    // ('group' is a label column, excluded from the coverage gate; pre/post get their own entries).
+    { key: 'pre', term: 'Pre', meaning: 'The raw (unadjusted) mean outcome for this group before treatment.',
+      interpret: (v) => `Here, the ${v.group} group's pre-period mean is ${v.pre}.` },
+    { key: 'post', term: 'Post', meaning: 'The raw (unadjusted) mean outcome for this group after treatment.',
+      interpret: (v) => `Here, the ${v.group} group's post-period mean is ${v.post}.` },
   ],
   rdd: [
     { key: 'est', term: 'RD treatment effect', meaning: 'The estimated jump in the outcome right at the cutoff - the treatment effect for cases near the threshold.',
@@ -847,6 +875,9 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: (v) => `Here, N (left) = ${v.nleft}.` },
     { key: 'nright', term: 'N (right)', meaning: 'The effective number of observations within the bandwidth on the side above the cutoff.',
       interpret: (v) => `Here, N (right) = ${v.nright}.` },
+    // R1 gap-fix: bandwidth-sensitivity span rows had no explainers.ts entry.
+    { key: 'bwHalfEst', term: 'Bandwidth sensitivity', meaning: 'Re-estimating the RD effect at half and double the MSE-optimal bandwidth - a stable estimate across these should not swing wildly.',
+      interpret: (v) => `Here, halving the bandwidth (h = ${v.bwHalfH}) gives ${v.bwHalfEst} [${v.bwHalfLo}, ${v.bwHalfHi}], and doubling it (h = ${v.bwDoubleH}) gives ${v.bwDoubleEst} [${v.bwDoubleLo}, ${v.bwDoubleHi}].` },
   ],
   'iv-2sls': [
     // R1 gap-fix: 'endogenous' is a new registry column (first-stage now reported per endogenous regressor).

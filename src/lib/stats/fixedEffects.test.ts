@@ -32,6 +32,9 @@ describe('runFixedEffects', () => {
 
     expect(r.withinR2).toBeCloseTo(0.9144979, 5)
     expect(r.adjR2).toBeCloseTo(0.8997198, 5)
+    // R1 gap-fix: between/overall R² (Stata xtreg convention) — native R verified directly on panel.csv.
+    expect(r.betweenR2).toBeCloseTo(0.9961371, 5)
+    expect(r.overallR2).toBeCloseTo(0.7870155, 5)
     expect(r.fStat).toBeCloseTo(288.7818, 2)
     expect(r.fDf1).toBe(3)
     expect(r.fDf2).toBe(81)

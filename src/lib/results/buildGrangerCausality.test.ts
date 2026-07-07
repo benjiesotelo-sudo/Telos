@@ -13,6 +13,14 @@ const mock = (over: Partial<GrangerResult> = {}): GrangerResult => ({
     { direction: 'X→Y', f: 47.891626, df1: 4, df2: 63, p: 1.1e-18 },
     { direction: 'Y→X', f: 30.622152, df1: 4, df2: 63, p: 4.4e-15 },
   ],
+  // R1 gap-fix: lag-selection table mock (builder-level test — real numbers native-R-verified at the stats layer).
+  lagRows: [
+    { lag: 1, aic: -1.2, bic: -1.1, hq: -1.15 },
+    { lag: 2, aic: -1.5, bic: -1.3, hq: -1.4 },
+    { lag: 3, aic: -1.4, bic: -1.1, hq: -1.25 },
+    { lag: 4, aic: -1.3, bic: -0.9, hq: -1.1 },
+  ],
+  aicLag: 2, bicLag: 2,
   maxLag: 4,
   alpha: 0.05,
   n: 72,
@@ -58,9 +66,20 @@ describe('buildGrangerCausality', () => {
     expect((note as { text: string }).text).toContain('AIC/BIC (vars::VARselect)')
   })
 
-  it('A5: values carries the term-led explainer lookup (the X→Y row)', () => {
+  it('A5: values carries the term-led explainer lookup (the X→Y row + the AIC-minimizing lag row, R1 gap-fix)', () => {
     expect(buildGrangerCausality(GRANGER_CAUSALITY, mock()).values).toEqual({
       direction: 'X→Y', f: '47.89', df: '4, 63', p: '<.001',
+      lag: '2', aic: '−1.50', bic: '−1.30', hq: '−1.40',
     })
+  })
+  it('R1 gap-fix: Table 2 renders the lag-order selection table (advisory)', () => {
+    const c = buildGrangerCausality(GRANGER_CAUSALITY, mock())
+    expect(c.tables).toHaveLength(2)
+    expect(c.tables[1].rows).toEqual([
+      { lag: 1, aic: '−1.20', bic: '−1.10', hq: '−1.15' },
+      { lag: 2, aic: '−1.50', bic: '−1.30', hq: '−1.40' },
+      { lag: 3, aic: '−1.40', bic: '−1.10', hq: '−1.25' },
+      { lag: 4, aic: '−1.30', bic: '−0.90', hq: '−1.10' },
+    ])
   })
 })

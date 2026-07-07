@@ -16,12 +16,17 @@ export function buildRdd(spec: TestSpec, r: RddResult): CardContent {
     bandwidth: f(r.bandwidth), nleft: String(r.nLeft), nright: String(r.nRight),
   }
   const note = `${spec.tableNote!.text} Cutoff = ${f(r.cutoff)}. McCrary density manipulation test: t = ${fx(r.mccrary.t, f)}, p = ${fx(r.mccrary.p, fp)} (McCrary, 2008) — a small p flags sorting/manipulation at the cutoff.`
+  // R1 gap-fix: bandwidth-sensitivity re-estimates (fixed h=h0/2 and h=h0*2) as full-width span rows,
+  // matching buildIvTwoStage's diagnostic-span precedent — no new table/column needed.
+  const bwHalf = r.bwSensitivity.half, bwDouble = r.bwSensitivity.double
   const rows: Record<string, string | number>[] = [
     { _kind: 'coef', term: 'RD treatment effect', est: f(r.estimate) },
     { _kind: 'se', term: '', est: `(${f(r.se)})` },
     { _kind: 'ci', term: '', est: `[${f(r.ciLow)}, ${f(r.ciHigh)}]` },
     { _kind: 'rule' },
     ...t.gof!.map((g) => ({ _kind: 'gof', term: g.label, est: gofValue[g.key] })),
+    { _kind: 'span', term: `Bandwidth sensitivity — half h (${f(bwHalf.h)}): estimate = ${f(bwHalf.estimate)}, 95% CI [${f(bwHalf.ciLow)}, ${f(bwHalf.ciHigh)}]` },
+    { _kind: 'span', term: `Bandwidth sensitivity — double h (${f(bwDouble.h)}): estimate = ${f(bwDouble.estimate)}, 95% CI [${f(bwDouble.ciLow)}, ${f(bwDouble.ciHigh)}]` },
   ]
   const apa = spec.apaTemplate
     .replace('{b}', f(r.estimate))
@@ -36,6 +41,12 @@ export function buildRdd(spec: TestSpec, r: RddResult): CardContent {
     howToRead: spec.howToRead,
     apa,
     nExcluded: r.nExcluded,
-    values: { ...gofValue, est: f(r.estimate) },
+    values: {
+      ...gofValue, est: f(r.estimate),
+      // R1 gap-fix: bandwidth-sensitivity span rows had no explainers.ts entry (a hole the U8 coverage
+      // gate misses, same class as the hausman/VAR/FE/RE span-row statistics).
+      bwHalfH: f(bwHalf.h), bwHalfEst: f(bwHalf.estimate), bwHalfLo: f(bwHalf.ciLow), bwHalfHi: f(bwHalf.ciHigh),
+      bwDoubleH: f(bwDouble.h), bwDoubleEst: f(bwDouble.estimate), bwDoubleLo: f(bwDouble.ciLow), bwDoubleHi: f(bwDouble.ciHigh),
+    },
   }
 }

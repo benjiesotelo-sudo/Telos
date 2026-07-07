@@ -46,6 +46,9 @@ describe('runDid', () => {
     expect(r.preTrend!.df1).toBe(3)
     expect(r.preTrend!.df2).toBe(40)
     expect(r.preTrend!.p).toBeCloseTo(0.999636, 5)
+    // R1 gap-fix: raw 2x2 group-period means table — native R verified (aggregate(roa ~ treated + post, mean)).
+    expect(r.groupMeans[0]).toEqual({ group: 'Control', pre: expect.closeTo(19.20642, 4), post: expect.closeTo(21.22150, 4) })
+    expect(r.groupMeans[1]).toEqual({ group: 'Treated', pre: expect.closeTo(12.91992, 4), post: expect.closeTo(16.46063, 4) })
   }, 900_000)
 
   it('guards: a treatment with ≠2 groups errors clearly', async () => {

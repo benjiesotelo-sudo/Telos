@@ -9,7 +9,7 @@ const mock = (over: Partial<FixedEffectsResult> = {}): FixedEffectsResult => ({
     { term: 'rd_spend', b: 1.888007, se: 0.743427, t: 2.539599, p: 0.01301, ciLow: 0.40882, ciHigh: 3.367193 },
     { term: 'size', b: 0.140074, se: 0.42702, t: 0.328027, p: 0.743738, ciLow: -0.709563, ciHigh: 0.989711 },
   ],
-  withinR2: 0.9144979, adjR2: 0.8997198, fStat: 288.7818, fDf1: 3, fDf2: 81, fP: 3.86e-43,
+  withinR2: 0.9144979, adjR2: 0.8997198, betweenR2: 0.9961371, overallR2: 0.7870155, fStat: 288.7818, fDf1: 3, fDf2: 81, fP: 3.86e-43,
   nObs: 96, nEntities: 12, poolF: 1.291747, poolP: 0.2442503,
   effect: 'entity', seType: 'clustered', ciLevel: 0.95, alpha: 0.05, nExcluded: 0,
   figCoefPng: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>,
@@ -37,6 +37,8 @@ describe('buildFixedEffects', () => {
       { _kind: 'gof', term: 'N entities', est: '12' },
       { _kind: 'gof', term: 'Within R²', est: '.91' },
       { _kind: 'gof', term: 'Adj. within R²', est: '.90' }, // audit fix: adj within R² is now surfaced
+      { _kind: 'gof', term: 'Between R²', est: '1.00' }, // R1 gap-fix: xtreg-convention split
+      { _kind: 'gof', term: 'Overall R²', est: '.79' },
       // Theme-4: the overall model F renders as F(df1, df2) = stat, p — not a bare number (native-R: F(3, 81) = 288.78, p = 3.86e-43)
       { _kind: 'gof', term: 'F-test', est: 'F(3, 81) = 288.78, p < .001' },
     ])
@@ -84,7 +86,8 @@ describe('buildFixedEffects', () => {
 
   it('A5: values carries the term-led explainer lookup (GOF + the first predictor B + the poolability F, R1 gap-fix)', () => {
     expect(buildFixedEffects(FIXED_EFFECTS, mock()).values).toEqual({
-      n: '96', nentities: '12', r2within: '.91', adjr2within: '.90', f: 'F(3, 81) = 288.78, p < .001',
+      n: '96', nentities: '12', r2within: '.91', adjr2within: '.90', r2between: '1.00', r2overall: '.79',
+      f: 'F(3, 81) = 288.78, p < .001',
       est: '−5.57', poolF: '1.29', poolP: '= .244',
     })
   })

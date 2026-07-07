@@ -43,6 +43,15 @@ export const GRANGER_CAUSALITY: TestSpec = {
         { key: 'p', label: 'p' },
       ],
     },
+    // R1 gap-fix: lag-order selection table (vars::VARselect) — the note/how-to-read already promised
+    // this ("select the lag ... by AIC/BIC (vars::VARselect) ... and report it"); advisory only, the
+    // Granger test above still uses the fixed max-lag option. Mirrors var.ts's own lag-selection table.
+    {
+      id: 'lag-selection', title: 'Lag-order selection (advisory)', domId: 'granger-causality-lag-selection',
+      columns: [
+        { key: 'lag', label: 'Lag' }, { key: 'aic', label: 'AIC' }, { key: 'bic', label: 'BIC' }, { key: 'hq', label: 'HQ' },
+      ],
+    },
   ],
   tableNote: {
     kind: 'plain',
@@ -55,6 +64,6 @@ export const GRANGER_CAUSALITY: TestSpec = {
     "A significant X→Y p means past values of X help predict Y beyond Y's own past — this is predictive precedence, not proof that X causes Y. Check both directions. The result depends entirely on the lag order (this card uses a max lag of 4): choose it on theory or by an information criterion — vars::VARselect reports the AIC- and BIC-minimising lag — and report it, since different lags can flip the conclusion. Make both series stationary first. Method: R lmtest::grangertest (Granger, 1969).",
   // Report-only neutralisation: report both directions' F/p neutrally, no "caused / not the reverse" verdict.
   apaTemplate: 'Granger test X→Y: F({df1xy},{df2xy})={fxy}, p {pxy}; Y→X: F({df1yx},{df2yx})={fyx}, p {pyx} (lag={lag}).',
-  rMap: 'lmtest::grangertest() run once per direction (or vars::causality()) → the two table rows · ggplot2 → figure',
-  bundleFiles: ['table_granger.png', 'figure_cross-series.png'],
+  rMap: 'lmtest::grangertest() run once per direction (or vars::causality()) → the two table rows · vars::VARselect() → lag-order selection table · ggplot2 → figure',
+  bundleFiles: ['table_granger.png', 'table_lag-selection.png', 'figure_cross-series.png'],
 }

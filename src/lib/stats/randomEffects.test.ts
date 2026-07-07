@@ -28,6 +28,10 @@ describe('runRandomEffects', () => {
     expect(r.coefRows.find((c) => c.term === 'size')!.b).toBeCloseTo(0.956744, 4)
     expect(r.r2).toBeCloseTo(0.98005, 5)
     expect(r.adjR2).toBeCloseTo(0.9793994, 5)
+    // R1 gap-fix: within/between/overall R² split (Stata xtreg convention) — native R verified directly on panel.csv.
+    expect(r.withinR2).toBeCloseTo(0.9108270, 5)
+    expect(r.betweenR2).toBeCloseTo(0.9974032, 5)
+    expect(r.overallR2).toBeCloseTo(0.9812116, 5)
     expect(Array.from(r.figCoefPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
   }, 900_000)
 

@@ -11,8 +11,14 @@ export interface GrangerRow {
   p: number
 }
 
+// R1 gap-fix: lag-order selection table (vars::VARselect), advisory only — the Granger test itself
+// still uses the fixed maxLag option; this reports where AIC/BIC/HQ WOULD pick the lag.
+export interface GrangerLagRow { lag: number; aic: number; bic: number; hq: number }
+
 export interface GrangerResult {
   rows: [GrangerRow, GrangerRow]  // [X→Y, Y→X]
+  lagRows: GrangerLagRow[]
+  aicLag: number; bicLag: number  // the AIC-minimizing / BIC(SC)-minimizing lag
   maxLag: number
   alpha: number
   n: number
@@ -42,9 +48,21 @@ df1_yx <- abs(res_yx[["Df"]][2])
 df2_yx <- res_yx[["Res.Df"]][2]
 p_yx   <- res_yx[["Pr(>F)"]][2]
 
+# R1 gap-fix: lag-order selection table (vars::VARselect on the bivariate [x,y] system), advisory only —
+# capped at floor((n-1)/2) to keep the search identified, same guard as var.ts.
+n_obs <- length(x)
+safe_max <- max(1L, min(as.integer(max_lag), floor((n_obs - 1L) / 2)))
+sel <- vars::VARselect(data.frame(x = x, y = y), lag.max = safe_max, type = 'const')
+criteria <- sel$criteria
+lag_rows <- lapply(seq_len(ncol(criteria)), function(i)
+  list(lag = i, aic = criteria[1, i], bic = criteria[3, i], hq = criteria[2, i]))
+aic_lag <- as.integer(which.min(criteria[1, ]))
+bic_lag <- as.integer(which.min(criteria[3, ]))
+
 list(
   xy = list(f = f_xy, df1 = df1_xy, df2 = df2_xy, p = p_xy),
   yx = list(f = f_yx, df1 = df1_yx, df2 = df2_yx, p = p_yx),
+  lag_rows = lag_rows, aic_lag = aic_lag, bic_lag = bic_lag,
   n  = length(x)
 )`
 
@@ -70,6 +88,7 @@ print(ggplot2::ggplot(df, ggplot2::aes(x = t, y = value, colour = series)) +
 interface RawGranger {
   xy: { f: number; df1: number; df2: number; p: number }
   yx: { f: number; df1: number; df2: number; p: number }
+  lag_rows: GrangerLagRow[]; aic_lag: number; bic_lag: number
   n: number
 }
 
@@ -131,6 +150,7 @@ export async function runGrangerCausality(
       { direction: 'X→Y', f: raw.xy.f, df1: raw.xy.df1, df2: raw.xy.df2, p: raw.xy.p },
       { direction: 'Y→X', f: raw.yx.f, df1: raw.yx.df1, df2: raw.yx.df2, p: raw.yx.p },
     ],
+    lagRows: raw.lag_rows, aicLag: raw.aic_lag, bicLag: raw.bic_lag,
     maxLag,
     alpha,
     n: raw.n,

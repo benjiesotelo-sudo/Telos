@@ -106,6 +106,12 @@ describe('runGrangerCausality', () => {
     expect(yx.df1).toBe(4)
     expect(yx.df2).toBe(75)
     expect(yx.p).toBeCloseTo(0.244096449230, 5)
+
+    // R1 gap-fix: lag-order selection table (vars::VARselect on the bivariate [x,y] system) — native R verified.
+    expect(r.lagRows).toHaveLength(4)
+    expect(r.lagRows[2]).toEqual({ lag: 3, aic: expect.closeTo(-2.66796541, 5), bic: expect.closeTo(-2.25111075, 5), hq: expect.closeTo(-2.50083645, 5) })
+    expect(r.aicLag).toBe(3)
+    expect(r.bicLag).toBe(2)
   }, 300_000)
 
   it('listwise: drops rows with missing time, x, or y', async () => {

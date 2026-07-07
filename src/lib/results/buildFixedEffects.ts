@@ -17,7 +17,9 @@ export function buildFixedEffects(spec: TestSpec, r: FixedEffectsResult): CardCo
   const fGof = fx(r.fStat, (v) => `F(${fdf(r.fDf1)}, ${fdf(r.fDf2)}) = ${f(v)}, p ${fpApa(r.fP)}`)
   const gofValue: Record<string, string> = {
     n: String(r.nObs), nentities: String(r.nEntities),
-    r2within: f01(r.withinR2), adjr2within: f01(r.adjR2), f: fGof,
+    r2within: f01(r.withinR2), adjr2within: f01(r.adjR2),
+    // R1 gap-fix: Stata xtreg-convention between/overall R² (within-only previously).
+    r2between: f01(r.betweenR2), r2overall: f01(r.overallR2), f: fGof,
   }
   const rows: Record<string, string | number>[] = [
     ...r.coefRows.flatMap((x) => [

@@ -40,12 +40,14 @@ export const RANDOM_EFFECTS: TestSpec = {
       gof: [
         { key: 'n', label: 'Num.Obs.' }, { key: 'nentities', label: 'N entities' },
         { key: 'r2', label: 'R²' }, { key: 'adjr2', label: 'R² Adj.' },
+        // R1 gap-fix: Stata xtreg-convention within/between/overall split, additive alongside the plm R²/R² Adj. above.
+        { key: 'r2within', label: 'Within R²' }, { key: 'r2between', label: 'Between R²' }, { key: 'r2overall', label: 'Overall R²' },
       ],
     },
   ],
   tableNote: {
     kind: 'plain',
-    text: 'standard errors are clustered by entity. unlike fixed effects, time-invariant predictors can be retained. summary(plm) returns a single R² / adj. R² (not a within/between/overall split).',
+    text: 'standard errors are clustered by entity. unlike fixed effects, time-invariant predictors can be retained. summary(plm) returns a single R² / adj. R² above; within/between/overall R² (Stata xtreg convention) are also reported below.',
     afterTableId: 're-coefficients',
   },
   figures: [{ caption: 'Coefficients', type: 'coefficient plot', file: 'coefficients' }],

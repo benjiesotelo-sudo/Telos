@@ -10,7 +10,7 @@ const mock = (over: Partial<RandomEffectsResult> = {}): RandomEffectsResult => (
     { term: 'rd_spend', b: 0.547641, se: 0.155511, t: 3.52156, p: 0.00067, ciLow: 0.238783, ciHigh: 0.856499 },
     { term: 'size', b: 0.956744, se: 0.047436, t: 20.169133, p: 1e-9, ciLow: 0.862532, ciHigh: 1.050956 },
   ],
-  r2: 0.98005, adjR2: 0.9793994, nObs: 96, nEntities: 12,
+  r2: 0.98005, adjR2: 0.9793994, withinR2: 0.9108270, betweenR2: 0.9974032, overallR2: 0.9812116, nObs: 96, nEntities: 12,
   bpLm: 0.06952968, bpDf: 1, bpP: 0.7920228,
   theta: 0.0420548809841274, varIdiosyncratic: 0.2500838, varEntity: 0.00280499,
   seType: 'clustered', ciLevel: 0.95, alpha: 0.05, nExcluded: 0,
@@ -38,6 +38,9 @@ describe('buildRandomEffects', () => {
       { _kind: 'gof', term: 'N entities', est: '12' },
       { _kind: 'gof', term: 'R²', est: '0.98' },
       { _kind: 'gof', term: 'R² Adj.', est: '0.98' },
+      { _kind: 'gof', term: 'Within R²', est: '.91' }, // R1 gap-fix: xtreg-convention split
+      { _kind: 'gof', term: 'Between R²', est: '1.00' },
+      { _kind: 'gof', term: 'Overall R²', est: '.98' },
     ])
   })
   it('single coef table — the separate model-fit table is merged in', () => {
@@ -74,8 +77,8 @@ describe('buildRandomEffects', () => {
 
   it('A5: values carries the term-led explainer lookup (GOF + the first non-intercept predictor B + the BP LM test, R1 gap-fix)', () => {
     expect(buildRandomEffects(RANDOM_EFFECTS, mock()).values).toEqual({
-      n: '96', nentities: '12', r2: '0.98', adjr2: '0.98', est: '−4.05',
-      bpLm: '0.07', bpDf: '1', bpP: '= .792',
+      n: '96', nentities: '12', r2: '0.98', adjr2: '0.98', r2within: '.91', r2between: '1.00', r2overall: '.98',
+      est: '−4.05', bpLm: '0.07', bpDf: '1', bpP: '= .792',
     })
   })
 })

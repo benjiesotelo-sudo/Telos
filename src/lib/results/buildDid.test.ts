@@ -10,6 +10,7 @@ const mock = (over: Partial<DidResult> = {}): DidResult => ({
     { term: 'po', b: 2.015083, se: 0.086275, t: 23.357, p: 1e-30, ciLow: 1.843456, ciHigh: 2.186711 },
     { term: 'po:tr', b: 1.525625, se: 0.116532, t: 13.092, p: 1e-20, ciLow: 1.293806, ciHigh: 1.757444 },
   ],
+  groupMeans: [{ group: 'Control', pre: 19.20642, post: 21.22150 }, { group: 'Treated', pre: 12.91992, post: 16.46063 }],
   seType: 'clustered', ciLevel: 0.95, alpha: 0.05,
   withinR2: 0.8406621, fStat: 216.3148, fDf1: 2, fDf2: 82, fP: 1.972789e-33, nObs: 96, nEntities: 12, nExcluded: 0,
   preTrend: { F: 0.004068, df1: 3, df2: 40, p: 0.999636 },
@@ -20,7 +21,7 @@ const mock = (over: Partial<DidResult> = {}): DidResult => ({
 describe('buildDid', () => {
   it('stacks B / (clustered SE) / [CI] per term and shows only Post + Treated × Post (Treated absorbed)', () => {
     const c = buildDid(DID, mock())
-    expect(c.tables).toHaveLength(1) // one merged stacked table
+    expect(c.tables).toHaveLength(2) // stacked coef table + the R1 gap-fix group-period-means table
     expect(c.tables[0].rows.slice(0, 6)).toEqual([
       { _kind: 'coef', term: 'Post', est: '2.02' },
       { _kind: 'se', term: '', est: '(0.09)' },
@@ -95,12 +96,20 @@ describe('buildDid', () => {
     expect(c.values).toEqual({
       n: '96', nentities: '12', r2within: '.84', f: 'F(2, 82) = 216.31, p < .001',
       est: '1.53', lo: '1.29', hi: '1.76', p: '< .001',
+      group: 'Control', pre: '19.21', post: '21.22',
     })
   })
   it('values omits the interaction estimate (not undefined-filled) when the model has no Treated×Post term, but keeps the panel GOF numbers (edge case, U8-T4)', () => {
     const c = buildDid(DID, mock({ coefRows: [{ term: 'po', b: 2.015083, se: 0.086275, t: 23.357, p: 1e-30, ciLow: 1.843456, ciHigh: 2.186711 }] }))
-    expect(c.values).toEqual({ n: '96', nentities: '12', r2within: '.84', f: 'F(2, 82) = 216.31, p < .001' })
+    expect(c.values).toEqual({ n: '96', nentities: '12', r2within: '.84', f: 'F(2, 82) = 216.31, p < .001', group: 'Control', pre: '19.21', post: '21.22' })
     expect(c.values).not.toHaveProperty('est')
     expect(c.apa).toBe('The DiD estimate was B=—, 95% CI [—, —], p — (clustered SE).')
+  })
+  it('R1 gap-fix: Table 2 renders the raw 2x2 group-period means', () => {
+    const c = buildDid(DID, mock())
+    expect(c.tables[1].rows).toEqual([
+      { group: 'Control', pre: '19.21', post: '21.22' },
+      { group: 'Treated', pre: '12.92', post: '16.46' },
+    ])
   })
 })
