@@ -30,6 +30,28 @@ async function dragChip(page: Page, chip: string, roleId: string) {
   await page.mouse.up()
 }
 
+// Readability guard for full-page captures: a scrolled page paints the sticky rail STUCK mid-band
+// over the title in fullPage screenshots (the bug behind the unreadable 05 config capture). The
+// app scrolls to top on every step change (ratify N2), but configuring a long screen (e.g. the
+// SEM construct form below the canvas) legitimately scrolls within the step - so scroll back to
+// the top like a user reviewing the screen, wait for fonts and a couple of frames, then assert
+// the rail sits in its natural flow position with the hint bar / eyebrow fully below it, so any
+// recurrence fails loudly instead of silently shipping an unreadable capture.
+async function settleForCapture(page: Page) {
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.evaluate(() => document.fonts.ready)
+  await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))))
+  await expect(async () => {
+    const clear = await page.evaluate(() => {
+      const rail = document.querySelector('.rail')?.getBoundingClientRect()
+      const below = document.querySelector('.hintbar, .eyebrow')?.getBoundingClientRect()
+      if (!rail || !below) return true
+      return window.scrollY === 0 && below.top >= rail.bottom - 1 // 1px tolerance for subpixel rounding
+    })
+    expect(clear).toBe(true)
+  }).toPass({ timeout: 2000 })
+}
+
 async function documentTest(page: Page, c: Case) {
   const folder = join(OUT, `${c.nn}_${c.id}`)
   mkdirSync(folder, { recursive: true })
@@ -51,10 +73,7 @@ async function documentTest(page: Page, c: Case) {
   await expect(page.getByRole('heading', { name: 'Pick a test' })).toBeVisible()
   await page.getByRole('checkbox', { name: c.pickName, exact: true }).check()
   await page.getByRole('button', { name: 'Confirm selection' }).click()
-  // The app preserves scroll across step changes; after auto-scrolling to a mid-list checkbox on
-  // Pick tests, the configure screen can open scrolled with the sticky rail covering the first
-  // slot (mouse drops land on the rail). Start configure from the top like a user would.
-  await page.evaluate(() => window.scrollTo(0, 0))
+  // (No scroll workaround needed: the app scrolls to top on every step change - ratify N2.)
 
   // configure-test: path-analysis (observed-only path mode) — no construct-slots form, no drag roles.
   // The canvas shows one RECTANGLE per used column (data-node-id = index into the used-columns list);
@@ -107,6 +126,7 @@ async function documentTest(page: Page, c: Case) {
     await page.getByRole('button', { name: 'Fit' }).click()
     await page.waitForTimeout(200)
   }
+  await settleForCapture(page)
   await page.screenshot({ path: join(folder, '1-input-config.png'), fullPage: true })
 
   // run
@@ -118,6 +138,7 @@ async function documentTest(page: Page, c: Case) {
   // (SEM cards run lavaan/semTools + bootstrap, the slowest path in the app — allow up to 10 min)
   await expect(page.locator('section.card table, section.card img').first()).toBeVisible({ timeout: 600_000 })
   await page.waitForTimeout(600)
+  await settleForCapture(page)
   await page.screenshot({ path: join(folder, '2-app-output.png'), fullPage: true })
 
   // PDF piece — the app's print-to-PDF (print stylesheet hides nav/export chrome)

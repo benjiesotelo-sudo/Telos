@@ -73,3 +73,24 @@ test('the rail stays stuck to the top when a tall screen scrolls (R4)', async ({
   const scrolled = await page.evaluate(() => window.scrollY)
   expect(scrolled, 'the page must actually have scrolled for this test to mean anything').toBeGreaterThan(100)
 })
+
+// N2: scroll persisted across step navigation, so a screen that opens already scrolled renders
+// with the sticky rail overlapping the new screen's own title/hint bar (found via the docs capture
+// harness - 05_independent-t-test's config capture, and again on the results screen). Every step
+// change must land the user at the top, like a fresh page. Navigate via the rail: it is sticky,
+// so it is exactly what a scrolled user clicks.
+test('scroll resets to top on step navigation, so the sticky rail never covers the next title (N2)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 600 }) // short viewport forces scrolling on test-config
+  await walkToConfig(page, async () => {})
+  await page.mouse.wheel(0, 2000)
+  await page.waitForTimeout(200)
+  expect(await page.evaluate(() => window.scrollY), 'setup: page must be scrolled before navigating').toBeGreaterThan(100)
+
+  await page.getByRole('navigation', { name: 'Progress' }).getByRole('button', { name: 'Data' }).click()
+  await expect(page.getByRole('heading', { name: 'Configure data' })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => window.scrollY), { message: 'the next screen must open scrolled to top' }).toBe(0)
+
+  const railBox = (await page.getByRole('navigation', { name: 'Progress' }).boundingBox())!
+  const titleBox = (await page.getByRole('heading', { name: 'Configure data' }).boundingBox())!
+  expect(titleBox.y, 'the title must sit below the rail, not behind it').toBeGreaterThanOrEqual(railBox.y + railBox.height - 1)
+})

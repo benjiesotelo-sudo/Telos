@@ -27,6 +27,9 @@ function ThemeSelect() {
 
 export default function App() {
   const step = useSession((s) => s.step)
+  // Each step is a fresh page: without this, scroll persists across step changes and the next
+  // screen can open mid-scroll with the sticky rail covering its own title (ratify N2).
+  useEffect(() => { window.scrollTo(0, 0) }, [step])
   return (
     <main className="screen">
       <ThemeSelect />
