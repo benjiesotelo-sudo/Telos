@@ -58,6 +58,8 @@ describe('buildExportFiles (Task 10)', () => {
     expect(keys).toContain('cleaned.csv')
     expect(keys).toContain('report.tex')
     expect(keys).toContain('LICENSES.txt')
+    expect(keys).toContain('CITATIONS.txt')
+    expect(keys).toContain('references.bib')
     expect(keys.some((k) => /^figures\/\d\d_[^/]+\/figure_.*\.png$/.test(k))).toBe(true)
     // latex figure paths must match emitLatex's \includegraphics references exactly
     expect(keys).toContain('figures/01_simple-linear-regression/figure_fit.png')
@@ -70,6 +72,22 @@ describe('buildExportFiles (Task 10)', () => {
     expect(dec.decode(files['report.tex'])).toContain('\\documentclass{article}')
     expect(dec.decode(files['cleaned.csv'])).toContain('score,hours,grp')
     expect(dec.decode(files['analysis.R'])).toContain('read.csv')
+  })
+
+  it('CITATIONS.txt §3 uses each fresh test’s own live apaTemplate sentence, not a generic fallback', () => {
+    const files = buildExportFiles(session(), { tables: false, figures: false, pdf: false, latex: false, r: true })
+    const dec = new TextDecoder()
+    const citations = dec.decode(files['CITATIONS.txt'])
+    const sec3 = citations.slice(citations.indexOf('3. METHODS PARAGRAPH'), citations.indexOf('4. APPENDIX'))
+    // slr's apaTemplate fills in r2=.42 — a live number that can't appear from the generic fallback.
+    expect(sec3).toMatch(/\.42/)
+  })
+
+  it('references.bib is valid-shaped (balanced braces, one @ per entry) and includes the app entry', () => {
+    const files = buildExportFiles(session(), { tables: false, figures: false, pdf: false, latex: false, r: true })
+    const bib = new TextDecoder().decode(files['references.bib'])
+    expect((bib.match(/\{/g) ?? []).length).toBe((bib.match(/\}/g) ?? []).length)
+    expect(bib).toContain('Sotelo, B.')
   })
 
   it('figures-only writes NN_id/figure_*.png and no string artifacts', () => {

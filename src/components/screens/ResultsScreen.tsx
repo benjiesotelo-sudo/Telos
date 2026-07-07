@@ -8,6 +8,7 @@ import { toCsv } from '../../lib/export/cleanedCsv'
 import { emitLatex } from '../../lib/export/latex'
 import { licensesText } from '../../lib/export/licenses'
 import { citationsText } from '../../lib/export/citations'
+import { referencesBibText } from '../../lib/export/referencesBib'
 import { CITATIONS } from '../../lib/registry/citations'
 import { FEEDBACK_URL } from '../../content/copy'
 import { ResultPreviewCard } from '../ResultPreviewCard'
@@ -34,13 +35,19 @@ const enc = (str: string): Uint8Array => new TextEncoder().encode(str)
 // order; folder NN = 1-based padded):
 //   figures → NN_id/figure_<file??type>.png · latex → ALSO figures/NN_id/...png (so report.tex
 //   resolves) + report.tex · r → analysis.R + cleaned.csv · r|latex → LICENSES.txt + CITATIONS.txt
-//   (both scoped to the formats whose bundled R packages/fonts they credit/cite — note for review).
+//   + references.bib (all three scoped to the formats whose bundled R packages/fonts they
+//   credit/cite — note for review).
 export function buildExportFiles(s: SessionState, formats: ExportFormats): Record<string, Uint8Array> {
   const files: Record<string, Uint8Array> = {}
   const fresh = s.selection.filter((id) => s.runs[id] && !s.runs[id].stale)
+  // CITATIONS.txt §3 (methods paragraph) prefers each test's own live apaTemplate-filled sentence
+  // over a numbers-free fallback; content is already built here for the figures loop below, so
+  // capturing content.apa per fresh id is a small wiring change, not a re-architecture.
+  const apaById: Record<string, string> = {}
   for (const id of fresh) {
     const spec = SPECS[id]!; const folder = `${String(s.selection.indexOf(id) + 1).padStart(2, '0')}_${id}/`
     const content = BUILDERS[id](spec, s.runs[id].result)
+    apaById[id] = content.apa
     for (const fig of content.figures) {
       if (!fig.png.length) continue // 0-byte placeholder (e.g. sem-canvas path diagram — layered by rasterSemFigures)
       const name = `figure_${fig.file ?? fig.type}.png`
@@ -60,7 +67,8 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
     files['analysis.R'] = enc(emitRScript(fresh, exportSetups, SPECS, workingDataset(s))); files['cleaned.csv'] = enc(toCsv(workingDataset(s)))
   }
   if (formats.r || formats.latex) files['LICENSES.txt'] = enc(licensesText())
-  if (formats.r || formats.latex) files['CITATIONS.txt'] = enc(citationsText(s.selection))
+  if (formats.r || formats.latex) files['CITATIONS.txt'] = enc(citationsText(s.selection, apaById))
+  if (formats.r || formats.latex) files['references.bib'] = enc(referencesBibText(s.selection))
   return files
 }
 

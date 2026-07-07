@@ -1,12 +1,24 @@
-// CITATIONS.txt body for the export bundle: the citeable references behind the exported analysis.R —
-// the R version plus a citation()-style reference for every R package the emitted script actually
-// uses. The package set is the UNION of every emitter's `*Packages` record (rScript/emitters PACKAGES),
-// so it stays reconciled automatically: an emitter that starts using a package gets it cited here,
-// and a package no emitter references is silently absent. Each line mirrors what R's own
-// citation("<pkg>") would surface (authors, year, title, CRAN URL).
-
+// CITATIONS.txt body for the export bundle: a tiered reference kit (direction B), four sections —
+//   1. Cite this app (src/lib/export/citeApp.ts)
+//   2. Your reference list — the selected tests' whyThisTest + statisticalBasis refs, DEDUPED across
+//      tests and alphabetized by leading-author surname; a ref shared by 2+ tests gets one
+//      "[used by: ...]" annotation line instead of repeating.
+//   3. Methods paragraph — one sentence per selected test. Uses the LIVE apaTemplate-filled sentence
+//      (CardContent.apa, threaded in from buildExportFiles via `apaById`) when the test has actually
+//      been run; otherwise falls back to the registry's whyThisTest prose (no fabricated numbers).
+//      Chose this hybrid over a numbers-free paragraph for every test because the live values ARE
+//      reachable at export time (buildExportFiles already builds CardContent per fresh test for its
+//      figures) — threading them here is a small wiring change, not the re-architecture the brief
+//      flagged as out of scope.
+//   4. Appendix: R package citations — the original (pre-kit) package-references section, content
+//      unchanged, just relabeled and moved to the end. The R version plus a citation()-style
+//      reference for every R package the emitted script actually uses; the package set is the UNION
+//      of every emitter's `*Packages` record (rScript/emitters PACKAGES), so it stays reconciled
+//      automatically.
 import { PACKAGES } from './rScript/emitters'
-import { citationsTxt } from '../registry/citations'
+import { CITATIONS, type Ref } from '../registry/citations'
+import { CATALOG } from '../registry/catalog'
+import { CITE_APP_TEXT } from './citeApp'
 
 const R_VERSION = 'R 4.6.0'
 
@@ -69,11 +81,93 @@ function emittedPackages(): string[] {
   return [...set].sort((a, b) => a.localeCompare(b))
 }
 
-export function citationsText(selection: string[] = []): string {
+const testName = (id: string): string => CATALOG.find((c) => c.id === id)?.name ?? id
+
+// Every whyThisTest + statisticalBasis ref cited by a test, de-duplicated once per test (so a ref
+// used twice WITHIN one test's own entry doesn't make that test appear twice in its "[used by:]").
+const refsOf = (id: string): Ref[] => {
+  const c = CITATIONS[id]
+  if (!c) return []
+  const seen = new Set<string>()
+  const out: Ref[] = []
+  for (const ref of [...c.whyThisTest.refs, ...c.statisticalBasis.map((b) => b.ref)]) {
+    if (seen.has(ref.text)) continue
+    seen.add(ref.text)
+    out.push(ref)
+  }
+  return out
+}
+
+// Leading-author surname, parsed from the ref's own structured `authors` field (itself a mechanical
+// transcription of `text`'s start) — the sort key for section 2's alphabetical order.
+const surnameOf = (ref: Ref): string => ref.authors.split(',')[0].trim().split(/\s+/)[0]?.toLowerCase() ?? ''
+
+// Section 2: dedup a selection's refs by exact text (the same Ref constant, wherever reused, is the
+// same reference), collecting which test(s) cite it, then sort alphabetically. Array#sort is stable
+// in every engine Telos targets, so equal surnames keep their first-encountered relative order.
+function referenceListLines(selection: string[]): string[] {
+  const byText = new Map<string, { ref: Ref; tests: string[] }>()
+  for (const id of selection) {
+    const name = testName(id)
+    for (const ref of refsOf(id)) {
+      const entry = byText.get(ref.text)
+      if (entry) entry.tests.push(name)
+      else byText.set(ref.text, { ref, tests: [name] })
+    }
+  }
+  const entries = [...byText.values()].sort((a, b) => surnameOf(a.ref).localeCompare(surnameOf(b.ref)))
+  const lines: string[] = []
+  for (const { ref, tests } of entries) {
+    lines.push(`  ${ref.text}${ref.url ? ' ' + ref.url : ''}`)
+    if (tests.length > 1) lines.push(`    [used by: ${tests.join(', ')}]`)
+  }
+  return lines.length ? lines : ['  (no tests selected)']
+}
+
+// Section 3: one sentence per selected test. Prefers the live apaTemplate-filled sentence
+// (CardContent.apa) when the test has actually been run this session (`apaById`); otherwise falls
+// back to the registry's own "why this test" prose — never fabricates numbers for an unrun test.
+function methodsParagraphLines(selection: string[], apaById: Record<string, string>): string[] {
+  const lines: string[] = []
+  for (const id of selection) {
+    const c = CITATIONS[id]
+    if (!c) continue
+    const cite = c.whyThisTest.refs.map((r) => `${r.authors.split(',')[0].trim()}, ${r.year}`).join('; ')
+    const sentence = apaById[id] ?? c.whyThisTest.text
+    lines.push(`  ${testName(id)}: ${sentence}${cite ? ` (${cite})` : ''}`)
+  }
+  return lines.length ? lines : ['  (no tests selected)']
+}
+
+// apaById: CardContent.apa per already-run test this export session (buildExportFiles threads this
+// through from the same loop that already builds each fresh test's content for its figures — see
+// that file's comment for why this doesn't need a deeper re-architecture).
+export function citationsText(selection: string[] = [], apaById: Record<string, string> = {}): string {
   const lines: string[] = []
   lines.push('Telos — Citations for the Exported Analysis')
   lines.push('===========================================')
   lines.push('')
+  lines.push('A tiered reference kit: cite the app, cite your selected tests’ references, drop in a')
+  lines.push('methods-paragraph summary, and credit the R packages your analysis.R depends on.')
+  lines.push('')
+
+  lines.push('1. CITE THIS APP')
+  lines.push('================')
+  lines.push(CITE_APP_TEXT)
+  lines.push('')
+
+  lines.push('2. YOUR REFERENCE LIST')
+  lines.push('=======================')
+  lines.push(...referenceListLines(selection))
+  lines.push('')
+
+  lines.push('3. METHODS PARAGRAPH')
+  lines.push('=====================')
+  lines.push(...methodsParagraphLines(selection, apaById))
+  lines.push('')
+
+  lines.push('4. APPENDIX: R PACKAGE CITATIONS')
+  lines.push('=================================')
   lines.push('The exported analysis.R was generated for R and relies on the packages cited below.')
   lines.push('Please cite the R version and each package you use in any resulting work.')
   lines.push('')
@@ -98,5 +192,5 @@ export function citationsText(selection: string[] = []): string {
   )
   lines.push('')
 
-  return lines.join('\n') + '\n' + citationsTxt(selection)
+  return lines.join('\n') + '\n'
 }
