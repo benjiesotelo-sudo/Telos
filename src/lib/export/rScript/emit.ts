@@ -1,7 +1,7 @@
 import type { TestSpec } from '../../registry/types'
 import type { TestSetup } from '../../../state/session'
 import type { Dataset } from '../../stats/types'
-import { EMITTERS, PACKAGES } from './emitters'
+import { EMITTERS, PACKAGES, getRenameEntries } from './emitters'
 import { header, readData, factorLines } from './helpers'
 
 /** Assemble the full reproducible R script for the selected tests, in selection order. */
@@ -16,11 +16,21 @@ export function emitRScript(
     .filter(Boolean)
     .join('\n')
 
+  // Raw CSV column -> sanitized R token, unioned across the selection (a Map so a later duplicate entry
+  // for the SAME raw column just overwrites with the same value — every SEM-family emitter computes its
+  // sanitized token via the SAME lvNames() rule). Empty for a selection with no SEM-family tests, so
+  // readData() falls back to its un-parameterized, byte-identical form.
+  const renameMap = new Map<string, string>()
+  for (const id of selection) {
+    for (const [raw, safe] of getRenameEntries(id, setups[id], specs[id])) renameMap.set(raw, safe)
+  }
+  const rename = [...renameMap.entries()] as [string, string][]
+
   const blocks = selection.map((id, i) => {
     const nn = String(i + 1).padStart(2, '0')
     const body = EMITTERS[id] ? EMITTERS[id](specs[id], setups[id], dataset) : '# (emitter pending)'
     return `\n# === ${nn} · ${specs[id]?.name ?? id} ===\n${body}`
   })
 
-  return [header(pkgs), readData(), ...(factors ? [factors] : []), ...blocks].join('\n')
+  return [header(pkgs), readData(rename.length ? rename : undefined), ...(factors ? [factors] : []), ...blocks].join('\n')
 }

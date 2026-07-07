@@ -18,8 +18,19 @@ export function header(pkgs: string[]): string {
   return lines.join('\n')
 }
 
-export function readData(): string {
-  return 'd <- read.csv("cleaned.csv", stringsAsFactors = FALSE)'
+/** `rename`: raw CSV column -> sanitized R-side token, for callers whose emitted model text references
+ *  columns as bare lavaan/seminr identifiers (display names with spaces are illegal there). R's read.csv
+ *  DEFAULT check.names=TRUE would mangle a spaced header via make.names() (e.g. a space -> a period),
+ *  which does NOT match the app's lvNames-derived token — so a rename target is only reachable with
+ *  check.names=FALSE + an explicit rename right after the read, giving byte-for-byte parity with the
+ *  in-app WebR runtime's naming. Omitted/empty (every non-SEM family, and any SEM columns that already
+ *  sanitize to themselves) keeps this byte-identical to the un-parameterized call. */
+export function readData(rename?: [string, string][]): string {
+  const base = `d <- read.csv("cleaned.csv", stringsAsFactors = FALSE${rename?.length ? ', check.names = FALSE' : ''})`
+  if (!rename || rename.length === 0) return base
+  const from = rename.map(([raw]) => JSON.stringify(raw)).join(', ')
+  const to = rename.map(([, safe]) => JSON.stringify(safe)).join(', ')
+  return `${base}\ncolnames(d)[match(c(${from}), colnames(d))] <- c(${to})`
 }
 
 /** All-numeric non-missing values → leave as-is; else factor (mirrors simpleLinearRegression's isNumericColumn classification). */
@@ -28,12 +39,14 @@ const isNumericColumn = (data: Dataset, col: string): boolean => {
   return vals.length > 0 && vals.every((v) => typeof v === 'number')
 }
 
-/** `d$<col> <- factor(d$<col>)` for each role column that reads as categorical. Best-effort, one line per column. */
+/** `d[["<col>"]] <- factor(d[["<col>"]])` for each role column that reads as categorical. Best-effort,
+ *  one line per column. Bracket accessor (not bare `d$<col>`) so a spaced column name is valid R syntax
+ *  here too — byte-behaviorally identical to the old `d$<col>` form for every currently-passing fixture. */
 export function factorLines(setup: { roles: Record<string, string[]> }, _spec: unknown, dataset: Dataset): string {
   const cols = [...new Set(Object.values(setup.roles).flat())]
   return cols
     .filter((c) => dataset.columns.includes(c) && !isNumericColumn(dataset, c))
-    .map((c) => `d$${c} <- factor(d$${c})`)
+    .map((c) => `d[["${c}"]] <- factor(d[["${c}"]])`)
     .join('\n')
 }
 

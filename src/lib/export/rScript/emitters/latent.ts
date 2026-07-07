@@ -1,5 +1,6 @@
 import type { Emitter } from './index'
-import type { Construct, StructuralPath } from '../../../../state/session'
+import type { TestSpec } from '../../../registry/types'
+import type { Construct, StructuralPath, TestSetup } from '../../../../state/session'
 import { MAKECLUSTER_SHIM } from '../../../webr/parallelShim'
 import { R_SATURATED_PREDICATE } from '../../../stats/semSaturation'
 import { lvNames } from '../../../stats/lvName'
@@ -11,6 +12,33 @@ import { SIMPLE_SLOPES_PLOT_R } from '../../../stats/simpleSlopesPlot'
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim — same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
 // NEVER call semTools::reliability() — deprecated 2022. Use compRelSEM() for ω/α-equivalent.
+
+/** Raw CSV column -> sanitized R-side token (lvNames), for the 7 SEM-family emitters below whose model
+ *  text/index vectors reference a column as a bare lavaan/seminr identifier (display names with spaces
+ *  are illegal there) — mirrors each app-side runner's OWN lvNames() input EXACTLY (cfaReliability.ts
+ *  for ave/composite-reliability, runCbSem.ts for cb-sem/path-analysis, plsSem.ts for pls-sem,
+ *  cronbachsAlpha.ts for cronbachs-alpha) so a raw column always sanitizes to the SAME token on both
+ *  sides — export ≡ app identifier parity. efa has no bare-token formula, but R's read.csv() default
+ *  check.names=TRUE would ALSO mangle a spaced header via make.names() before efa's `d[, items]` string
+ *  indexing ever ran, so it needs the same treatment. Returns only entries that actually changed;
+ *  every other test id falls through to `[]` (readData() then no-ops, byte-identical script). */
+export function latentRenameEntries(id: string, setup: TestSetup, spec?: TestSpec): [string, string][] {
+  const changed = (raw: string[]): [string, string][] => {
+    const safe = lvNames(raw)
+    return raw.map((from, i) => [from, safe[i]] as [string, string]).filter(([from, to]) => from !== to)
+  }
+  if (id === 'cronbachs-alpha' || id === 'efa') return changed(setup.roles['items'] ?? [])
+  if (id === 'ave' || id === 'composite-reliability' || id === 'pls-sem') {
+    const constructs = (setup.constructs ?? []) as { items: string[] }[]
+    return changed([...new Set(constructs.flatMap((c) => c.items))])
+  }
+  if (id === 'cb-sem' || id === 'path-analysis') {
+    const constructs = (setup.constructs ?? []) as { name: string; items: string[] }[]
+    const isPath = setup.modelKind === 'path' || spec?.modelKind === 'path'
+    return changed(isPath ? [...new Set(constructs.map((c) => c.name))] : [...new Set(constructs.flatMap((c) => c.items))])
+  }
+  return []
+}
 
 export const latentEmitters: Record<string, Emitter> = {
   // lavaan::cfa (multi-construct) + semTools::AVE/compRelSEM/htmt → convergent + discriminant validity.
@@ -28,8 +56,17 @@ export const latentEmitters: Record<string, Emitter> = {
     // and every fitted object below is indexed by construct_names (same fix as cfaReliability.ts).
     const rNames = lvNames(constructs.map((c) => c.name))
     const constructNamesR = `c(${rNames.map((n) => `"${n}"`).join(', ')})`
-    const modelLines = constructs.map((c, i) => `${rNames[i]} =~ ${c.items.join(' + ')}`).join('\n')
-    const constructItemsFlat = constructs.flatMap((c) => c.items)
+
+    // Sanitized item identifiers — ONE lvNames call across the full flattened+deduped item set,
+    // mirroring cfaReliability.ts's runCfaReliability (the app runner both 'ave' and
+    // 'composite-reliability' share) exactly, so a raw item always sanitizes to the SAME R token.
+    const allItems = [...new Set(constructs.flatMap((c) => c.items))]
+    const rAllItems = lvNames(allItems)
+    const itemMap = new Map(allItems.map((raw, i) => [raw, rAllItems[i]]))
+    const itemNameOf = (raw: string) => itemMap.get(raw)!
+
+    const modelLines = constructs.map((c, i) => `${rNames[i]} =~ ${c.items.map(itemNameOf).join(' + ')}`).join('\n')
+    const constructItemsFlat = constructs.flatMap((c) => c.items.map(itemNameOf))
     const constructItemsFlatR = `c(${constructItemsFlat.map((v) => `"${v}"`).join(', ')})`
     const constructItemsLensR = `c(${constructs.map((c) => c.items.length).join(', ')})`
 
@@ -115,7 +152,12 @@ export const latentEmitters: Record<string, Emitter> = {
   // ggplot2 item-total bar chart.
   'cronbachs-alpha': (_spec, setup) => {
     const items = setup.roles['items'] ?? []
-    const itemsR = `c(${items.map((v) => `"${v}"`).join(', ')})`
+    // Sanitized item identifiers — `items` below feeds a bare lavaan `=~` formula string (model <-
+    // paste0("f =~ ", ...)), and R's read.csv() default check.names mangling means even the plain
+    // `d[, items]` string index would miss a spaced column post-rename; mirrors cronbachsAlpha.ts's
+    // own lvNames(items) call exactly.
+    const rItems = lvNames(items)
+    const itemsR = `c(${rItems.map((v) => `"${v}"`).join(', ')})`
     const useStd = setup.options['standardizedAlpha'] === true
     const dropItem = setup.options['dropItem'] !== false
     const alphaCol = useStd ? 'std.alpha' : 'raw_alpha'
@@ -155,11 +197,16 @@ export const latentEmitters: Record<string, Emitter> = {
       'cat("omega 95% CI:", omega_ci[1], omega_ci[2], "\\n")',
     )
     if (dropItem) {
+      // Axis labels use the RAW display names (items_display), never the sanitized lavaan-safe token
+      // `items` — mirrors cronbachsAlpha.ts's R_FIG figEnv, which passes the original `items` param
+      // (not its own sanitized rItems) for the exact same reason.
+      const itemsDisplayR = `c(${items.map((v) => `"${v}"`).join(', ')})`
       lines.push(
         '',
         '# ---- Item-total bar chart ----',
+        `items_display <- ${itemsDisplayR}`,
         `r_drop <- a_obj$item.stats$r.drop`,
-        `d_plot <- data.frame(item = factor(items, levels = rev(items)), r = r_drop)`,
+        `d_plot <- data.frame(item = factor(items_display, levels = rev(items_display)), r = r_drop)`,
         `print(ggplot2::ggplot(d_plot, ggplot2::aes(x = r, y = item)) +`,
         `  ggplot2::geom_col(fill = "#0c447c") +`,
         `  ggplot2::geom_vline(xintercept = 0.3, linetype = "dashed", colour = "#9cc2ec") +`,
@@ -181,8 +228,15 @@ export const latentEmitters: Record<string, Emitter> = {
     // Sanitized identifiers (lvNames) — same rationale as the 'ave' emitter above.
     const rNames = lvNames(constructs.map((c) => c.name))
     const constructNamesR = `c(${rNames.map((n) => `"${n}"`).join(', ')})`
-    const modelLines = constructs.map((c, i) => `${rNames[i]} =~ ${c.items.join(' + ')}`).join('\n')
-    const constructItemsFlat = constructs.flatMap((c) => c.items)
+
+    // Sanitized item identifiers — same one-call-across-the-full-flattened-set rationale as 'ave' above.
+    const allItems = [...new Set(constructs.flatMap((c) => c.items))]
+    const rAllItems = lvNames(allItems)
+    const itemMap = new Map(allItems.map((raw, i) => [raw, rAllItems[i]]))
+    const itemNameOf = (raw: string) => itemMap.get(raw)!
+
+    const modelLines = constructs.map((c, i) => `${rNames[i]} =~ ${c.items.map(itemNameOf).join(' + ')}`).join('\n')
+    const constructItemsFlat = constructs.flatMap((c) => c.items.map(itemNameOf))
     const constructItemsFlatR = `c(${constructItemsFlat.map((v) => `"${v}"`).join(', ')})`
     const constructItemsLensR = `c(${constructs.map((c) => c.items.length).join(', ')})`
 
@@ -244,7 +298,10 @@ export const latentEmitters: Record<string, Emitter> = {
   'efa': (_spec, setup) => {
     const items: string[] = setup.roles['items'] ?? []
     if (items.length < 3) return '# Need ≥ 3 items for EFA.'
-    const itemsR = `c(${items.map((v) => `"${v}"`).join(', ')})`
+    // Sanitized item identifiers: no formula string here, but R's read.csv() default check.names
+    // mangling means even this plain `d[, items]` string index would miss a spaced column post-rename
+    // (colnames(d) is renamed to the sanitized token by readData(), never left as the raw display name).
+    const itemsR = `c(${lvNames(items).map((v) => `"${v}"`).join(', ')})`
     const extraction = setup.options['extraction'] === 'ML' ? 'ml' : 'pa'
     const rotation = setup.options['rotation'] === 'varimax' ? 'varimax' : 'oblimin'
     const retentionOpt = String(setup.options['retention'] ?? 'parallel')
@@ -352,11 +409,19 @@ export const latentEmitters: Record<string, Emitter> = {
     const nboot = Number(setup.options['nboot'] ?? 5000)
     const moderations = setup.moderations ?? []
 
+    // Sanitized item identifiers (latent mode only — path mode's "items" are each construct's own raw
+    // name, already carried by rNameOf/the readData() rename above) — mirrors runCbSem.ts's
+    // usedCols/itemNameOf exactly, so a raw item always sanitizes to the SAME R token as the app.
+    const usedCols = isPath ? [] : [...new Set(constructs.flatMap((c) => c.items))]
+    const rItems = lvNames(usedCols)
+    const itemMap = new Map(usedCols.map((raw, i) => [raw, rItems[i]]))
+    const itemNameOf = (raw: string) => itemMap.get(raw) ?? raw
+
     // Model text (measurement + structural + auto indirect defs + moderation, already spliced onto its
     // target's structural line) + moderationDefs (needed for the indProd data-prep block below). Guards
     // (self/duplicate/path-mode) live in validateModerations, called by buildModel itself — a bad
     // moderation setup throws here exactly like it would in the app runner, never reaching a bad script.
-    const { model, hasIndirect, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, moderations)
+    const { model, hasIndirect, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, moderations, itemNameOf)
     const hasModeration = moderationDefs.length > 0
     // Moderation ALWAYS bootstraps (design §A7), independent of any indirect-effect chain — same widened
     // gate as runCbSem.ts's `needsBootstrap` (Task 4.4).
@@ -654,8 +719,17 @@ export const latentEmitters: Record<string, Emitter> = {
     const nboot = Number(setup.options['nboot'] ?? 5000)
     const fromName = (id: number) => byId.get(id) ?? String(id)
 
+    // Sanitized item identifiers — mirrors plsSem.ts's allItems/itemMap exactly. seminr's composite()
+    // item strings are string literals, not R identifiers, but they must still match `colnames(d)`
+    // (renamed to the sanitized token by readData()) exactly, so a raw item with a space would
+    // otherwise silently miss the data frame's actual column.
+    const allItems = [...new Set(constructs.flatMap((c) => c.items))]
+    const rAllItems = lvNames(allItems)
+    const itemMap = new Map(allItems.map((raw, i) => [raw, rAllItems[i]]))
+    const itemNameOf = (raw: string) => itemMap.get(raw) ?? raw
+
     const constructLines = constructs.map((c) => {
-      const items = `c(${c.items.map((it) => `"${it}"`).join(', ')})`
+      const items = `c(${c.items.map((it) => `"${itemNameOf(it)}"`).join(', ')})`
       const wt = c.mode === 'formative' ? 'mode_B' : 'mode_A'
       return `  composite("${c.name}", ${items}, weights = ${wt})`
     })

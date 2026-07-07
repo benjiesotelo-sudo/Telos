@@ -254,6 +254,45 @@ const REPS: Rep[] = [
     expect: ['Model is saturated (df = 0)', 'Table 6: Structural paths'],
   },
 
+  // spaced-header fixture (X1/X2, export side): 'customer satisfaction q1' replaces x1 in scale.csv's
+  // header only (values unchanged) — the exported script's read.csv() default check.names=TRUE would
+  // otherwise mangle it to 'customer.satisfaction.q1' via make.names(), which does NOT match the
+  // TS-side lvNames token ('customer_satisfaction_q1') the model string references. cb-sem here is
+  // LATENT mode (the item lives inside a construct); path-analysis below is the path-mode rep (the
+  // spaced name IS the construct/column name itself).
+  { id: 'cb-sem', fixture: 'sem-spaced.csv',
+    setup: {
+      roles: {},
+      options: { estimator: 'ML', nboot: 200, ciType: 'percentile' },
+      props: {},
+      blocked: null,
+      modelKind: 'latent',
+      constructs: [
+        { id: 1, name: 'C1', items: ['customer satisfaction q1', 'x2', 'x3'] },
+        { id: 2, name: 'C2', items: ['x4', 'x5', 'x6'] },
+        { id: 3, name: 'C3', items: ['x7', 'x8', 'x9'] },
+      ],
+      paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }],
+    },
+    expect: ['Table 3: Measurement model'],
+  },
+  { id: 'path-analysis', fixture: 'sem-spaced.csv',
+    setup: {
+      roles: {},
+      options: { estimator: 'ML', nboot: 200, ciType: 'percentile' },
+      props: {},
+      blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 1, name: 'customer satisfaction q1', items: ['customer satisfaction q1'] },
+        { id: 2, name: 'x4', items: ['x4'] },
+        { id: 3, name: 'x7', items: ['x7'] },
+      ],
+      paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }, { from: 1, to: 3 }],
+    },
+    expect: ['Model is saturated (df = 0)', 'Table 6: Structural paths'],
+  },
+
   // cb-sem moderation: SN/TA/TI matched interaction (spike §2, docs/superpowers/reviews/2026-07-06-moderation-spike.md).
   // bootstrap reduced to 500 (spike's own count) for the native-R time budget — matches the spike's exact numbers.
   { id: 'cb-sem', fixture: 'sem-moderation.csv',
