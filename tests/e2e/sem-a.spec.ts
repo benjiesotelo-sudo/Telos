@@ -94,7 +94,10 @@ test('Journey: Cronbach\'s alpha — 3-item (interval) scale → T1 ω+α + T2 i
 
   // How to read section
   await expect(page.getByText('How to read this test')).toBeVisible()
-  await expect(page.getByText(/McDonald.*omega.*headline/i)).toBeVisible()
+  // Scoped to the how-to-read prose paragraph: the A4 citation claim also says
+  // "McDonald's omega as the headline reliability coefficient", so a bare getByText
+  // is ambiguous under strict mode.
+  await expect(page.locator('p.prose', { hasText: /McDonald.*omega.*headline/i })).toBeVisible()
 
   // ── 7. Export + unzip: assert 3-file bundle ──
   await page.getByRole('checkbox', { name: /Table images/ }).check()

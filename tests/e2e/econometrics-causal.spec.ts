@@ -66,7 +66,9 @@ test('Causal journey: IV / 2SLS, Regression discontinuity, Propensity score matc
   await expect(page.getByRole('button', { name: 'Download' })).toBeEnabled({ timeout: 480_000 })
 
   // Report-only APA sentences (softened / neutralised — no causal "had an effect", no "all SMDs < .1")
-  await expect(page.getByText(/The 2SLS estimate for/)).toBeVisible()
+  // Scoped to the APA prose paragraph: the A5 term explainer for IV also starts
+  // "The 2SLS estimate for", so a bare getByText is ambiguous under strict mode.
+  await expect(page.locator('p.prose', { hasText: /The 2SLS estimate for/ })).toBeVisible()
   await expect(page.getByText(/At the cutoff, the treatment effect was/)).toBeVisible()
   await expect(page.getByText(/After propensity-score matching, the ATT was/)).toBeVisible()
   await expect(page.getByText(/had an effect of/)).toHaveCount(0)
