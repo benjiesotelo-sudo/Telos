@@ -55,12 +55,30 @@ export function buildPca(spec: TestSpec, r: PcaResult): CardContent {
     .replace('__', String(r.retain))
     .replace('__', cumPct.toFixed(1))
 
+  // Notes (U8-T4 labelled-notes sweep, mirrors buildCbSem.ts's U3-T5 pilot): pca.ts's single tableNote.text
+  // is split into short labelled one-liners, content-preserving — every clause below maps back to a
+  // clause in the pre-split tableNote (registry-only prose, not spec-pinned; pca.consistency.test.ts only
+  // asserts `spec.tableNote` is defined, never its exact text). No dynamic note-extras exist on this card
+  // (note was always spec.tableNote verbatim), so this split is purely static.
+  const notes: CardContent['notes'] = [
+    { label: 'Method', text: 'Component loading columns expand to the number of retained components; loadings are correlation-scaled (eigenvector × √eigenvalue).' },
+    { label: 'Cutoffs', text: 'Loadings |< .32| are suppressed.' },
+    { label: 'Scope', text: 'PCA is data reduction — components are weighted composites, not latent factors; communalities are not reported (Jolliffe & Cadima, 2016; Frick et al., 2025).', afterTableId: 'component-loadings' },
+  ]
+
   return {
     tables,
-    note: spec.tableNote ?? null,
+    note: null,
+    notes,
     figures,
     howToRead: spec.howToRead,
     apa,
     nExcluded: 0,
+    // U8-T4: keyed to match the 'pca' EXPLAINERS entries (component, cumPct, eigenvalue, pc1, pc2, pc3,
+    // pctVar, variable) in registry/explainers.ts. The retained-component count and the total cumulative
+    // variance (same number the APA sentence reports) are genuine single run-level facts even though
+    // their own table (T1) is per-component; T1's eigenvalue/pctVar and T2's per-variable loadings stay
+    // generic (open-cardinality, no single "the" value).
+    values: { nComponents: r.retain, totalCumPct: cumPct.toFixed(1) },
   }
 }

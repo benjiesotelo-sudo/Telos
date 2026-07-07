@@ -68,22 +68,33 @@ export function buildAve(spec: TestSpec, r: AveResult): CardContent {
     { caption: fig.caption, type: fig.type, file: fig.file, png: figValidityPng },
   ]
 
-  // Note: tableNote is spec-defined; note on CardContent
-  const noteMsg =
+  // Notes (U8-T4 labelled-notes sweep, mirrors buildCbSem.ts's U3-T5 pilot): the single tableNote.text
+  // (ave.ts) is split into short labelled one-liners, content-preserving — every clause below maps back
+  // to a clause in the pre-split tableNote (registry-only prose, not spec-pinned; ave.consistency.test.ts
+  // only asserts `spec.tableNote` is defined, never its exact text). When < 2 constructs, T2/T3 are
+  // suppressed and the CURRENT builder-composed message (not the tableNote) is shown instead — unchanged
+  // behavior, just carried in the same `notes` shape.
+  const notes: CardContent['notes'] =
     k < 2
-      ? 'Discriminant validity (Tables 2 and 3) requires ≥ 2 constructs. Add more constructs to see the Fornell–Larcker and HTMT matrices.'
-      : null
-
-  const note: CardContent['note'] = noteMsg
-    ? { kind: 'plain', text: noteMsg }
-    : (spec.tableNote ?? null)
+      ? [{ label: 'Scope', text: 'Discriminant validity (Tables 2 and 3) requires ≥ 2 constructs. Add more constructs to see the Fornell–Larcker and HTMT matrices.' }]
+      : [
+          { label: 'Cutoffs', text: 'AVE ≥ .50 indicates adequate convergent validity, computed from the CFA loadings (Fornell & Larcker, 1981); CR ≥ .70 is acceptable (Nunnally, 1978; Bagozzi & Yi, 1988) — do not cite CR ≥ .70 to Fornell & Larcker; HTMT < .85 indicates discriminant validity for conceptually distinct constructs (Henseler, Ringle & Sarstedt, 2015).' },
+          { label: 'Reliability', text: "ω (McDonald's) is the preferred reliability coefficient — model-based, not assuming tau-equivalence (McNeish, 2018); α is retained as a secondary/legacy column." },
+          { label: 'Fornell–Larcker', text: 'Diagonal = √AVE (bold); off-diagonal = inter-construct latent correlations.', afterTableId: 'fornell-larcker' },
+          { label: 'Scope', text: 'When only 1 construct is defined, Tables 2 and 3 are suppressed (discriminant validity requires ≥ 2 constructs). Applies to reflective constructs only.', afterTableId: 'htmt' },
+        ]
 
   return {
     tables,
-    note,
+    note: null,
+    notes,
     figures,
     howToRead: spec.howToRead,
     apa: spec.apaTemplate,
     nExcluded: 0,
+    // U8-T4: keyed to match the 'ave' EXPLAINERS entries (alpha, ave, cr, omega) in registry/explainers.ts.
+    // All four are per-construct (open-cardinality — 1+ constructs), so their explainers read generically
+    // off the table rather than picking one arbitrary construct's number.
+    values: { nConstructs: k },
   }
 }

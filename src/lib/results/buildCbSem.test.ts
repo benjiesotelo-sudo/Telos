@@ -453,15 +453,30 @@ describe('buildCbSem', () => {
     expect(table.rows[5]).toMatchObject({ moderation: edge2, level: '+1SD' })
   })
 
-  it('values carries the fit indices under the rmseaLower/rmseaUpper convention the term explainer reads (U8-T3)', () => {
+  it('values carries the fit indices under the rmseaLower/rmseaUpper convention the term explainer reads (U8-T3), plus the U8-T4 measurement/structural aggregates', () => {
     const c = buildCbSem(SPEC, base)
-    expect(c.values).toEqual({ cfi: '.95', tli: '.94', rmsea: '.10', rmseaLower: '.06', rmseaUpper: '.14', srmr: '.06' })
+    expect(c.values).toEqual({
+      cfi: '.95', tli: '.94', rmsea: '.10', rmseaLower: '.06', rmseaUpper: '.14', srmr: '.06',
+      chisq: '72.46', chisqDf: '1.77', fitDf: '41', fitP: '.002',
+      itemMeanLo: '4.79', itemMeanHi: '5.05', itemSdLo: '1.14', itemSdHi: '1.29',
+      loadBLo: '1.00', loadBHi: '2.18', loadSeLo: '0.00', loadSeHi: '0.14', loadZLo: '0', loadZHi: '15.70',
+      loadPLo: '<.001', loadPHi: '<.001', stdLoadLo: '.92', stdLoadHi: '.97',
+      omegaLo: '.89', omegaHi: '.95', alphaLo: '.88', alphaHi: '.94', crLo: '.89', crHi: '.95', aveLo: '.66', aveHi: '.86',
+      nConstructs: 2, nItems: 2,
+      hCount: 4, supportedCount: 3, betaLo: '.18', betaHi: '.91', structPLo: '<.001', structPHi: '.004',
+      percLowerLo: '.25', percLowerHi: '.82', percUpperLo: '.65', percUpperHi: '1.01',
+      bcLowerLo: '.23', bcLowerHi: '.80', bcUpperLo: '.63', bcUpperHi: '.99',
+      nModerationEdges: 1,
+    })
   })
 
-  it('values is empty when fit is suppressed for saturation - no explainer line quotes an uninformative fit index', () => {
+  it('values omits fit but keeps the measurement/structural aggregates when fit is suppressed for saturation - no explainer line quotes an uninformative fit index', () => {
     const sat: CbSemResult = { ...base, saturated: true, fit: { ...base.fit!, df: 0 } }
     const c = buildCbSem(SPEC, sat)
-    expect(c.values).toEqual({})
+    expect(c.values).not.toHaveProperty('cfi')
+    expect(c.values).not.toHaveProperty('rmsea')
+    expect(c.values).not.toHaveProperty('chisq')
+    expect(c.values).toMatchObject({ itemMeanLo: '4.79', omegaLo: '.89', hCount: 4, betaLo: '.18' })
   })
 
   it('single moderation keeps the EXACT static column shape (the real registry spec object, untouched)', () => {
@@ -511,5 +526,35 @@ describe('buildCbSem — real registry specs (row keys must cover every spec col
   it('PATH_ANALYSIS: structural-paths + indirect rows fill every spec column', () => {
     const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
     assertRowsCoverSpecColumns(PATH_ANALYSIS, path, ['structural-paths', 'indirect-effects'])
+  })
+
+  it('PATH_ANALYSIS: labelled notes (U8-T4 sweep) replace the old single note, content-preserving, through the same `notes` field CB-SEM already uses', () => {
+    const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
+    const c = buildCbSem(PATH_ANALYSIS, path)
+    expect(c.note).toBeNull()
+    expect(c.notes).toEqual([
+      { label: 'Scope', text: expect.stringContaining('no latent measurement model, so no CFA loadings, reliability, or AVE are reported') },
+      { label: 'Fit', text: expect.stringContaining('global fit indices'), afterTableId: 'structural-paths' },
+      { label: 'Indirect effects', text: expect.stringContaining('bias-uncorrected percentile bootstrap 95% CIs'), afterTableId: 'indirect-effects' },
+    ])
+  })
+
+  it('PATH_ANALYSIS: saturation collapses the labelled notes to the single shared saturation flag (same as CB-SEM)', () => {
+    const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [], saturated: true, fit: { ...base.fit!, df: 0 } }
+    const c = buildCbSem(PATH_ANALYSIS, path)
+    expect(c.note).toBeNull()
+    expect(c.notes).toEqual([{ label: 'Saturation', text: expect.stringContaining('The model is saturated (df = 0)') }])
+  })
+
+  it('PATH_ANALYSIS: values carries the range aggregates the path-analysis term explainers read (U8-T4) - distinctly namespaced from cb-sem, and carries no cb-sem-only keys', () => {
+    const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
+    const c = buildCbSem(PATH_ANALYSIS, path)
+    expect(c.values).toEqual({
+      pathBLo: '0.84', pathBHi: '1.47', pathSeLo: '0.04', pathSeHi: '0.39', pathZLo: '3.70', pathZHi: '19.10',
+      pathPLo: '<.001', pathPHi: '<.001', pathBetaLo: '.45', pathBetaHi: '.91', pathR2Lo: '.20', pathR2Hi: '.97',
+      indEstLo: '1.27', indEstHi: '1.27', nPaths: 2, nIndirect: 1,
+    })
+    expect(c.values).not.toHaveProperty('hCount') // cb-sem-only structural aggregate
+    expect(c.values).not.toHaveProperty('itemMeanLo') // cb-sem-only measurement aggregate
   })
 })

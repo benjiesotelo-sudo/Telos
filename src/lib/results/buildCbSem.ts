@@ -260,12 +260,14 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     tables.push({ spec: tableSpec, rows })
   }
 
-  // Notes (U3-T5): CB-SEM (isMerged) is the labelled-notes worked example for A5 — the single giant
-  // tableNote is replaced by several bold-labelled one-liners, content-preserving (every clause from
-  // CB_SEM's old tableNote.text maps to exactly one labelled note; nothing dropped, nothing added).
-  // PATH_ANALYSIS (legacy shape) is UNCHANGED: it still consumes spec.tableNote via the single `note`
-  // field (its dynamic extras are always empty in practice, since itemSampleNote/r2NoteText/
-  // disclosureText/ciNoteText are only ever populated inside the isMerged/!isPath branches above).
+  // Notes (U3-T5 + U8-T4): CB-SEM (isMerged) was the labelled-notes worked example for A5 — the single
+  // giant tableNote is replaced by several bold-labelled one-liners, content-preserving (every clause
+  // from CB_SEM's old tableNote.text maps to exactly one labelled note; nothing dropped, nothing added).
+  // PATH_ANALYSIS (legacy shape) gets the SAME U8-T4 treatment below, reusing the mechanism, not
+  // redoing CB-SEM's decomposition. Its dynamic extras are always empty in practice (itemSampleNote/
+  // r2NoteText/disclosureText/ciNoteText are only ever populated inside the isMerged/!isPath branches
+  // above), so noteExtras below is a defensive no-op today, kept only so nothing silently drops if a
+  // future runner change ever populates one of them for path mode.
   let note: CardContent['note'] = null
   let notes: CardContent['notes']
   if (isMerged) {
@@ -295,15 +297,22 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       notes.push({ label: 'Moderation', text: disclosureText ? `${modStatic} ${disclosureText}` : modStatic })
     }
   } else {
-    // PATH_ANALYSIS legacy shape — UNCHANGED from today: single note, spec-driven.
+    // PATH_ANALYSIS labelled notes (U8-T4 sweep, reusing CB-SEM's U3-T5 mechanism — content-preserving
+    // split of pathAnalysis.ts's CURRENT tableNote.text, read in full before splitting; nothing dropped,
+    // nothing added, no new claims). No table-number references to correct here (path-analysis's
+    // tableNote never cited a "Table N"). No moderation scope-boundary sentence exists in the current
+    // tableNote/howToRead to reword either (moderation is a latent-model-only feature per §A7/U2-T4's
+    // runner guard; path-analysis's own card text simply never discusses moderation at all, so there is
+    // no stale future-tense claim carried forward here).
     const noteExtras = [itemSampleNote, r2NoteText, disclosureText, ciNoteText].filter((s): s is string => !!s)
-    note = saturated
-      ? { kind: 'plain', text: SATURATION_NOTE }
-      : spec.tableNote
-        ? { ...spec.tableNote, text: noteExtras.length ? `${spec.tableNote.text} ${noteExtras.join(' ')}` : spec.tableNote.text }
-        : noteExtras.length
-          ? { kind: 'plain', text: noteExtras.join(' ') }
-          : null
+    notes = saturated
+      ? [{ label: 'Saturation', text: SATURATION_NOTE }]
+      : [
+          { label: 'Scope', text: 'Path analysis fits directed relationships among observed variables (lavaan::sem) - no latent measurement model, so no CFA loadings, reliability, or AVE are reported.' },
+          { label: 'Fit', text: 'When the model is saturated (df = 0, e.g. a single-mediator X → M → Y chain), it fits the data perfectly by construction and global fit indices (χ², CFI, TLI, RMSEA, SRMR) are not reported; an over-identified model (df > 0) reports fit, interpreting RMSEA cautiously at small df / small N (Kenny, Kaniskan & McCoach, 2015).', afterTableId: 'structural-paths' },
+          { label: 'Indirect effects', text: 'Indirect (mediated) effects are tested with bias-uncorrected percentile bootstrap 95% CIs (5,000 resamples; MacKinnon, Lockwood & Williams, 2004); an interval excluding 0 indicates a credible indirect effect.', afterTableId: 'indirect-effects' },
+        ]
+    if (noteExtras.length) notes.push({ label: 'Notes', text: noteExtras.join(' ') })
   }
 
   // Figure 0: a placeholder slot so the bundle manifest carries figure_path-diagram.png; the REAL
@@ -317,16 +326,97 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     r.moderation && figs[1] ? { caption: figs[1].caption, type: figs[1].type, file: figs[1].file, png: r.figModSlopesPng ?? new Uint8Array(0) } : undefined,
   ].filter((x): x is NonNullable<typeof x> => x != null)
 
-  // U8-T3: keyed to match the 'cb-sem' EXPLAINERS entries (cfi, rmsea — rmseaLower/rmseaUpper convention,
-  // T1-review MUST) in registry/explainers.ts. Empty (not partially-undefined) when fit is suppressed for
-  // saturation, mirroring the fit-indices table's own `r.fit && !saturated` gate above — a saturated
-  // model's fit indices are "not informative", so no explainer line should quote them either.
-  const values: CardContent['values'] = r.fit && !saturated
+  // U8-T4: aggregate helpers for cb-sem/path-analysis's open-cardinality tables (documented aggregate
+  // convention, same as multiple-linear-regression's vifMax) — a flat `values` lookup can't hold one
+  // number per dynamic-length item/construct/path row, so several explainer keys below report the
+  // range actually observed in THIS run's table instead of picking one arbitrary row.
+  const nums = (rows: Array<Record<string, unknown>>, key: string) =>
+    rows.map((row) => Number(row[key])).filter((n) => Number.isFinite(n))
+  const rangeOf = (ns: number[], fmt: (n: number) => string) =>
+    ns.length ? { lo: fmt(Math.min(...ns)), hi: fmt(Math.max(...ns)) } : { lo: undefined, hi: undefined }
+  // Namespaces a {lo,hi} range under `${prefix}Lo`/`${prefix}Hi` so every aggregate below gets its own
+  // distinct values-object keys (no risk of two different concerns colliding on a bare `lo`/`hi`).
+  const rekey = (range: { lo: string | undefined; hi: string | undefined }, prefix: string) =>
+    ({ [`${prefix}Lo`]: range.lo, [`${prefix}Hi`]: range.hi }) as Record<string, string | undefined>
+
+  // U8-T3/U8-T4: keyed to match the 'cb-sem' EXPLAINERS entries (cfi, rmsea, tli, srmr, chisq, chisqDf,
+  // mean, sd, b, se, z, std, omega, alpha, cr, ave, beta, h, percLower, percUpper, bcLower, bcUpper,
+  // result — rmseaLower/rmseaUpper convention, T1-review MUST) and the 'path-analysis' EXPLAINERS entries
+  // (b, se, z, p, beta, ci, r2, est) in registry/explainers.ts. isMerged/isPath are mutually exclusive per
+  // call (one spec.id at a time), so the two cards' distinctly-named keys below never collide; fit values
+  // stay empty (not partially-undefined) when fit is suppressed for saturation, mirroring the fit-indices
+  // table's own `r.fit && !saturated` gate — a saturated model's fit indices are "not informative", so no
+  // explainer line should quote them either. EFA-preamble keys (kmo/bartlettChisq/df/p/f1/f2/communality)
+  // have registry entries for coverage but stay unpopulated on purpose — the E1/E2 EFA-preamble stage
+  // (design §U3-T4) isn't wired into this runner yet (r.efaSuitability/efaLoadings are still-undefined
+  // placeholders on CbSemResult), so those lines correctly self-skip via TermExplainers' guard, exactly
+  // as the E1/E2 TABLES themselves are omitted today.
+  // path-analysis's own registry spec has no 'fit-indices' table at all (only structural-paths +
+  // indirect-effects — its saturation handling is a note/flag, not a rendered fit table), so fit values
+  // are cb-sem-only, same gate as measurementValues/structuralValues below.
+  const fitValues: CardContent['values'] = !isPath && r.fit && !saturated
     ? {
         cfi: f01(r.fit.cfi), tli: f01(r.fit.tli), rmsea: f01(r.fit.rmsea),
         rmseaLower: f01(r.fit.rmseaLower), rmseaUpper: f01(r.fit.rmseaUpper), srmr: f01(r.fit.srmr),
+        chisq: f(r.fit.chisq), chisqDf: f(r.fit.chisq / r.fit.df), fitDf: fdf(r.fit.df), fitP: fp(r.fit.pvalue),
       }
     : {}
+  const meanRange = !isPath && r.itemStats.length ? rangeOf(r.itemStats.map((s) => s.mean), f) : { lo: undefined, hi: undefined }
+  const sdRange = !isPath && r.itemStats.length ? rangeOf(r.itemStats.map((s) => s.sd), f) : { lo: undefined, hi: undefined }
+  const measurementValues: CardContent['values'] = !isPath && r.cfaLoadings.length
+    ? {
+        itemMeanLo: meanRange.lo, itemMeanHi: meanRange.hi, itemSdLo: sdRange.lo, itemSdHi: sdRange.hi,
+        ...rekey(rangeOf(nums(r.cfaLoadings, 'b'), f), 'loadB'),
+        ...rekey(rangeOf(nums(r.cfaLoadings, 'se'), f), 'loadSe'),
+        ...rekey(rangeOf(nums(r.cfaLoadings, 'z'), fdf), 'loadZ'),
+        ...rekey(rangeOf(nums(r.cfaLoadings, 'p'), fp), 'loadP'),
+        ...rekey(rangeOf(nums(r.cfaLoadings, 'stdLoading'), f01), 'stdLoad'),
+        ...rekey(rangeOf(nums(r.reliability, 'omega'), f01), 'omega'),
+        ...rekey(rangeOf(nums(r.reliability, 'alpha'), f01), 'alpha'),
+        ...rekey(rangeOf(nums(r.reliability, 'cr'), f01), 'cr'),
+        ...rekey(rangeOf(nums(r.reliability, 'ave'), f01), 'ave'),
+        nConstructs: r.reliability.length, nItems: r.cfaLoadings.length,
+      }
+    : {}
+  const mergedRows = isMerged
+    ? [
+        ...(r.structural ?? []).map((row) => ({ lo: row.ciPercLower, hi: row.ciPercUpper, beta: row.stdBeta, p: row.p })),
+        ...(r.indirect ?? []).map((row) => ({ lo: row.ciPercLower, hi: row.ciPercUpper, beta: row.stdEst, p: row.p })),
+        ...(r.moderation?.rows ?? []).map((row) => ({ lo: row.ciPercLower, hi: row.ciPercUpper, beta: row.stdBeta, p: row.p })),
+      ]
+    : []
+  const structuralValues: CardContent['values'] = isMerged
+    ? {
+        hCount: mergedRows.length,
+        supportedCount: mergedRows.filter((row) => result(row.lo, row.hi) === 'Supported').length,
+        ...rekey(rangeOf(nums(mergedRows, 'beta'), f01), 'beta'),
+        ...rekey(rangeOf(nums(mergedRows, 'p'), fp), 'structP'),
+        ...rekey(rangeOf(nums(r.structural ?? [], 'ciPercLower'), f01), 'percLower'),
+        ...rekey(rangeOf(nums(r.structural ?? [], 'ciPercUpper'), f01), 'percUpper'),
+        ...rekey(rangeOf(nums(r.structural ?? [], 'ciBcLower'), f01), 'bcLower'),
+        ...rekey(rangeOf(nums(r.structural ?? [], 'ciBcUpper'), f01), 'bcUpper'),
+        nModerationEdges: new Set((r.moderation?.rows ?? []).map((row) => row.moderatorName)).size,
+        // Conditional-effects table's own 'ci' column (simple-slope boot 95% CI) — both bounds combined
+        // into one span, since (unlike the structural-paths table) it renders as a single bracketed
+        // column, not separate Lower/Upper columns.
+        ...rekey(rangeOf((r.moderation?.slopes ?? []).flatMap((s) => [s.ciPercLower, s.ciPercUpper]).filter((n) => Number.isFinite(n)), f01), 'condCi'),
+      }
+    : {}
+  const pathStructural = isPath ? (r.structural ?? []) : []
+  const pathIndirect = isPath ? (r.indirect ?? []) : []
+  const pathValues: CardContent['values'] = isPath
+    ? {
+        ...rekey(rangeOf(nums(pathStructural, 'b'), f), 'pathB'),
+        ...rekey(rangeOf([...nums(pathStructural, 'se'), ...nums(pathIndirect, 'se')], f), 'pathSe'),
+        ...rekey(rangeOf(nums(pathStructural, 'z'), fdf), 'pathZ'),
+        ...rekey(rangeOf([...nums(pathStructural, 'p'), ...nums(pathIndirect, 'p')], fp), 'pathP'),
+        ...rekey(rangeOf(nums(pathStructural, 'stdBeta'), f01), 'pathBeta'),
+        ...rekey(rangeOf(nums(pathStructural, 'r2'), f01), 'pathR2'),
+        ...rekey(rangeOf(nums(pathIndirect, 'est'), f), 'indEst'),
+        nPaths: pathStructural.length, nIndirect: pathIndirect.length,
+      }
+    : {}
+  const values: CardContent['values'] = { ...fitValues, ...measurementValues, ...structuralValues, ...pathValues }
 
   return {
     tables,
