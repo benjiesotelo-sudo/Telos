@@ -97,7 +97,7 @@ describe('chassis renders each card shape (design §5)', () => {
   it('renders a Statistical basis footer when citations are supplied (U7-T4)', () => {
     const citations = {
       whyThisTest: { text: 'x', refs: [] },
-      statisticalBasis: [{ claim: 'Independent-samples t-test', ref: { text: 'Student (1908)...' } }],
+      statisticalBasis: [{ claim: 'Independent-samples t-test', ref: { text: 'Student (1908)...', authors: 'Student', year: '1908', title: '', source: '' } }],
     }
     const html = renderToStaticMarkup(
       <ResultPreviewCard index={1} name="Name" question="q?" content={base} stale={false} running={false} onRerun={() => {}} citations={citations} />)
