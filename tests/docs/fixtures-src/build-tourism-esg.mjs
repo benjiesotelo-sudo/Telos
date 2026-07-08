@@ -8,9 +8,15 @@
 // Domain: does a tourist's perception of a destination's ESG practices (esg), subjective norm
 // (norm), and perceived service quality (service_quality) predict their intention to return
 // (intent) - and does the tourist's own environmental attitude (attitude) MODERATE the norm ->
-// intent path? Population model (per respondent, xi_* are independent ~N(0,1) exogenous factors):
+// intent path? Attitude also carries its own main effect on intent (mirroring the reference
+// paper's Travel Attitude construct, and the spike's DGP recipe in
+// .superpowers/sdd/spike-moderation/gen-moderation-data.mjs: main effect .3 + interaction .15) -
+// without it, attitude is connected to the rest of the model ONLY through a mean-zero product
+// term, which starves PLS mode-A weight estimation of any real structural signal and produces a
+// degenerate (negative rhoA) construct. Population model (per respondent, xi_* are independent
+// ~N(0,1) exogenous factors):
 //
-//   F_intent = 0.40*xi_esg + 0.35*xi_norm + 0.28*xi_sq + 0.30*(xi_norm*xi_att) + 0.75*residual
+//   F_intent = 0.40*xi_esg + 0.35*xi_norm + 0.28*xi_sq + 0.30*xi_att + 0.15*(xi_norm*xi_att) + 0.75*residual
 //
 // Each item is loading*factor + sqrt(1-loading^2)*unique-error (loadings ~0.75-0.85, a congeneric
 // model) - items load cleanly on their OWN factor only; the cross-construct correlation lives at
@@ -72,7 +78,7 @@ for (let n = 1; n <= N; n++) {
   const xiAtt = normalish(n, 300)
   const xiSq = normalish(n, 400)
   const residual = normalish(n, 500)
-  const fIntent = 0.40 * xiEsg + 0.35 * xiNorm + 0.28 * xiSq + 0.30 * (xiNorm * xiAtt) + 0.75 * residual
+  const fIntent = 0.40 * xiEsg + 0.35 * xiNorm + 0.28 * xiSq + 0.30 * xiAtt + 0.15 * (xiNorm * xiAtt) + 0.75 * residual
 
   const esg = ESG_L.map((l, k) => item(xiEsg, l, normalish(n, 110 + k)))
   const norm = NORM_L.map((l, k) => item(xiNorm, l, normalish(n, 210 + k)))
