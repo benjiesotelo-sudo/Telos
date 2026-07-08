@@ -11,6 +11,9 @@ async function dragChip(page: Page, chip: string, roleId: string) {
   await expect(async () => {
     const src = page.locator('.chip', { hasText: chip }).first()
     const dst = page.locator(`[data-role="${roleId}"]`)
+    // A tall chip pool can leave the chip below the fold (boundingBox coords past the viewport
+    // make mouse.move a silent no-op and the drag can never land) - scroll it into view first.
+    await src.scrollIntoViewIfNeeded()
     const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
     await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
     await page.mouse.down()

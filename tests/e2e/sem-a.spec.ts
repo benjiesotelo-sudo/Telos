@@ -11,6 +11,9 @@ async function dragChip(page: Page, chip: string, roleId: string) {
   await expect(async () => {
     const src = page.locator('.chip', { hasText: chip }).first()
     const dst = page.locator(`[data-role="${roleId}"]`)
+    // A tall chip pool can leave the chip below the fold (boundingBox coords past the viewport
+    // make mouse.move a silent no-op and the drag can never land) - scroll it into view first.
+    await src.scrollIntoViewIfNeeded()
     const a = (await src.boundingBox())!, b = (await dst.boundingBox())!
     await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
     await page.mouse.down()
@@ -29,11 +32,11 @@ async function runAnalysis(page: Page) {
 
 // ── Journey 1: Cronbach's alpha ───────────────────────────────────────────────
 // New machinery exercised: ω-headline reliability table + item-total statistics +
-// item-total-correlation figure + 3-file bundle.
+// item-total-correlation figure + 5-file bundle (3 images + citation kit).
 // Uses 3 items (min arity=3) set to interval; scale.csv auto-detects as ratio so
 // we set x1/x2/x3 to interval in Configure data.
 
-test('Journey: Cronbach\'s alpha — 3-item (interval) scale → T1 ω+α + T2 item-total + figure + 3-file zip', async ({ page }) => {
+test('Journey: Cronbach\'s alpha — 3-item (interval) scale → T1 ω+α + T2 item-total + figure + 5-file zip', async ({ page }) => {
   // ── 1. Upload ──
   await page.goto('/')
   await page.getByRole('button', { name: 'Get started' }).click()
@@ -99,7 +102,7 @@ test('Journey: Cronbach\'s alpha — 3-item (interval) scale → T1 ω+α + T2 i
   // is ambiguous under strict mode.
   await expect(page.locator('p.prose', { hasText: /McDonald.*omega.*headline/i })).toBeVisible()
 
-  // ── 7. Export + unzip: assert 3-file bundle ──
+  // ── 7. Export + unzip: assert 5-file bundle (3 images + citation kit) ──
   await page.getByRole('checkbox', { name: /Table images/ }).check()
   const [download] = await Promise.all([
     page.waitForEvent('download'),
@@ -110,16 +113,18 @@ test('Journey: Cronbach\'s alpha — 3-item (interval) scale → T1 ω+α + T2 i
   expect(entries).toContain('01_cronbachs-alpha/table_reliability.png')
   expect(entries).toContain('01_cronbachs-alpha/table_item-total-statistics.png')
   expect(entries).toContain('01_cronbachs-alpha/figure_item-total-correlation.png')
-  expect(entries).toHaveLength(3)
+  expect(entries).toContain('CITATIONS.txt')
+  expect(entries).toContain('references.bib')
+  expect(entries).toHaveLength(5)
 })
 
 // ── Journey 2: AVE — construct-slots UI + matrix tables ───────────────────────
 // New machinery exercised: constructsInput (ConstructSlots component: + Add construct,
 // name text field, item checkboxes), Fornell-Larcker matrix (#table-fornell-larcker),
-// HTMT matrix (#table-htmt), 4-file bundle.
+// HTMT matrix (#table-htmt), 6-file bundle (4 images + citation kit).
 // scale.csv auto-detects x1-x9 as ratio → all numeric columns appear in ConstructSlots.
 
-test('Journey: AVE — 2-construct model → T1 convergent validity + Fornell-Larcker matrix + HTMT matrix + 4-file zip', async ({ page }) => {
+test('Journey: AVE — 2-construct model → T1 convergent validity + Fornell-Larcker matrix + HTMT matrix + 6-file zip', async ({ page }) => {
   // ── 1. Upload (defaults are fine: x1-x9 ratio, all used) ──
   await page.goto('/')
   await page.getByRole('button', { name: 'Get started' }).click()
@@ -196,7 +201,7 @@ test('Journey: AVE — 2-construct model → T1 convergent validity + Fornell-La
   // How to read
   await expect(page.getByText('How to read this test')).toBeVisible()
 
-  // ── 6. Export + unzip: assert 4-file bundle ──
+  // ── 6. Export + unzip: assert 6-file bundle (4 images + citation kit) ──
   await page.getByRole('checkbox', { name: /Table images/ }).check()
   const [download] = await Promise.all([
     page.waitForEvent('download'),
@@ -208,15 +213,17 @@ test('Journey: AVE — 2-construct model → T1 convergent validity + Fornell-La
   expect(entries).toContain('01_ave/table_fornell-larcker.png')
   expect(entries).toContain('01_ave/table_htmt.png')
   expect(entries).toContain('01_ave/figure_validity.png')
-  expect(entries).toHaveLength(4)
+  expect(entries).toContain('CITATIONS.txt')
+  expect(entries).toContain('references.bib')
+  expect(entries).toHaveLength(6)
 })
 
 // ── Journey 3: EFA + scree figure ─────────────────────────────────────────────
 // New machinery exercised: suitability table (KMO + Bartlett), variance-explained table,
-// scree plot figure (parallel analysis), 5-file bundle.
+// scree plot figure (parallel analysis), 7-file bundle (5 images + citation kit).
 // EFA accepts ordinal/interval/ratio — scale.csv auto-ratio is fine.
 
-test('Journey: EFA — 9-item scale (ratio) → T1 suitability + T2 variance-explained + scree figure + 5-file zip', async ({ page }) => {
+test('Journey: EFA — 9-item scale (ratio) → T1 suitability + T2 variance-explained + scree figure + 7-file zip', async ({ page }) => {
   // ── 1. Upload ──
   await page.goto('/')
   await page.getByRole('button', { name: 'Get started' }).click()
@@ -278,7 +285,7 @@ test('Journey: EFA — 9-item scale (ratio) → T1 suitability + T2 variance-exp
   // How to read
   await expect(page.getByText('How to read this test')).toBeVisible()
 
-  // ── 6. Export + unzip: assert 5-file bundle ──
+  // ── 6. Export + unzip: assert 7-file bundle (5 images + citation kit) ──
   // (table_interfactor-correlations.png is only present when rotation=oblimin AND phi is non-null;
   //  parallel analysis on this dataset retains ≥2 factors so phi is emitted)
   await page.getByRole('checkbox', { name: /Table images/ }).check()
@@ -296,5 +303,7 @@ test('Journey: EFA — 9-item scale (ratio) → T1 suitability + T2 variance-exp
   // The 5th file (interfactor-correlations) is emitted for oblimin when ≥2 factors retained
   // (parallel analysis on 9 Holzinger-Swineford items retains 3 factors — confirmed by native R)
   expect(entries).toContain('01_efa/table_interfactor-correlations.png')
-  expect(entries).toHaveLength(5)
+  expect(entries).toContain('CITATIONS.txt')
+  expect(entries).toContain('references.bib')
+  expect(entries).toHaveLength(7)
 })
