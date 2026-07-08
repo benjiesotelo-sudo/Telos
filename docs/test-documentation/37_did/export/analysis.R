@@ -19,7 +19,7 @@ print(lmtest::coefci(fit, vcov. = V, level = 0.95))
 print(summary(fit))
 # Raw 2x2 group-period means (R1 gap-fix) - the parallel-trends figure only shows this visually
 print(aggregate(employment ~ tr + po, data = d, FUN = mean))
-# Figure — parallel-trends plot (group means over time, treatment onset marked)
+# Figure - parallel-trends plot (group means over time, treatment onset marked)
 # mirror did.ts: aggregate over LISTWISE-complete rows; rank a non-numeric time axis to integer order
 keep <- is.finite(suppressWarnings(as.numeric(d$employment))) &
   !is.na(d$treated) & trimws(as.character(d$treated)) != "" &

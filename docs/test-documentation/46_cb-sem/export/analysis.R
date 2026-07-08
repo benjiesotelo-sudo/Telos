@@ -39,11 +39,11 @@ if (length(mod_ids) > 0) {
 }
 
 
-# Single awaited bootstrap fit for mediation/moderation (no RNG chunking — preserves WebR≡native parity).
+# Single awaited bootstrap fit for mediation/moderation (no RNG chunking - preserves WebR≡native parity).
 gc()
 set.seed(20260620)
 fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = 1000)
-# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws — both recompute CIs off
+# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws - both recompute CIs off
 # fit@boot without re-running the bootstrap (design §A2; matches runCbSem.ts exactly).
 pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)
 pe_bc   <- lavaan::parameterEstimates(fit, boot.ci.type = "bca.simple", level = 0.95)
@@ -58,18 +58,18 @@ ss <- lavaan::standardizedSolution(fit)
 # table would collide on every unlabeled row (label == "" for most non-structural parameters).
 pair_key <- function(dfr) paste(dfr$lhs, dfr$rhs, sep = "\u0001")
 
-# ---- Table 3: Measurement model (CFA) — B / SE / z / p / Std. loading ----
+# ---- Table 3: Measurement model (CFA) - B / SE / z / p / Std. loading ----
 cat("\n--- Table 3: Measurement model (CFA) ---\n")
 print(ss[ss$op == "=~", c("lhs","rhs","est.std")])
 
-# ---- Table 4: Reliability & validity — CR / AVE / ω / α ----
-# Do NOT call semTools::reliability() — deprecated 2022.
+# ---- Table 4: Reliability & validity - CR / AVE / ω / α ----
+# Do NOT call semTools::reliability() - deprecated 2022.
 cr_vec  <- unlist(semTools::compRelSEM(fit))
 ave_vec <- semTools::AVE(fit)
 cat("\n--- Table 4: Reliability & validity ---\n")
 print(round(rbind(CR = cr_vec, AVE = ave_vec[names(cr_vec)]), 3))
 
-# ---- Table 5: Fit indices (suppressed strictly when df == 0 — saturated) ----
+# ---- Table 5: Fit indices (suppressed strictly when df == 0 - saturated) ----
 # Shared predicate: byte-identical to the app screen (src/lib/stats/semSaturation.ts R_SATURATED_PREDICATE).
 if (!(as.numeric(lavaan::fitMeasures(fit, "df")) == 0)) {
   fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",

@@ -7,7 +7,7 @@ d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · PLS-SEM ===
 # ---- PLS-SEM via seminr (estimate_pls + bootstrap_model) ----
-# WebR/WASM has no PSOCK sockets — install the serial-cluster shim before seminr bootstraps.
+# WebR/WASM has no PSOCK sockets - install the serial-cluster shim before seminr bootstraps.
 local({
   ns <- asNamespace("parallel")
   mk <- function(...) structure(list(), class = c("telosSerialCluster", "SOCKcluster", "cluster"))
@@ -235,6 +235,6 @@ p_slopes <- ggplot2::ggplot(df_plot, ggplot2::aes(x = level, y = b)) +
 if (length(unique(mods)) > 1) p_slopes <- p_slopes + ggplot2::facet_wrap(~ moderation, ncol = 1)
 print(p_slopes)
 
-# Figure: path diagram — semPaths stand-in (the app exports the annotated SVG via html-to-image)
+# Figure: path diagram - semPaths stand-in (the app exports the annotated SVG via html-to-image)
 cat("\n--- Figure: PLS path diagram (semPaths reproducible stand-in) ---\n")
 tryCatch(print(plot(pls)), error = function(e) cat("(diagram skipped:", conditionMessage(e), ")\n"))

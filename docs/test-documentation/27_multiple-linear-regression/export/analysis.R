@@ -13,7 +13,7 @@ m <- lm(exam_score ~ pretest_score + study_hours_per_week + teaching_method, dat
 modelsummary(list("(1)" = m), statistic = c("std.error", "conf.int"), stars = FALSE, fmt = 3, gof_map = c("nobs", "r.squared", "adj.r.squared", "aic", "bic", "logLik", "rmse"), output = "markdown")
 print(parameters::standardise_parameters(m, method = "refit", ci = 0.95))
 print(car::vif(m))
-# Figure 1 — residual diagnostics (fitted-vs-residual + Normal Q-Q)
+# Figure 1 - residual diagnostics (fitted-vs-residual + Normal Q-Q)
 r <- residuals(m); fv <- fitted(m); nn <- length(r)
 panels <- rbind(
   data.frame(panel = "Residuals vs fitted", x = fv, y = r),
@@ -25,7 +25,7 @@ refs <- data.frame(panel = factor(c("Residuals vs fitted", "Normal Q-Q"), levels
 print(ggplot(panels, aes(x, y)) +
   geom_abline(data = refs, aes(slope = slope, intercept = intercept), colour = "#9cc2ec", linetype = "dashed") +
   geom_point(colour = "#0c447c") + facet_wrap(~panel, scales = "free") + labs(x = NULL, y = NULL))
-# Figure 2 — standardized coefficient plot (95% CI), intercept excluded
+# Figure 2 - standardized coefficient plot (95% CI), intercept excluded
 sp <- parameters::standardise_parameters(m, method = "refit", ci = 0.95)
 sp <- sp[sp$Parameter != "(Intercept)", ]
 sp$Parameter <- factor(sp$Parameter, levels = rev(sp$Parameter))

@@ -18,7 +18,7 @@ model_str <- "esg =~ esg1 + esg2 + esg3 + esg4\nnorm =~ norm1 + norm2 + norm3 + 
 fit <- lavaan::cfa(model_str, data = d, std.lv = FALSE)
 
 # CR (= ω for congeneric) and AVE per construct
-# Do NOT call semTools::reliability() — deprecated 2022.
+# Do NOT call semTools::reliability() - deprecated 2022.
 cr_vec  <- unlist(semTools::compRelSEM(fit))
 ave_vec <- semTools::AVE(fit)
 

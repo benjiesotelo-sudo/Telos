@@ -18,7 +18,7 @@ fit <- vars::VAR(vdf, p = selected_lag, type = 'const')
 for (eq in names(fit$varresult)) { cat("\n== Equation:", eq, "==\n"); print(summary(fit$varresult[[eq]])$coefficients); print(confint(fit$varresult[[eq]])) }
 # Forecast-error variance decomposition at the IRF horizon
 print(vars::fevd(fit, n.ahead = 10))
-# Stability — max companion-eigenvalue modulus (< 1 = stable)
+# Stability - max companion-eigenvalue modulus (< 1 = stable)
 print(max(vars::roots(fit)))
-# Figure — impulse-response functions
+# Figure - impulse-response functions
 plot(vars::irf(fit, n.ahead = 10, boot = TRUE))

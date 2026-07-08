@@ -11,5 +11,5 @@ print(summary(rd))
 h0 <- rd$bws[1, 1]
 print(summary(rdrobust::rdrobust(d$later_gpa, d$entrance_score, c = 60, p = 1, level = 95, h = h0 / 2)))
 print(summary(rdrobust::rdrobust(d$later_gpa, d$entrance_score, c = 60, p = 1, level = 95, h = h0 * 2)))
-# Figure — RD plot (binned scatter + fitted lines either side of the cutoff)
+# Figure - RD plot (binned scatter + fitted lines either side of the cutoff)
 print(rdrobust::rdplot(d$later_gpa, d$entrance_score, c = 60, hide = TRUE)$rdplot)

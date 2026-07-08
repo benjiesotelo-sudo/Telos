@@ -22,7 +22,7 @@ omnibus_df <- m$df.null - m$df.residual
 omnibus_p <- pchisq(omnibus, omnibus_df, lower.tail = FALSE)
 print(c(omnibus_chisq = omnibus, df = omnibus_df, p = omnibus_p))
 print(performance::r2_nagelkerke(m))
-# Classification table — cutoff P(event) >= 0.5, rows = predicted level
+# Classification table - cutoff P(event) >= 0.5, rows = predicted level
 p <- fitted(m)
 pred <- factor(ifelse(p >= 0.5, "Yes", oth[1]), levels = levels(d$passed_course))
 tab <- table(pred, d$passed_course)
@@ -31,7 +31,7 @@ print(tab)
 cat("Accuracy:", sum(diag(tab)) / sum(tab), "\n")
 cat("Sensitivity:", tab["Yes", "Yes"] / sum(tab[, "Yes"]), "\n")
 cat("Specificity:", tab[oth[1], oth[1]] / sum(tab[, oth[1]]), "\n")
-# ROC curve + AUC (+ 95% CI, R1 gap-fix — pROC::ci.auc, DeLong method, deterministic)
+# ROC curve + AUC (+ 95% CI, R1 gap-fix - pROC::ci.auc, DeLong method, deterministic)
 roc_obj <- pROC::roc(d$passed_course, p, quiet = TRUE)
 auc_val <- as.numeric(pROC::auc(roc_obj))
 print(pROC::ci.auc(roc_obj))

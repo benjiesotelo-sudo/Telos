@@ -23,7 +23,7 @@ cat("Within R2:", cor(dm2(d$growth), dm2(xb))^2, "\n")
 agg <- aggregate(cbind(yy, xbxb) ~ idid, data.frame(idid = id2, yy = d$growth, xbxb = xb), mean)
 cat("Between R2:", cor(agg$yy, agg$xbxb)^2, "\n")
 cat("Overall R2:", cor(d$growth, xb)^2, "\n")
-# Figure — coefficient plot (95% CI), intercept excluded
+# Figure - coefficient plot (95% CI), intercept excluded
 ci <- lmtest::coefci(fit, vcov. = V, level = 0.95); est <- coef(fit); labs <- names(est)
 keep <- labs != "(Intercept)"
 pf <- data.frame(term = factor(labs[keep], levels = rev(labs[keep])), b = unname(est[keep]), lo = ci[keep, 1], hi = ci[keep, 2])

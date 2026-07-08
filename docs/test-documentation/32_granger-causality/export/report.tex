@@ -30,7 +30,7 @@ Lag & AIC & BIC & HQ \\
 
 \includegraphics{figures/01_granger-causality/figure_cross-series.png}
 
-A significant X$\rightarrow$Y p means past values of X help predict Y beyond Y's own past --- this is predictive precedence, not proof that X causes Y. Check both directions. The result depends entirely on the lag order (this card uses a max lag of 4): choose it on theory or by an information criterion --- vars::VARselect reports the AIC- and BIC-minimising lag --- and report it, since different lags can flip the conclusion. Make both series stationary first. Method: R lmtest::grangertest (Granger, 1969). Your significance threshold ($\alpha$) is 0.05.
+A significant X$\rightarrow$Y p means past values of X help predict Y beyond Y's own past - this is predictive precedence, not proof that X causes Y. Check both directions. The result depends entirely on the lag order (this card uses a max lag of 4): choose it on theory or by an information criterion - vars::VARselect reports the AIC- and BIC-minimising lag - and report it, since different lags can flip the conclusion. Make both series stationary first. Method: R lmtest::grangertest (Granger, 1969). Your significance threshold ($\alpha$) is 0.05.
 
 Granger test X$\rightarrow$Y: F(4,111)=122.15, p $<$ .001; Y$\rightarrow$X: F(4,111)=3.42, p = .011 (lag=4).
 

@@ -14,7 +14,7 @@ m <- glm(absences ~ teaching_method + gender + offset(log(weeks_enrolled)), fami
 modelsummary(list("Odds ratio" = m), exponentiate = TRUE, statistic = "conf.int", stars = FALSE, fmt = 3, gof_map = c("nobs", "r.squared", "adj.r.squared", "aic", "bic", "logLik", "rmse"), output = "markdown")
 # Poisson dispersion ratio (overdispersion)
 print(performance::check_overdispersion(m)$dispersion_ratio)
-# Figure — fitted vs. Pearson residuals
+# Figure - fitted vs. Pearson residuals
 pd <- data.frame(fitted = fitted(m), resid = residuals(m, type = "pearson"))
 print(ggplot(pd, aes(fitted, resid)) +
   geom_hline(yintercept = 0, colour = "#9cc2ec", linetype = "dashed") +

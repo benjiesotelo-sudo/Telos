@@ -37,7 +37,7 @@ Treated & 60.65 & 61.06 \\
 
 \includegraphics{figures/01_did/figure_parallel-trends.png}
 
-The Treated$\times$Post coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups would have moved together absent treatment. Similar pre-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it --- a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated$\times$time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends. Method: R plm package with clustered standard errors (Croissant \& Millo, 2008; Bertrand, Duflo \& Mullainathan, 2004). Your significance threshold ($\alpha$) is 0.05.
+The Treated$\times$Post coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups would have moved together absent treatment. Similar pre-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it - a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated$\times$time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends. Method: R plm package with clustered standard errors (Croissant \& Millo, 2008; Bertrand, Duflo \& Mullainathan, 2004). Your significance threshold ($\alpha$) is 0.05.
 
 The DiD estimate was B=$-$1.92, 95\% CI [$-$2.07, $-$1.76], p $<$ .001 (clustered SE).
 

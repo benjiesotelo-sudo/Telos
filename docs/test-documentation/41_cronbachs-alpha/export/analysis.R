@@ -22,7 +22,7 @@ print(a_obj$item.stats)
 print(a_obj$alpha.drop)
 
 # ---- McDonald's ω via 1-factor CFA + semTools::compRelSEM ----
-# Do NOT call semTools::reliability() — deprecated 2022.
+# Do NOT call semTools::reliability() - deprecated 2022.
 model <- paste0("f =~ ", paste(items, collapse = " + "))
 fit <- lavaan::cfa(model, data = d_items, std.lv = TRUE)
 omega_val <- as.numeric(semTools::compRelSEM(fit)$f)

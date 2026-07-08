@@ -21,7 +21,7 @@ cat("Between R2:", cor(agg$yy, agg$xbxb)^2, "\n")
 cat("Overall R2:", cor(d$growth, xb)^2, "\n")
 # Poolability F-test (within vs pooled OLS)
 print(plm::pFtest(fit, plm::plm(growth ~ investment + education_spend + urbanization, data = pdat, model = 'pooling')))
-# Figure — within-estimate coefficient plot (95% CI)
+# Figure - within-estimate coefficient plot (95% CI)
 ci <- lmtest::coefci(fit, vcov. = V, level = 0.95); est <- coef(fit); labs <- names(est)
 pf <- data.frame(term = factor(labs, levels = rev(labs)), b = unname(est), lo = ci[, 1], hi = ci[, 2])
 print(ggplot(pf, aes(x = b, y = term)) +

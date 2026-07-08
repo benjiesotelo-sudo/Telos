@@ -33,7 +33,7 @@ BIC & 1388.95 &  \\
 
 \includegraphics{figures/01_poisson-negative-binomial/figure_residuals.png}
 
-Models event counts. Each predictor's incidence-rate ratio (IRR) gives the multiplicative change in the expected count per unit ($>$1 more, $<$1 fewer); p tests significance. Check dispersion to pick Poisson vs. negative binomial. If cases have unequal exposure (different observation time/area/population), add an offset of log(exposure) so the model predicts rates, not raw counts --- omitting it biases the IRRs. Your significance threshold ($\alpha$) is 0.05.
+Models event counts. Each predictor's incidence-rate ratio (IRR) gives the multiplicative change in the expected count per unit ($>$1 more, $<$1 fewer); p tests significance. Check dispersion to pick Poisson vs. negative binomial. If cases have unequal exposure (different observation time/area/population), add an offset of log(exposure) so the model predicts rates, not raw counts - omitting it biases the IRRs. Your significance threshold ($\alpha$) is 0.05.
 
 Predictor teaching\_method: Flipped was associated with the count, IRR=0.57, 95\% CI [0.49, 0.67], p $<$ .001.
 

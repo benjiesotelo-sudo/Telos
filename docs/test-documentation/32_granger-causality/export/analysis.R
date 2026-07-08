@@ -16,7 +16,7 @@ print(lmtest::grangertest(d$gdp_growth ~ d$unemployment, order = 4))
 # Lag-order selection table (R1 gap-fix, advisory only) - the tests above use the fixed max lag
 safe_max <- max(1L, min(4L, floor((nrow(dd_ord) - 1L) / 2L)))
 print(vars::VARselect(data.frame(x = dd_ord$gdp_growth, y = dd_ord$unemployment), lag.max = safe_max, type = "const")$criteria)
-# Figure — cross-series time plot
+# Figure - cross-series time plot
 nn <- nrow(dd_ord); idx <- seq_len(nn)
 gdf <- rbind(data.frame(t = idx, value = dd_ord$gdp_growth, series = "gdp_growth"),
              data.frame(t = idx, value = dd_ord$unemployment, series = "unemployment"))

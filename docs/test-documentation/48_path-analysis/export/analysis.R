@@ -11,11 +11,11 @@ d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 # ---- CB-SEM via lavaan::sem (measurement + structural + indirect + moderation) ----
 model_str <- "norm_score ~ p_0_1*esg_score\nintent_score ~ p_1_2*norm_score + p_0_2*esg_score\nie_0_1_2 := p_0_1*p_1_2"
 
-# Single awaited bootstrap fit for mediation/moderation (no RNG chunking — preserves WebR≡native parity).
+# Single awaited bootstrap fit for mediation/moderation (no RNG chunking - preserves WebR≡native parity).
 gc()
 set.seed(20260620)
 fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = 1000)
-# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws — both recompute CIs off
+# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws - both recompute CIs off
 # fit@boot without re-running the bootstrap (design §A2; matches runCbSem.ts exactly).
 pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)
 pe_bc   <- lavaan::parameterEstimates(fit, boot.ci.type = "bca.simple", level = 0.95)
@@ -30,7 +30,7 @@ ss <- lavaan::standardizedSolution(fit)
 # table would collide on every unlabeled row (label == "" for most non-structural parameters).
 pair_key <- function(dfr) paste(dfr$lhs, dfr$rhs, sep = "\u0001")
 
-# ---- Table 5: Fit indices (suppressed strictly when df == 0 — saturated) ----
+# ---- Table 5: Fit indices (suppressed strictly when df == 0 - saturated) ----
 # Shared predicate: byte-identical to the app screen (src/lib/stats/semSaturation.ts R_SATURATED_PREDICATE).
 if (!(as.numeric(lavaan::fitMeasures(fit, "df")) == 0)) {
   fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",

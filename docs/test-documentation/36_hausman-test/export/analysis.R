@@ -21,7 +21,7 @@ re_ci <- lmtest::coefci(re, vcov. = re_vc, level = 0.95)
 cmp <- data.frame(term = terms, FE = unname(coef(fe)[terms]), RE = unname(coef(re)[terms]),
                   Difference = unname(coef(fe)[terms] - coef(re)[terms]))
 print(cmp)
-# Figure — side-by-side FE vs RE coefficient plot (clustered 95% CIs, dodged)
+# Figure - side-by-side FE vs RE coefficient plot (clustered 95% CIs, dodged)
 pdat2 <- rbind(
   data.frame(term = terms, model = "FE", est = unname(coef(fe)[terms]), lo = fe_ci[terms, 1], hi = fe_ci[terms, 2]),
   data.frame(term = terms, model = "RE", est = unname(coef(re)[terms]), lo = re_ci[terms, 1], hi = re_ci[terms, 2]))

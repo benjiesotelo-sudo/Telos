@@ -42,7 +42,7 @@ for (ci in seq_len(k_retain)) {
               ci, eigenvalues[ci], pct_var[ci]*100, cumulative[ci]*100))
 }
 
-# ---- Table 2: Correlation-scaled loadings (NO communality — PCA is data reduction) ----
+# ---- Table 2: Correlation-scaled loadings (NO communality - PCA is data reduction) ----
 # Correlation-scaled loading = eigenvector × sqrt(eigenvalue) = rotation col × sdev
 load_mat <- sweep(prcomp_obj$rotation[, seq_len(k_retain), drop = FALSE], 2, prcomp_obj$sdev[seq_len(k_retain)], "*")
 cat("\n--- Table 2: Component loadings (correlation-scaled) ---\n")

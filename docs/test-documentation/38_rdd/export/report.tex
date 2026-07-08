@@ -19,14 +19,14 @@ RD treatment effect & 0.35 \\
 Bandwidth & 12.97 \\
 N (left) & 49 \\
 N (right) & 45 \\
-\multicolumn{2}{l}{Bandwidth sensitivity --- half h (6.49): estimate = 0.36, 95\% CI [0.18, 0.65]} \\
-\multicolumn{2}{l}{Bandwidth sensitivity --- double h (25.94): estimate = 0.35, 95\% CI [0.24, 0.48]} \\
+\multicolumn{2}{l}{Bandwidth sensitivity - half h (6.49): estimate = 0.36, 95\% CI [0.18, 0.65]} \\
+\multicolumn{2}{l}{Bandwidth sensitivity - double h (25.94): estimate = 0.35, 95\% CI [0.24, 0.48]} \\
 \bottomrule
 \end{tabular}
 
 \includegraphics{figures/01_rdd/figure_rd-plot.png}
 
-Estimates the jump in the outcome right at the cutoff --- the estimate is the treatment effect for cases near the threshold. p/CI assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold --- the footer reports the McCrary density test (a small p flags sorting/manipulation at the cutoff); also run covariate-balance / placebo checks. Method: R rdrobust package (Calonico, Cattaneo \& Titiunik, 2014, 2015).
+Estimates the jump in the outcome right at the cutoff - the estimate is the treatment effect for cases near the threshold. p/CI assess it; the RD plot shows the discontinuity visually. The jump is causal only if subjects cannot control which side of the cutoff they land on and nothing else changes at the same threshold - the footer reports the McCrary density test (a small p flags sorting/manipulation at the cutoff); also run covariate-balance / placebo checks. Method: R rdrobust package (Calonico, Cattaneo \& Titiunik, 2014, 2015).
 
 At the cutoff, the treatment effect was 0.35, 95\% CI [0.21, 0.49], p $<$ .001.
 

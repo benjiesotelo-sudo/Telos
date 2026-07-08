@@ -19,7 +19,7 @@ print(c(AIC = AIC(fit), BIC = BIC(fit), logLik = as.numeric(logLik(fit)), sigma2
 fc <- forecast::forecast(fit, h = 8, level = c(80, 95))
 print(fc)
 print(forecast::autoplot(fc) + labs(x = "quarter", y = "gdp_growth") + theme_minimal())
-# Residual diagnostics — residual ACF + Normal Q-Q
+# Residual diagnostics - residual ACF + Normal Q-Q
 r <- as.numeric(residuals(fit)); nn <- length(r); ac <- acf(r, plot = FALSE)
 panels <- rbind(
   data.frame(panel = "Residual ACF", x = as.numeric(ac$lag[-1]), y = as.numeric(ac$acf[-1])),

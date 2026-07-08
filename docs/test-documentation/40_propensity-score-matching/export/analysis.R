@@ -18,7 +18,7 @@ att <- lm(post_earnings ~ treat, data = md, weights = md$weights)
 V <- sandwich::vcovCL(att, cluster = md$subclass)
 print(lmtest::coeftest(att, vcov. = V))
 print(lmtest::coefci(att, vcov. = V, level = 0.95))
-# Figure — love plot (|SMD| per covariate, unmatched vs matched, ref line at 0.1)
+# Figure - love plot (|SMD| per covariate, unmatched vs matched, ref line at 0.1)
 sm <- summary(m); covn <- c("age", "education_years", "prior_earnings")
 lp <- data.frame(cov = rep(covn, 2),
   smd = abs(c(sm$sum.all[covn, "Std. Mean Diff."], sm$sum.matched[covn, "Std. Mean Diff."])),
