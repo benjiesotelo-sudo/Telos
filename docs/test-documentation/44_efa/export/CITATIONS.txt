@@ -18,7 +18,7 @@ Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/z
 
 3. METHODS PARAGRAPH
 =====================
-  Exploratory factor analysis (EFA): EFA (KMO = .83, Bartlett's χ²(55) = 2134.6, p < .001) with parallel analysis retained 3 factors explaining 63.5% of variance (oblimin rotation). (Watkins, 2018)
+  Exploratory factor analysis (EFA): EFA (KMO = .83, Bartlett's χ²(55) = 2117.6, p < .001) with parallel analysis retained 3 factors explaining 63.3% of variance (oblimin rotation). (Watkins, 2018)
 
 4. APPENDIX: R PACKAGE CITATIONS
 =================================

@@ -20,7 +20,7 @@ Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/z
 
 3. METHODS PARAGRAPH
 =====================
-  PLS-SEM: In the PLS-SEM, the path from esg to intent gave β=.33, p < .001 (bootstrap); R²Y=.25. (Hair, 2019)
+  PLS-SEM: In the PLS-SEM, the path from esg to intent gave β=.35, p < .001 (bootstrap); R²Y=.34. (Hair, 2019)
 
 4. APPENDIX: R PACKAGE CITATIONS
 =================================

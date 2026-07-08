@@ -17,7 +17,7 @@ Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/z
 
 3. METHODS PARAGRAPH
 =====================
-  Principal component analysis (PCA): PCA (correlation matrix; parallel analysis) retained 3 components explaining 73.3% of total variance. (Jolliffe, 2016)
+  Principal component analysis (PCA): PCA (correlation matrix; parallel analysis) retained 3 components explaining 73.2% of total variance. (Jolliffe, 2016)
 
 4. APPENDIX: R PACKAGE CITATIONS
 =================================
