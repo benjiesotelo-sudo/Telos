@@ -90,7 +90,7 @@ describe('buildExportFiles (Task 10)', () => {
     expect(bib).toContain('Sotelo, B.')
   })
 
-  it('figures-only writes NN_id/figure_*.png and no string artifacts', () => {
+  it('figures-only writes NN_id/figure_*.png, no R/tex/licenses, but still ships CITATIONS.txt + references.bib', () => {
     const files = buildExportFiles(session(), { tables: false, figures: true, pdf: false, latex: false, r: false })
     const keys = Object.keys(files)
     expect(keys).toContain('01_simple-linear-regression/figure_fit.png')
@@ -98,6 +98,22 @@ describe('buildExportFiles (Task 10)', () => {
     expect(keys).not.toContain('analysis.R')
     expect(keys).not.toContain('report.tex')
     expect(keys).not.toContain('LICENSES.txt')
+    // The results-card footer promises "Full references in the exported CITATIONS.txt" unconditionally -
+    // a figures-only (or tables-only) download must honor that, not just r/latex exports.
+    expect(keys).toContain('CITATIONS.txt')
+    expect(keys).toContain('references.bib')
+  })
+
+  it('tables-only also ships CITATIONS.txt + references.bib (same promise, not just figures/r/latex)', () => {
+    const files = buildExportFiles(session(), { tables: true, figures: false, pdf: false, latex: false, r: false })
+    const keys = Object.keys(files)
+    expect(keys).toContain('CITATIONS.txt')
+    expect(keys).toContain('references.bib')
+  })
+
+  it('pdf-only (no tables/figures/r/latex) stays empty - printReport is the only artifact, no spurious zip', () => {
+    const files = buildExportFiles(session(), { tables: false, figures: false, pdf: true, latex: false, r: false })
+    expect(Object.keys(files)).toEqual([])
   })
 
   it('skips stale runs', () => {

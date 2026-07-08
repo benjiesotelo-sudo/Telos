@@ -34,9 +34,10 @@ const enc = (str: string): Uint8Array => new TextEncoder().encode(str)
 // keeping this testable in the node env. Over the fresh tests (non-stale runs, in selection
 // order; folder NN = 1-based padded):
 //   figures → NN_id/figure_<file??type>.png · latex → ALSO figures/NN_id/...png (so report.tex
-//   resolves) + report.tex · r → analysis.R + cleaned.csv · r|latex → LICENSES.txt + CITATIONS.txt
-//   + references.bib (all three scoped to the formats whose bundled R packages/fonts they
-//   credit/cite — note for review).
+//   resolves) + report.tex · r → analysis.R + cleaned.csv · r|latex → LICENSES.txt (scoped: only
+//   those formats bundle R packages/fonts to credit) · tables|figures|r|latex → CITATIONS.txt
+//   + references.bib (ship with every content download; excluded only when PDF is the sole tick,
+//   since that path produces no zip at all).
 export function buildExportFiles(s: SessionState, formats: ExportFormats): Record<string, Uint8Array> {
   const files: Record<string, Uint8Array> = {}
   const fresh = s.selection.filter((id) => s.runs[id] && !s.runs[id].stale)
@@ -67,8 +68,15 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
     files['analysis.R'] = enc(emitRScript(fresh, exportSetups, SPECS, workingDataset(s))); files['cleaned.csv'] = enc(toCsv(workingDataset(s)))
   }
   if (formats.r || formats.latex) files['LICENSES.txt'] = enc(licensesText())
-  if (formats.r || formats.latex) files['CITATIONS.txt'] = enc(citationsText(s.selection, apaById))
-  if (formats.r || formats.latex) files['references.bib'] = enc(referencesBibText(s.selection))
+  // CITATIONS.txt + references.bib ship with EVERY content download (tables/figures/r/latex, any
+  // combination) - the results-card footer promises "Full references in the exported CITATIONS.txt"
+  // unconditionally, and these are tiny text files, so there's no reason to gate them behind r/latex.
+  // Excluded only when PDF is the sole tick: that path never produces a zip (printReport() is the
+  // only artifact), so adding these here would create a spurious download the user didn't ask for.
+  if (formats.tables || formats.figures || formats.r || formats.latex) {
+    files['CITATIONS.txt'] = enc(citationsText(s.selection, apaById))
+    files['references.bib'] = enc(referencesBibText(s.selection))
+  }
   return files
 }
 
