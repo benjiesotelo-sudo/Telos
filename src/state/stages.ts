@@ -47,13 +47,27 @@ export function railModel(s: SessionState): RailModel {
   })
   // welcome: Upload reads as current (the journey's door), nothing done
   if (cur === -1) stages[0].state = 'current'
-  let fraction = steps.length > 1 ? Math.max(0, cur) / (steps.length - 1) : 0
+  // Fraction is driven by the fixed 5-stage rail, NEVER by selection count: the raw `steps` array
+  // grows by one entry per selected test (one `test:*` step per test), which used to leak into the
+  // thread math (cur / steps.length) and made the fill overshoot with 1 test / undershoot with many.
+  // Ground it in stage position instead - a segment per stage boundary - so the thread never paints
+  // past the current stage's node. The lone exception is Configure's sub-dots: they legitimately
+  // advance the thread WITHIN the Configure→Results segment, proportional to test 1..N progress.
+  const numStages = stages.length
+  const curStageIdx = stages.findIndex((st) => st.state === 'current')
+  let fraction = curStageIdx < 0 ? 0 : curStageIdx / (numStages - 1)
+  if (curStageIdx >= 0 && stages[curStageIdx].sub.length > 0) {
+    const sub = stages[curStageIdx].sub
+    const curSubIdx = sub.findIndex((d) => d.state === 'current')
+    const within = curSubIdx >= 0 ? curSubIdx / sub.length : 0
+    fraction = (curStageIdx + within) / (numStages - 1)
+  }
   // spec §3: while a run is active the rail fill IS the live progress line and Results carries the counter
   if (running) {
     const total = s.selection.length
     const done = s.selection.filter((id) => s.runs[id] && !s.runs[id].stale).length
     stages[4].sublabel = `running · test ${Math.min(done + 1, Math.max(total, 1))} of ${Math.max(total, 1)}`
-    if (steps.length > 1) fraction = (steps.length - 2 + (total ? done / total : 0)) / (steps.length - 1)
+    fraction = (numStages - 2 + (total ? done / total : 0)) / (numStages - 1)
   }
   return { stages, fraction, frac: `${Math.max(0, cur) + 1} / ${steps.length}` }
 }

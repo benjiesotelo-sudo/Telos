@@ -73,6 +73,31 @@ describe('railModel', () => {
     expect(m.fraction).toBe(0)
   })
 
+  it('thread fraction at Pick tests is identical regardless of selection count (bug: selection count must never skew a pre-Configure fraction)', () => {
+    load(); useSession.getState().visitGuide(); useSession.getState().goTo('pick-tests')
+    useSession.getState().toggleSelection('independent-t-test')
+    const oneSelected = railModel(useSession.getState()).fraction
+    for (const id of ['paired-t-test', 'one-way-anova', 'factorial-anova', 'nested-anova', 'welch-anova']) {
+      useSession.getState().toggleSelection(id)
+    }
+    expect(useSession.getState().selection).toHaveLength(6)
+    const sixSelected = railModel(useSession.getState()).fraction
+    expect(sixSelected).toBe(oneSelected)
+    expect(sixSelected).toBe(2 / 4) // Pick tests is stage index 2 of 5 (0-indexed), never past its own node
+  })
+
+  it('thread fraction inside Configure never lags behind the Pick tests node, regardless of how many tests are queued', () => {
+    load(); useSession.getState().visitGuide()
+    for (const id of ['independent-t-test', 'paired-t-test', 'one-way-anova', 'factorial-anova', 'nested-anova', 'welch-anova']) {
+      useSession.getState().toggleSelection(id)
+    }
+    useSession.getState().goTo('pick-tests')
+    const pickFraction = railModel(useSession.getState()).fraction
+    useSession.getState().goTo('test:independent-t-test')
+    const configureFraction = railModel(useSession.getState()).fraction
+    expect(configureFraction).toBeGreaterThan(pickFraction)
+  })
+
   it('while running, Results carries the counter and the fill tracks run progress (spec R3/§3)', () => {
     load(); useSession.getState().visitGuide(); useSession.getState().toggleSelection('independent-t-test')
     useSession.getState().toggleSelection('one-way-anova')
