@@ -26,8 +26,15 @@ ranks <- lapply(seq_len(k), function(i) list(condition = conds[i], meanRank = rb
 chi2 <- unname(ft$statistic)
 w <- chi2 / (n2 * (k - 1))
 # Kendall's W CI is bootstrapped — seed for reproducibility (point estimate == chi2/(n*(k-1))).
+# Degenerate case (docs-v2 sweep 2026-07-08): perfectly concordant data gives W = 1 in EVERY bootstrap
+# resample, boot.ci returns NULL, and effectsize::kendalls_w dies building its result frame
+# ("arguments imply differing number of rows: 1, 0"). The honest percentile CI of a point-mass
+# bootstrap distribution is [w, w] — fall back to it instead of crashing.
+# (boot.ci PRINTS "All values of t are equal to 1" on that degenerate path before the error —
+# capture.output swallows it so the stray line cannot pollute the engine's JSON stdout stream.)
 set.seed(42)
-kw <- effectsize::kendalls_w(mat, ci = level)
+kw <- tryCatch({ utils::capture.output(res <- effectsize::kendalls_w(mat, ci = level)); res },
+  error = function(e) list(CI_low = w, CI_high = w))
 ph <- list()
 for (i in 1:(k - 1)) for (j in (i + 1):k) {
   q <- (rbar[j] - rbar[i]) / sqrt(k * (k + 1) / (6 * n2))

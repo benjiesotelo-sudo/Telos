@@ -88,12 +88,31 @@ export class Engine {
     this.seminrReady = true
   }
 
+  /**
+   * webr 0.6.0 cannot convert an EMPTY JS array in env — its worker's fromD3 throws
+   * "Cannot convert undefined or null to object" (hit for real: Poisson/NB with all-categorical
+   * predictors passes nums_flat: []). An empty array carries no element type, so the natural R
+   * binding is NULL: length-0, type-neutral, and safe in every consuming idiom the runners use
+   * (seq_along(NULL) is empty, sum(NULL) is 0, paste(NULL, collapse = '+') is "", for-loops skip).
+   * Such keys are dropped from the webr env and bound via an R preamble instead.
+   */
+  private static splitEmptyArrays(env: Record<string, unknown>): { env: Record<string, unknown>; preamble: string } {
+    const kept: Record<string, unknown> = {}
+    const nullKeys: string[] = []
+    for (const [k, v] of Object.entries(env)) {
+      if (Array.isArray(v) && v.length === 0) nullKeys.push(k)
+      else kept[k] = v
+    }
+    return { env: kept, preamble: nullKeys.map((k) => `${k} <- NULL\n`).join('') }
+  }
+
   /** Evaluate an R block (statements allowed); its last value is serialized to JSON and parsed. */
   async runJson<T>(rBlock: string, env?: Record<string, unknown>): Promise<T> {
     const shelter = await new this.webr.Shelter()
     try {
+      const split = env ? Engine.splitEmptyArrays(env) : undefined
       // NEVER pass `env: undefined` — webr 0.6.0 throws on a present-but-undefined env key (sandbox-verified); omit the key instead.
-      const cap = await shelter.captureR(`cat(.telos_json({\n${rBlock}\n}))`, { captureStreams: true, ...(env ? { env: env as any } : {}) })
+      const cap = await shelter.captureR(`cat(.telos_json({\n${split?.preamble ?? ''}${rBlock}\n}))`, { captureStreams: true, ...(split ? { env: split.env as any } : {}) })
       const text = cap.output.filter((o) => o.type === 'stdout').map((o) => o.data).join('')
       return JSON.parse(text) as T
     } finally { await shelter.purge() }
@@ -102,7 +121,8 @@ export class Engine {
   /** Run plotting R (env-bound), return the PNG bytes from the virtual FS. ggplot2 objects must be print()ed to reach the device. */
   async capturePlot(plotR: string, width = 600, height = 450, env?: Record<string, unknown>): Promise<Uint8Array<ArrayBuffer>> {
     const path = '/tmp/telos-plot.png'
-    await this.webr.evalRVoid(`png('${path}', width=${width}, height=${height}, res=110); tryCatch({ ${plotR} }, finally = dev.off())`, env ? { env: env as any } : undefined)
+    const split = env ? Engine.splitEmptyArrays(env) : undefined
+    await this.webr.evalRVoid(`png('${path}', width=${width}, height=${height}, res=110); tryCatch({ ${split?.preamble ?? ''}${plotR} }, finally = dev.off())`, split ? { env: split.env as any } : undefined)
     return (await this.webr.FS.readFile(path)) as Uint8Array<ArrayBuffer> // typed buffer: Uint8Array<ArrayBufferLike> is not a BlobPart under TS 6
   }
 

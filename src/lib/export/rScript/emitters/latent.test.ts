@@ -83,6 +83,32 @@ describe('pls-sem emitter', () => {
     expect(R).toContain('--- Table 6: Conditional effects (simple slopes) ---')
   })
 
+  // Docs-v2 sweep (2026-07-08): a moderator with NO drawn path to the target crashed seminr's two-stage
+  // first stage. The emitter must auto-inject the moderator's main-effect path exactly like plsSem.ts
+  // (export ≡ app; moderatorMainEffectPaths) — and NOT duplicate it when the path is already drawn.
+  it('pls-sem emitter auto-injects the moderator main-effect path when it is not drawn', () => {
+    // Satisfaction (id 3) moderates Image -> Expectation (paths[0]); Satisfaction has no path to Expectation.
+    const R = latentEmitters['pls-sem'](
+      SPEC,
+      { ...SETUP, moderations: [{ id: 1, moderatorId: 3, pathIndex: 0 }] },
+      { columns: [], rows: [] } as never,
+    )
+    expect(R).toContain('paths(from = "Satisfaction", to = "Expectation")')
+    // and the Table 3 row list carries it too (H-numbering parity with the app card)
+    expect(R).toMatch(/path_from_all <- c\(.*"Satisfaction".*\)/)
+  })
+
+  it('pls-sem emitter does NOT duplicate a moderator main effect that is already drawn', () => {
+    // Expectation (id 2) moderates Image -> Satisfaction (paths[1]); Expectation -> Satisfaction IS drawn.
+    const R = latentEmitters['pls-sem'](
+      SPEC,
+      { ...SETUP, moderations: [{ id: 1, moderatorId: 2, pathIndex: 1 }] },
+      { columns: [], rows: [] } as never,
+    )
+    const occurrences = R.split('paths(from = "Expectation", to = "Satisfaction")').length - 1
+    expect(occurrences).toBe(1)
+  })
+
   it('pls-sem emitter includes the hand-rolled BC_CI_R text for the structural table', () => {
     const R = latentEmitters['pls-sem'](SPEC, SETUP, { columns: [], rows: [] } as never)
     expect(R).toContain('norm_inter <- function')

@@ -5,7 +5,7 @@ import { MAKECLUSTER_SHIM } from '../../../webr/parallelShim'
 import { R_SATURATED_PREDICATE } from '../../../stats/semSaturation'
 import { lvNames } from '../../../stats/lvName'
 import { buildModel } from '../../../stats/runCbSem'
-import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE } from '../../../stats/moderationModel'
+import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE, moderatorMainEffectPaths } from '../../../stats/moderationModel'
 import { BC_CI_R } from '../../../stats/plsBcCi'
 import { SIMPLE_SLOPES_PLOT_R } from '../../../stats/simpleSlopesPlot'
 
@@ -777,6 +777,11 @@ export const latentEmitters: Record<string, Emitter> = {
       return { ivName, modName, name: `${ivName}*${modName}`, targetName: fromName(p.to) }
     })
     const hasModeration = modInteractions.length > 0
+    // Moderator main effects AUTO-INJECTED unless already drawn — mirrors plsSem.ts exactly (export ≡ app;
+    // see moderatorMainEffectPaths: statistically required per Aiken & West 1991, and seminr's two_stage
+    // first stage crashes when the moderator is absent from the structural model). Spliced AFTER the drawn
+    // paths and BEFORE the interaction paths, the same order the runner reports rows in.
+    const mainEffectPaths = moderatorMainEffectPaths(paths, moderations)
     if (hasModeration) {
       constructLines.push(
         ...modInteractions.map(
@@ -784,7 +789,10 @@ export const latentEmitters: Record<string, Emitter> = {
             `  interaction_term(iv = "${ivName}", moderator = "${modName}", method = two_stage, weights = mode_A)`,
         ),
       )
-      pathLines.push(...modInteractions.map(({ name, targetName }) => `  paths(from = "${name}", to = "${targetName}")`))
+      pathLines.push(
+        ...mainEffectPaths.map((p) => `  paths(from = "${fromName(p.from)}", to = "${fromName(p.to)}")`),
+        ...modInteractions.map(({ name, targetName }) => `  paths(from = "${name}", to = "${targetName}")`),
+      )
     }
 
     const lines: string[] = [
@@ -869,8 +877,10 @@ export const latentEmitters: Record<string, Emitter> = {
       'fsq <- s$fSquare',
     ]
 
-    const pathFromNames = [...paths.map((p) => fromName(p.from)), ...modInteractions.map((m) => m.name)]
-    const pathToNames = [...paths.map((p) => fromName(p.to)), ...modInteractions.map((m) => m.targetName)]
+    // Same row order as the app runner: drawn paths, auto-injected moderator main effects, interactions —
+    // so the H-numbering in Table 3 matches the app card exactly.
+    const pathFromNames = [...paths.map((p) => fromName(p.from)), ...mainEffectPaths.map((p) => fromName(p.from)), ...modInteractions.map((m) => m.name)]
+    const pathToNames = [...paths.map((p) => fromName(p.to)), ...mainEffectPaths.map((p) => fromName(p.to)), ...modInteractions.map((m) => m.targetName)]
     lines.push(
       `path_from_all <- c(${pathFromNames.map((n) => `"${n}"`).join(', ')})`,
       `path_to_all   <- c(${pathToNames.map((n) => `"${n}"`).join(', ')})`,

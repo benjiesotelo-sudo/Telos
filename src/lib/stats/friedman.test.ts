@@ -54,4 +54,25 @@ describe('friedman stats engine (spike known answers)', () => {
     // Figure rendered
     expect(res.figurePng.length).toBeGreaterThan(1000)
   }, 900_000)
+
+  // Regression guard (docs-v2 sweep, 2026-07-08): perfectly concordant data — every subject ranks the
+  // conditions identically — gives Kendall's W = 1 exactly, and EVERY bootstrap resample also gives 1,
+  // so boot.ci returns NULL and effectsize::kendalls_w crashes ("arguments imply differing number of
+  // rows: 1, 0"; reproduced native R). Hit for real by the sleep-caffeine fixture's RT columns
+  // (rt_baseline > rt_low > rt_high for all 40 participants). The runner must degrade to the honest
+  // degenerate CI [W, W] instead of dying.
+  it('perfect concordance (W = 1): degenerate bootstrap CI collapses to [1, 1]', async () => {
+    const rows = Array.from({ length: 12 }, (_, i) => ({
+      id: `S${i + 1}`,
+      // strictly decreasing for every subject, distinct spacing so ranks never tie
+      c1: 100 + i * 3, c2: 80 + i * 2, c3: 60 + i,
+    }))
+    const ds = { columns: ['id', 'c1', 'c2', 'c3'], rows }
+    const res = await runFriedman(engine, ds, 'id', ['c1', 'c2', 'c3'])
+    expect(res.w).toBeCloseTo(1, 10)                 // χ² = n·(k−1) exactly
+    expect(res.chi2).toBeCloseTo(24, 10)             // 12 · 2
+    expect(res.wLow).toBeCloseTo(1, 10)
+    expect(res.wHigh).toBeCloseTo(1, 10)
+    expect(res.figurePng.length).toBeGreaterThan(1000)
+  }, 900_000)
 })

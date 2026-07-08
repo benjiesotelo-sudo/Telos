@@ -39,6 +39,30 @@ export function validateModerations(moderations: Moderation[], paths: Structural
   }
 }
 
+/** Moderator main-effect paths a PLS model must ADD: one `moderator → target` structural path per
+ *  moderation edge whose moderator does not already predict the target via a drawn path.
+ *
+ *  Two reasons, one seam (docs-v2 sweep, 2026-07-08):
+ *  - Statistical: a moderation model without the moderator's main effect is misspecified
+ *    (Aiken & West 1991) — CB-SEM already auto-injects it (`pmod_<id>` in buildModerationLines below).
+ *  - Mechanical: seminr's `interaction_term(method = two_stage)` CRASHES without it — the first-stage
+ *    model only computes construct scores for constructs that appear in the structural model, so a
+ *    moderator with no path dies with "first_stage$construct_scores[, moderator]: subscript out of
+ *    bounds" (reproduced native R 4.6.0).
+ *
+ *  Shared by the app runner (plsSem.ts) and the R-script export emitter (emitters/latent.ts) so
+ *  export ≡ app. Deduped across moderation edges sharing a moderator+target. */
+export function moderatorMainEffectPaths(paths: StructuralPath[], moderations: Moderation[]): StructuralPath[] {
+  const out: StructuralPath[] = []
+  const has = (from: number, to: number) =>
+    paths.some((p) => p.from === from && p.to === to) || out.some((p) => p.from === from && p.to === to)
+  for (const m of moderations) {
+    const target = paths[m.pathIndex].to
+    if (!has(m.moderatorId, target)) out.push({ from: m.moderatorId, to: target })
+  }
+  return out
+}
+
 /** Per-moderation model lines: the interaction construct (INT_<id>) built from double-mean-centered
  *  product indicators (semTools::indProd naming — matched: var1[i].var2[i]; unmatched: all var1[i].var2[j]
  *  pairs), plus the moderator's own main-effect covariate (pmod_<id>, AUTO-INJECTED onto the target's

@@ -353,4 +353,40 @@ describe('plsSem', () => {
     expect(result.figModSlopesPng).toBeUndefined()
     expect(result.estimates.moderation).toBeUndefined()
   }, 600_000)
+
+  // Regression guard (docs-v2 sweep, 2026-07-08): a moderator WITHOUT a drawn path to the moderated
+  // path's target crashed seminr's two-stage estimation ("first_stage$construct_scores[, moderator]:
+  // subscript out of bounds" — the first stage only scores constructs that appear in the structural
+  // model; reproduced native R). The runner must AUTO-INJECT the moderator's main-effect path
+  // (moderator → target) exactly as CB-SEM's buildModerationLines already does — which is also the
+  // statistically required specification (Aiken & West 1991; Hair et al.: a moderation model must
+  // include the moderator's main effect). Point estimates pinned under native R 4.6.0 (seed-independent).
+  it('moderator with NO drawn path to the target: main effect auto-injected, model runs (Image*Quality -> Satisfaction)', async () => {
+    const data = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/mobi.csv'))
+    const setup: TestSetup = {
+      roles: {}, options: { nboot: 500 }, props: {}, blocked: null, modelKind: 'latent',
+      constructs: [
+        { id: 1, name: 'Image', items: ['IMAG1', 'IMAG2', 'IMAG3', 'IMAG4', 'IMAG5'] },
+        { id: 2, name: 'Quality', items: ['PERQ1', 'PERQ2', 'PERQ3', 'PERQ4', 'PERQ5', 'PERQ6', 'PERQ7'] },
+        { id: 3, name: 'Satisfaction', items: ['CUSA1', 'CUSA2', 'CUSA3'] },
+      ],
+      paths: [{ from: 1, to: 3 }], // Image -> Satisfaction ONLY; Quality has no drawn path
+      moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }], // Quality moderates Image -> Satisfaction
+    }
+    const result = await runPlsSem(engine, data, setup)
+    // native R 4.6.0 (same mm/sm with the Quality -> Satisfaction main effect present):
+    const img = result.structural.find((r) => r.path === 'Image → Satisfaction')!
+    const mainEffect = result.structural.find((r) => r.path === 'Quality → Satisfaction')!
+    const interaction = result.structural.find((r) => r.path === 'Image*Quality → Satisfaction')!
+    expect(img.beta).toBeCloseTo(0.2186248972, 5)
+    expect(mainEffect.beta).toBeCloseTo(0.6492041794, 5)   // the auto-injected row is REPORTED
+    expect(interaction.beta).toBeCloseTo(0.0411517780, 5)
+    const q = result.quality.find((r) => r.construct === 'Satisfaction')!
+    expect(q.r2).toBeCloseTo(0.6588460175, 4)
+    expect(q.r2adj).toBeCloseTo(0.6546856031, 4)
+    expect(result.slopes).toHaveLength(3)
+    expect(result.estimates.moderation).toEqual([
+      { moderatorId: 2, pathIndex: 0, beta: expect.closeTo(0.0411517780, 5) },
+    ])
+  }, 600_000)
 })

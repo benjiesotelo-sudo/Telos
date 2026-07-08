@@ -5,6 +5,7 @@ import type { RunProgress } from '../results/builders'
 import { MAKECLUSTER_SHIM } from '../webr/parallelShim'
 import { BC_CI_R } from './plsBcCi'
 import { renderSimpleSlopesFigure } from './simpleSlopesPlot'
+import { moderatorMainEffectPaths } from './moderationModel'
 import { lvNames } from './lvName'
 
 /** Simple slope at one of the three Aiken & West (1991) probing levels (U6-T5), derived from seminr's
@@ -243,7 +244,9 @@ indirect <- list()
 adj <- matrix(FALSE, k, k, dimnames = list(construct_names, construct_names))
 # Interaction edges ("{iv}*{moderator}" -> target, U6-T4) are skipped: the interaction construct is not a
 # dimname of adj, and a moderation term never participates in a mediation chain (no incoming paths).
-for (e in seq_along(path_from_name)) {
+# Only the first n_drawn_paths entries are DRAWN paths — auto-injected moderator main effects (appended
+# right after them) are fitted and reported but never open a mediation chain the user did not draw.
+for (e in seq_len(n_drawn_paths)) {
   if (path_from_name[e] %in% construct_names && path_to_name[e] %in% construct_names) {
     adj[path_from_name[e], path_to_name[e]] <- TRUE
   }
@@ -392,6 +395,14 @@ export async function runPlsSem(
   const modLines = modInteractions.map(
     ({ ivName, modName }) => `interaction_term(iv = "${ivName}", moderator = "${modName}", method = two_stage, weights = mode_A)`,
   )
+  // Moderator main effects AUTO-INJECTED unless already drawn (moderatorMainEffectPaths doc):
+  // statistically required (Aiken & West 1991; CB-SEM already does it) AND seminr's two_stage first
+  // stage crashes without the moderator in the structural model. Real construct-id pairs, so they flow
+  // through the same arrays as drawn paths — reported in the structural table like any other path —
+  // but sit AFTER the drawn paths so `n_drawn_paths` can exclude them from mediation-chain detection
+  // (parity with CB-SEM, whose := indirect defs cover drawn paths only).
+  const mainEffectPaths = moderatorMainEffectPaths(paths, moderations)
+  const smPaths = [...paths, ...mainEffectPaths]
 
   // seminr is lazy-installed (Engine.ensureSeminr — NOT part of init()'s eager preload). init() also applies
   // the detectCores + makeCluster serial shims that bootstrap_model needs under WASM (no sockets). Both must
@@ -410,16 +421,20 @@ export async function runPlsSem(
     // extraction loop below, right alongside every ordinary drawn path.
     mm_lines: [...constructs.map((c) => measurementLine(c, itemNameOf)), ...modLines],
     sm_lines: [
-      ...paths.map((p) => structuralLine(fromName(p.from), fromName(p.to))),
+      ...smPaths.map((p) => structuralLine(fromName(p.from), fromName(p.to))),
       ...modInteractions.map((m) => structuralLine(m.name, m.targetName)),
     ],
     // Interaction "constructs" have no real numeric construct id; `-m.id` is a harmless, collision-free
     // sentinel for estimates.paths' `from` - used both to keep the sentinel unique across edges AND (U6-T5)
     // to pick the interaction path's own beta back out of estimate_paths for the canvas overlay below.
-    path_from: [...paths.map((p) => p.from), ...moderations.map((m) => -m.id)],
-    path_to: [...paths.map((p) => p.to), ...modInteractions.map((m) => m.targetId)],
-    path_from_name: [...paths.map((p) => fromName(p.from)), ...modInteractions.map((m) => m.name)],
-    path_to_name: [...paths.map((p) => fromName(p.to)), ...modInteractions.map((m) => m.targetName)],
+    path_from: [...smPaths.map((p) => p.from), ...moderations.map((m) => -m.id)],
+    path_to: [...smPaths.map((p) => p.to), ...modInteractions.map((m) => m.targetId)],
+    path_from_name: [...smPaths.map((p) => fromName(p.from)), ...modInteractions.map((m) => m.name)],
+    path_to_name: [...smPaths.map((p) => fromName(p.to)), ...modInteractions.map((m) => m.targetName)],
+    // Mediation-chain detection (Table 5 adjacency) runs over the DRAWN paths only — auto-injected
+    // moderator main effects are fitted and reported but never open a mediation chain the user did
+    // not draw (parity with CB-SEM's drawn-paths-only := indirect defs).
+    n_drawn_paths: paths.length,
     nboot,
     seed: 20260620,
     // The DRAWN construct names (same order as is_formative_flags) - the R block reports measurement/HTMT/

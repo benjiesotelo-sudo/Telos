@@ -69,4 +69,24 @@ describe('runPoissonNegativeBinomial', () => {
     expect(age.irrLow).toBeCloseTo(1.001024427, 6)
     expect(age.irrHigh).toBeCloseTo(1.025753033, 6)
   }, 300_000)
+
+  // Regression guard (docs-v2 sweep, 2026-07-08): with EVERY predictor categorical the runner passes
+  // numnames: [] / nums_flat: [] — webr 0.6.0's fromD3 crashed on empty JS arrays ("Cannot convert
+  // undefined or null to object") until the Engine's empty-array→NULL binding. Native-R-pinned.
+  it('all-categorical predictors (complaints ~ group + method): no numeric column in env', async () => {
+    const r = await runPoissonNegativeBinomial(engine, loadRegressionFixture(), 'complaints', ['group', 'method'], null, 'Poisson')
+    expect(r.aic).toBeCloseTo(216.426619422, 5)
+    expect(r.deviance).toBeCloseTo(79.623572004, 5)
+    expect(r.dfResid).toBe(36)
+    expect(r.dispersion).toBeCloseTo(2.022546874, 6)
+    expect(r.dispersionP).toBeCloseTo(0.000272122828, 8)
+    expect(r.terms.map((t) => t.term)).toEqual(['(Intercept)', 'group: b', 'method: online', 'method: workshop'])
+    const online = r.terms[2]
+    expect(online.b).toBeCloseTo(0.592670754, 6)
+    expect(online.irr).toBeCloseTo(1.808812864, 6)
+    expect(online.irrLow).toBeCloseTo(1.294831824, 6)  // profile CI
+    expect(online.irrHigh).toBeCloseTo(2.564348629, 6)
+    expect(r.n).toBe(40)
+    expect(Array.from(r.figResidualsPng.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+  }, 300_000)
 })

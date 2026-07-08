@@ -7,6 +7,19 @@ describe('Engine', () => {
   it('runs R, returns parsed JSON', async () => expect((await engine.runJson<{ s: number }>('list(s = 2 + 3)')).s).toBe(5))
   it('applies the detectCores shim', async () => expect(await engine.runJson<number>('parallel::detectCores()')).toBe(1))
   it('passes JS vectors into R', async () => expect(await engine.runJson<number>('mean(x)', { x: [2, 4, 6] })).toBe(4))
+  // webr 0.6.0 cannot convert an EMPTY JS array in env ("Cannot convert undefined or null to object"
+  // in the worker's fromD3) — hit for real by the Poisson/NB card when every predictor is categorical
+  // (nums_flat: []). The engine binds such keys to R NULL instead: length-0, type-neutral, loop-safe
+  // (seq_along(NULL) is empty, sum(NULL) is 0, paste(NULL, collapse = '+') is "").
+  it('binds empty JS arrays in env to R NULL (runJson)', async () => {
+    const r = await engine.runJson<{ len: number; isnull: boolean; kept: number }>(
+      'list(len = length(a), isnull = is.null(a), kept = length(b))', { a: [], b: [7, 8] })
+    expect(r).toEqual({ len: 0, isnull: true, kept: 2 })
+  })
+  it('binds empty JS arrays in env to R NULL (capturePlot)', async () => {
+    const png = await engine.capturePlot('plot(0, main = paste("n =", length(a), "null =", is.null(a)))', 600, 450, { a: [] })
+    expect(Array.from(png.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+  })
   it('serializes quoted strings, backslashes, non-finite numbers and logicals safely', async () => {
     const r = await engine.runJson<{ s: string; inf: number | null; ok: boolean }>(String.raw`list(s = 'say "hi" \\', inf = 1/0, ok = TRUE)`)
     expect(r).toEqual({ s: 'say "hi" \\', inf: null, ok: true })
