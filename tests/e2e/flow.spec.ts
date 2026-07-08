@@ -107,6 +107,8 @@ test('full journey: welcome → upload → guide → configure → pick → drag
     '01_independent-t-test/figure_boxplot.png',
     '01_independent-t-test/table_group-statistics.png',
     '01_independent-t-test/table_t-test.png',
+    'CITATIONS.txt',
+    'references.bib',
   ])
 })
 
@@ -206,6 +208,8 @@ test('multi-test journey A: five tests, one dataset → combined results + 13-fi
     '05_mann-whitney-u/figure_boxplot.png',
     '05_mann-whitney-u/table_mann-whitney.png',
     '05_mann-whitney-u/table_rank-summary.png',
+    'CITATIONS.txt',
+    'references.bib',
   ])
 })
 
@@ -282,6 +286,8 @@ test('multi-variable normality: two variables → per-variable rows, figures, zi
     '01_distribution-normality/figure_qq_anxiety.png',
     '01_distribution-normality/figure_qq_score.png',
     '01_distribution-normality/table_normality.png',
+    'CITATIONS.txt',
+    'references.bib',
   ])
 })
 
