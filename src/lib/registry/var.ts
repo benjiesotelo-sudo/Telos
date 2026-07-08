@@ -13,10 +13,10 @@ export const VAR: TestSpec = {
   roles: [
     { id: 'time', label: 'Time',
       levels: 'datetime / ordered', arity: 'exactly 1',
-      hint: 'e.g. the date / time-order column — month, year' },
+      hint: 'e.g. the date / time-order column - month, year' },
     { id: 'series', label: 'Series',
       levels: 'interval / ratio', arity: 'two or more',
-      hint: 'e.g. numeric series over time — sales, visitors' },
+      hint: 'e.g. numeric series over time - sales, visitors' },
   ],
   options: [
     { id: 'lagOrder', label: 'lag order', value: 'auto', kind: 'select', choices: ['auto'] },
@@ -73,18 +73,18 @@ export const VAR: TestSpec = {
   // §2.5 addition: stability check as tableNote (vars::roots max modulus; < 1 → stable).
   tableNote: {
     kind: 'plain',
-    text: 'one column per equation (response series); each cell stacks the estimate, its (SE), and the [95% CI] — ' +
+    text: 'one column per equation (response series); each cell stacks the estimate, its (SE), and the [95% CI] - ' +
       'the per-coefficient t/p are dropped. orthogonalised (Cholesky) IRFs depend on the ordering of the series; ' +
       'a level VAR assumes stationarity. stability check: max companion-eigenvalue modulus < 1 indicates a stable VAR. ' +
       'serial-correlation check: the Portmanteau test (vars::serial.test, asymptotic) tests the null of no residual ' +
-      'autocorrelation — a small p suggests remaining serial correlation (consider a higher lag order).',
+      'autocorrelation - a small p suggests remaining serial correlation (consider a higher lag order).',
     afterTableId: 'var-coefficients',
   },
   figures: [
     { caption: 'Dynamic response', type: 'impulse-response function plots', file: 'irf' },
   ],
   howToRead:
-    'A VAR models several series as functions of their joint past. The impulse-response plots show how a shock to one series propagates to the others over time; read each IRF together with its bootstrap confidence band, and note that orthogonalised (Cholesky) IRFs depend on the ordering of the series. Lag selection picks how many past periods to include. A level VAR assumes stationary series — difference them (or use a VECM) if they are not. The Portmanteau test (vars::serial.test) checks the residuals for remaining serial correlation: a small p suggests the lag order is too low to whiten the residuals. Method: R vars package (Pfaff, 2008; Lütkepohl, New Introduction to Multiple Time Series Analysis).',
+    'A VAR models several series as functions of their joint past. The impulse-response plots show how a shock to one series propagates to the others over time; read each IRF together with its bootstrap confidence band, and note that orthogonalised (Cholesky) IRFs depend on the ordering of the series. Lag selection picks how many past periods to include. A level VAR assumes stationary series - difference them (or use a VECM) if they are not. The Portmanteau test (vars::serial.test) checks the residuals for remaining serial correlation: a small p suggests the lag order is too low to whiten the residuals. Method: R vars package (Pfaff, 2008; Lütkepohl, New Introduction to Multiple Time Series Analysis).',
   // Report-only neutralisation: state the selected order + that IRFs are shown, no "analysis showed…" lead-in.
   apaTemplate: 'A VAR({p}) model was selected by AIC; impulse-response functions are shown (Figure).',
   rMap: 'vars::VARselect() → Table 1 · vars::VAR() → Table 2 · vars::irf() → figure',

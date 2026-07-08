@@ -24,7 +24,7 @@ const res: StationarityResult = {
   figAcfPng: png,
 }
 
-describe('buildStationarityTests — APA line surfaces all three tests (ADF, KPSS, PP)', () => {
+describe('buildStationarityTests - APA line surfaces all three tests (ADF, KPSS, PP)', () => {
   it('APA sentence includes the Phillips–Perron clause with its Z statistic and p', () => {
     const c = buildStationarityTests(STATIONARITY_TESTS, res)
     // §2.5 econometrics-grade: PP was in the table but had been dropped from the APA line — now restored.

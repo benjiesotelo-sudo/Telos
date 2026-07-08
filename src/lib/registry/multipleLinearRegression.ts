@@ -9,9 +9,9 @@ export const MULTIPLE_LINEAR_REGRESSION: TestSpec = {
   question: 'one numeric outcome, several predictors',
   roles: [
     { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1',
-      hint: 'e.g. the numeric result you measured — test score, income' },
+      hint: 'e.g. the numeric result you measured - test score, income' },
     { id: 'predictors', label: 'Predictors', levels: 'any level', arity: 'one or more',
-      hint: 'e.g. explanatory variables — age, gender, hours studied' },
+      hint: 'e.g. explanatory variables - age, gender, hours studied' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },

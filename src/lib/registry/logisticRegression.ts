@@ -9,9 +9,9 @@ export const LOGISTIC_REGRESSION: TestSpec = {
   question: 'predict a yes/no outcome',
   roles: [
     { id: 'outcome', label: 'Outcome (DV)', levels: 'nominal', arity: 'exactly 1 · 2 categories',
-      hint: 'e.g. the yes/no result you measured — passed, churned' },
+      hint: 'e.g. the yes/no result you measured - passed, churned' },
     { id: 'predictors', label: 'Predictors', levels: 'any level', arity: 'one or more',
-      hint: 'e.g. explanatory variables — age, gender, hours studied' },
+      hint: 'e.g. explanatory variables - age, gender, hours studied' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -21,7 +21,7 @@ export const LOGISTIC_REGRESSION: TestSpec = {
       hint: 'Keep report odds ratios on so each coefficient reads as the multiplier on the odds of the outcome.' },
     // B2 level-select: choices = the assigned outcome column's two levels; default = second level alphabetically.
     { id: 'event', label: 'event category', value: 'passed · second level', kind: 'level-select', fromRole: 'outcome',
-      hint: 'Event category is the outcome level the model predicts (here passed, the second level) — switch it if the odds should describe the other category.' },
+      hint: 'Event category is the outcome level the model predicts (here passed, the second level) - switch it if the odds should describe the other category.' },
   ],
   constraints: {
     roles: [

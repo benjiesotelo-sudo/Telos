@@ -18,7 +18,7 @@ const base: CompositeReliabilityResult = {
   figReliabilityPng: new Uint8Array(),
 }
 
-describe('buildCompositeReliability — APA template filled with the live CR value (worked example = first construct)', () => {
+describe('buildCompositeReliability - APA template filled with the live CR value (worked example = first construct)', () => {
   it('fills construct name and CR value from the FIRST construct, verdict "satisfactory" when CR >= .70', () => {
     const c = buildCompositeReliability(COMPOSITE_RELIABILITY, base)
     expect(c.apa).toBe('Composite reliability for visual was satisfactory (CR = .85 ≥ .70).')

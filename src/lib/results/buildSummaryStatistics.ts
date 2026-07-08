@@ -41,7 +41,7 @@ export function buildSummaryStatistics(spec: TestSpec, r: SummaryStatsResult): C
     })) }],
     note: spec.tableNote ?? null,
     // type is per-variable so Task 4's export names (figure_<type>.png) never collide across histograms.
-    figures: r.histograms.map((h) => ({ caption: `${fig.caption} — ${h.variable}`, type: `${fig.type}_${h.variable}`, png: h.png })),
+    figures: r.histograms.map((h) => ({ caption: `${fig.caption} - ${h.variable}`, type: `${fig.type}_${h.variable}`, png: h.png })),
     howToRead: spec.howToRead,
     apa: spec.apaTemplate.replace('{x}', 'X'), // bare "Table." captions — the card's exemplar sentence stands as written
     nExcluded: r.nExcluded,

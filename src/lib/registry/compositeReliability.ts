@@ -35,14 +35,14 @@ export const COMPOSITE_RELIABILITY: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'CR ≥ .70 indicates adequate reliability (Nunnally, 1978; Bagozzi & Yi, 1988); do not cite CR ≥ .70 to Fornell & Larcker. CR and ω (McDonald\'s) coincide for a congeneric (unidimensional) model — both columns are computed from semTools::compRelSEM(); AVE is from semTools::AVE(); α (Cronbach\'s) is retained as a secondary/legacy column (psych::alpha()). Applies to reflective constructs only.',
+    text: 'CR ≥ .70 indicates adequate reliability (Nunnally, 1978; Bagozzi & Yi, 1988); do not cite CR ≥ .70 to Fornell & Larcker. CR and ω (McDonald\'s) coincide for a congeneric (unidimensional) model - both columns are computed from semTools::compRelSEM(); AVE is from semTools::AVE(); α (Cronbach\'s) is retained as a secondary/legacy column (psych::alpha()). Applies to reflective constructs only.',
     afterTableId: 'composite-reliability',
   },
   figures: [
     { caption: 'Reliability overview', type: 'CR bar chart per construct', file: 'reliability' },
   ],
   howToRead:
-    'CR (Composite Reliability) measures how reliably a set of items captures its construct (0–1); ≥ .70 is the conventional threshold (Nunnally, 1978; Bagozzi & Yi, 1988). CR is computed from the CFA loadings via semTools::compRelSEM() — for a congeneric (unidimensional) factor CR equals McDonald\'s ω, so the two columns will always match. AVE is shown alongside for quick convergent-validity reference (≥ .50; Fornell & Larcker, 1981) — for the full discriminant-validity assessment (Fornell–Larcker + HTMT matrices) run the AVE card. α (Cronbach\'s) is a secondary/legacy coefficient — it assumes tau-equivalence (equal loadings) and is a lower bound when loadings differ (McNeish, 2018). All cutoffs are labelled guidelines, not pass/fail gates. Applies to reflective constructs only.',
+    'CR (Composite Reliability) measures how reliably a set of items captures its construct (0–1); ≥ .70 is the conventional threshold (Nunnally, 1978; Bagozzi & Yi, 1988). CR is computed from the CFA loadings via semTools::compRelSEM() - for a congeneric (unidimensional) factor CR equals McDonald\'s ω, so the two columns will always match. AVE is shown alongside for quick convergent-validity reference (≥ .50; Fornell & Larcker, 1981) - for the full discriminant-validity assessment (Fornell–Larcker + HTMT matrices) run the AVE card. α (Cronbach\'s) is a secondary/legacy coefficient - it assumes tau-equivalence (equal loadings) and is a lower bound when loadings differ (McNeish, 2018). All cutoffs are labelled guidelines, not pass/fail gates. Applies to reflective constructs only.',
   apaTemplate: 'Composite reliability for {construct} was {verdict} (CR = {cr} ≥ .70).',
   rMap: 'lavaan::cfa() → fit · semTools::compRelSEM() → CR / ω · semTools::AVE() → AVE · psych::alpha() → α · ggplot2 → figure',
   bundleFiles: ['table_composite-reliability.png', 'figure_reliability.png'],

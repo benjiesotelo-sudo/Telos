@@ -27,7 +27,7 @@ describe('buildIndependentTTest', () => {
   })
   it('renders the assumption note with em-dashes for the degenerate Levene, per-group Shapiro normality, and capitalizes Welch', () => {
     // audit V: Levene p is null → no verdict clause; both groups' Shapiro p >= alpha → normality "looks reasonable"
-    expect(c.note).toEqual({ kind: 'assume', text: `${spec.assumptionNote} (Levene F=—, p=— · Shapiro control W=0.99, p=.995; Shapiro treatment W=0.96, p=.847 · Welch test) — normality looks reasonable in both groups` })
+    expect(c.note).toEqual({ kind: 'assume', text: `${spec.assumptionNote} (Levene F=—, p=— · Shapiro control W=0.99, p=.995; Shapiro treatment W=0.96, p=.847 · Welch test) - normality looks reasonable in both groups` })
   })
   it('audit V: Levene verdict differs by which test actually ran (welch vs pooled), and flags normality when either group violates', () => {
     const welchViolated = buildIndependentTTest(spec, { ...r, levene: { F: 5.1, p: 0.02 }, test: 'welch', shapiroByGroup: [{ group: 'control', W: 0.8, p: 0.01 }, r.shapiroByGroup[1]] })

@@ -33,7 +33,7 @@ describe('buildSummaryStatistics', () => {
     expect(c.tables[0].rows[1]).toEqual({ variable: 'age', n: 1, mean: '34.00', sd: '—', ci: '—', min: '34.00', max: '34.00', median: '34.00', skew: '—', kurtosis: '—' })
     expect(c.nExcluded).toBe(0)
   })
-  it('group-by branch: a Group column is INSERTED first and stats repeat per group — the registry spec object stays unmutated', () => {
+  it('group-by branch: a Group column is INSERTED first and stats repeat per group - the registry spec object stays unmutated', () => {
     const c = buildSummaryStatistics(spec, byGroup)
     expect(c.tables[0].spec.columns.map((col) => col.label)).toEqual(['Group', 'Variable', 'N', 'M', 'SD', '95% CI', 'Min', 'Max', 'Median', 'Skew', 'Kurtosis (excess)'])
     expect(c.tables[0].rows[0]).toEqual({ group: 'control', variable: 'score', n: 6, mean: '70.33', sd: '3.14', ci: '[67.04, 73.63]', min: '66.00', max: '75.00', median: '70.50', skew: '0.07', kurtosis: '−1.52' })
@@ -46,7 +46,7 @@ describe('buildSummaryStatistics', () => {
     expect(c.apa).toBe('Table X reports descriptive statistics for the study variables.')
     expect(c.howToRead).toBe(spec.howToRead)
     expect(c.figures.map((f) => f.type)).toEqual(['histogram_score', 'histogram_age']) // unique types ⇒ unique export names
-    expect(c.figures[0].caption).toBe('Distribution — score')
+    expect(c.figures[0].caption).toBe('Distribution - score')
   })
   it('A5: values carries a term-explainer lookup - ranges across the reported variables, plus the CI label', () => {
     const c = buildSummaryStatistics(spec, overall)

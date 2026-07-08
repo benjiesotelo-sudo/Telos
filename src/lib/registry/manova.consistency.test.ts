@@ -32,10 +32,10 @@ describe('manova registry stays faithful to the spec HTML (verbatim, card-scoped
     const line = strip(card.match(/<b>APA template:<\/b>(.*?)<\/div>/s)![1])
     expect(line).toBe(`“${spec.apaTemplate.replace(/\{\w+\}/g, '__')}”`)
   })
-  it('bundle line EQUALS bundleFiles (no derivation — figure_means.png does not derive from type)', () => {
+  it('bundle line EQUALS bundleFiles (no derivation - figure_means.png does not derive from type)', () => {
     expect(strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')).toEqual(spec.bundleFiles)
   })
-  it('the drawn card carries the assume-note (Box\'s M) — registry static text mirrored verbatim', () => {
+  it('the drawn card carries the assume-note (Box\'s M) - registry static text mirrored verbatim', () => {
     expect(strip(card.match(/<p class="tbl-note assume">(.*?)<\/p>/s)![1])).toBe(spec.tableNote!.text)
     expect(spec.tableNote!.kind).toBe('assume')
     expect(card.includes('tbl-note assume')).toBe(true)

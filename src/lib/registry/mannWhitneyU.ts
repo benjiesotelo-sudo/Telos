@@ -32,7 +32,7 @@ export const MANN_WHITNEY_U: TestSpec = {
   figures: [{ caption: 'Distribution by group', type: 'boxplot' }],
   howToRead:
     'The nonparametric counterpart to the independent t-test, comparing whole distributions via ranks rather than means. ' +
-    "A p below alpha means one group's values tend to be systematically higher or lower (stochastic dominance) — " +
+    "A p below alpha means one group's values tend to be systematically higher or lower (stochastic dominance) - " +
     'this equals a difference in medians only when the two groups have similar distribution shapes. r gives the effect size.',
   apaTemplate: 'A Mann-Whitney U test gave U={u}, Z={z}, p {p}, r={r} [{rlo}, {rhi}].',
   rMap: 'dplyr rank + group_by/summarise (N, mean rank, median, IQR, sum of ranks) → Table 1 · wilcox.test() → U, p · wilcox.test(conf.int=TRUE) → Hodges-Lehmann median difference + 95% CI · coin::wilcox_test() → standardized Z · effectsize::rank_biserial() → r · geom_boxplot() → figure',

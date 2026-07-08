@@ -25,7 +25,7 @@ describe('propensity-score-matching registry stays faithful to the spec HTML (ve
     const caps = [...card.matchAll(/<div class="apa-cap"><b>Table \d\.<\/b> (.*?)<\/div>/g)].map((m) => strip(m[1]))
     expect(caps).toEqual(spec.tables.map((t) => t.title))
   })
-  it('the ATT coef GOF footer stub labels equal spec.tables[1].gof labels in order (matched N — no R²/AIC)', () => {
+  it('the ATT coef GOF footer stub labels equal spec.tables[1].gof labels in order (matched N - no R²/AIC)', () => {
     const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
     expect(stubs).toEqual(spec.tables[1].gof!.map((g) => g.label))
   })
@@ -58,7 +58,7 @@ describe('propensity-score-matching registry stays faithful to the spec HTML (ve
     expect(hints).toEqual(spec.roles.map((r) => r.hint))
     expect(cons).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
   })
-  it('options equal the inputs card option strip (no α, no CI pill drawn — CI fixed at 95%)', () => {
+  it('options equal the inputs card option strip (no α, no CI pill drawn - CI fixed at 95%)', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))

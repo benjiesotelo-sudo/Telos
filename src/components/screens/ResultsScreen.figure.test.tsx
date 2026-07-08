@@ -22,7 +22,7 @@ vi.mock('../../lib/results/builders', () => ({
 
 import { rasterSemFigures } from './ResultsScreen'
 
-describe('ResultsScreen — path-diagram raster (Task 30)', () => {
+describe('ResultsScreen - path-diagram raster (Task 30)', () => {
   beforeEach(() => { captured.length = 0 })
 
   it('rasters figure-path-diagram-<id> for each fresh sem-canvas test, keyed NN_id/figure_path-diagram.png', async () => {

@@ -11,7 +11,7 @@ const dataset: Dataset = {
 }
 const setup = { roles: { outcome: ['post_score'], predictor: ['pre_score'] }, options: {}, props: {}, blocked: null }
 
-describe('emitRScript — backbone + simple-linear reference emitter', () => {
+describe('emitRScript - backbone + simple-linear reference emitter', () => {
   const script = emitRScript(['simple-linear-regression'], { 'simple-linear-regression': setup }, SPECS, dataset)
 
   it('opens with the Telos header banner', () => {
@@ -43,7 +43,7 @@ describe('emitRScript — backbone + simple-linear reference emitter', () => {
 // partner ('a.b') existed in only ONE of the two domains. Fix: ONE global lvNames() call over the union
 // of every selected SEM test's item domain (emit.ts); every emitter looks up that shared map instead of
 // re-deriving its own.
-describe('emitRScript — selection-global item sanitization (U10 multi-test SEM fix)', () => {
+describe('emitRScript - selection-global item sanitization (U10 multi-test SEM fix)', () => {
   const emptyDs: Dataset = { columns: [], rows: [] }
 
   // Reviewer's exact repro. Test A's OWN domain (['a.b', 'x', 'a b']) has an internal collision — 'a.b'

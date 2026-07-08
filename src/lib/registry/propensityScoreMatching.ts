@@ -9,9 +9,9 @@ export const PROPENSITY_SCORE_MATCHING: TestSpec = {
   name: 'Propensity score matching',
   question: 'treatment effect via matching',
   roles: [
-    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured — test score, income' },
-    { id: 'treatment', label: 'Treatment', levels: 'binary nominal', arity: 'exactly 1 · 2 categories', hint: 'e.g. who got the treatment — treated = 1 / 0' },
-    { id: 'covariates', label: 'Covariates', levels: 'any level', arity: 'one or more', hint: 'e.g. variables to match / control on — age, baseline score' },
+    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured - test score, income' },
+    { id: 'treatment', label: 'Treatment', levels: 'binary nominal', arity: 'exactly 1 · 2 categories', hint: 'e.g. who got the treatment - treated = 1 / 0' },
+    { id: 'covariates', label: 'Covariates', levels: 'any level', arity: 'one or more', hint: 'e.g. variables to match / control on - age, baseline score' },
   ],
   options: [
     { id: 'method', label: 'matching method', value: 'nearest', kind: 'display' },
@@ -45,12 +45,12 @@ export const PROPENSITY_SCORE_MATCHING: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'good matching drives post-matching standardized mean differences toward 0 (commonly < 0.1). The common-support rows report how many treated units fell off the region of common support (dropped) and the propensity-score overlap range by group — wide non-overlap weakens the comparison.',
+    text: 'good matching drives post-matching standardized mean differences toward 0 (commonly < 0.1). The common-support rows report how many treated units fell off the region of common support (dropped) and the propensity-score overlap range by group - wide non-overlap weakens the comparison.',
     afterTableId: 'psm-att',
   },
   figures: [{ caption: 'Balance', type: 'love plot (standardized differences before vs. after matching)', file: 'love-plot' }],
   howToRead:
-    'First confirm balance — matched groups should look alike on the covariates (small standardized differences). Then read the ATT as the treatment effect for the treated, with p/CI. The common-support rows tell you how many treated units were dropped for lacking a comparable control and where the two groups’ propensity scores overlap — good overlap with few drops means the ATT generalizes to most of the treated. PSM only balances the covariates you measured and included, so the causal reading also assumes no important confounder was left unmeasured (ignorability) — an assumption that cannot be verified from the data. Method: R MatchIt package (Ho, Imai, King & Stuart, 2011); balance diagnostics (Austin, 2011).',
+    'First confirm balance - matched groups should look alike on the covariates (small standardized differences). Then read the ATT as the treatment effect for the treated, with p/CI. The common-support rows tell you how many treated units were dropped for lacking a comparable control and where the two groups’ propensity scores overlap - good overlap with few drops means the ATT generalizes to most of the treated. PSM only balances the covariates you measured and included, so the causal reading also assumes no important confounder was left unmeasured (ignorability) - an assumption that cannot be verified from the data. Method: R MatchIt package (Ho, Imai, King & Stuart, 2011); balance diagnostics (Austin, 2011).',
   apaTemplate: 'After propensity-score matching, the ATT was {b}, 95% CI [{lo}, {hi}], p {p}.',
   rMap: 'MatchIt::matchit() → balance + matched data · lm()/marginaleffects on matched data → ATT · cobalt::love.plot()',
   bundleFiles: ['table_balance.png', 'table_att.png', 'figure_love-plot.png'],

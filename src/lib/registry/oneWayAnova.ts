@@ -7,9 +7,9 @@ export const ONE_WAY_ANOVA: TestSpec = {
   question: 'do 3+ groups differ, and which pairs?',
   roles: [
     { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1',
-      hint: 'e.g. the numeric result you measured — test score, income' },
+      hint: 'e.g. the numeric result you measured - test score, income' },
     { id: 'factor', label: 'Factor (grouping)', levels: 'nominal / ordinal', arity: 'exactly 1 · 3+ categories',
-      hint: 'e.g. label splitting cases into groups — teaching method' },
+      hint: 'e.g. label splitting cases into groups - teaching method' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },

@@ -25,7 +25,7 @@ const base: SemCanvasUIProps = {
   onAddModeration: () => {}, onRemoveModeration: () => {},
 }
 
-describe('SemCanvasUI — post-run estimates overlay', () => {
+describe('SemCanvasUI - post-run estimates overlay', () => {
   it('renders no estimate annotations when estimates is null', () => {
     const html = renderToStaticMarkup(<SemCanvasUI {...base} />)
     expect(html).not.toContain('data-beta')

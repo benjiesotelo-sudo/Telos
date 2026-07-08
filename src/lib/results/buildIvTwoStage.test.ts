@@ -26,7 +26,7 @@ describe('buildIvTwoStage', () => {
     const c = buildIvTwoStage(IV_TWO_STAGE, mock())
     expect(c.tables[0].rows[0]).toEqual({ endogenous: 'educ', instrument: 'educ_iv', coef: '1.16', se: '0.06', partialF: '438.50', p: '<.001' })
   })
-  it('2SLS table is SHAPE B — per term: coef {ols,iv} → muted (SE) → muted [CI]', () => {
+  it('2SLS table is SHAPE B - per term: coef {ols,iv} → muted (SE) → muted [CI]', () => {
     const rows = buildIvTwoStage(IV_TWO_STAGE, mock()).tables[1].rows
     // educ is the 2nd term → rows 3,4,5
     expect(rows[3]).toEqual({ _kind: 'coef', term: 'educ', ols: '9.57', iv: '7.82' })
@@ -52,7 +52,7 @@ describe('buildIvTwoStage', () => {
       .filter((x) => x._kind === 'span').map((x) => x.term)
     expect(spans[2]).toBe('Sargan: 2.31, p = .128')
   })
-  it('APA is softened — "the 2SLS estimate for X was B", no causal "had an effect"; now carries the CI (R1 gap-fix)', () => {
+  it('APA is softened - "the 2SLS estimate for X was B", no causal "had an effect"; now carries the CI (R1 gap-fix)', () => {
     const apa = buildIvTwoStage(IV_TWO_STAGE, mock()).apa
     expect(apa).toBe('The 2SLS estimate for educ was B=7.82, 95% CI [7.26, 8.38], p < .001 (first-stage F=438.50).')
     expect(apa).not.toContain('had an effect')

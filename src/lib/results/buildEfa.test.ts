@@ -25,7 +25,7 @@ const base: EfaResult = {
   retention: 'parallel',
 }
 
-describe('buildEfa — APA sentence reflects the run\'s actual Bartlett p and retention method', () => {
+describe('buildEfa - APA sentence reflects the run\'s actual Bartlett p and retention method', () => {
   it('renders "p < .001" and "parallel analysis" for a parallel-analysis run with p < .001 (the common case)', () => {
     const c = buildEfa(EFA, base)
     expect(c.apa).toContain('p < .001')

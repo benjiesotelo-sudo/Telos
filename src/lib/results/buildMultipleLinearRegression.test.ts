@@ -72,7 +72,7 @@ describe('buildMultipleLinearRegression', () => {
     const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, one)
     expect(c.tables[0].rows.filter((row) => row._kind === 'coef').map((row) => row.vif)).toEqual(['', '—'])
   })
-  it('#11: emits both figures in card order — residual diagnostics, then coefficient plot', () => {
+  it('#11: emits both figures in card order - residual diagnostics, then coefficient plot', () => {
     const c = buildMultipleLinearRegression(MULTIPLE_LINEAR_REGRESSION, res)
     expect(c.figures.map((g) => g.file)).toEqual(['residuals', 'coefficient-plot'])
     expect(c.figures.map((g) => g.caption)).toEqual(['Residual diagnostics', 'Coefficient plot'])

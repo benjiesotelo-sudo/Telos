@@ -7,9 +7,9 @@ export const WELCH_ANOVA: TestSpec = {
   question: '3+ groups, unequal variances',
   roles: [
     { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1',
-      hint: 'e.g. the numeric result you measured — test score, income' },
+      hint: 'e.g. the numeric result you measured - test score, income' },
     { id: 'factor', label: 'Factor', levels: 'nominal / ordinal', arity: 'exactly 1 · 3+ categories',
-      hint: 'e.g. a grouping label — teaching method' },
+      hint: 'e.g. a grouping label - teaching method' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },

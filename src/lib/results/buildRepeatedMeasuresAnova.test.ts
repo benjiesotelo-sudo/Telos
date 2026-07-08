@@ -114,7 +114,7 @@ describe('buildRepeatedMeasuresAnova', () => {
     it('note is the assume note + a violated verdict (Mauchly p=.0198 < alpha) with afterTableId=sphericity (note renders between Table 3 and Table 4)', () => {
       expect(c.note).toEqual({
         ...spec.tableNote,
-        text: `${spec.tableNote!.text} — sphericity looks violated; check that a Greenhouse–Geisser or Huynh–Feldt correction is applied above`,
+        text: `${spec.tableNote!.text} - sphericity looks violated; check that a Greenhouse–Geisser or Huynh–Feldt correction is applied above`,
         afterTableId: 'sphericity',
       })
     })

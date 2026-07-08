@@ -39,7 +39,7 @@ const fixtureResult: FactorialAnovaResult = {
   figurePng: png,
 }
 
-describe('buildFactorialAnova — fixture (nothing significant): Table 3 absent', () => {
+describe('buildFactorialAnova - fixture (nothing significant): Table 3 absent', () => {
   const c = buildFactorialAnova(spec, fixtureResult)
 
   it('renders only 2 tables when nothing is significant', () => {
@@ -102,7 +102,7 @@ describe('buildFactorialAnova — fixture (nothing significant): Table 3 absent'
   })
 })
 
-describe('buildFactorialAnova — doctored result (interaction p=.01): Table 3 present, interaction rows only', () => {
+describe('buildFactorialAnova - doctored result (interaction p=.01): Table 3 present, interaction rows only', () => {
   // Doctor the result: interaction significant at .01, main effects still not significant
   const doctoredResult: FactorialAnovaResult = {
     ...fixtureResult,
@@ -136,7 +136,7 @@ describe('buildFactorialAnova — doctored result (interaction p=.01): Table 3 p
   })
 })
 
-describe('buildFactorialAnova — interactions OFF: main-effects APA, title, no figure', () => {
+describe('buildFactorialAnova - interactions OFF: main-effects APA, title, no figure', () => {
   // interactions=OFF: no × row in result
   const noInteractionsResult: FactorialAnovaResult = {
     ...fixtureResult,
@@ -169,7 +169,7 @@ describe('buildFactorialAnova — interactions OFF: main-effects APA, title, no 
   })
 })
 
-describe('buildFactorialAnova — all significant: Table 3 contains all rows', () => {
+describe('buildFactorialAnova - all significant: Table 3 contains all rows', () => {
   const allSigResult: FactorialAnovaResult = {
     ...fixtureResult,
     rows: [

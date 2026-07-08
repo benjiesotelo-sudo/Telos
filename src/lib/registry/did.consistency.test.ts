@@ -63,7 +63,7 @@ describe('did registry stays faithful to the spec HTML (verbatim, card-scoped)',
     expect(hints).toEqual(spec.roles.map((r) => r.hint))
     expect(cons).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
   })
-  it('options equal the inputs card option strip (no CI pill drawn — CI fixed at 95%)', () => {
+  it('options equal the inputs card option strip (no CI pill drawn - CI fixed at 95%)', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))

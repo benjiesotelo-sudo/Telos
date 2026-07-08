@@ -85,7 +85,7 @@ export function TestConfigScreen({ testId }: { testId: string }) {
       })()}
       {spec.options.some((o) => o.id === 'tails') && String(setup.options['tails'] ?? '').startsWith('one-tailed') && (
         <p className="hint" role="note" style={{ color: 'var(--error-tx)', marginTop: 6 }}>
-          ⚠ One-tailed test — only valid for a directional hypothesis set <em>in advance</em>; choosing it after seeing your data inflates false positives.
+          ⚠ One-tailed test - only valid for a directional hypothesis set <em>in advance</em>; choosing it after seeing your data inflates false positives.
         </p>
       )}
       {spec.options.filter((o) => o.kind === 'proportions' && setup.options[o.id] === 'custom').map((o) => {
@@ -104,7 +104,7 @@ export function TestConfigScreen({ testId }: { testId: string }) {
                   style={{ width: '5em', border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }} />
               </label>
             ))}
-            <span className="hint">{propsSumOk(vals) ? `Σ = ${sum.toFixed(2)}` : `Σ = ${sum.toFixed(2)} — proportions must sum to 1`}</span>
+            <span className="hint">{propsSumOk(vals) ? `Σ = ${sum.toFixed(2)}` : `Σ = ${sum.toFixed(2)} - proportions must sum to 1`}</span>
           </div>
         )
       })}

@@ -10,11 +10,11 @@ export const DID: TestSpec = {
   name: 'Difference-in-differences (DiD)',
   question: 'policy effect, before/after × treated/control',
   roles: [
-    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured — test score, income' },
-    { id: 'treatment', label: 'Treatment group', levels: 'binary nominal', arity: 'exactly 1', hint: 'e.g. who got the treatment — treated = 1 / 0' },
-    { id: 'period', label: 'Period (pre / post)', levels: 'binary nominal', arity: 'exactly 1', hint: 'e.g. before vs after — post = 1 / 0' },
-    { id: 'entity', label: 'Entity / cluster unit (for clustered SEs)', levels: 'nominal / ordinal', arity: 'exactly 1', hint: 'e.g. the unit observed repeatedly — state, firm' },
-    { id: 'time', label: 'Time (for parallel-trends plot)', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the date / time-order column — month, year' },
+    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured - test score, income' },
+    { id: 'treatment', label: 'Treatment group', levels: 'binary nominal', arity: 'exactly 1', hint: 'e.g. who got the treatment - treated = 1 / 0' },
+    { id: 'period', label: 'Period (pre / post)', levels: 'binary nominal', arity: 'exactly 1', hint: 'e.g. before vs after - post = 1 / 0' },
+    { id: 'entity', label: 'Entity / cluster unit (for clustered SEs)', levels: 'nominal / ordinal', arity: 'exactly 1', hint: 'e.g. the unit observed repeatedly - state, firm' },
+    { id: 'time', label: 'Time (for parallel-trends plot)', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the date / time-order column - month, year' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -57,7 +57,7 @@ export const DID: TestSpec = {
   },
   figures: [{ caption: 'Parallel trends', type: 'parallel-trends plot (group means over time, treatment marked)', file: 'parallel-trends' }],
   howToRead:
-    'The Treated×Post coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups would have moved together absent treatment. Similar pre-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it — a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated×time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends. Method: R plm package with clustered standard errors (Croissant & Millo, 2008; Bertrand, Duflo & Mullainathan, 2004).',
+    'The Treated×Post coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups would have moved together absent treatment. Similar pre-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it - a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated×time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends. Method: R plm package with clustered standard errors (Croissant & Millo, 2008; Bertrand, Duflo & Mullainathan, 2004).',
   apaTemplate: 'The DiD estimate was B={b}, 95% CI [{lo}, {hi}], p {p} (clustered SE).',
   rMap: 'plm(model="within") with clustered SE → table · aggregate(outcome ~ treated + post, mean) → group × period means · ggplot2 → trends plot',
   bundleFiles: ['table_did.png', 'table_group-period-means.png', 'figure_parallel-trends.png'],

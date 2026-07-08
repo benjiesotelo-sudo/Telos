@@ -10,7 +10,7 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf("<div class=\"ttl\">Kendall's tau</div>"), inputsHtml.indexOf('<div class="ttl">Chi-square goodness-of-fit</div>'))
 
 describe("kendalls-tau registry stays faithful to the spec HTML (verbatim, card-scoped)", () => {
-  it('table thead equals the card column sequence — decode entities; suffix composes after sub (τ_b [95% CI])', () => {
+  it('table thead equals the card column sequence - decode entities; suffix composes after sub (τ_b [95% CI])', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) =>
       [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => decode(t[1]))) // τ arrives as &tau; — compare decoded, keep <sub>
     expect(theads).toEqual(spec.tables.map((t) =>

@@ -46,7 +46,7 @@ describe('regression / econometrics emitters', () => {
       expect(r).toContain('Standardized')
       expect(r).toContain('car::vif(m)')
     })
-    it('omits car::vif entirely with a single predictor (car::vif needs >= 2 terms — mirrors the app guard)', () => {
+    it('omits car::vif entirely with a single predictor (car::vif needs >= 2 terms - mirrors the app guard)', () => {
       // one categorical predictor with >= 3 levels expands to >= 2 dummy coefs but is still ONE term; the old
       // `if (length(coef(m)) >= 3)` guard mis-fired and car::vif errored. The guard is now on predictor count.
       const r1 = emit('multiple-linear-regression', setup({ outcome: ['wage'], predictors: ['female'] }, {}))

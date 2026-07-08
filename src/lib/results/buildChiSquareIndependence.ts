@@ -25,7 +25,7 @@ export function buildChiSquareIndependence(spec: TestSpec, r: ChiSquareIndepende
   r.colCats.forEach((_, j) => { totalRow[`c${j}`] = String(r.counts[R][j]) })
 
   // Dynamic small-expected warning appended to the drawn note (the note itself promises this warning) — decision 5.
-  const warn = r.minExpected < 5 ? ` Smallest expected count here is ${f1(r.minExpected)} — consider Fisher's exact test.` : ''
+  const warn = r.minExpected < 5 ? ` Smallest expected count here is ${f1(r.minExpected)} - consider Fisher's exact test.` : ''
   const apa = spec.apaTemplate
     .replace('{df}', fdf(r.df)).replace('{n}', String(r.n)).replace('{chisq}', f(r.chisq))
     .replace('{p}', fpApa(r.p))

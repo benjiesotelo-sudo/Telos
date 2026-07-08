@@ -11,7 +11,7 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Paired t-test</div>'), inputsHtml.indexOf('<div class="ttl">Factorial ANOVA</div>'))
 
 describe('paired-t-test registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences — incl. M<sub>diff</sub> and d<sub>z</sub>; Table 1 has no SE column', () => {
+  it('table theads equal the card column sequences - incl. M<sub>diff</sub> and d<sub>z</sub>; Table 1 has no SE column', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => t[1]))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => (c.sub ? `${c.label}<sub>${c.sub}</sub>` : c.label))))
     expect(theads[0]).toHaveLength(4) // Condition · N · M · SD — the card draws no SE

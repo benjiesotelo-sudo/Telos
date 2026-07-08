@@ -26,7 +26,7 @@ export function buildChiSquareGof(spec: TestSpec, r: ChiSquareGofResult): CardCo
   const fig = figuresOf(spec)[0]
   // Dynamic small-expected warning (R1 gap-fix), parity with buildChiSquareIndependence's identical device —
   // appended at render time, so telos_test_outputs.html's static note text is untouched.
-  const warn = r.minExpected < 5 ? ` Smallest expected count here is ${f1(r.minExpected)} — consider Fisher's exact test.` : ''
+  const warn = r.minExpected < 5 ? ` Smallest expected count here is ${f1(r.minExpected)} - consider Fisher's exact test.` : ''
   return {
     tables: [
       { spec: spec.tables[0], rows: r.rows.map((x) => ({ category: x.category, observed: x.observed, expected: f(x.expected), stdres: f(x.stdRes) })) },

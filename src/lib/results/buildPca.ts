@@ -71,7 +71,7 @@ export function buildPca(spec: TestSpec, r: PcaResult): CardContent {
   const notes: CardContent['notes'] = [
     { label: 'Method', text: 'Component loading columns expand to the number of retained components; loadings are correlation-scaled (eigenvector × √eigenvalue).' },
     { label: 'Cutoffs', text: 'Loadings |< .32| are suppressed.' },
-    { label: 'Scope', text: 'PCA is data reduction — components are weighted composites, not latent factors; communalities are not reported (Jolliffe & Cadima, 2016; Frick et al., 2025).', afterTableId: 'component-loadings' },
+    { label: 'Scope', text: 'PCA is data reduction - components are weighted composites, not latent factors; communalities are not reported (Jolliffe & Cadima, 2016; Frick et al., 2025).', afterTableId: 'component-loadings' },
   ]
 
   return {

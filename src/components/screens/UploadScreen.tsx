@@ -12,7 +12,7 @@ export function UploadScreen() {
   const [pending, setPending] = useState<{ name: string; size: number; bytes: ArrayBuffer; sheets: string[]; sheet: string } | null>(null)
 
   const finish = (ds: Dataset, name: string, sizeBytes: number, encoding: string) => {
-    if (!ds.columns.length || !ds.rows.length) { setError(`${name} parsed but contains no data rows — fix the file and re-upload.`); return }
+    if (!ds.columns.length || !ds.rows.length) { setError(`${name} parsed but contains no data rows - fix the file and re-upload.`); return }
     loadDataset(ds, { name, rows: ds.rows.length, cols: ds.columns.length, encoding })
     const big = sizeBytes > SIZE_WARN.mb * 1024 * 1024 || ds.rows.length > SIZE_WARN.rows
     if (big) setWarn(SIZE_WARN_TEXT) // stay so the warning is read; Continue proceeds
@@ -34,7 +34,7 @@ export function UploadScreen() {
         catch { text = new TextDecoder('windows-1252').decode(buf); encoding = 'Latin-1' }
         finish(parseCsv(text), f.name, f.size, encoding)
       }
-    } catch (e) { setError(`Couldn't parse ${f.name}: ${e instanceof Error ? e.message : String(e)} — fix the file and re-upload.`) }
+    } catch (e) { setError(`Couldn't parse ${f.name}: ${e instanceof Error ? e.message : String(e)} - fix the file and re-upload.`) }
   }
 
   return (

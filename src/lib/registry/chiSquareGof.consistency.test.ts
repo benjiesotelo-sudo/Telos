@@ -9,7 +9,7 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Chi-square goodness-of-fit</div>'), inputsHtml.indexOf('<div class="ttl">Fisher\'s exact</div>'))
 
 describe('chi-square-goodness-of-fit registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences (decoded — χ², k−1)', () => {
+  it('table theads equal the card column sequences (decoded - χ², k−1)', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
   })

@@ -13,7 +13,7 @@ const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Logistic re
 describe('logistic-regression registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
   // modelsummary coef table (design 2026-06-16): SHAPE A two-column B|OR merges the old Model fit + Coefficients.
   // thead[0] = ['', 'Log-odds (B)', 'Odds ratio (OR)'] above a GOF footer; thead[1] = the classification table.
-  it('table theads equal the card column sequences (decoded — Log-odds (B) | Odds ratio (OR), Predicted \\ Observed)', () => {
+  it('table theads equal the card column sequences (decoded - Log-odds (B) | Odds ratio (OR), Predicted \\ Observed)', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
   })

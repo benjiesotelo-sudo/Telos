@@ -5,7 +5,7 @@ import { RUNNERS, BUILDERS } from '../results/builders'
 import { gateOk } from '../../state/session'
 import type { SessionState } from '../../state/session'
 
-describe('path-analysis — observed-only CB-SEM picker entry', () => {
+describe('path-analysis - observed-only CB-SEM picker entry', () => {
   it('is a distinct catalog entry under SEM, available', () => {
     const entry = CATALOG.find((c) => c.id === 'path-analysis')
     expect(entry).toBeDefined()

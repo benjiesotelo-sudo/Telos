@@ -13,7 +13,7 @@ const iStart = inputsHtml.indexOf('<div class="ttl">Frequencies &amp; cross-tabs
 const inCard = inputsHtml.slice(iStart, inputsHtml.indexOf('<div class="ttl">Distribution &amp; normality</div>', iStart))
 
 describe('frequencies registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences — incl. the literal Row \\ Column and the … placeholder column', () => {
+  it('table theads equal the card column sequences - incl. the literal Row \\ Column and the … placeholder column', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label))) // no sub/sup columns on this card
     expect(theads[1][0]).toBe('Row \\ Column') // single backslash at runtime — the card's literal

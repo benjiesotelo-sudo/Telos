@@ -49,8 +49,8 @@ export const CRONBACHS_ALPHA: TestSpec = {
   howToRead:
     'ω (McDonald\'s omega) is the headline reliability coefficient; it assumes only a congeneric (one-factor) model and is preferred over α when item loadings differ (McNeish, 2018). ' +
     'α (Cronbach\'s alpha) assumes tau-equivalence (equal loadings) and is a lower bound when loadings differ; it is retained as a secondary/legacy coefficient because reviewers still request it. ' +
-    'Both range 0–1; ≥ .70 is commonly considered acceptable, ≥ .80 good, > .95 suggests item redundancy — treat these as heuristics, not pass/fail thresholds. ' +
-    'The "α if item dropped" column flags items that, if removed, would raise α — candidates for review. ' +
+    'Both range 0–1; ≥ .70 is commonly considered acceptable, ≥ .80 good, > .95 suggests item redundancy - treat these as heuristics, not pass/fail thresholds. ' +
+    'The "α if item dropped" column flags items that, if removed, would raise α - candidates for review. ' +
     'A high coefficient does not prove unidimensionality.',
   apaTemplate: "Internal consistency was {verdict}, ω={omega} (95% CI [{ciLow}, {ciHigh}]); Cronbach's α={alpha}.",
   rMap: 'psych::alpha() → α + item-total · lavaan::cfa() + semTools::compRelSEM() → ω + 95% CI · ggplot2 → figure',

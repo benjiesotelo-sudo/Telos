@@ -50,7 +50,7 @@ describe('SemCanvas store wiring', () => {
     expect(useSession.getState().setups[TEST_ID].paths).toEqual([{ from: 2, to: 1 }])
   })
 
-  it('moveNode updates the matched construct x/y by id (items move with it — they are drawn relative)', () => {
+  it('moveNode updates the matched construct x/y by id (items move with it - they are drawn relative)', () => {
     useSession.getState().moveNode(TEST_ID, 2, 410, 220)
     const c = useSession.getState().setups[TEST_ID].constructs!.find((x) => x.id === 2)!
     expect(c).toMatchObject({ id: 2, x: 410, y: 220 })
@@ -71,7 +71,7 @@ describe('SemCanvas store wiring', () => {
   })
 })
 
-describe('screenToViewBox — drag coordinate mapping', () => {
+describe('screenToViewBox - drag coordinate mapping', () => {
   const rect = { left: 0, top: 0, width: 720, height: 320 }
   it('maps a screen point to viewBox space at 1:1 (no zoom/pan)', () => {
     const vb = { x: 0, y: 0, w: 720, h: 320 }

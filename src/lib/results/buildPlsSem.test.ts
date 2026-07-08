@@ -194,7 +194,7 @@ describe('buildPlsSem', () => {
 // and non-empty in every built row (the em-dash placeholder counts as non-empty). Relaxed to a
 // per-COLUMN rule for 'measurement' (U6-T1, mirrors U3-T1's cfa-loadings relaxation): the merged
 // table intentionally leaves group rows blank on item columns and item rows blank on group columns.
-describe('buildPlsSem — real registry spec (row keys must cover every spec column key)', () => {
+describe('buildPlsSem - real registry spec (row keys must cover every spec column key)', () => {
   it('PLS_SEM: every rows-table row fills every spec column', () => {
     const c = buildPlsSem(PLS_SEM, R)
     for (const table of c.tables) {
@@ -234,7 +234,7 @@ describe('buildPlsSem — real registry spec (row keys must cover every spec col
 // (beta/p/R²Y) was never filled. The registry template now carries {beta}/{p}/{r2y} tokens plus the
 // generic "X to Y" descriptor (same convention as multiple-linear-regression's "predictor X"), filled
 // here from the FIRST structural path (the worked-example convention).
-describe('buildPlsSem — APA template filled with live values (worked example = first structural path)', () => {
+describe('buildPlsSem - APA template filled with live values (worked example = first structural path)', () => {
   it('fills the path names, beta, p, and the R²Y for the first path\'s target construct', () => {
     const c = buildPlsSem(PLS_SEM, R)
     expect(c.apa).toBe('In the PLS-SEM, the path from Image to Expectation gave β=.30, p = .001 (bootstrap); R²Y=.09.')

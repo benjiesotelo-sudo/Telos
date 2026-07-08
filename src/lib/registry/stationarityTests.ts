@@ -11,10 +11,10 @@ export const STATIONARITY_TESTS: TestSpec = {
   roles: [
     { id: 'time', label: 'Time',
       levels: 'datetime / ordered', arity: 'exactly 1',
-      hint: 'e.g. the date / time-order column — month, year' },
+      hint: 'e.g. the date / time-order column - month, year' },
     { id: 'series', label: 'Series',
       levels: 'interval / ratio', arity: 'exactly 1',
-      hint: 'e.g. numeric series over time — sales, visitors' },
+      hint: 'e.g. numeric series over time - sales, visitors' },
   ],
   options: [
     { id: 'test', label: 'test', value: 'both · ADF + KPSS', kind: 'select',
@@ -45,7 +45,7 @@ export const STATIONARITY_TESTS: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'ADF and KPSS have opposite null hypotheses — the conclusion column reconciles them. The Statistic column holds two different metrics (ADF: Dickey–Fuller τ; KPSS: LM statistic); KPSS p-values are interpolated and shown bounded (e.g. “> .10” / “< .01”) rather than exact.',
+    text: 'ADF and KPSS have opposite null hypotheses - the conclusion column reconciles them. The Statistic column holds two different metrics (ADF: Dickey–Fuller τ; KPSS: LM statistic); KPSS p-values are interpolated and shown bounded (e.g. “> .10” / “< .01”) rather than exact.',
   },
   figures: [
     { caption: 'Series & structure', type: 'series plot + ACF / PACF (and differenced series)', file: 'series' },

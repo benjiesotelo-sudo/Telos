@@ -70,7 +70,7 @@ export function buildFactorialAnova(spec: TestSpec, r: FactorialAnovaResult): Ca
     ? spec.howToRead
     : spec.howToRead
         .replace("Each factor's F/p is its main effect; the A×B row tests whether the effect of one factor depends on the other. ", '')
-        .replace('A significant interaction usually takes priority — read it from the interaction plot before the main effects. ', '')
+        .replace('A significant interaction usually takes priority - read it from the interaction plot before the main effects. ', '')
   const howToRead = howToReadBase + ` Your significance threshold (α) is ${r.alpha}.`
   const base = {
     note: { kind: 'assume' as const, text: noteText },

@@ -26,7 +26,7 @@ afterEach(() => {
   mockState.runPhase = null
 })
 
-describe('Unit 9a — results-screen run narration (RunModule)', () => {
+describe('Unit 9a - results-screen run narration (RunModule)', () => {
   it('renders a run-card with the phase text and a width percentage when runProgress carries an estimate', () => {
     mockState.runStatus = 'running'
     mockState.runPhase = 'Bootstrapping (5000 resamples)…'

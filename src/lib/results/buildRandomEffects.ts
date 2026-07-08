@@ -30,7 +30,7 @@ export function buildRandomEffects(spec: TestSpec, r: RandomEffectsResult): Card
     .replace('p {p}', `p ${first ? fpApa(first.p) : '—'}`)
   // Theme-4: APPEND the Breusch–Pagan LM test (RE vs pooled OLS) + Swamy–Arora variance components / θ to the drawn
   // note (cf. buildFixedEffects appending the poolability F). fx collapses an NA test/θ to a single em-dash (no NaN).
-  const bp = fx(r.bpLm, (v) => `χ²(${fdf(r.bpDf ?? NaN)}) = ${f(v)}, p ${fpApa(r.bpP ?? NaN)} — a low p favours the random effects over pooled OLS`)
+  const bp = fx(r.bpLm, (v) => `χ²(${fdf(r.bpDf ?? NaN)}) = ${f(v)}, p ${fpApa(r.bpP ?? NaN)} - a low p favours the random effects over pooled OLS`)
   const vc = fx(r.theta, (v) => `θ = ${f(v)} (variance components: idiosyncratic ${fx(r.varIdiosyncratic, f)}, between ${fx(r.varEntity, f)})`)
   const note: CardContent['note'] = spec.tableNote
     ? { ...spec.tableNote, text: `${spec.tableNote.text} Breusch–Pagan LM test (RE vs pooled OLS): ${bp}. Swamy–Arora ${vc}.` }

@@ -37,7 +37,7 @@ function seedStore() {
 
 // ── Store mutation tests ────────────────────────────────────────────────────
 
-describe('ConstructSlots — store mutations', () => {
+describe('ConstructSlots - store mutations', () => {
   beforeEach(() => { useSession.getState().reset(); seedStore() })
 
   it('initial constructs array is empty', () => {
@@ -94,7 +94,7 @@ describe('ConstructSlots — store mutations', () => {
 
 // ── Rendering tests (ConstructSlotsUI — props-based, SSR-safe) ────────────
 
-describe('ConstructSlotsUI — rendering', () => {
+describe('ConstructSlotsUI - rendering', () => {
   it('renders the Add construct button', () => {
     const html = renderUI([])
     expect(html).toContain('Add construct')

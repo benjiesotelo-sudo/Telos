@@ -8,9 +8,9 @@ export const SIMPLE_LINEAR_REGRESSION: TestSpec = {
   question: 'one numeric outcome, one predictor',
   roles: [
     { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1',
-      hint: 'e.g. the numeric result you measured — test score, income' },
+      hint: 'e.g. the numeric result you measured - test score, income' },
     { id: 'predictor', label: 'Predictor', levels: 'any level', arity: 'exactly 1',
-      hint: 'e.g. one explanatory variable — hours studied' },
+      hint: 'e.g. one explanatory variable - hours studied' },
   ],
   options: [
     // House convention: α / CI pills are display-only (ratified Association decision 1).

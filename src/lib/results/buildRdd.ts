@@ -15,7 +15,7 @@ export function buildRdd(spec: TestSpec, r: RddResult): CardContent {
   const gofValue: Record<string, string> = {
     bandwidth: f(r.bandwidth), nleft: String(r.nLeft), nright: String(r.nRight),
   }
-  const note = `${spec.tableNote!.text} Cutoff = ${f(r.cutoff)}. McCrary density manipulation test: t = ${fx(r.mccrary.t, f)}, p = ${fx(r.mccrary.p, fp)} (McCrary, 2008) — a small p flags sorting/manipulation at the cutoff.`
+  const note = `${spec.tableNote!.text} Cutoff = ${f(r.cutoff)}. McCrary density manipulation test: t = ${fx(r.mccrary.t, f)}, p = ${fx(r.mccrary.p, fp)} (McCrary, 2008) - a small p flags sorting/manipulation at the cutoff.`
   // R1 gap-fix: bandwidth-sensitivity re-estimates (fixed h=h0/2 and h=h0*2) as full-width span rows,
   // matching buildIvTwoStage's diagnostic-span precedent — no new table/column needed.
   const bwHalf = r.bwSensitivity.half, bwDouble = r.bwSensitivity.double
@@ -25,8 +25,8 @@ export function buildRdd(spec: TestSpec, r: RddResult): CardContent {
     { _kind: 'ci', term: '', est: `[${f(r.ciLow)}, ${f(r.ciHigh)}]` },
     { _kind: 'rule' },
     ...t.gof!.map((g) => ({ _kind: 'gof', term: g.label, est: gofValue[g.key] })),
-    { _kind: 'span', term: `Bandwidth sensitivity — half h (${f(bwHalf.h)}): estimate = ${f(bwHalf.estimate)}, 95% CI [${f(bwHalf.ciLow)}, ${f(bwHalf.ciHigh)}]` },
-    { _kind: 'span', term: `Bandwidth sensitivity — double h (${f(bwDouble.h)}): estimate = ${f(bwDouble.estimate)}, 95% CI [${f(bwDouble.ciLow)}, ${f(bwDouble.ciHigh)}]` },
+    { _kind: 'span', term: `Bandwidth sensitivity - half h (${f(bwHalf.h)}): estimate = ${f(bwHalf.estimate)}, 95% CI [${f(bwHalf.ciLow)}, ${f(bwHalf.ciHigh)}]` },
+    { _kind: 'span', term: `Bandwidth sensitivity - double h (${f(bwDouble.h)}): estimate = ${f(bwDouble.estimate)}, 95% CI [${f(bwDouble.ciLow)}, ${f(bwDouble.ciHigh)}]` },
   ]
   const apa = spec.apaTemplate
     .replace('{b}', f(r.estimate))

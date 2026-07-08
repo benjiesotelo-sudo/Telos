@@ -7,11 +7,11 @@
 // above alpha" language elsewhere.
 export function verdictClause(p: number | null | undefined, alpha: number, metText: string, violatedText: string): string {
   if (p == null || !Number.isFinite(p)) return ''
-  return p < alpha ? ` — ${violatedText}` : ` — ${metText}`
+  return p < alpha ? ` - ${violatedText}` : ` - ${metText}`
 }
 
 // Same device, keyed off a precomputed boolean — for checks spanning several rows/terms (e.g. ANCOVA's
 // per-covariate homogeneity-of-slopes check, one row per covariate) where a single p doesn't exist.
 export function verdictFromBoolean(violated: boolean, metText: string, violatedText: string): string {
-  return ` — ${violated ? violatedText : metText}`
+  return ` - ${violated ? violatedText : metText}`
 }

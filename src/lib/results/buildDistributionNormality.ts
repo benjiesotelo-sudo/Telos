@@ -38,8 +38,8 @@ export function buildDistributionNormality(spec: TestSpec, r: DistributionNormal
     note: { kind: spec.tableNote!.kind, text: note },
     // per-variable caption/type so export names never collide across variables (the summary-statistics pattern)
     figures: r.variables.flatMap((v) => [
-      { caption: `${histSpec.caption} — ${v.variable}`, type: `${histSpec.type}_${v.variable}`, png: v.histogramPng },
-      { caption: `${qqSpec.caption} — ${v.variable}`, type: `${qqSpec.type}_${v.variable}`, png: v.qqPng },
+      { caption: `${histSpec.caption} - ${v.variable}`, type: `${histSpec.type}_${v.variable}`, png: v.histogramPng },
+      { caption: `${qqSpec.caption} - ${v.variable}`, type: `${qqSpec.type}_${v.variable}`, png: v.qqPng },
     ]),
     howToRead: spec.howToRead,
     apa: r.variables.length === 1 ? sentence(r.variables[0]) : r.variables.map((v) => `${v.variable}: ${sentence(v)}`).join(' '),

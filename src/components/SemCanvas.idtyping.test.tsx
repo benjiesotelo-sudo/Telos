@@ -8,7 +8,7 @@ import type { ColumnMeta } from '../lib/data/columnMeta'
 const numericCol = (name: string): ColumnMeta => ({ name, detected: 'float64', tags: [], level: 'ratio', used: true })
 const C = (id: number, name: string, items: string[]): Construct => ({ id, name, items, x: 60, y: 100 })
 
-describe('SemCanvas — numeric id typing (regression: no string/number === mismatch)', () => {
+describe('SemCanvas - numeric id typing (regression: no string/number === mismatch)', () => {
   it('Construct.id and StructuralPath.from/to are number-typed and match by ===', () => {
     const constructs = [C(1, 'A', ['q1', 'q2']), C(2, 'B', ['q3', 'q4'])]
     const paths: StructuralPath[] = [{ from: 1, to: 2 }]

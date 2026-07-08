@@ -64,7 +64,7 @@ describe('compositeReliability registry stays faithful to the spec HTML (verbati
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
   })
-  it('no matrix tables (CR card is reliability-only — no Fornell-Larcker / no HTMT matrices)', () => {
+  it('no matrix tables (CR card is reliability-only - no Fornell-Larcker / no HTMT matrices)', () => {
     // CR card must have no matrix table elements (no apa matrix class); the howToRead may mention
     // "Fornell-Larcker" and "HTMT" only as cross-references pointing users to the AVE card.
     expect(card.includes('class="apa matrix"')).toBe(false)

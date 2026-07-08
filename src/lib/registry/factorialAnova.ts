@@ -7,9 +7,9 @@ export const FACTORIAL_ANOVA: TestSpec = {
   question: 'main effects + interaction of 2+ factors',
   roles: [
     { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1',
-      hint: 'e.g. the numeric result you measured — test score, income' },
+      hint: 'e.g. the numeric result you measured - test score, income' },
     { id: 'factors', label: 'Factors', levels: 'nominal / ordinal', arity: 'two or more',
-      hint: 'e.g. grouping labels — method, gender' },
+      hint: 'e.g. grouping labels - method, gender' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -38,8 +38,8 @@ export const FACTORIAL_ANOVA: TestSpec = {
   figures: [{ caption: 'Interaction', type: 'interaction plot (one line per level of a factor)' , file: 'interaction' }],
   howToRead:
     "Each factor's F/p is its main effect; the A×B row tests whether the effect of one factor depends on the other. " +
-    'A significant interaction usually takes priority — read it from the interaction plot before the main effects. ' +
-    "A significant effect for any factor with 3+ levels tells you the levels differ somewhere, not which ones — " +
+    'A significant interaction usually takes priority - read it from the interaction plot before the main effects. ' +
+    "A significant effect for any factor with 3+ levels tells you the levels differ somewhere, not which ones - " +
     'use the post-hoc / simple-effects (emmeans) table to find the specific pairs.',
   apaTemplate: 'A two-way ANOVA gave A×B interaction F({df1},{df2})={f}, p {p}, partial η²={pes} [{lo}, {hi}].',
   rMap: 'aov() / afex::aov_car() → Table 2 · emmeans → Table 3 · ggplot2 → interaction plot',

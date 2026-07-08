@@ -7,9 +7,9 @@ export const MANOVA: TestSpec = {
   question: 'groups compared on several outcomes at once',
   roles: [
     { id: 'outcomes', label: 'Outcomes (DVs)', levels: 'interval / ratio', arity: 'two or more',
-      hint: 'e.g. two or more numeric outcomes — score, satisfaction' },
+      hint: 'e.g. two or more numeric outcomes - score, satisfaction' },
     { id: 'factors', label: 'Factor(s)', levels: 'nominal / ordinal', arity: 'one or more',
-      hint: 'e.g. grouping labels — method, gender' },
+      hint: 'e.g. grouping labels - method, gender' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },

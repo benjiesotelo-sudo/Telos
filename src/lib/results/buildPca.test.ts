@@ -19,7 +19,7 @@ const base: PcaResult = {
   retention: 'parallel',
 }
 
-describe('buildPca — APA sentence reflects the actual matrix type + retention method', () => {
+describe('buildPca - APA sentence reflects the actual matrix type + retention method', () => {
   it('names the correlation matrix + parallel analysis for the default (standardize on, retention parallel)', () => {
     const c = buildPca(PCA, base)
     expect(c.apa).toContain('correlation matrix')

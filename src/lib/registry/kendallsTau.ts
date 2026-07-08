@@ -26,10 +26,10 @@ export const KENDALLS_TAU: TestSpec = {
   ],
   // R1 gap-fix (U9-T3 wave C): bootstrap-CI provenance sentence, parity with spearman's tableNote (both
   // hand-roll the CI the same way — cor.test returns no CI for rank correlation).
-  tableNote: { kind: 'plain', text: 'τ is Kendall’s tau-b — the tie-corrected variant (cor.test, method = "kendall"). τ CI from a seeded percentile bootstrap (2000 resamples); cor.test does not return one for rank correlation.', afterTableId: 'correlation' },
-  figures: [{ caption: 'Relationship', type: 'scatter plot (optionally on ranks — τ measures monotonic, not linear, association)', file: 'scatter' }],
+  tableNote: { kind: 'plain', text: 'τ is Kendall’s tau-b - the tie-corrected variant (cor.test, method = "kendall"). τ CI from a seeded percentile bootstrap (2000 resamples); cor.test does not return one for rank correlation.', afterTableId: 'correlation' },
+  figures: [{ caption: 'Relationship', type: 'scatter plot (optionally on ranks - τ measures monotonic, not linear, association)', file: 'scatter' }],
   howToRead:
-    'τ (Kendall’s tau-b) is a rank correlation based on concordant vs. discordant pairs, with a correction for ties — well suited to small samples and many ties. ' +
+    'τ (Kendall’s tau-b) is a rank correlation based on concordant vs. discordant pairs, with a correction for ties - well suited to small samples and many ties. ' +
     'Sign = direction, magnitude = strength; p tests significance.',
   apaTemplate: "A Kendall's tau-b correlation gave τ={tau} [{lo}, {hi}], p {p}, N={n}.",
   rMap: 'cor.test(method="kendall") → table · ggplot2 → figure',

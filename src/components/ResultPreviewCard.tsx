@@ -24,7 +24,7 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
     <section className="card">
       <div className="eyebrow">{String(index).padStart(2, '0')} · {name}</div>
       {stale && (
-        <div className="error-box">Stale — the configuration changed since this ran.{' '}
+        <div className="error-box">Stale - the configuration changed since this ran.{' '}
           <button type="button" disabled={running} onClick={onRerun}>Run analysis again</button></div>
       )}
       <p style={{ color: 'var(--muted)' }}>{question}</p>
@@ -84,7 +84,7 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
       {content.figures.map((fig, i) => (
         <div key={`${fig.type}-${i}`}>
           <p><b>Figure.</b> {fig.caption}</p>
-          {figureSlot && i === 0 ? figureSlot : (urls[i] && <img src={urls[i]} alt={`${fig.type} — ${fig.caption}`} width={480} />)}
+          {figureSlot && i === 0 ? figureSlot : (urls[i] && <img src={urls[i]} alt={`${fig.type} - ${fig.caption}`} width={480} />)}
         </div>
       ))}
       {id && EXPLAINERS[id] && EXPLAINERS[id].length > 0 && content.values && Object.keys(content.values).length > 0 && (

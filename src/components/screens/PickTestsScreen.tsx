@@ -12,7 +12,7 @@ export function PickTestsScreen() {
     <section>
       <div className="eyebrow">Pick tests</div>
       <h1 className="title">Pick a test</h1>
-      <p className="prose">Select one or more tests below. Tests that don't fit your data are greyed out — hover to see why. Each test you pick gets its own configuration step.</p>
+      <p className="prose">Select one or more tests below. Tests that don't fit your data are greyed out - hover to see why. Each test you pick gets its own configuration step.</p>
       {allGreyed && (
         <div className="error-box" role="alert">
           No test fits the current data: every option is greyed out. Check the uploaded file (Upload) or the column levels and Use toggles (Configure data).
@@ -35,7 +35,7 @@ export function PickTestsScreen() {
                         {c.name}
                       </label>
                       {c.note && <span className="hint"> {c.note}</span>}
-                      {!v.ok && <span className="hint"> — {v.reason}</span>}
+                      {!v.ok && <span className="hint"> - {v.reason}</span>}
                     </div>
                   )
                 })}
@@ -43,7 +43,7 @@ export function PickTestsScreen() {
             ))}
           </div>
         ))}
-        <p className="hint" style={{ marginBottom: 0 }}>8 · Assumption diagnostics — inline checks under each test (no standalone cards)</p>
+        <p className="hint" style={{ marginBottom: 0 }}>8 · Assumption diagnostics - inline checks under each test (no standalone cards)</p>
       </div>
       <div className="btn-row">
         <span className="hint">→ the stepper grows one step per selected test</span>

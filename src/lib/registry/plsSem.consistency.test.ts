@@ -66,8 +66,8 @@ describe('plsSem registry stays faithful to the amended output card (verbatim, c
     expect(spec.figures![1].optional).toBe(true)
     expect(spec.figures![1].file).toBe('simple-slopes')
   })
-  it('HTMT (Table 2) is a matrix table — present as a caption, no fixed thead', () => {
-    expect(card).toContain('Discriminant validity &mdash; HTMT')
+  it('HTMT (Table 2) is a matrix table - present as a caption, no fixed thead', () => {
+    expect(card).toContain('Discriminant validity - HTMT')
     expect(spec.tables.find((t) => t.id === 'htmt')!.columns).toHaveLength(0)
   })
   it('question matches', () => {

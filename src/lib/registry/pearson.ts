@@ -28,7 +28,7 @@ export const PEARSON: TestSpec = {
   figures: [{ caption: 'Relationship', type: 'scatter plot with fitted line', file: 'scatter' }],
   howToRead:
     'r ranges from −1 to +1: the sign is the direction, the magnitude the strength (~.1 small, .3 medium, .5 large). ' +
-    'p tests whether it differs from zero; the 95% CI shows the precision. r measures only linear association — ' +
+    'p tests whether it differs from zero; the 95% CI shows the precision. r measures only linear association - ' +
     'a strong curved relationship can give r near 0, and r is sensitive to outliers, so always inspect the scatterplot ' +
     "(use Spearman's rs for monotonic-but-nonlinear or outlier-affected data). Correlation does not imply causation.",
   apaTemplate: '[X] and [Y] were correlated, r({df})={r}, p {p}, 95% CI [{ciLow}, {ciHigh}].',

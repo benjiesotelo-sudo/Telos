@@ -40,7 +40,7 @@ function renderLatent(over: Partial<React.ComponentProps<typeof SemCanvasUI>> = 
   )
 }
 
-describe('SemCanvasUI — static latent (Full-AMOS) render', () => {
+describe('SemCanvasUI - static latent (Full-AMOS) render', () => {
   it('renders the figure svg with the testId-scoped id', () => {
     const html = renderLatent()
     expect(html).toContain('id="figure-path-diagram-cb-sem"')
@@ -131,7 +131,7 @@ describe('SemCanvasUI — static latent (Full-AMOS) render', () => {
 //   Loyalty   cx=626 > 760*0.66=501.6  → RIGHT (items to the right of the oval)
 // With the old always-left code Quality and Loyalty items share the same x
 // and Satisfaction items land to the LEFT of the oval too — all three fail.
-describe('SemCanvasUI — adaptive item-side placement', () => {
+describe('SemCanvasUI - adaptive item-side placement', () => {
   const sideConstructs: Construct[] = [
     { id: 1, name: 'Quality',    items: ['q1', 'q2'], x: 80,  y: 128 },  // cx=146 → left zone
     { id: 2, name: 'Satisfy',   items: ['s1', 's2'], x: 320, y: 128 },  // cx=386 → below zone
@@ -178,7 +178,7 @@ describe('SemCanvasUI — adaptive item-side placement', () => {
 // construct's item boxes (cx in the right third → items drawn to the RIGHT at x≈744–800)
 // ran past the viewBox width of 720 and were CLIPPED in the captured PNG/PDF. latentBounds
 // must size the viewBox to the real content so nothing clips.
-describe('SemCanvasUI — latent content-fit viewBox (no item clipping)', () => {
+describe('SemCanvasUI - latent content-fit viewBox (no item clipping)', () => {
   // Mirror the CB-SEM/PLS-SEM documentation fixture: 3 constructs × 3 items, default layout.
   const cons: Construct[] = [
     { id: 1, name: 'visual',  items: ['x1', 'x2', 'x3'], x: 80,  y: 70 },
@@ -212,7 +212,7 @@ describe('SemCanvasUI — latent content-fit viewBox (no item clipping)', () => 
 })
 
 // ── path mode: observed rectangles, no item boxes ──────────────────────────
-describe('SemCanvasUI — path mode (observed rectangles)', () => {
+describe('SemCanvasUI - path mode (observed rectangles)', () => {
   it('draws a rectangle per column and no ovals/item boxes in path mode', () => {
     const html = renderLatent({
       modelKind: 'path',
@@ -235,7 +235,7 @@ describe('SemCanvasUI — path mode (observed rectangles)', () => {
 // Regression: the old fixed-pitch layout (DEFAULT_X + i*(NODE_W+120)) pushed nodes from
 // index ~3 outside the 720-wide viewBox → unclickable. A path model commonly has 3–9
 // observed variables (scale.csv has 9), so the normal case must fit + stay non-overlapping.
-describe('SemCanvasUI — path-mode grid layout fits the viewBox', () => {
+describe('SemCanvasUI - path-mode grid layout fits the viewBox', () => {
   const VB_W = 720
   const VB_H = 320
 
@@ -303,7 +303,7 @@ const estimates = {
   r2: { 2: 0.39, 3: 0.23 } as Record<number, number>,
 }
 
-describe('SemCanvasUI — estimates overlay (post-run)', () => {
+describe('SemCanvasUI - estimates overlay (post-run)', () => {
   it('annotates each structural path with its standardized beta', () => {
     const html = renderLatent({ estimates })
     expect(html).toContain('.62')
@@ -336,7 +336,7 @@ describe('SemCanvasUI — estimates overlay (post-run)', () => {
 // ── moderation edges (dashed clay arrows) ──────────────────────────────────
 const moderations: Moderation[] = [{ id: 1, moderatorId: 2, pathIndex: 0 }]
 
-describe('SemCanvasUI — moderation edges (dashed clay arrows)', () => {
+describe('SemCanvasUI - moderation edges (dashed clay arrows)', () => {
   it('renders one dashed moderation arrow per moderations entry, in the accent color', () => {
     const html = renderLatent({ moderations })
     expect((html.match(/class="sem-mod-arrow"/g) ?? []).length).toBe(1)
@@ -377,7 +377,7 @@ describe('SemCanvasUI — moderation edges (dashed clay arrows)', () => {
     expect((html.match(/class="sem-mod-label"/g) ?? []).length).toBe(1)
   })
 
-  it('idle Draw mode (no pending moderator) renders no path-midpoint targets — unchanged idle look', () => {
+  it('idle Draw mode (no pending moderator) renders no path-midpoint targets - unchanged idle look', () => {
     const html = renderLatent({ mode: 'draw' })
     expect(html).not.toContain('class="sem-mod-target"')
   })
@@ -415,7 +415,7 @@ const snTaTiConstructs: Construct[] = [
 ]
 const snTiPath: StructuralPath[] = [{ from: 1, to: 3 }]
 
-describe('moderationGuardReason — pure validation (unit-tested directly, no simulated clicks)', () => {
+describe('moderationGuardReason - pure validation (unit-tested directly, no simulated clicks)', () => {
   it('allows a valid moderation (moderator not in the path, no duplicate, ML estimator, latent mode)', () => {
     expect(moderationGuardReason({
       moderatorId: 2, pathIndex: 0, constructs: snTaTiConstructs, paths: snTiPath,

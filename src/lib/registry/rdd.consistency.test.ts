@@ -34,7 +34,7 @@ describe('rdd registry stays faithful to the spec HTML (verbatim, card-scoped)',
     expect(spec.tables[0].domId).toBe('rd-estimate')
   })
 
-  it('the GOF footer stub labels in the card equal spec.tables[0].gof labels in order (no R²/AIC — rdrobust has no method)', () => {
+  it('the GOF footer stub labels in the card equal spec.tables[0].gof labels in order (no R²/AIC - rdrobust has no method)', () => {
     const stubs = [...card.matchAll(/<tr class="row-gof"><td>(.*?)<\/td>/g)].map((m) => strip(m[1]))
     expect(stubs).toEqual(spec.tables[0].gof!.map((g) => g.label))
     expect(stubs).toEqual(['Bandwidth', 'N (left)', 'N (right)'])

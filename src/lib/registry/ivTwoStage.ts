@@ -8,10 +8,10 @@ export const IV_TWO_STAGE: TestSpec = {
   name: 'Instrumental variables (IV / 2SLS)',
   question: 'effect with an endogenous predictor',
   roles: [
-    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured — test score, income' },
-    { id: 'endogenous', label: 'Endogenous regressor', levels: 'any level', arity: 'one or more', hint: 'e.g. the predictor you suspect is biased — years of schooling' },
-    { id: 'instruments', label: 'Instrument(s)', levels: 'any level', arity: 'one or more', hint: 'e.g. shifts the predictor but not the outcome directly — distance to school' },
-    { id: 'controls', label: 'Controls (optional)', levels: 'any level', arity: 'zero or more', hint: 'e.g. other variables to hold constant — age, region' },
+    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured - test score, income' },
+    { id: 'endogenous', label: 'Endogenous regressor', levels: 'any level', arity: 'one or more', hint: 'e.g. the predictor you suspect is biased - years of schooling' },
+    { id: 'instruments', label: 'Instrument(s)', levels: 'any level', arity: 'one or more', hint: 'e.g. shifts the predictor but not the outcome directly - distance to school' },
+    { id: 'controls', label: 'Controls (optional)', levels: 'any level', arity: 'zero or more', hint: 'e.g. other variables to hold constant - age, region' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -49,7 +49,7 @@ export const IV_TWO_STAGE: TestSpec = {
   ],
   figures: [{ caption: 'Coefficients', type: 'coefficient plot (OLS vs. 2SLS)', file: 'coefficients' }],
   howToRead:
-    'Check the first-stage F first (rule of thumb > 10 = strong instruments). Then read the 2SLS B for the endogenous predictor as the causal effect, with p/CI. This causal reading rests on the instrument being valid — relevant and affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models. Method: R ivreg / AER package; weak-instrument F (Stock & Yogo, 2005).',
+    'Check the first-stage F first (rule of thumb > 10 = strong instruments). Then read the 2SLS B for the endogenous predictor as the causal effect, with p/CI. This causal reading rests on the instrument being valid - relevant and affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models. Method: R ivreg / AER package; weak-instrument F (Stock & Yogo, 2005).',
   tableNote: {
     kind: 'plain',
     text: 'diagnostics: weak-instrument (first-stage F), Wu-Hausman endogeneity, and Sargan over-identification (when applicable).',

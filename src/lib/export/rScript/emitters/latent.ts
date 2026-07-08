@@ -79,7 +79,7 @@ export const latentEmitters: Record<string, Emitter> = {
   'ave': (_spec, setup, _dataset, itemMap) => {
     const constructs: { name: string; items: string[] }[] = setup.constructs ?? []
     const k = constructs.length
-    if (k === 0) return '# No constructs defined — nothing to run for AVE.'
+    if (k === 0) return '# No constructs defined - nothing to run for AVE.'
 
     // Sanitized identifiers (lvNames) - display names with spaces are illegal lavaan `=~` tokens,
     // and every fitted object below is indexed by construct_names (same fix as cfaReliability.ts).
@@ -108,7 +108,7 @@ export const latentEmitters: Record<string, Emitter> = {
       'fit <- lavaan::cfa(model_str, data = d, std.lv = FALSE)',
       '',
       '# AVE and composite reliability (ω) per construct',
-      '# Do NOT call semTools::reliability() — deprecated 2022.',
+      '# Do NOT call semTools::reliability() - deprecated 2022.',
       'ave_vec <- semTools::AVE(fit)',
       'cr_vec  <- unlist(semTools::compRelSEM(fit))',
       '',
@@ -210,7 +210,7 @@ export const latentEmitters: Record<string, Emitter> = {
     lines.push(
       '',
       '# ---- McDonald\'s ω via 1-factor CFA + semTools::compRelSEM ----',
-      '# Do NOT call semTools::reliability() — deprecated 2022.',
+      '# Do NOT call semTools::reliability() - deprecated 2022.',
       `model <- paste0("f =~ ", paste(items, collapse = " + "))`,
       `fit <- lavaan::cfa(model, data = d_items, std.lv = TRUE)`,
       `omega_val <- as.numeric(semTools::compRelSEM(fit)$f)`,
@@ -251,7 +251,7 @@ export const latentEmitters: Record<string, Emitter> = {
   'composite-reliability': (_spec, setup, _dataset, itemMap) => {
     const constructs: { name: string; items: string[] }[] = setup.constructs ?? []
     const k = constructs.length
-    if (k === 0) return '# No constructs defined — nothing to run for Composite Reliability.'
+    if (k === 0) return '# No constructs defined - nothing to run for Composite Reliability.'
 
     // Sanitized identifiers (lvNames) - same rationale as the 'ave' emitter above.
     const rNames = lvNames(constructs.map((c) => c.name))
@@ -277,7 +277,7 @@ export const latentEmitters: Record<string, Emitter> = {
       'fit <- lavaan::cfa(model_str, data = d, std.lv = FALSE)',
       '',
       '# CR (= ω for congeneric) and AVE per construct',
-      '# Do NOT call semTools::reliability() — deprecated 2022.',
+      '# Do NOT call semTools::reliability() - deprecated 2022.',
       'cr_vec  <- unlist(semTools::compRelSEM(fit))',
       'ave_vec <- semTools::AVE(fit)',
       '',
@@ -427,7 +427,7 @@ export const latentEmitters: Record<string, Emitter> = {
       (setup.paths as { from: number; to: number }[]) ?? []
     // Path mode (observed-only): from the setup OR the spec (path-analysis reuses this emitter, spec.modelKind='path').
     const isPath = setup.modelKind === 'path' || spec?.modelKind === 'path'
-    if (constructs.length === 0) return '# No constructs defined — nothing to run for CB-SEM.'
+    if (constructs.length === 0) return '# No constructs defined - nothing to run for CB-SEM.'
 
     // Sanitized lavaan identifiers per construct (display names with spaces are illegal `=~`/`~` tokens)
     // - the SAME lvNames the app runner (runCbSem.ts) uses, so export ≡ app. In LATENT mode these are
@@ -486,14 +486,14 @@ export const latentEmitters: Record<string, Emitter> = {
 
     out.push(
       '',
-      '# Single awaited bootstrap fit for mediation/moderation (no RNG chunking — preserves WebR≡native parity).',
+      '# Single awaited bootstrap fit for mediation/moderation (no RNG chunking - preserves WebR≡native parity).',
       'gc()',
       'set.seed(20260620)',
     )
     if (needsBootstrap) {
       out.push(
         `fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = ${nboot})`,
-        '# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws — both recompute CIs off',
+        '# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws - both recompute CIs off',
         '# fit@boot without re-running the bootstrap (design §A2; matches runCbSem.ts exactly).',
         'pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)',
         'pe_bc   <- lavaan::parameterEstimates(fit, boot.ci.type = "bca.simple", level = 0.95)',
@@ -523,12 +523,12 @@ export const latentEmitters: Record<string, Emitter> = {
 
     if (!isPath) {
       out.push(
-        '# ---- Table 3: Measurement model (CFA) — B / SE / z / p / Std. loading ----',
+        '# ---- Table 3: Measurement model (CFA) - B / SE / z / p / Std. loading ----',
         'cat("\\n--- Table 3: Measurement model (CFA) ---\\n")',
         'print(ss[ss$op == "=~", c("lhs","rhs","est.std")])',
         '',
-        '# ---- Table 4: Reliability & validity — CR / AVE / ω / α ----',
-        '# Do NOT call semTools::reliability() — deprecated 2022.',
+        '# ---- Table 4: Reliability & validity - CR / AVE / ω / α ----',
+        '# Do NOT call semTools::reliability() - deprecated 2022.',
         'cr_vec  <- unlist(semTools::compRelSEM(fit))',
         'ave_vec <- semTools::AVE(fit)',
         'cat("\\n--- Table 4: Reliability & validity ---\\n")',
@@ -538,7 +538,7 @@ export const latentEmitters: Record<string, Emitter> = {
     }
 
     out.push(
-      '# ---- Table 5: Fit indices (suppressed strictly when df == 0 — saturated) ----',
+      '# ---- Table 5: Fit indices (suppressed strictly when df == 0 - saturated) ----',
       '# Shared predicate: byte-identical to the app screen (src/lib/stats/semSaturation.ts R_SATURATED_PREDICATE).',
       `if (!(${R_SATURATED_PREDICATE})) {`,
       '  fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",',
@@ -722,7 +722,7 @@ export const latentEmitters: Record<string, Emitter> = {
       `              ci, eigenvalues[ci], pct_var[ci]*100, cumulative[ci]*100))`,
       `}`,
       '',
-      '# ---- Table 2: Correlation-scaled loadings (NO communality — PCA is data reduction) ----',
+      '# ---- Table 2: Correlation-scaled loadings (NO communality - PCA is data reduction) ----',
       `# Correlation-scaled loading = eigenvector × sqrt(eigenvalue) = rotation col × sdev`,
       `load_mat <- sweep(prcomp_obj$rotation[, seq_len(k_retain), drop = FALSE], 2, prcomp_obj$sdev[seq_len(k_retain)], "*")`,
       `cat("\\n--- Table 2: Component loadings (correlation-scaled) ---\\n")`,
@@ -745,7 +745,7 @@ export const latentEmitters: Record<string, Emitter> = {
   // TS assembly verbatim - no item-level product-indicator bookkeeping the way CB-SEM's indProd needs).
   'pls-sem': (_spec, setup, _dataset, itemMap) => {
     const constructs: Construct[] = (setup.constructs ?? []) as Construct[]
-    if (constructs.length === 0) return '# No constructs defined — nothing to run for PLS-SEM.'
+    if (constructs.length === 0) return '# No constructs defined - nothing to run for PLS-SEM.'
     const byId = new Map(constructs.map((c) => [c.id, c.name]))
     const paths: StructuralPath[] = (setup.paths ?? []) as StructuralPath[]
     const nboot = Number(setup.options['nboot'] ?? 5000)
@@ -797,7 +797,7 @@ export const latentEmitters: Record<string, Emitter> = {
 
     const lines: string[] = [
       '# ---- PLS-SEM via seminr (estimate_pls + bootstrap_model) ----',
-      '# WebR/WASM has no PSOCK sockets — install the serial-cluster shim before seminr bootstraps.',
+      '# WebR/WASM has no PSOCK sockets - install the serial-cluster shim before seminr bootstraps.',
       MAKECLUSTER_SHIM,
       'library(seminr)',
       '',
@@ -995,7 +995,7 @@ export const latentEmitters: Record<string, Emitter> = {
 
     lines.push(
       '',
-      '# Figure: path diagram — semPaths stand-in (the app exports the annotated SVG via html-to-image)',
+      '# Figure: path diagram - semPaths stand-in (the app exports the annotated SVG via html-to-image)',
       'cat("\\n--- Figure: PLS path diagram (semPaths reproducible stand-in) ---\\n")',
       'tryCatch(print(plot(pls)), error = function(e) cat("(diagram skipped:", conditionMessage(e), ")\\n"))',
     )

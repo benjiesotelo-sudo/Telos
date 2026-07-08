@@ -30,7 +30,7 @@ function render(over: Partial<typeof baseProps>) {
   return renderToStaticMarkup(<SemCanvasUI {...baseProps} {...over} />)
 }
 
-describe('SemCanvasUI — interaction affordances', () => {
+describe('SemCanvasUI - interaction affordances', () => {
   it('renders the three-tool toolbar with Draw path / Move / Delete', () => {
     const html = render({})
     expect(html).toContain('Draw path')

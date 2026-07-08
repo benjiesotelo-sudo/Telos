@@ -27,7 +27,7 @@ const negbin: PoissonNbResult = { ...poisson, model: 'negative binomial',
 
 // Row layout (SHAPE A, exponentiated two-column B | IRR): per term a coef row (B, IRR) then a muted (SE)|[CI] row;
 // 3 terms → 6 stacked rows, then a {_kind:'rule'} row, then 7 gof rows. No significance stars (D1); z/p drop from the cell.
-describe('buildPoissonNegativeBinomial — modelsummary SHAPE A (B | IRR)', () => {
+describe('buildPoissonNegativeBinomial - modelsummary SHAPE A (B | IRR)', () => {
   it('Poisson: coef row carries B + IRR; muted row = (SE) under B, IRR CI under IRR', () => {
     const c = buildPoissonNegativeBinomial(POISSON_NEGATIVE_BINOMIAL, poisson)
     const rows = c.tables[0].rows

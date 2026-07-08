@@ -29,7 +29,7 @@ const twoConstructOk: AveResult = {
   figValidityPng: new Uint8Array(),
 }
 
-describe('buildAve — APA verdict conditioned on the live AVE/CR/HTMT values (not hardcoded)', () => {
+describe('buildAve - APA verdict conditioned on the live AVE/CR/HTMT values (not hardcoded)', () => {
   it('reports both clauses supported/held when every construct clears AVE>=.50, CR>=.70, and HTMT<.85', () => {
     const c = buildAve(AVE, twoConstructOk)
     expect(c.apa).toContain('Convergent validity was supported')

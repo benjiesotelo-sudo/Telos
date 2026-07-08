@@ -43,7 +43,7 @@ describe('buildRandomEffects', () => {
       { _kind: 'gof', term: 'Overall R²', est: '.98' },
     ])
   })
-  it('single coef table — the separate model-fit table is merged in', () => {
+  it('single coef table - the separate model-fit table is merged in', () => {
     expect(buildRandomEffects(RANDOM_EFFECTS, mock()).tables).toHaveLength(1)
   })
   it('APA names the first SLOPE (not the intercept), report-only', () => {

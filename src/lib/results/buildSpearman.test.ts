@@ -14,7 +14,7 @@ describe('buildSpearman', () => {
     expect(c.note).toEqual(SPEARMAN.tableNote)
     expect(c.nExcluded).toBe(1)
   })
-  it('APA line — ρ carries its bootstrap CI', () => {
+  it('APA line - ρ carries its bootstrap CI', () => {
     expect(buildSpearman(SPEARMAN, res).apa).toBe('A Spearman correlation gave ρ=.73 [.59, .85], p = .003, N=40.')
   })
   it('A5: values carries the term-explainer lookup', () => {

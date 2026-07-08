@@ -31,7 +31,7 @@ export const FISHERS_EXACT: TestSpec = {
   figures: [{ caption: 'Cross-classification', type: 'mosaic / grouped bar chart', file: 'bar' }],
   howToRead:
     'An exact alternative to chi-square for small samples. A p below alpha means the two categories are associated; ' +
-    "for 2×2 tables the odds ratio quantifies the association — this is fisher.test()'s conditional MLE (the " +
+    "for 2×2 tables the odds ratio quantifies the association - this is fisher.test()'s conditional MLE (the " +
     'non-central hypergeometric estimate), not the sample cross-product. OR>1 means the outcome is more likely in the ' +
     'first row/group, OR<1 less likely, OR=1 no association; check the row/column order before reading direction, ' +
     "since the OR reflects the table's orientation. For tables larger than 2×2 the odds ratio is undefined, so " +

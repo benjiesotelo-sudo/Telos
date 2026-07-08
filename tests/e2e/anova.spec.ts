@@ -251,12 +251,12 @@ test('Journey B: wide/repeated — RM ANOVA + Mixed ANOVA + Friedman; sphericity
   // cards appear, so .first() avoids the strict-mode violation flow.spec's single-card path never hit
   await expect(async () => {
     await page.getByRole('navigation', { name: 'Progress' }).getByRole('button', { name: 'Results' }).click()
-    await expect(page.getByText(/Stale — the configuration changed/).first()).toBeVisible({ timeout: 1000 })
+    await expect(page.getByText(/Stale - the configuration changed/).first()).toBeVisible({ timeout: 1000 })
   }).toPass()
 
   // Re-run the stale RM analysis
   await page.getByRole('button', { name: 'Run analysis again' }).first().click()
-  await expect(page.getByText(/Stale — the configuration changed/).first()).toHaveCount(0, { timeout: 240_000 })
+  await expect(page.getByText(/Stale - the configuration changed/).first()).toHaveCount(0, { timeout: 240_000 })
 
   // Sphericity caption ABSENT after 2-level RM run (card rule: 2 levels = sphericity automatically met)
   await expect(page.getByText("Sphericity (Mauchly's test)")).toHaveCount(1)  // only Mixed ANOVA's sphericity remains

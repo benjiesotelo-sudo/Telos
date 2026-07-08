@@ -30,7 +30,7 @@ export const CHI_SQUARE_INDEPENDENCE: TestSpec = {
       columns: [{ key: 'chisq', label: 'χ²' }, { key: 'df', label: 'df' }, { key: 'p', label: 'p' }, { key: 'v', label: "Cramér's V [95% CI]" }] },
   ],
   tableNote: { kind: 'plain', text:
-    "the contingency table is r×c — columns expand to the number of categories in the column variable; each cell shows observed [expected] (row% / col%) and its standardized residual r (chisq.test()$stdres), with a warning (suggesting Fisher's exact) if expected counts are too small. A standardized residual beyond about ±1.96 flags a cell that significantly drives the association. For 2×2 tables chisq.test() applies Yates' continuity correction to the χ² by default (set correct=FALSE for the uncorrected χ²); the standardized residuals are unaffected by the correction." },
+    "the contingency table is r×c - columns expand to the number of categories in the column variable; each cell shows observed [expected] (row% / col%) and its standardized residual r (chisq.test()$stdres), with a warning (suggesting Fisher's exact) if expected counts are too small. A standardized residual beyond about ±1.96 flags a cell that significantly drives the association. For 2×2 tables chisq.test() applies Yates' continuity correction to the χ² by default (set correct=FALSE for the uncorrected χ²); the standardized residuals are unaffected by the correction." },
   figures: [{ caption: 'Cross-classification', type: 'mosaic or grouped bar chart', file: 'bar' }],
   howToRead:
     'Tests whether two categorical variables are associated. A p below alpha means they are related; ' +

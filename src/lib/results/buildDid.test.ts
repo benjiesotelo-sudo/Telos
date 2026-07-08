@@ -32,7 +32,7 @@ describe('buildDid', () => {
     ])
   })
 
-  it('merges Model fit into the panel GOF footer (Num.Obs., N entities, Within R², F) — no AIC/BIC/Log.Lik', () => {
+  it('merges Model fit into the panel GOF footer (Num.Obs., N entities, Within R², F) - no AIC/BIC/Log.Lik', () => {
     const c = buildDid(DID, mock())
     const rows = c.tables[0].rows
     expect(rows.find((x) => x._kind === 'rule')).toBeDefined()

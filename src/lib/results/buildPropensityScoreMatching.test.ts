@@ -44,7 +44,7 @@ describe('buildPropensityScoreMatching', () => {
     expect(rows).toContainEqual({ _kind: 'span', term: 'Common support: — treated unit(s) dropped (off common support)' })
     expect(rows).toContainEqual({ _kind: 'span', term: 'Propensity overlap: treated [—, —], control [—, —]' })
   })
-  it('APA is neutralised — no hardcoded "all SMDs < .1" balance claim', () => {
+  it('APA is neutralised - no hardcoded "all SMDs < .1" balance claim', () => {
     const apa = buildPropensityScoreMatching(PROPENSITY_SCORE_MATCHING, mock()).apa
     expect(apa).toBe('After propensity-score matching, the ATT was 5.87, 95% CI [5.42, 6.32], p < .001.')
     expect(apa).not.toContain('SMDs < .1')

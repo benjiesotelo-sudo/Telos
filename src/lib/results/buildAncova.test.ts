@@ -45,7 +45,7 @@ describe('buildAncova', () => {
     })
   })
 
-  it('Table 2 (ANCOVA): two rows — covariate + factor; correct formatting', () => {
+  it('Table 2 (ANCOVA): two rows - covariate + factor; correct formatting', () => {
     expect(c.tables[1].spec.id).toBe('ancova')
     const covRow = c.tables[1].rows[0]
     const factorRow = c.tables[1].rows[1]
@@ -83,7 +83,7 @@ describe('buildAncova', () => {
     expect(c.note!.afterTableId).toBe('ancova')
   })
 
-  it('audit V: all three checks report a "met" verdict here (slopes p=.875, Levene p=.602, Shapiro p=.475 — none below alpha)', () => {
+  it('audit V: all three checks report a "met" verdict here (slopes p=.875, Levene p=.602, Shapiro p=.475 - none below alpha)', () => {
     expect(c.note!.text).toContain('the regression slopes look homogeneous across groups')
     expect(c.note!.text).toContain('equal variances look reasonable')
     expect(c.note!.text).toContain('residual normality looks reasonable')

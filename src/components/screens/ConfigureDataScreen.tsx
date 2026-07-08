@@ -29,8 +29,8 @@ export function ConfigureDataScreen() {
           ))}
         </div>
         <p className="hint" style={{ marginBottom: 0 }}>
-          {s.missingPolicy === 'leave' && 'Default — each test analyzes complete cases on its own columns and reports its own N.'}
-          {s.missingPolicy === 'drop' && `Rows with a missing value in any Used column are removed — ${dropped} rows dropped.`}
+          {s.missingPolicy === 'leave' && 'Default - each test analyzes complete cases on its own columns and reports its own N.'}
+          {s.missingPolicy === 'drop' && `Rows with a missing value in any Used column are removed - ${dropped} rows dropped.`}
           {s.missingPolicy === 'impute' && 'Mean (interval/ratio) or mode (nominal/ordinal). Caution: imputation understates variance.'}
         </p>
       </div>
@@ -61,7 +61,7 @@ export function ConfigureDataScreen() {
           </table>
         </div>
       </div>
-      <p className="hint">Derived tags (count · datetime · id) are auto-detected column properties used by test eligibility — not levels you set.</p>
+      <p className="hint">Derived tags (count · datetime · id) are auto-detected column properties used by test eligibility - not levels you set.</p>
 
       <div className="btn-row">
         {!ready && <span className="hint">set a level for every used column to continue</span>}

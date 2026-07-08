@@ -31,7 +31,7 @@ describe('buildChiSquareGof', () => {
   })
   it('R1 gap-fix: dynamic small-expected-count warning appends when min expected < 5 (parity with the independence card)', () => {
     const sparse = buildChiSquareGof(CHI_SQUARE_GOF, { ...res, minExpected: 3.2 })
-    expect(sparse.note!.text).toBe(CHI_SQUARE_GOF.tableNote!.text + " Smallest expected count here is 3.2 — consider Fisher's exact test.")
+    expect(sparse.note!.text).toBe(CHI_SQUARE_GOF.tableNote!.text + " Smallest expected count here is 3.2 - consider Fisher's exact test.")
   })
   it('no warning appended when min expected >= 5', () => {
     expect(buildChiSquareGof(CHI_SQUARE_GOF, res).note).toEqual(CHI_SQUARE_GOF.tableNote)

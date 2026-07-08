@@ -59,7 +59,7 @@ export function SemControlsUI({
       {/* ── Pipeline-stage selector (CB-SEM, latent only) — OPTIONAL/ADVANCED, defaults to full ── */}
       {showPipeline && (
         <fieldset className="card" style={{ marginTop: 8 }}>
-          <legend className="eyebrow">Pipeline <span className="hint">(optional · advanced — defaults to the full model)</span></legend>
+          <legend className="eyebrow">Pipeline <span className="hint">(optional · advanced - defaults to the full model)</span></legend>
           <label className="pill" style={{ cursor: 'pointer' }}>
             <input type="radio" name="sem-pipeline" value="full" checked={pipeline === 'full'}
               disabled={running} onChange={() => onSetPipeline('full')} style={{ marginRight: 6 }} />
@@ -68,7 +68,7 @@ export function SemControlsUI({
           <label className="pill" style={{ cursor: 'pointer', marginLeft: 8 }}>
             <input type="radio" name="sem-pipeline" value="cfa-only" checked={pipeline === 'cfa-only'}
               disabled={running} onChange={() => onSetPipeline('cfa-only')} style={{ marginRight: 6 }} />
-            cfa-only (measurement step — Anderson &amp; Gerbing)
+            cfa-only (measurement step - Anderson &amp; Gerbing)
           </label>
           <div style={{ marginTop: 8 }}>
             <span className="pill" aria-disabled="true">CFA + fit indices <em className="hint">always on</em></span>
@@ -112,7 +112,7 @@ export function SemControlsUI({
           )}
           {hasModeration && (
             <p className="hint" role="note" style={{ marginTop: 4 }}>
-              WLSMV is unavailable while a moderation edge is drawn — latent moderation forces an
+              WLSMV is unavailable while a moderation edge is drawn - latent moderation forces an
               ML-family estimator (ML or MLR); remove the moderation edge to use WLSMV.
             </p>
           )}

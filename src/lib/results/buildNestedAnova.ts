@@ -47,12 +47,12 @@ export function buildNestedAnova(spec: TestSpec, r: NestedAnovaResult): CardCont
   // for fixed nesting we swap the denominator explanation but keep the SAME assumption-checks sentence.
   const assumeSentence = "Assumption checks: Levene's (equal variances across top-level groups) & normality of residuals (Shapiro-Wilk)."
   const randomNoteText = spec.tableNote!.text
-  const fixedNoteText = 'Under fixed nesting both F rows are tested against the residual mean square — the two F rows share the same denominator. Variance components (or ω²) are reported as the effect size where estimable. ' + assumeSentence
+  const fixedNoteText = 'Under fixed nesting both F rows are tested against the residual mean square - the two F rows share the same denominator. Variance components (or ω²) are reported as the effect size where estimable. ' + assumeSentence
   const baseNoteText = r.nesting === 'random' ? randomNoteText : fixedNoteText
 
   // Crossed-data warning when applicable (design §5.4)
   const crossedWarning = r.crossed.length > 0
-    ? ` — ${nested} labels repeat across ${factor} levels; results assume distinct groups within each ${factor} — check your coding`
+    ? ` - ${nested} labels repeat across ${factor} levels; results assume distinct groups within each ${factor} - check your coding`
     : ''
   // Runtime assumption statistics (mirror buildOneWayAnova's note style; em-dash NA via fx()).
   const assumeStats = ` (Levene F=${fx(r.levene.F, f)}, p=${fx(r.levene.p, fp)} · Shapiro W=${fx(r.shapiro.W, f)}, p=${fx(r.shapiro.p, fp)})`

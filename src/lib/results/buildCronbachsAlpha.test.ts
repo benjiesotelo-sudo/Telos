@@ -20,7 +20,7 @@ const base: CronbachResult = {
   figItemTotalPng: undefined,
 }
 
-describe('buildCronbachsAlpha — APA verdict adjective conditioned on the live omega (not hardcoded)', () => {
+describe('buildCronbachsAlpha - APA verdict adjective conditioned on the live omega (not hardcoded)', () => {
   it('reports "good" when omega >= .80', () => {
     const c = buildCronbachsAlpha(CRONBACHS_ALPHA, { ...base, omega: 0.95 })
     expect(c.apa).toContain('Internal consistency was good')

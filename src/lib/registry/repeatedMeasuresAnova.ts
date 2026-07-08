@@ -7,9 +7,9 @@ export const REPEATED_MEASURES_ANOVA: TestSpec = {
   question: '3+ conditions on the same subjects',
   roles: [
     { id: 'subject', label: 'Subject ID', levels: 'any level', arity: 'exactly 1',
-      hint: 'e.g. the column identifying each person — participant_id' },
+      hint: 'e.g. the column identifying each person - participant_id' },
     { id: 'measures', label: 'Repeated measures', levels: 'interval / ratio', arity: '2 or more',
-      hint: 'e.g. same measure each time — score_t1, score_t2, score_t3' },
+      hint: 'e.g. same measure each time - score_t1, score_t2, score_t3' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -40,7 +40,7 @@ export const REPEATED_MEASURES_ANOVA: TestSpec = {
   tableNote: { kind: 'assume', text: 'when sphericity is violated the F-test uses the Greenhouse–Geisser / Huynh–Feldt correction; post-hoc table follows. Mauchly\'s test & the GG/HF corrections apply only when the repeated factor has 3+ levels (with 2 levels sphericity is automatically met and this table is omitted).' },
   figures: [{ caption: 'Means across conditions', type: 'profile plot (means ± CI across conditions)' , file: 'profile' }],
   howToRead:
-    'Tests whether the average differs across conditions measured on the same people. Check sphericity first — if violated, read the corrected F/p. A significant result means conditions differ; post-hoc tests show which.',
+    'Tests whether the average differs across conditions measured on the same people. Check sphericity first - if violated, read the corrected F/p. A significant result means conditions differ; post-hoc tests show which.',
   apaTemplate: 'A repeated-measures ANOVA ({correction}) gave F({df1},{df2})={f}, p {p}, partial η²={pes} [{pes_lo}, {pes_hi}].',
   rMap: 'dplyr::group_by()+summarise() → Table 1 (per-condition N/M/SD) · afex::aov_ez() → Tables 2–3 · emmeans → Table 4 (post-hoc) · ggplot2 → profile plot',
   bundleFiles: ['table_descriptives.png', 'table_rm-anova.png', 'table_sphericity.png', 'table_posthoc.png', 'figure_profile.png'],

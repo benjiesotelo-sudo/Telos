@@ -7,9 +7,9 @@ export const KRUSKAL_WALLIS: TestSpec = {
   question: 'nonparametric 3+ group comparison',
   roles: [
     { id: 'outcome', label: 'Outcome', levels: 'ordinal / interval / ratio', arity: 'exactly 1',
-      hint: 'e.g. the numeric result you measured — test score, income' },
+      hint: 'e.g. the numeric result you measured - test score, income' },
     { id: 'group', label: 'Grouping var', levels: 'nominal / ordinal', arity: 'exactly 1 · 3+ categories',
-      hint: 'e.g. label splitting cases into 3+ groups — teaching method' },
+      hint: 'e.g. label splitting cases into 3+ groups - teaching method' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -32,7 +32,7 @@ export const KRUSKAL_WALLIS: TestSpec = {
   ],
   figures: [{ caption: 'Distribution by group', type: 'boxplot' }],
   howToRead:
-    'The nonparametric counterpart to one-way ANOVA. The H/p tests whether any group tends to have systematically higher or lower values (stochastic dominance) — ' +
+    'The nonparametric counterpart to one-way ANOVA. The H/p tests whether any group tends to have systematically higher or lower values (stochastic dominance) - ' +
     'read it as a "median difference" only when the groups have similar distribution shapes. ' +
     "If significant, Dunn's post-hoc shows which pairs differ, with adjusted p-values. ε² is the effect size.",
   apaTemplate: 'A Kruskal-Wallis test gave H({df})={h}, p {p}, ε²={eps2} [{eps2lo}, {eps2hi}].',

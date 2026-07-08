@@ -27,7 +27,7 @@ describe('buildFixedEffects', () => {
     ])
   })
 
-  it('merges Model fit into the GOF footer (Num.Obs., N entities, within/adj-within R², F) — no AIC/BIC/Log.Lik', () => {
+  it('merges Model fit into the GOF footer (Num.Obs., N entities, within/adj-within R², F) - no AIC/BIC/Log.Lik', () => {
     const c = buildFixedEffects(FIXED_EFFECTS, mock())
     const rows = c.tables[0].rows
     expect(rows.find((x) => x._kind === 'rule')).toBeDefined()

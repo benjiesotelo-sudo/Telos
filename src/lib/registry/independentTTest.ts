@@ -35,7 +35,7 @@ export const INDEPENDENT_T_TEST: TestSpec = {
   howToRead:
     "Asks whether two groups' averages differ by more than chance. Look at p: below alpha (e.g. .05) means significant. " +
     "The mean difference and 95% CI show the size and precision of the gap; Cohen's d gives effect size (~0.2 small, 0.5 medium, 0.8 large). " +
-    "A large p means no significant difference was detected — not that the group means are equal.",
+    "A large p means no significant difference was detected - not that the group means are equal.",
   apaTemplate:
     'An independent-samples t-test compared {g1} (M={m1}, SD={sd1}) and {g2} (M={m2}, SD={sd2}), t({df})={t}, p {p}, d={d} [{dlo}, {dhi}].',
   rMap: 't.test() → Table 2 · summary → Table 1 · effectsize::cohens_d() → d · car::leveneTest() → assumption · geom_boxplot() → figure',

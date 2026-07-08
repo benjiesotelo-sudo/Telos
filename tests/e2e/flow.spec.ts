@@ -86,9 +86,9 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await page.getByRole('navigation', { name: 'Progress' }).getByRole('button', { name: 'Data' }).click() // rail stage; a done Data stage lands on configure-data
   await page.getByLabel('level of score').selectOption('interval') // still t-test-compatible: config stays valid, run goes stale
   await page.getByRole('button', { name: 'Results' }).click()      // forward nav via the gates (stepper reads canEnter)
-  await expect(page.getByText(/Stale — the configuration changed/)).toBeVisible()
+  await expect(page.getByText(/Stale - the configuration changed/)).toBeVisible()
   await page.getByRole('button', { name: 'Run analysis again' }).click()
-  await expect(page.getByText(/Stale — the configuration changed/)).toHaveCount(0, { timeout: 120_000 })
+  await expect(page.getByText(/Stale - the configuration changed/)).toHaveCount(0, { timeout: 120_000 })
 
   // Export formats are now live (R script / PDF / LaTeX export slice)
   for (const name of [/PDF report/, /LaTeX file/, /R script/])

@@ -63,7 +63,7 @@ describe('chassis renders each card shape (design §5)', () => {
   it('U3-T5: content.notes (labelled) renders INSTEAD OF content.note when present, bold label prefix', () => {
     const withNotes: CardContent = {
       ...base,
-      note: { kind: 'plain', text: 'legacy note text — must not render' },
+      note: { kind: 'plain', text: 'legacy note text - must not render' },
       notes: [{ label: 'Scope', text: 'Scope sentence.' }, { label: 'Caution', text: 'Caution sentence.' }],
     }
     const html = render(withNotes)

@@ -29,7 +29,7 @@ describe('buildRdd', () => {
     const cells = JSON.stringify(rows)
     expect(cells).not.toContain('47.99') // z dropped from the visible table
   })
-  it('a rule then the GOF footer = Bandwidth + N (left) + N (right) (no R²/AIC/etc — rdrobust has no method)', () => {
+  it('a rule then the GOF footer = Bandwidth + N (left) + N (right) (no R²/AIC/etc - rdrobust has no method)', () => {
     const rows = buildRdd(RDD, mock()).tables[0].rows
     expect(rows.slice(3, 7)).toEqual([
       { _kind: 'rule' },
@@ -40,8 +40,8 @@ describe('buildRdd', () => {
   })
   it('R1 gap-fix: bandwidth-sensitivity re-estimates render as span rows after the GOF footer', () => {
     const rows = buildRdd(RDD, mock()).tables[0].rows
-    expect(rows[7]).toEqual({ _kind: 'span', term: 'Bandwidth sensitivity — half h (4.33): estimate = 9.86, 95% CI [8.74, 10.64]' })
-    expect(rows[8]).toEqual({ _kind: 'span', term: 'Bandwidth sensitivity — double h (17.32): estimate = 9.94, 95% CI [9.55, 10.24]' })
+    expect(rows[7]).toEqual({ _kind: 'span', term: 'Bandwidth sensitivity - half h (4.33): estimate = 9.86, 95% CI [8.74, 10.64]' })
+    expect(rows[8]).toEqual({ _kind: 'span', term: 'Bandwidth sensitivity - double h (17.32): estimate = 9.94, 95% CI [9.55, 10.24]' })
   })
   it('APA reports the estimate at the cutoff with literal 95% CI (report-only)', () => {
     expect(buildRdd(RDD, mock()).apa).toBe('At the cutoff, the treatment effect was 9.90, 95% CI [9.48, 10.28], p < .001.')

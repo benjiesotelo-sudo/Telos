@@ -50,7 +50,7 @@ describe("latentEmitters['cb-sem']", () => {
   })
 })
 
-describe("latentEmitters['cb-sem'] — construct names with spaces", () => {
+describe("latentEmitters['cb-sem'] - construct names with spaces", () => {
   // Display names with spaces are illegal lavaan `=~`/`~` tokens; the emitter must emit the SAME
   // sanitized identifiers the app runner uses (export ≡ app), never the raw display names.
   const SPACED_SETUP: TestSetup = {
@@ -77,7 +77,7 @@ describe("latentEmitters['cb-sem'] — construct names with spaces", () => {
   })
 })
 
-describe("latentEmitters['cb-sem'] — latent moderation (export ≡ app, U5-T4)", () => {
+describe("latentEmitters['cb-sem'] - latent moderation (export ≡ app, U5-T4)", () => {
   const MOD_SETUP: TestSetup = {
     roles: {}, options: { estimator: 'ML', nboot: 500, ciType: 'percentile' }, props: {}, blocked: null,
     modelKind: 'latent',
@@ -128,7 +128,7 @@ describe("latentEmitters['cb-sem'] — latent moderation (export ≡ app, U5-T4)
   // emitted as a `~` op row on the target regardless. Table 6 (Structural paths) must therefore scope
   // to the drawn paths' own p_<from>_<to> labels (unique to struct_rows in the app runner), never bare
   // `op == "~"`, or it leaks INT_1 as a THIRD "structural" row duplicating Table 8.
-  it('Table 6 (Structural paths) is scoped by the p_ path label, not bare op=="~" — no INT_/pint_ leak', () => {
+  it('Table 6 (Structural paths) is scoped by the p_ path label, not bare op=="~" - no INT_/pint_ leak', () => {
     const peRegLine = r.split('\n').find((l) => l.startsWith('pe_reg <-'))
     expect(peRegLine).toBeDefined()
     expect(peRegLine).toContain('grepl("^p_", pe$label)')
@@ -136,7 +136,7 @@ describe("latentEmitters['cb-sem'] — latent moderation (export ≡ app, U5-T4)
   })
 })
 
-describe("latentEmitters['cb-sem'] — moderation with unequal indicator counts (match=FALSE disclosure)", () => {
+describe("latentEmitters['cb-sem'] - moderation with unequal indicator counts (match=FALSE disclosure)", () => {
   const UNEQ_SETUP: TestSetup = {
     roles: {}, options: { estimator: 'ML', nboot: 500, ciType: 'percentile' }, props: {}, blocked: null,
     modelKind: 'latent',
@@ -168,7 +168,7 @@ describe("latentEmitters['cb-sem'] — moderation with unequal indicator counts 
   })
 })
 
-describe("latentEmitters['cb-sem'] — no moderation (regression guard, U5-T4)", () => {
+describe("latentEmitters['cb-sem'] - no moderation (regression guard, U5-T4)", () => {
   const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, SETUP, { columns: [], rows: [] } as never)
 
   it('never emits moderation-only text when no moderation is drawn', () => {
@@ -185,7 +185,7 @@ describe("latentEmitters['cb-sem'] — no moderation (regression guard, U5-T4)",
   })
 })
 
-describe("latentEmitters['ave'] / ['composite-reliability'] — construct names with spaces", () => {
+describe("latentEmitters['ave'] / ['composite-reliability'] - construct names with spaces", () => {
   const SPACED_CFA: TestSetup = {
     roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent',
     constructs: [

@@ -7,11 +7,11 @@ export const NESTED_ANOVA: TestSpec = {
   question: 'one factor nested within another',
   roles: [
     { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1',
-      hint: 'e.g. the numeric result you measured — test score, income' },
+      hint: 'e.g. the numeric result you measured - test score, income' },
     { id: 'factor', label: 'Factor', levels: 'nominal / ordinal', arity: 'exactly 1',
-      hint: 'e.g. a grouping label — teaching method' },
+      hint: 'e.g. a grouping label - teaching method' },
     { id: 'nested', label: 'Nested factor', levels: 'nominal / ordinal', arity: 'exactly 1 · within Factor',
-      hint: 'e.g. a sub-group inside the factor — classroom within school' },
+      hint: 'e.g. a sub-group inside the factor - classroom within school' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -35,10 +35,10 @@ export const NESTED_ANOVA: TestSpec = {
         { key: 'omega2', label: 'ω² [95% CI]' },
       ] },
   ],
-  tableNote: { kind: 'assume', text: "Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual — so the two F rows do not share the same denominator. Variance components (or ω²) are reported as the effect size where estimable. Assumption checks: Levene's (equal variances across top-level groups) & normality of residuals (Shapiro-Wilk)." },
+  tableNote: { kind: 'assume', text: "Under random nesting the F for the upper factor (A) uses the nested factor's mean square B(A) as its error term, while B(A) is tested against the residual - so the two F rows do not share the same denominator. Variance components (or ω²) are reported as the effect size where estimable. Assumption checks: Levene's (equal variances across top-level groups) & normality of residuals (Shapiro-Wilk)." },
   figures: [{ caption: 'Grouped means', type: 'grouped means plot (nested groups within each top-level group)' , file: 'grouped-means' }],
   howToRead:
-    'Used when one factor sits inside another (e.g. classes within schools). The top factor is tested against variation among its nested units, not raw residuals — a significant F means the top-level groups differ beyond the nested-unit variability.',
+    'Used when one factor sits inside another (e.g. classes within schools). The top factor is tested against variation among its nested units, not raw residuals - a significant F means the top-level groups differ beyond the nested-unit variability.',
   apaTemplate: 'A nested ANOVA for A gave F({df1},{df2})={f}, p {p}, ω²={o2} [{lo}, {hi}].',
   rMap: 'aov(y ~ A + Error(A:B)) (random) / aov(y ~ A/B) (fixed) → table · effectsize::omega_squared() → effect size · ggplot2 → figure',
   bundleFiles: ['table_descriptives.png', 'table_nested-anova.png', 'figure_grouped-means.png'],

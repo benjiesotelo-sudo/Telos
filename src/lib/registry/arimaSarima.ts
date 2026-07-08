@@ -11,10 +11,10 @@ export const ARIMA_SARIMA: TestSpec = {
   roles: [
     { id: 'time', label: 'Time variable',
       levels: 'datetime / ordered', arity: 'exactly 1',
-      hint: 'e.g. the date / time-order column — month, year' },
+      hint: 'e.g. the date / time-order column - month, year' },
     { id: 'series', label: 'Series (value)',
       levels: 'interval / ratio', arity: 'exactly 1',
-      hint: 'e.g. the numeric value over time — monthly sales' },
+      hint: 'e.g. the numeric value over time - monthly sales' },
   ],
   options: [
     { id: 'order', label: 'order', value: 'auto-select', kind: 'arima-order', default: true },
@@ -57,7 +57,7 @@ export const ARIMA_SARIMA: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'arima()/auto.arima() return each coefficient with its SE (CI via confint()); they do not produce per-coefficient z/p — add lmtest::coeftest() if those are wanted. The Ljung–Box row tests residual autocorrelation jointly to lag = max(10, 2 × seasonal period), with df adjusted for the number of fitted ARMA terms (p + q + P + Q).',
+    text: 'arima()/auto.arima() return each coefficient with its SE (CI via confint()); they do not produce per-coefficient z/p - add lmtest::coeftest() if those are wanted. The Ljung–Box row tests residual autocorrelation jointly to lag = max(10, 2 × seasonal period), with df adjusted for the number of fitted ARMA terms (p + q + P + Q).',
     afterTableId: 'model-summary',
   },
   figures: [

@@ -7,9 +7,9 @@ export const POISSON_NEGATIVE_BINOMIAL: TestSpec = {
   question: 'predict a count outcome',
   roles: [
     { id: 'outcome', label: 'Outcome (DV)', levels: 'count', arity: 'non-negative integers · exactly 1',
-      hint: 'e.g. a count of events you tallied — complaints, visits' },
+      hint: 'e.g. a count of events you tallied - complaints, visits' },
     { id: 'predictors', label: 'Predictors', levels: 'any level', arity: 'one or more',
-      hint: 'e.g. explanatory variables — age, gender, hours studied' },
+      hint: 'e.g. explanatory variables - age, gender, hours studied' },
     { id: 'exposure', label: 'Exposure (optional)', levels: 'interval / ratio', arity: '0 or 1 · offset',
       hint: 'e.g. observation time / population at risk (log offset)' },
   ],
@@ -56,7 +56,7 @@ export const POISSON_NEGATIVE_BINOMIAL: TestSpec = {
     "Models event counts. Each predictor's incidence-rate ratio (IRR) gives the multiplicative change in the expected " +
     'count per unit (>1 more, <1 fewer); p tests significance. Check dispersion to pick Poisson vs. negative binomial. ' +
     'If cases have unequal exposure (different observation time/area/population), add an offset of log(exposure) so the ' +
-    'model predicts rates, not raw counts — omitting it biases the IRRs.',
+    'model predicts rates, not raw counts - omitting it biases the IRRs.',
   apaTemplate: 'Predictor X was associated with the count, IRR={irr}, 95% CI [{ciLow}, {ciHigh}], p {p}.',
   rMap: 'glm(family=poisson, offset=log(exposure)) / MASS::glm.nb() → B/SE/z/p · exp(cbind(IRR=coef(m), confint(m))) → IRR + 95% CI · performance::check_overdispersion() → dispersion',
   bundleFiles: ['table_coefficients.png', 'figure_residuals.png'],

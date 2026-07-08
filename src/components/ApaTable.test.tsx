@@ -199,7 +199,7 @@ describe('ApaTable matrix rendering (kind:matrix)', () => {
     expect(html).toContain('<table')
   })
 
-  it('honors an explicit domId (spec override) for the table DOM id — export capture parity', () => {
+  it('honors an explicit domId (spec override) for the table DOM id - export capture parity', () => {
     // Matrix tables under a SEM spec with a domId override (Task 33 collision-avoidance) must
     // render the same DOM id the exporter captures (`table-${spec.domId}`), else captureNode → null.
     const h = renderToStaticMarkup(<ApaTable matrix={m3x3} domId="pls-sem-fl" />)

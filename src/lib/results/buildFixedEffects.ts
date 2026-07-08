@@ -39,7 +39,7 @@ export function buildFixedEffects(spec: TestSpec, r: FixedEffectsResult): CardCo
   // Render the drawn within-variation note + state which SE is in parentheses (no SE column header now) +
   // APPEND the §2.8 poolability F (like buildIvTwoStage appends diagnostics).
   const note: CardContent['note'] = spec.tableNote
-    ? { ...spec.tableNote, text: `${spec.tableNote.text} Standard errors in parentheses are ${seLabel === 'clustered SE' ? 'clustered by entity' : 'classical'}; the bracketed line is the ${Math.round(r.ciLevel * 100)}% CI. F-test for individual effects (poolability): F = ${f(r.poolF)}, p ${fpApa(r.poolP)} — a low p favours the entity effects over pooled OLS.` }
+    ? { ...spec.tableNote, text: `${spec.tableNote.text} Standard errors in parentheses are ${seLabel === 'clustered SE' ? 'clustered by entity' : 'classical'}; the bracketed line is the ${Math.round(r.ciLevel * 100)}% CI. F-test for individual effects (poolability): F = ${f(r.poolF)}, p ${fpApa(r.poolP)} - a low p favours the entity effects over pooled OLS.` }
     : null
   const figs = figuresOf(spec)
   return {

@@ -40,7 +40,7 @@ describe('friedman registry stays faithful to the spec HTML (verbatim, card-scop
     const line = strip(card.match(/<b>APA template:<\/b>(.*?)<\/div>/s)![1])
     for (const frag of spec.apaTemplate.split(/\{[a-z0-9]+\}/i).filter(Boolean)) expect(line).toContain(frag)
   })
-  it('bundle line EQUALS bundleFiles verbatim (figure_profile.png — does not derive from type)', () => {
+  it('bundle line EQUALS bundleFiles verbatim (figure_profile.png - does not derive from type)', () => {
     expect(strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')).toEqual(spec.bundleFiles)
     // Note: figure_profile.png does NOT derive from the type string 'profile / box plot' — asserted verbatim only
   })

@@ -27,7 +27,7 @@ function renderUI(opts: {
   )
 }
 
-describe('SemConfigUI — layout (latent / CB-SEM)', () => {
+describe('SemConfigUI - layout (latent / CB-SEM)', () => {
   it('renders the canvas region above the construct-slots form (D3: canvas on top, form below)', () => {
     const html = renderUI({ modelKind: 'latent' })
     expect(html).toContain('CANVAS')
@@ -51,7 +51,7 @@ describe('SemConfigUI — layout (latent / CB-SEM)', () => {
   })
 })
 
-describe('SemConfigUI — path mode (observed-only)', () => {
+describe('SemConfigUI - path mode (observed-only)', () => {
   it('hides the construct-slots form in path mode (nodes = single observed columns, §3.6)', () => {
     const html = renderUI({ modelKind: 'path', columns: ['x', 'm', 'y'] })
     expect(html).toContain('CANVAS')

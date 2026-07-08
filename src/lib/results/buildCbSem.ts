@@ -284,10 +284,10 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         'Moderation edges appear only when drawn on the canvas, each an interaction-term effect from the same bootstrap run; simple slopes at -1 SD / mean / +1 SD are estimated as defined parameters.'
       notes = [
         { label: 'Scope', text: 'Tables shown follow the pipeline stages you ran (EFA → CFA → fit → structural); if EFA was deselected, the E1/E2 preamble is omitted; if the structural stage was deselected, Table 5 is omitted.' },
-        { label: 'Cutoffs', text: 'Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 — guidelines, not pass/fail gates; RMSEA is unstable at small df / small N, so interpret it cautiously for compact models.' },
+        { label: 'Cutoffs', text: 'Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 - guidelines, not pass/fail gates; RMSEA is unstable at small df / small N, so interpret it cautiously for compact models.' },
         { label: 'Estimator', text: 'Use WLSMV for ordinal indicators.' },
         { label: 'R²', text: r2NoteText ? `${r2Static} ${r2NoteText}` : r2Static },
-        { label: 'Caution', text: 'EFA on the same sample is exploratory — treat it as a diagnostic, not confirmatory evidence.' },
+        { label: 'Caution', text: 'EFA on the same sample is exploratory - treat it as a diagnostic, not confirmatory evidence.' },
         // Cross-references buildAve.ts's dedicated card, verbatim clause lift from the pre-T5 tableNote.
         { label: 'Discriminant validity', text: 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.', afterTableId: 'htmt' },
       ]

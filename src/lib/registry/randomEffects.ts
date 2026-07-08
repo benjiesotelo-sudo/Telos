@@ -11,10 +11,10 @@ export const RANDOM_EFFECTS: TestSpec = {
   name: 'Random effects',
   question: 'panel regression, random entity effects',
   roles: [
-    { id: 'entity', label: 'Entity', levels: 'nominal / ordinal', arity: 'exactly 1', hint: 'e.g. the unit observed repeatedly — firm, country, student' },
-    { id: 'time', label: 'Time', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the date / time-order column — month, year' },
-    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured — test score, income' },
-    { id: 'regressors', label: 'Regressors', levels: 'any level', arity: 'one or more', hint: 'e.g. explanatory variables — R&D spend, leverage' },
+    { id: 'entity', label: 'Entity', levels: 'nominal / ordinal', arity: 'exactly 1', hint: 'e.g. the unit observed repeatedly - firm, country, student' },
+    { id: 'time', label: 'Time', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the date / time-order column - month, year' },
+    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured - test score, income' },
+    { id: 'regressors', label: 'Regressors', levels: 'any level', arity: 'one or more', hint: 'e.g. explanatory variables - R&D spend, leverage' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -52,7 +52,7 @@ export const RANDOM_EFFECTS: TestSpec = {
   },
   figures: [{ caption: 'Coefficients', type: 'coefficient plot', file: 'coefficients' }],
   howToRead:
-    'Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each B/p as usual — but only trust this model if the Hausman test favours random over fixed effects. Method: R plm package (Croissant & Millo, 2008).',
+    'Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each B/p as usual - but only trust this model if the Hausman test favours random over fixed effects. Method: R plm package (Croissant & Millo, 2008).',
   apaTemplate: 'In a random-effects model, predictor X gave B={b}, p {p}.',
   rMap: 'plm(model="random") → Table · ggplot2 → figure',
   bundleFiles: ['table_coefficients.png', 'figure_coefficients.png'],

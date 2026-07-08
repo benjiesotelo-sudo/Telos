@@ -26,7 +26,7 @@ describe('buildChiSquareIndependence', () => {
   })
   it('min expected < 5 → warning sentence appended (decision 5)', () => {
     const c = buildChiSquareIndependence(CHI_SQUARE_INDEPENDENCE, { ...res, minExpected: 3.2 })
-    expect(c.note!.text).toBe(CHI_SQUARE_INDEPENDENCE.tableNote!.text + " Smallest expected count here is 3.2 — consider Fisher's exact test.")
+    expect(c.note!.text).toBe(CHI_SQUARE_INDEPENDENCE.tableNote!.text + " Smallest expected count here is 3.2 - consider Fisher's exact test.")
   })
   it('APA keeps the card-literal wording with real values', () => {
     expect(buildChiSquareIndependence(CHI_SQUARE_INDEPENDENCE, res).apa)

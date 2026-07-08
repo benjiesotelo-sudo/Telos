@@ -28,7 +28,7 @@ function renderUI(over: Partial<Parameters<typeof SemControlsUI>[0]> = {}) {
   )
 }
 
-describe('SemControlsUI — pipeline-stage selector (CB-SEM, §3.4)', () => {
+describe('SemControlsUI - pipeline-stage selector (CB-SEM, §3.4)', () => {
   it('defaults to the full model and offers full / cfa-only stages', () => {
     const html = renderUI({ pipeline: 'full' })
     expect(html).toContain('full')
@@ -58,7 +58,7 @@ describe('SemControlsUI — pipeline-stage selector (CB-SEM, §3.4)', () => {
   })
 })
 
-describe('SemControlsUI — estimator-aware missing-data dropdown (§3.4)', () => {
+describe('SemControlsUI - estimator-aware missing-data dropdown (§3.4)', () => {
   it('CB-SEM: renders the estimator dropdown (WLSMV/ML/MLR) and the missing-data dropdown', () => {
     const html = renderUI({ track: 'cb-sem' })
     expect(html).toContain('WLSMV')
@@ -80,7 +80,7 @@ describe('SemControlsUI — estimator-aware missing-data dropdown (§3.4)', () =
   })
 })
 
-describe('SemControlsUI — WLSMV blocked once a moderation edge exists (§A7 UI-estimator seam)', () => {
+describe('SemControlsUI - WLSMV blocked once a moderation edge exists (§A7 UI-estimator seam)', () => {
   it('greys the WLSMV option when hasModeration is true', () => {
     const html = renderUI({ estimator: 'ML', hasModeration: true })
     expect(html).toContain('value="WLSMV" disabled=""')
@@ -97,7 +97,7 @@ describe('SemControlsUI — WLSMV blocked once a moderation edge exists (§A7 UI
   })
 })
 
-describe('SemControlsUI — bootstrap control (presets + free entry + time estimate, D6)', () => {
+describe('SemControlsUI - bootstrap control (presets + free entry + time estimate, D6)', () => {
   it('exposes 1k / 5k / 10k presets and 5000 is the live value', () => {
     const html = renderUI({ nboot: 5000 })
     expect(BOOTSTRAP_PRESETS).toEqual([1000, 5000, 10000])
@@ -126,7 +126,7 @@ function html10() {
   return renderUI({ nboot: 5000 })
 }
 
-describe('missingOptionValue — the connected default agrees with the runner (default-value seam, slice-5 review)', () => {
+describe('missingOptionValue - the connected default agrees with the runner (default-value seam, slice-5 review)', () => {
   it('CB_SEM_DEFAULT_MISSING is listwise (the fit\'s own effective default: lavaan::sem() is called with no missing= arg)', () => {
     expect(CB_SEM_DEFAULT_MISSING).toBe('listwise')
   })
@@ -148,7 +148,7 @@ describe('missingOptionValue — the connected default agrees with the runner (d
   })
 })
 
-describe('estBootstrapMinutes — spike-calibrated estimate (§5.3)', () => {
+describe('estBootstrapMinutes - spike-calibrated estimate (§5.3)', () => {
   it('CB-SEM 5000 ≈ 2.5 min (mediation 5k spike)', () => {
     expect(estBootstrapMinutes('cb-sem', 5000)).toBeCloseTo(2.5, 1)
   })

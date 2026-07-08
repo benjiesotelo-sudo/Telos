@@ -35,8 +35,8 @@ describe('buildDistributionNormality', () => {
   })
   it('figures are per-variable named for collision-free export (the summary-statistics pattern)', () => {
     expect(c.figures.map((g) => ({ caption: g.caption, type: g.type }))).toEqual([
-      { caption: 'Distribution shape — score', type: 'histogram_score' },
-      { caption: 'Distribution shape — score', type: 'qq_score' },
+      { caption: 'Distribution shape - score', type: 'histogram_score' },
+      { caption: 'Distribution shape - score', type: 'qq_score' },
     ])
     expect(c.figures[0].png).toBe(scoreVar.histogramPng)
     expect(c.figures[1].png).toBe(scoreVar.qqPng)

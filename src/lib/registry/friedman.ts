@@ -8,9 +8,9 @@ export const FRIEDMAN: TestSpec = {
   question: 'nonparametric repeated measures',
   roles: [
     { id: 'subject', label: 'Subject ID', levels: 'any level', arity: 'exactly 1',
-      hint: 'e.g. the column identifying each person — participant_id' },
+      hint: 'e.g. the column identifying each person - participant_id' },
     { id: 'measures', label: 'Repeated measures', levels: 'ordinal / interval / ratio', arity: '2 or more',
-      hint: 'e.g. same measure each time — score_t1, score_t2, score_t3' },
+      hint: 'e.g. same measure each time - score_t1, score_t2, score_t3' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },

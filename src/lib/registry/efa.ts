@@ -58,7 +58,7 @@ export const EFA: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'Loading columns expand to the number of retained factors; loadings |< .32| suppressed (Tabachnick & Fidell). Φ (interfactor correlations) shown for oblique rotation (oblimin) only — omitted for varimax (orthogonal). KMO ≥ .60 acceptable, ≥ .70 preferred (Kaiser & Rice, 1974). Bartlett p < .001 required. Parallel analysis (Horn, 1965) is the preferred retention rule; Kaiser eigenvalue > 1 is offered but systematically over-extracts (Zwick & Velicer, 1986). Factor order: descending SS-loadings.',
+    text: 'Loading columns expand to the number of retained factors; loadings |< .32| suppressed (Tabachnick & Fidell). Φ (interfactor correlations) shown for oblique rotation (oblimin) only - omitted for varimax (orthogonal). KMO ≥ .60 acceptable, ≥ .70 preferred (Kaiser & Rice, 1974). Bartlett p < .001 required. Parallel analysis (Horn, 1965) is the preferred retention rule; Kaiser eigenvalue > 1 is offered but systematically over-extracts (Zwick & Velicer, 1986). Factor order: descending SS-loadings.',
     afterTableId: 'interfactor-correlations',
   },
   figures: [
@@ -66,11 +66,11 @@ export const EFA: TestSpec = {
   ],
   howToRead:
     "Check KMO (> .60 acceptable, > .70 preferred; Kaiser & Rice, 1974) and a significant Bartlett's test (p < .001) for suitability. " +
-    'Parallel analysis (Horn, 1965) is the recommended retention rule — it corrects the upward bias of the Kaiser eigenvalue > 1 rule (Zwick & Velicer, 1986). ' +
+    'Parallel analysis (Horn, 1965) is the recommended retention rule - it corrects the upward bias of the Kaiser eigenvalue > 1 rule (Zwick & Velicer, 1986). ' +
     'Table 3 shows the rotated pattern matrix: each loading is the unique contribution of the factor to that item. ' +
     'Loadings |< .32| (~10% variance) are suppressed; a loading ≥ .32 on two or more factors flags a cross-loader (Tabachnick & Fidell). ' +
-    'For oblique rotation (oblimin), the Φ matrix shows interfactor correlations — if all |Φ| < .32, orthogonal rotation (varimax) may be preferred. ' +
-    'EFA is exploratory — it discovers structure; to confirm a proposed factor structure run a CFA, ideally on a separate sample (Watkins, 2018).',
+    'For oblique rotation (oblimin), the Φ matrix shows interfactor correlations - if all |Φ| < .32, orthogonal rotation (varimax) may be preferred. ' +
+    'EFA is exploratory - it discovers structure; to confirm a proposed factor structure run a CFA, ideally on a separate sample (Watkins, 2018).',
   apaTemplate:
     "EFA (KMO = {kmo}, Bartlett's χ²({df}) = {chisq}, p {p}) with {retention} retained {n} factors explaining {pct}% of variance ({rotation} rotation).",
   rMap: 'psych::KMO()/cortest.bartlett() → Table 1 · R_PARALLEL_ANALYSIS → retention · psych::fa() → Tables 2–3 · fa()$Phi → Table 4 (oblimin only) · ggplot2 → scree figure',

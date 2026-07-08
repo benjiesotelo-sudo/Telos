@@ -113,7 +113,7 @@ describe('arima-sarima registry stays faithful to the spec HTML (verbatim, card-
     expect(seriesConstraint?.levels).toEqual(['interval', 'ratio'])
   })
 
-  it('minRule is values ≥ 20 (§1.5 — minimum 20 complete observations)', () => {
+  it('minRule is values ≥ 20 (§1.5 - minimum 20 complete observations)', () => {
     expect(spec.constraints.minRule).toEqual({ kind: 'values', n: 20 })
   })
 

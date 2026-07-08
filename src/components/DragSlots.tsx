@@ -23,7 +23,7 @@ function Chip({ name, disabled, reason, assigned, badges, armed, onTap }: {
       className={`chip${assigned ? ' assigned' : disabled ? ' incompatible' : ''}${armed ? ' armed' : ''}`}
       style={{ transform: CSS.Translate.toString(transform), touchAction: 'none', cursor: disabled ? (assigned ? 'default' : 'not-allowed') : 'grab' }}>
       {name}{badges.map((b) => <span key={b} className="tag">{b}</span>)}
-      {!assigned && disabled && reason ? <span className="hint"> — {reason}</span> : null}
+      {!assigned && disabled && reason ? <span className="hint"> - {reason}</span> : null}
     </span>
   )
 }

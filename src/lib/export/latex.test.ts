@@ -97,7 +97,7 @@ const ave: AveResult = {
   },
 }
 
-describe('emitLatex — matrix tables (AVE Fornell-Larcker + HTMT)', () => {
+describe('emitLatex - matrix tables (AVE Fornell-Larcker + HTMT)', () => {
   const out = emitLatex(['ave'], { ave: { roles: {}, options: {}, props: {}, blocked: null } }, SPECS, { ave: { result: ave, stale: false } })
   it('routes matrix tables to a non-empty booktabs tabular (1 label + N construct columns)', () => {
     expect(out).not.toContain('\\begin{tabular}{}') // the empty-preamble bug must be gone

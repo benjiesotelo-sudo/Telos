@@ -14,7 +14,7 @@ describe('summary-statistics registry stays faithful to the spec HTML (verbatim,
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => t[1]))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => (c.sub ? `${c.label}<sub>${c.sub}</sub>` : c.label))))
   })
-  it('the caption is the bare "Table." style with the card title — no numbered caption in this card', () => {
+  it('the caption is the bare "Table." style with the card title - no numbered caption in this card', () => {
     expect([...card.matchAll(/<div class="apa-cap"><b>Table\.<\/b> (.*?)<\/div>/g)].map((m) => m[1])).toEqual(spec.tables.map((t) => t.title))
     expect(spec.tables[0].captionStyle).toBe('bare')
     expect(card).not.toMatch(/<b>Table \d\.<\/b>/)
@@ -46,7 +46,7 @@ describe('summary-statistics registry stays faithful to the spec HTML (verbatim,
     expect(spec.constraints.roles.map((r) => r.arity)).toEqual([{ min: 1, max: Infinity }, { min: 0, max: 1 }]) // 'one or more' · '0 or 1'
     expect(spec.constraints.minRule).toEqual({ kind: 'used-columns', n: 1 })
   })
-  it('options equal the inputs card option strip — both display-only pills (the design ruling)', () => {
+  it('options equal the inputs card option strip - both display-only pills (the design ruling)', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))

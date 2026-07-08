@@ -495,7 +495,7 @@ describe('buildCbSem', () => {
 // generic "X to Y" descriptor (same convention as multiple-linear-regression's "predictor X"), filled
 // from the fit indices + the FIRST structural path (worked-example convention). Uses the REAL CB_SEM
 // spec so the registry's actual apaTemplate string is exercised, not the mock SPEC's placeholder 'apa'.
-describe('buildCbSem — APA template filled with live values (worked example = first structural path)', () => {
+describe('buildCbSem - APA template filled with live values (worked example = first structural path)', () => {
   it('fills CFI/RMSEA/SRMR from the fit indices and beta/p/names from the first structural path', () => {
     const c = buildCbSem(CB_SEM, base)
     expect(c.apa).toBe('The model fit well (CFI=.95, RMSEA=.10, SRMR=.06); the path from ind60 to dem60 gave β=.45, p < .001.')
@@ -533,7 +533,7 @@ describe('buildCbSem — APA template filled with live values (worked example = 
 // catches the regression the per-row rule was written for — a spec/builder key mismatch blanks a column
 // in EVERY row, not just some. U3-T3: the merged structural-paths table similarly leaves __section
 // marker rows blank on every data column — still fine, since .some() only needs ONE row filled.)
-describe('buildCbSem — real registry specs (row keys must cover every spec column key)', () => {
+describe('buildCbSem - real registry specs (row keys must cover every spec column key)', () => {
   const assertRowsCoverSpecColumns = (spec: TestSpec, result: CbSemResult, tableIds: string[]) => {
     const c = buildCbSem(spec, result)
     for (const id of tableIds) {

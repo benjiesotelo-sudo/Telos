@@ -7,11 +7,11 @@ export const MIXED_ANOVA: TestSpec = {
   question: 'between-groups × repeated conditions',
   roles: [
     { id: 'subject', label: 'Subject ID', levels: 'any level', arity: 'exactly 1',
-      hint: 'e.g. the column identifying each person — participant_id' },
+      hint: 'e.g. the column identifying each person - participant_id' },
     { id: 'between', label: 'Between-groups factor', levels: 'nominal / ordinal', arity: 'exactly 1',
-      hint: 'e.g. the column splitting people into groups — treatment vs control' },
+      hint: 'e.g. the column splitting people into groups - treatment vs control' },
     { id: 'measures', label: 'Repeated measures', levels: 'interval / ratio', arity: '2 or more',
-      hint: 'e.g. same measure each time — score_t1, score_t2, score_t3' },
+      hint: 'e.g. same measure each time - score_t1, score_t2, score_t3' },
   ],
   options: [
     { id: 'alpha', label: 'α', value: '0.05', kind: 'number', default: 0.05 },
@@ -45,9 +45,9 @@ export const MIXED_ANOVA: TestSpec = {
   tableNote: { kind: 'assume', text: 'assumption check: Levene\'s (equal variances between groups). between and within effects are tested against different error terms; when sphericity is violated the within and interaction F-tests use the Greenhouse–Geisser / Huynh–Feldt correction. Mauchly\'s test & the GG/HF corrections apply only when the repeated factor has 3+ levels (with 2 levels sphericity is automatically met and this table is omitted).' },
   figures: [{ caption: 'Means across conditions by group', type: 'profile plot (one line per group, means ± CI across conditions)' , file: 'profile' }],
   howToRead:
-    'Read the Group × Condition interaction first — a significant interaction means the groups changed differently across conditions; only then read the main effects. ' +
-    'Check sphericity for the within and interaction terms — if violated, read the corrected F/p. ' +
-    "When the group × condition interaction is significant, the overall condition comparisons in the post-hoc table can mislead — read each group's line on the profile plot instead.",
+    'Read the Group × Condition interaction first - a significant interaction means the groups changed differently across conditions; only then read the main effects. ' +
+    'Check sphericity for the within and interaction terms - if violated, read the corrected F/p. ' +
+    "When the group × condition interaction is significant, the overall condition comparisons in the post-hoc table can mislead - read each group's line on the profile plot instead.",
   apaTemplate: 'A mixed ANOVA yielded a {between_name} × {within_name} interaction, F({df1},{df2})={f}, p {p}, partial η²={pes} [{lo}, {hi}].',
   rMap: 'dplyr::group_by()+summarise() → Table 1 (group × condition N/M/SD) · afex::aov_ez() → Tables 2–3 · emmeans → Table 4 (post-hoc) · ggplot2 → profile plot',
   bundleFiles: ['table_descriptives.png', 'table_mixed-anova.png', 'table_sphericity.png', 'table_posthoc.png', 'figure_profile.png'],

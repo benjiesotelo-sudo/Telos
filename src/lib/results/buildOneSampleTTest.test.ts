@@ -14,12 +14,12 @@ const r: OneSampleTTestResult = {
 
 describe('buildOneSampleTTest', () => {
   const c = buildOneSampleTTest(spec, r)
-  it("shapes both tables — Table 2's Test value cell shows the user's μ0", () => {
+  it("shapes both tables - Table 2's Test value cell shows the user's μ0", () => {
     expect(c.tables[0].rows[0]).toEqual({ variable: 'post_score', n: 6, mean: '82.33', sd: '3.78', se: '1.54' })
     expect(c.tables[1].rows[0]).toEqual({ mu0: '70', t: '8.00', df: '5', p: '<.001', mdiff: '12.33', ci: '[8.37, 16.30]', d: '3.27 [1.14, 5.37]' })
   })
   it('appends the Shapiro-Wilk values + a plain-language verdict to the assume note (audit V: p=.847 >= alpha, so normality "looks reasonable")', () => {
-    expect(c.note).toEqual({ kind: 'assume', text: `${spec.tableNote!.text} (Shapiro-Wilk W=0.96, p=.847) — normality looks reasonable` })
+    expect(c.note).toEqual({ kind: 'assume', text: `${spec.tableNote!.text} (Shapiro-Wilk W=0.96, p=.847) - normality looks reasonable` })
   })
   it('fills the APA sentence as a p-clause with a 1-dp M', () => {
     expect(c.apa).toBe('A one-sample t-test gave M=82.3 vs. 70, t(5)=8.00, p < .001, d=3.27 [1.14, 5.37].')

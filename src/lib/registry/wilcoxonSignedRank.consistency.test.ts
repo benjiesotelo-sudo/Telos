@@ -10,7 +10,7 @@ const inputsHtml = readSpec('telos_test_inputs.html')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Wilcoxon signed-rank</div>'), inputsHtml.indexOf('<div class="ttl">Kruskal-Wallis</div>'))
 
 describe('wilcoxon-signed-rank registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences — including the literal "V / W" header', () => {
+  it('table theads equal the card column sequences - including the literal "V / W" header', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => t[1]))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => (c.sub ? `${c.label}<sub>${c.sub}</sub>` : c.label))))
   })
@@ -25,11 +25,11 @@ describe('wilcoxon-signed-rank registry stays faithful to the spec HTML (verbati
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)
     expect(strip(card.match(/<b>R map:<\/b>(.*?)<\/div>/s)![1])).toBe(spec.rMap)
   })
-  it('the drawn card has NO table note — and neither does the registry entry', () => {
+  it('the drawn card has NO table note - and neither does the registry entry', () => {
     expect(card).not.toMatch(/class="tbl-note/)
     expect(spec.tableNote).toBeUndefined()
   })
-  it('the card APA exemplar contains every fixed fragment of the registry template (Z, p, r only — no V/W, as drawn)', () => {
+  it('the card APA exemplar contains every fixed fragment of the registry template (Z, p, r only - no V/W, as drawn)', () => {
     const line = strip(card.match(/<b>APA template:<\/b>(.*?)<\/div>/s)![1])
     for (const frag of spec.apaTemplate.split(/\{[a-z]+\}/)) expect(line).toContain(frag)
   })

@@ -10,7 +10,7 @@ const inputsHtml = readSpec('telos_test_inputs.html')
 const inCard = inputsHtml.slice(inputsHtml.indexOf("<div class=\"ttl\">Welch's ANOVA</div>"), inputsHtml.indexOf('<div class="ttl">ANCOVA</div>'))
 
 describe("welch-anova registry stays faithful to the spec HTML (verbatim, card-scoped)", () => {
-  it('table theads equal the card column sequences — including M<sub>diff</sub> and p<sub>adj</sub>', () => {
+  it('table theads equal the card column sequences - including M<sub>diff</sub> and p<sub>adj</sub>', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => t[1]))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => (c.sub ? `${c.label}<sub>${c.sub}</sub>` : c.label))))
   })

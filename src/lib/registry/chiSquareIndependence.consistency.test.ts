@@ -10,7 +10,7 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Chi-square independence</div>'), inputsHtml.indexOf('<div class="ttl">Spearman correlation</div>'))
 
 describe('chi-square-independence registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences (decoded — χ², Row \\ Column)', () => {
+  it('table theads equal the card column sequences (decoded - χ², Row \\ Column)', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => strip(t[1])))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => c.label)))
   })
@@ -27,7 +27,7 @@ describe('chi-square-independence registry stays faithful to the spec HTML (verb
     expect(strip(card.match(/<div class="howread">(.*?)<\/div>/s)![1])).toBe(spec.howToRead)
     expect(strip(card.match(/<b>R map:<\/b>(.*?)<\/div>/s)![1])).toBe(spec.rMap)
   })
-  it('APA line equals the template with every {placeholder} as __ (plain all-__ form — no k−1 on this card)', () => {
+  it('APA line equals the template with every {placeholder} as __ (plain all-__ form - no k−1 on this card)', () => {
     const line = strip(card.match(/<b>APA template:<\/b>(.*?)<\/div>/s)![1])
     expect(line).toBe(`“${spec.apaTemplate.replace(/\{\w+\}/g, '__')}”`)
   })

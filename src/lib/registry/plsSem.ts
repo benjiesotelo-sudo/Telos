@@ -46,7 +46,7 @@ export const PLS_SEM: TestSpec = {
     {
       id: 'htmt',
       domId: 'pls-sem-htmt',
-      title: 'Discriminant validity — HTMT (construct × construct)',
+      title: 'Discriminant validity - HTMT (construct × construct)',
       columns: [], // MatrixTable — rendered via ApaTable matrix branch; columns unused
     },
     {
@@ -101,7 +101,7 @@ export const PLS_SEM: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'HTMT is a construct-by-construct matrix (not a per-construct value) — columns expand to the number of constructs in the model; HTMT < .85/.90 supports discriminant validity (Henseler, Ringle & Sarstedt, 2015). Structural paths carry dual bootstrap 95% CIs from ONE run — percentile (primary) and a hand-rolled bias-corrected, non-accelerated interval (the same z0-adjusted-percentile algorithm as lavaan’s boot.ci.type=“bca.simple”, applied to seminr’s raw bootstrap draws since seminr has no built-in BC option; verified to match lavaan to 6 decimals on a shared fixture). Result is Supported/Not supported from the percentile CI excluding zero (α=.05); the BC column is comparative context. R² and Q² assess the structural model (f²: ~0.02 small, 0.15 medium, 0.35 large; Cohen, 1988). PLS-SEM deliberately has no global fit indices (CFI/TLI/RMSEA) — judge it by reliability & validity, then R²/Q²/f² (Hair et al., 2019). The indirect-effects table appears only when the drawn paths form a chain (X → M → Y). Formative constructs suppress AVE/HTMT and are judged by indicator weights, VIF, and redundancy convergent validity. Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup. Moderation edges (drawn on the canvas) appear as an additional structural row - an interaction construct via seminr’s two-stage method (Henseler & Chin, 2010) - with the same dual bootstrap CIs as every other path.',
+    text: 'HTMT is a construct-by-construct matrix (not a per-construct value) - columns expand to the number of constructs in the model; HTMT < .85/.90 supports discriminant validity (Henseler, Ringle & Sarstedt, 2015). Structural paths carry dual bootstrap 95% CIs from ONE run - percentile (primary) and a hand-rolled bias-corrected, non-accelerated interval (the same z0-adjusted-percentile algorithm as lavaan’s boot.ci.type=“bca.simple”, applied to seminr’s raw bootstrap draws since seminr has no built-in BC option; verified to match lavaan to 6 decimals on a shared fixture). Result is Supported/Not supported from the percentile CI excluding zero (α=.05); the BC column is comparative context. R² and Q² assess the structural model (f²: ~0.02 small, 0.15 medium, 0.35 large; Cohen, 1988). PLS-SEM deliberately has no global fit indices (CFI/TLI/RMSEA) - judge it by reliability & validity, then R²/Q²/f² (Hair et al., 2019). The indirect-effects table appears only when the drawn paths form a chain (X → M → Y). Formative constructs suppress AVE/HTMT and are judged by indicator weights, VIF, and redundancy convergent validity. Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup. Moderation edges (drawn on the canvas) appear as an additional structural row - an interaction construct via seminr’s two-stage method (Henseler & Chin, 2010) - with the same dual bootstrap CIs as every other path.',
     afterTableId: 'indirect-effects',
   },
   figures: [
@@ -109,7 +109,7 @@ export const PLS_SEM: TestSpec = {
     { caption: 'Simple slopes', type: 'conditional-effects plot (whiskered 95% CI at -1SD/mean/+1SD)', file: 'simple-slopes', optional: true },
   ],
   howToRead:
-    'Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does not use CB-SEM global fit indices (CFI/TLI/RMSEA) — judge it instead by reliability & validity (CR, AVE, HTMT), then R², Q² (predictive relevance) and f², with SRMR the only commonly reported approximate fit index. Read the bootstrapped path coefficients (β, p); f² is each path\'s effect size (~0.02 small, 0.15 medium, 0.35 large).',
+    'Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does not use CB-SEM global fit indices (CFI/TLI/RMSEA) - judge it instead by reliability & validity (CR, AVE, HTMT), then R², Q² (predictive relevance) and f², with SRMR the only commonly reported approximate fit index. Read the bootstrapped path coefficients (β, p); f² is each path\'s effect size (~0.02 small, 0.15 medium, 0.35 large).',
   apaTemplate: 'In the PLS-SEM, the path from X to Y gave β={beta}, p={p} (bootstrap); R²Y={r2y}.',
   rMap: 'seminr → Tables & bootstrap · summary() → R²/R²adj · seminr::predict_pls() → Q² · seminr::specific_effect_significance() (on the bootstrapped model) → Table 5 indirect effects · seminr::plot() → diagram',
   bundleFiles: [

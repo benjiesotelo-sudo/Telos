@@ -9,10 +9,10 @@ export const FIXED_EFFECTS: TestSpec = {
   name: 'Fixed effects',
   question: 'panel regression, entity effects',
   roles: [
-    { id: 'entity', label: 'Entity', levels: 'nominal / ordinal', arity: 'exactly 1', hint: 'e.g. the unit observed repeatedly — firm, country, student' },
-    { id: 'time', label: 'Time', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the date / time-order column — month, year' },
-    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured — test score, income' },
-    { id: 'regressors', label: 'Regressors', levels: 'any level', arity: 'one or more', hint: 'e.g. explanatory variables — R&D spend, leverage' },
+    { id: 'entity', label: 'Entity', levels: 'nominal / ordinal', arity: 'exactly 1', hint: 'e.g. the unit observed repeatedly - firm, country, student' },
+    { id: 'time', label: 'Time', levels: 'datetime / ordered', arity: 'exactly 1', hint: 'e.g. the date / time-order column - month, year' },
+    { id: 'outcome', label: 'Outcome (DV)', levels: 'interval / ratio', arity: 'exactly 1', hint: 'e.g. the numeric result you measured - test score, income' },
+    { id: 'regressors', label: 'Regressors', levels: 'any level', arity: 'one or more', hint: 'e.g. explanatory variables - R&D spend, leverage' },
   ],
   options: [
     { id: 'effects', label: 'effects', value: 'entity', kind: 'select', choices: ['entity', 'time', 'two-way'] },
@@ -48,7 +48,7 @@ export const FIXED_EFFECTS: TestSpec = {
   ],
   tableNote: {
     kind: 'plain',
-    text: 'time-invariant predictors are absorbed by the entity effects and drop out; a predictor must also change within entities over time to be estimable — predictors with little within-entity variation give large standard errors and unreliable estimates.',
+    text: 'time-invariant predictors are absorbed by the entity effects and drop out; a predictor must also change within entities over time to be estimable - predictors with little within-entity variation give large standard errors and unreliable estimates.',
     afterTableId: 'fe-coefficients',
   },
   figures: [{ caption: 'Coefficients', type: 'coefficient plot (estimate ± CI)', file: 'coefficients' }],

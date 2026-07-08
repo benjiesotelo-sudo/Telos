@@ -31,10 +31,10 @@ describe('buildPairedTTest', () => {
     ])
   })
   it('renders the assume-note with the computed Shapiro-Wilk on the difference scores + a plain-language verdict (audit V: p=.523 >= alpha) + excluded-pairs count', () => {
-    expect(c.note).toEqual({ kind: 'assume', text: 'assumption check: normality of the difference scores. (Shapiro-Wilk W=0.92, p=.523) — normality of the differences looks reasonable' })
+    expect(c.note).toEqual({ kind: 'assume', text: 'assumption check: normality of the difference scores. (Shapiro-Wilk W=0.92, p=.523) - normality of the differences looks reasonable' })
     expect(c.nExcluded).toBe(2)
   })
-  it('renders an em-dash when Shapiro is null (N outside 3–5000) — and no verdict clause (nothing to judge)', () => {
+  it('renders an em-dash when Shapiro is null (N outside 3–5000) - and no verdict clause (nothing to judge)', () => {
     const note = buildPairedTTest(spec, { ...r, shapiro: { W: null, p: null } }).note
     expect(note).toEqual({ kind: 'assume', text: 'assumption check: normality of the difference scores. (Shapiro-Wilk W=—, p=—)' })
   })

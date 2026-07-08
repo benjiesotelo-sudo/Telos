@@ -148,7 +148,7 @@ export function ResultsScreen() {
       <div className="card" data-noprint>
         <div className="eyebrow">Export &amp; download · tick one or more</div>
         <div data-noprint style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginTop: 8 }}>
-          {([['pdf', 'PDF report', 'APA-7 tables, figures, how-to-read text — in selection order'], ['latex', 'LaTeX file (.tex)', 'the same report as a LaTeX source'], ['r', 'R script (.R)', 'reproduces every computation & figure, same sequence · ships with the cleaned dataset']] as [keyof ExportFormats, string, string][]).map(([key, lbl, why]) => (
+          {([['pdf', 'PDF report', 'APA-7 tables, figures, how-to-read text - in selection order'], ['latex', 'LaTeX file (.tex)', 'the same report as a LaTeX source'], ['r', 'R script (.R)', 'reproduces every computation & figure, same sequence · ships with the cleaned dataset']] as [keyof ExportFormats, string, string][]).map(([key, lbl, why]) => (
             <label key={key} title={why}>
               <input type="checkbox" checked={formats[key]} onChange={(e) => setFormats({ ...formats, [key]: e.target.checked })} /> {lbl}
             </label>
@@ -206,10 +206,10 @@ export function ResultsScreen() {
       })}</div>
 
       <p className="hint" style={{ textAlign: 'center', marginTop: 18, marginBottom: 6 }}>
-        After export · optional feedback — an anonymous, optional satisfaction survey — opens a short Google Form in a new tab
+        After export · optional feedback - an anonymous, optional satisfaction survey - opens a short Google Form in a new tab
       </p>
       <p style={{ textAlign: 'center', marginTop: 0 }}>
-        <a className="pill" href={FEEDBACK_URL} target="_blank" rel="noopener">How did it go? — Share feedback →</a>
+        <a className="pill" href={FEEDBACK_URL} target="_blank" rel="noopener">How did it go? - Share feedback →</a>
       </p>
     </section>
   )

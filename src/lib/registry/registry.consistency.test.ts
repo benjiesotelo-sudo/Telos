@@ -10,7 +10,7 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Independent t-test</div>'), inputsHtml.indexOf('One-way ANOVA'))
 
 describe('registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences — including the M<sub>diff</sub> markup', () => {
+  it('table theads equal the card column sequences - including the M<sub>diff</sub> markup', () => {
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) => [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => t[1]))
     expect(theads).toEqual(spec.tables.map((t) => t.columns.map((c) => (c.sub ? `${c.label}<sub>${c.sub}</sub>` : c.label))))
   })

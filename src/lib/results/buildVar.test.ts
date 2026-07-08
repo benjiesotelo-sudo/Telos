@@ -43,7 +43,7 @@ const mock = (over: Partial<VarResult> = {}): VarResult => ({
   ...over,
 })
 
-describe('buildVar — modelsummary side-by-side per-equation coef table', () => {
+describe('buildVar - modelsummary side-by-side per-equation coef table', () => {
   it('overrides the placeholder columns/models with one column per response series', () => {
     const t2 = buildVar(VAR, mock()).tables[1]
     expect(t2.spec.columns.map((c) => c.key)).toEqual(['term', 'eq1', 'eq2'])

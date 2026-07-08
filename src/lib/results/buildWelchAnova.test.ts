@@ -42,12 +42,12 @@ describe('buildWelchAnova', () => {
     expect(c.tables[0].rows.length).toBe(3)
   })
 
-  it("Table 2: Welch's ANOVA row — df2 renders '37.90' (fractional via fdf), ω² cell carries its one-sided CI", () => {
+  it("Table 2: Welch's ANOVA row - df2 renders '37.90' (fractional via fdf), ω² cell carries its one-sided CI", () => {
     expect(c.tables[1].spec.id).toBe('welch-anova')
     expect(c.tables[1].rows).toEqual([{ f: '2.58', df1: '2', df2: '37.90', p: '.089', omega2: '.07 [.00, 1.00]' }])
   })
 
-  it('Table 3: Games-Howell post-hoc — NO SE column, pair/mdiff/padj/ci only', () => {
+  it('Table 3: Games-Howell post-hoc - NO SE column, pair/mdiff/padj/ci only', () => {
     expect(c.tables[2].spec.id).toBe('posthoc')
     expect(c.tables[2].spec.columns.map((col) => col.key)).toEqual(['pair', 'mdiff', 'padj', 'ci'])
     const row = c.tables[2].rows[0]
@@ -69,7 +69,7 @@ describe('buildWelchAnova', () => {
   it('note is an assume-note: static tableNote + per-group Shapiro-Wilk W/p (em-dash NA via fx) + a plain-language verdict (audit V: min p=.050 > alpha=.05, so "reasonable")', () => {
     expect(c.note).toEqual({
       kind: 'assume',
-      text: "Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional); within-group normality is still assumed and checked with Shapiro-Wilk per group. (Shapiro per group: control W=0.97, p=.688; drug_a W=0.90, p=.050; drug_b W=0.92, p=.113) — normality looks reasonable across groups",
+      text: "Welch's adjusts the degrees of freedom so equal variances are not assumed (df2 is fractional); within-group normality is still assumed and checked with Shapiro-Wilk per group. (Shapiro per group: control W=0.97, p=.688; drug_a W=0.90, p=.050; drug_b W=0.92, p=.113) - normality looks reasonable across groups",
     })
   })
 

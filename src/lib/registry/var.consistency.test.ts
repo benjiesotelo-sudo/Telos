@@ -147,7 +147,7 @@ describe('var registry stays faithful to the spec HTML (verbatim, card-scoped)',
     expect(seriesConstraint?.arity).toEqual({ min: 2, max: Infinity })
   })
 
-  it('minRule is complete-wide-rows ≥ 20 (spec §1.5 — VAR needs complete rows across all series)', () => {
+  it('minRule is complete-wide-rows ≥ 20 (spec §1.5 - VAR needs complete rows across all series)', () => {
     expect(spec.constraints.minRule).toEqual({ kind: 'complete-wide-rows', n: 20 })
   })
 

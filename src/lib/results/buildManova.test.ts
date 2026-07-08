@@ -84,7 +84,7 @@ describe('buildManova', () => {
     it('assume-note: static text + runtime Box\'s M + a plain-language verdict (audit V: p=.076 >= alpha, so "homogeneous"), rendered after the multivariate table', () => {
       expect(c.note).toEqual({
         kind: 'assume',
-        text: "assumption check: homogeneity of covariance matrices (Box's M). (Box's M χ²=11.44, df=6, p=.076) — covariance matrices look homogeneous",
+        text: "assumption check: homogeneity of covariance matrices (Box's M). (Box's M χ²=11.44, df=6, p=.076) - covariance matrices look homogeneous",
         afterTableId: 'multivariate',
       })
     })

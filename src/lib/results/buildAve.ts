@@ -79,7 +79,7 @@ export function buildAve(spec: TestSpec, r: AveResult): CardContent {
       ? [{ label: 'Scope', text: 'Discriminant validity (Tables 2 and 3) requires ≥ 2 constructs. Add more constructs to see the Fornell–Larcker and HTMT matrices.' }]
       : [
           { label: 'Cutoffs', text: 'AVE ≥ .50 indicates adequate convergent validity, computed from the CFA loadings (Fornell & Larcker, 1981); CR ≥ .70 is acceptable (Nunnally, 1978; Bagozzi & Yi, 1988); do not cite CR ≥ .70 to Fornell & Larcker; HTMT < .85 indicates discriminant validity for conceptually distinct constructs (Henseler, Ringle & Sarstedt, 2015).' },
-          { label: 'Reliability', text: "ω (McDonald's) is the preferred reliability coefficient — model-based, not assuming tau-equivalence (McNeish, 2018); α is retained as a secondary/legacy column." },
+          { label: 'Reliability', text: "ω (McDonald's) is the preferred reliability coefficient - model-based, not assuming tau-equivalence (McNeish, 2018); α is retained as a secondary/legacy column." },
           { label: 'Fornell–Larcker', text: 'Diagonal = √AVE (bold); off-diagonal = inter-construct latent correlations.', afterTableId: 'fornell-larcker' },
           { label: 'Scope', text: 'When only 1 construct is defined, Tables 2 and 3 are suppressed (discriminant validity requires ≥ 2 constructs). Applies to reflective constructs only.', afterTableId: 'htmt' },
         ]

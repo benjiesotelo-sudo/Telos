@@ -40,7 +40,7 @@ describe('buildOneWayAnova (pure, no engine)', () => {
     expect(c.tables[0].rows[0].n).toBe(20)
   })
 
-  it('Table 2: ANOVA rows — Between has F and eta2; Within has empty f/p/eta2', () => {
+  it('Table 2: ANOVA rows - Between has F and eta2; Within has empty f/p/eta2', () => {
     expect(c.tables[1].spec.id).toBe('anova')
     const between = c.tables[1].rows[0]
     expect(between.source).toBe('Between')

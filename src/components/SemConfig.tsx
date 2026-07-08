@@ -37,7 +37,7 @@ export function SemConfigUI({ modelKind, constructs, form, canvas, controls, run
           {form}
           {advise3 && (
             <p className="hint" role="note" style={{ marginTop: 6 }}>
-              Tip: we recommend 3 or more items per construct (2 only works inside a larger model — Kline).
+              Tip: we recommend 3 or more items per construct (2 only works inside a larger model - Kline).
             </p>
           )}
         </div>

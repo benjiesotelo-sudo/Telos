@@ -11,7 +11,7 @@ const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">ANCOVA</div>'), inputsHtml.indexOf('<div class="ttl">MANOVA</div>'))
 
 describe('ancova registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
-  it('table theads equal the card column sequences — decode entities; suffix composes after sub', () => {
+  it('table theads equal the card column sequences - decode entities; suffix composes after sub', () => {
     // thead assertion pattern for ANOVA-family cards: decode raw <th> captures to handle &eta;&sup2; etc.
     const theads = [...card.matchAll(/<thead>(.*?)<\/thead>/gs)].map((m) =>
       [...m[1].matchAll(/<th>(.*?)<\/th>/g)].map((t) => decode(t[1])))

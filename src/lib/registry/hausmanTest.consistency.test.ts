@@ -63,7 +63,7 @@ describe('hausman-test registry stays faithful to the spec HTML (verbatim, card-
     expect(hints).toEqual(spec.roles.map((r) => r.hint))
     expect(cons).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
   })
-  it('options equal the inputs card option strip (no CI pill drawn — α only)', () => {
+  it('options equal the inputs card option strip (no CI pill drawn - α only)', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
@@ -77,7 +77,7 @@ describe('hausman-test registry stays faithful to the spec HTML (verbatim, card-
     expect(c('regressors')!.excludeTag).toBe('datetime')
     expect(spec.constraints.minRule).toEqual({ kind: 'panel', n: 12 })
   })
-  it('no tableNote drawn — spec.tableNote is undefined (no §-addition note for Hausman)', () => {
+  it('no tableNote drawn - spec.tableNote is undefined (no §-addition note for Hausman)', () => {
     expect(spec.tableNote).toBeUndefined()
   })
   it('mutation guard: changing the question breaks the test', () => {

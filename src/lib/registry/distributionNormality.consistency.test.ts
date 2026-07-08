@@ -20,7 +20,7 @@ describe('distribution-normality registry stays faithful to the spec HTML (verba
     expect(caps).toEqual(spec.tables.map((t) => t.title))
     expect(spec.tables[0].captionStyle).toBe('bare')
   })
-  it('ghost rows pin the builder strings — variable example first, then the test label with its en-dash', () => {
+  it('ghost rows pin the builder strings - variable example first, then the test label with its en-dash', () => {
     const ghost = card.match(/<tbody class="ghost">(.*?)<\/tbody>/s)![1]
     expect([...ghost.matchAll(/<tr><td>(.*?)<\/td><td>(.*?)<\/td>/g)].map((m) => [decode(m[1]), decode(m[2])]))
       .toEqual([['post_score', 'Shapiro-Wilk'], ['post_score', 'K–S (Lilliefors)']])
@@ -51,7 +51,7 @@ describe('distribution-normality registry stays faithful to the spec HTML (verba
     expect([...inCard.matchAll(/<div class="sl-cons">(.*?)<\/div>/g)].map((m) => strip(m[1]))).toEqual(spec.roles.map((r) => `${r.levels} · ${r.arity}`))
     expect(spec.constraints).toEqual({ roles: [{ roleId: 'variable', levels: ['interval', 'ratio'], arity: { min: 1, max: Infinity } }], minRule: { kind: 'values', n: 3 } })
   })
-  it('options equal the inputs card option strip — both display-only pills', () => {
+  it('options equal the inputs card option strip - both display-only pills', () => {
     const pills = [...inCard.matchAll(/<span class="optpill"><span class="k">(.*?)<\/span><span class="v">(.*?)<\/span>/g)]
       .map((m) => ({ label: strip(m[1]), value: strip(m[2]) }))
     expect(pills).toEqual(spec.options.map((o) => ({ label: o.label, value: o.value })))
