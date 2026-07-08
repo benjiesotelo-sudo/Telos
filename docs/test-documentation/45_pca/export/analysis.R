@@ -5,7 +5,7 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Principal component analysis (PCA) ===
-variables <- c("x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9")
+variables <- c("esg1", "esg2", "esg3", "esg4", "norm1", "norm2", "norm3", "norm4", "intent1", "intent2", "intent3")
 d_pca <- d[, variables, drop = FALSE]
 d_pca <- d_pca[complete.cases(d_pca), ]
 n <- nrow(d_pca)

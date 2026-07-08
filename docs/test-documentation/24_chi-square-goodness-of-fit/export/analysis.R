@@ -4,12 +4,12 @@
 library(effectsize)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["method"]] <- factor(d[["method"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
 
 # === 01 · Chi-square goodness-of-fit ===
-sub <- d[!is.na(d[["method"]]) & trimws(d[["method"]]) != "", ]
-tab <- table(sub[["method"]])
-pr <- c(0.5, 0.3, 0.2); pr <- pr / sum(pr)
+sub <- d[!is.na(d[["teaching_method"]]) & trimws(d[["teaching_method"]]) != "", ]
+tab <- table(sub[["teaching_method"]])
+pr <- c(0.3, 0.2, 0.5); pr <- pr / sum(pr)
 g <- suppressWarnings(chisq.test(tab, p = pr))
 w <- as.numeric(effectsize::cohens_w(tab, p = pr)$Cohens_w)
 print(g)

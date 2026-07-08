@@ -12,21 +12,21 @@
 \toprule
  & (1) & $\beta$ \\
 \midrule
-(Intercept) & 20.07 &  \\
- & (4.54) &  \\
- & [10.88, 29.26] &  \\
-pre\_score & 0.64 & 0.81 \\
- & (0.07) &  \\
- & [0.49, 0.79] &  \\
+(Intercept) & 56.29 &  \\
+ & (1.42) &  \\
+ & [53.50, 59.08] &  \\
+study\_hours\_per\_week & 1.39 & 0.41 \\
+ & (0.20) &  \\
+ & [0.99, 1.78] &  \\
 \midrule
-Num.Obs. & 40 &  \\
-R\textsuperscript{2} & 0.66 &  \\
-R\textsuperscript{2} Adj. & 0.65 &  \\
-F & 73.57 &  \\
-RMSE & 5.46 &  \\
-AIC & 255.36 &  \\
-BIC & 260.43 &  \\
-Log.Lik. & $-$124.68 &  \\
+Num.Obs. & 240 &  \\
+R\textsuperscript{2} & 0.17 &  \\
+R\textsuperscript{2} Adj. & 0.17 &  \\
+F & 48.59 &  \\
+RMSE & 7.41 &  \\
+AIC & 1648.70 &  \\
+BIC & 1659.14 &  \\
+Log.Lik. & $-$821.35 &  \\
 \bottomrule
 \end{tabular}
 
@@ -36,7 +36,7 @@ Log.Lik. & $-$124.68 &  \\
 
 R\textsuperscript{2} is the share of outcome variance explained. The predictor's B is the slope (change in outcome per unit), with p testing whether it differs from zero and the CI showing precision. $\beta$ is the standardized slope (change in outcome in SDs per 1 SD change in the predictor), useful for comparing effect sizes on a common scale. Your significance threshold ($\alpha$) is 0.05.
 
-A simple linear regression gave B=0.64, t(38)=8.58, p $<$ .001, R\textsuperscript{2}=.66.
+A simple linear regression gave B=1.39, t(238)=6.97, p $<$ .001, R\textsuperscript{2}=.17.
 
 Statistical basis: Ordinary least squares regression coefficient (B), SE, CI (R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna.); Standardized coefficient ($\beta$) (Lüdecke D, Ben-Shachar MS, Patil I, Makowski D (2020). "Extracting, Computing and Exploring the Parameters of Statistical Models using R." Journal of Open Source Software, 5(53), 2445.).
 

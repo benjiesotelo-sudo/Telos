@@ -1,6 +1,26 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Lüdecke D, Ben-Shachar MS, Patil I, Waggoner P, Makowski D (2021). "performance: An R Package for Assessment, Comparison and Testing of Statistical Models." Journal of Open Source Software, 6(60), 3139. https://CRAN.R-project.org/package=performance
+  R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna.
+  Robin X, Turck N, Hainard A, et al. (2011). "pROC: an open-source package for R and S+ to analyze and compare ROC curves." BMC Bioinformatics, 12, 77. https://CRAN.R-project.org/package=pROC
+
+3. METHODS PARAGRAPH
+=====================
+  Logistic regression: Predictor pretest_score was associated with the outcome, OR=1.04, 95% CI [1.01, 1.08], p = .025 (AUC=.71). (Lüdecke D, 2021)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,16 +86,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Logistic regression
-  Why this test: Recommended when you predict a binary (yes/no) outcome from one or more predictors.
-    Lüdecke D, Ben-Shachar MS, Patil I, Waggoner P, Makowski D (2021). "performance: An R Package for Assessment, Comparison and Testing of Statistical Models." Journal of Open Source Software, 6(60), 3139. https://CRAN.R-project.org/package=performance
-  Statistical basis:
-    Logistic regression coefficients (log-odds / odds ratios)
-      R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna.
-    Nagelkerke pseudo-R²
-      Lüdecke D, Ben-Shachar MS, Patil I, Waggoner P, Makowski D (2021). "performance: An R Package for Assessment, Comparison and Testing of Statistical Models." Journal of Open Source Software, 6(60), 3139. https://CRAN.R-project.org/package=performance
-    ROC curve / AUC
-      Robin X, Turck N, Hainard A, et al. (2011). "pROC: an open-source package for R and S+ to analyze and compare ROC curves." BMC Bioinformatics, 12, 77. https://CRAN.R-project.org/package=pROC

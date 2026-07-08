@@ -12,20 +12,20 @@
 \toprule
  & Fixed effects & Random effects & Difference \\
 \midrule
-leverage & $-$5.57 & $-$4.05 & $-$1.52 \\
- & (1.47) & (1.29) &  \\
- & [$-$8.49, $-$2.66] & [$-$6.62, $-$1.49] &  \\
-rd\_spend & 1.89 & 0.55 & 1.34 \\
- & (0.74) & (0.16) &  \\
- & [0.41, 3.37] & [0.24, 0.86] &  \\
-size & 0.14 & 0.96 & $-$0.82 \\
- & (0.43) & (0.05) &  \\
- & [$-$0.71, 0.99] & [0.86, 1.05] &  \\
+investment & 0.13 & 0.40 & $-$0.27 \\
+ & (0.04) & (0.10) &  \\
+ & [0.04, 0.22] & [0.20, 0.59] &  \\
+education\_spend & 0.15 & $-$1.57 & 1.72 \\
+ & (0.16) & (0.24) &  \\
+ & [$-$0.18, 0.47] & [$-$2.04, $-$1.10] &  \\
+urbanization & $-$0.03 & 0.11 & $-$0.14 \\
+ & (0.02) & (0.05) &  \\
+ & [$-$0.06, 0.01] & [0.00, 0.22] &  \\
 \midrule
-Num.Obs. & 96 &  &  \\
-N entities & 12 &  &  \\
-R\textsuperscript{2} & .91 & .98 &  \\
-\multicolumn{4}{l}{Hausman $\chi$\textsuperscript{2}(3) = 3.07, p .381} \\
+Num.Obs. & 100 &  &  \\
+N entities & 10 &  &  \\
+R\textsuperscript{2} & .44 & .93 &  \\
+\multicolumn{4}{l}{Hausman $\chi$\textsuperscript{2}(3) = 572.56, p $<$.001} \\
 \bottomrule
 \end{tabular}
 
@@ -33,7 +33,7 @@ R\textsuperscript{2} & .91 & .98 &  \\
 
 Tests whether the random-effects assumption holds. A p below alpha means the estimates differ systematically $\rightarrow$ use fixed effects; a non-significant p means random effects is acceptable (and more efficient). Method: R plm package (Croissant \& Millo, 2008). The standard errors in parentheses are clustered by entity; the bracketed line is the 95\% CI. Your significance threshold ($\alpha$) is 0.05.
 
-A Hausman test comparing the fixed- and random-effects estimates gave $\chi$\textsuperscript{2}(3)=3.07, p = .381.
+A Hausman test comparing the fixed- and random-effects estimates gave $\chi$\textsuperscript{2}(3)=572.56, p $<$ .001.
 
 Statistical basis: Hausman specification test (Hausman, J. A. (1978). "Specification tests in econometrics." Econometrica, 46(6), 1251-1271.); Implementation (plm package) (Croissant, Y., Millo, G. (2008). "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2), 1-43.).
 

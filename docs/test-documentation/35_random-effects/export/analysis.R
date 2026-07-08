@@ -5,24 +5,24 @@ library(plm)
 library(lmtest)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["firm"]] <- factor(d[["firm"]])
+d[["province"]] <- factor(d[["province"]])
 
 # === 01 · Random effects ===
-pdat <- plm::pdata.frame(d, index = c("firm", "year"))
-fit <- plm::plm(roa ~ leverage + rd_spend + size, data = pdat, model = 'random')
+pdat <- plm::pdata.frame(d, index = c("province", "year"))
+fit <- plm::plm(growth ~ investment + education_spend + urbanization, data = pdat, model = 'random')
 V <- plm::vcovHC(fit, method = 'arellano', type = 'HC1', cluster = 'group')
 print(lmtest::coeftest(fit, vcov. = V))
 print(lmtest::coefci(fit, vcov. = V, level = 0.95))
 print(summary(fit))
 # Within/between/overall R2 (Stata xtreg convention, R1 gap-fix) - additive alongside plm's own R2/R2 Adj.
 b_re <- coef(fit)
-xb <- b_re[["(Intercept)"]] + as.numeric(as.matrix(d[, c("leverage", "rd_spend", "size"), drop = FALSE]) %*% b_re[c("leverage", "rd_spend", "size")])
-id2 <- d$firm
+xb <- b_re[["(Intercept)"]] + as.numeric(as.matrix(d[, c("investment", "education_spend", "urbanization"), drop = FALSE]) %*% b_re[c("investment", "education_spend", "urbanization")])
+id2 <- d$province
 dm2 <- function(v) ave(v, id2, FUN = function(x) x - mean(x))
-cat("Within R2:", cor(dm2(d$roa), dm2(xb))^2, "\n")
-agg <- aggregate(cbind(yy, xbxb) ~ idid, data.frame(idid = id2, yy = d$roa, xbxb = xb), mean)
+cat("Within R2:", cor(dm2(d$growth), dm2(xb))^2, "\n")
+agg <- aggregate(cbind(yy, xbxb) ~ idid, data.frame(idid = id2, yy = d$growth, xbxb = xb), mean)
 cat("Between R2:", cor(agg$yy, agg$xbxb)^2, "\n")
-cat("Overall R2:", cor(d$roa, xb)^2, "\n")
+cat("Overall R2:", cor(d$growth, xb)^2, "\n")
 # Figure — coefficient plot (95% CI), intercept excluded
 ci <- lmtest::coefci(fit, vcov. = V, level = 0.95); est <- coef(fit); labs <- names(est)
 keep <- labs != "(Intercept)"

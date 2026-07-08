@@ -12,8 +12,8 @@
 \toprule
 Sign & N & Mean rank & Sum of ranks \\
 \midrule
-Positive & 0 & --- & --- \\
-Negative & 6 & 3.50 & 21.00 \\
+Positive & 40 & 20.50 & 820.00 \\
+Negative & 0 & --- & --- \\
 Ties & 0 & --- & --- \\
 \bottomrule
 \end{tabular}
@@ -22,7 +22,7 @@ Ties & 0 & --- & --- \\
 \toprule
 V / W & Z & p & r [95\% CI] & Median diff [95\% CI] \\
 \midrule
-0.00 & $-$2.20 & .031 & $-$1.00 [$-$1.00, $-$1.00] & $-$11.50 [$-$17.00, $-$9.00] \\
+820.00 & 5.51 & $<$.001 & 1.00 [1.00, 1.00] & 72.24 [68.63, 75.10] \\
 \bottomrule
 \end{tabular}
 
@@ -30,7 +30,7 @@ V / W & Z & p & r [95\% CI] & Median diff [95\% CI] \\
 
 The nonparametric counterpart to the paired t-test. It ranks the size of each paired change; a p below alpha means a systematic shift between the two conditions, with r as the effect size. The shift maps to the median difference only when the within-pair differences are roughly symmetric; the sign of the median difference (or Hodges--Lehmann estimate) gives the direction. Your significance threshold ($\alpha$) is 0.05. Method: Wilcoxon signed rank exact test.
 
-A Wilcoxon signed-rank test gave V=0.00, Z=$-$2.20, p = .031, r=$-$1.00 [$-$1.00, $-$1.00].
+A Wilcoxon signed-rank test gave V=820.00, Z=5.51, p $<$ .001, r=1.00 [1.00, 1.00].
 
 Statistical basis: Wilcoxon signed-rank test (Wilcoxon, F. (1945). "Individual comparisons by ranking methods." Biometrics Bulletin, 1(6), 80-83.); Matched-pairs rank-biserial effect size (Ben-Shachar MS, Lüdecke D, Makowski D (2020). "effectsize: Estimation of Effect Size Indices and Standardized Parameters." Journal of Open Source Software, 5(56), 2815.).
 

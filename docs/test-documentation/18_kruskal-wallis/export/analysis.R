@@ -4,13 +4,13 @@
 library(rstatix)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["group"]] <- factor(d[["group"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
 
 # === 01 · Kruskal-Wallis ===
-kw <- kruskal.test(d[["outcome"]] ~ factor(d[["group"]]))
+kw <- kruskal.test(d[["absences"]] ~ factor(d[["teaching_method"]]))
 print(kw)
-nn <- length(d[["outcome"]]); h <- unname(kw$statistic); eps2 <- h * (nn + 1) / (nn^2 - 1)
+nn <- length(d[["absences"]]); h <- unname(kw$statistic); eps2 <- h * (nn + 1) / (nn^2 - 1)
 cat("epsilon-squared:", eps2, "\n")
-print(rstatix::dunn_test(data.frame(y = d[["outcome"]], g = factor(d[["group"]])), y ~ g, p.adjust.method = "holm"))
-print(ggplot(data.frame(group = factor(d[["group"]]), score = d[["outcome"]]), aes(group, score)) +
+print(rstatix::dunn_test(data.frame(y = d[["absences"]], g = factor(d[["teaching_method"]])), y ~ g, p.adjust.method = "holm"))
+print(ggplot(data.frame(group = factor(d[["teaching_method"]]), score = d[["absences"]]), aes(group, score)) +
   geom_boxplot(fill = "#9cc2ec", colour = "#0c447c") + labs(x = NULL, y = NULL))

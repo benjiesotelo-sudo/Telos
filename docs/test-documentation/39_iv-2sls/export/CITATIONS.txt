@@ -1,6 +1,28 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Fox J, Kleiber C, Zeileis A (2024). ivreg: Instrumental-Variables Regression by 2SLS, 2SM, or 2SMM, with Diagnostics. R package. https://CRAN.R-project.org/package=ivreg
+  Sargan, J. D. (1958). "The estimation of economic relationships using instrumental variables." Econometrica, 26(3), 393-415. https://doi.org/10.2307/1907619
+  Stock, J. H., Yogo, M. (2005). "Testing for Weak Instruments in Linear IV Regression." In Identification and Inference for Econometric Models (Andrews & Stock, eds.), Cambridge University Press, 80-108.
+  Wu, D. M. (1973). "Alternative tests of independence between stochastic regressors and disturbances." Econometrica, 41(4), 733-750. https://doi.org/10.2307/1914093
+  Zeileis A, Köll S, Graham N (2020). "Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R." Journal of Statistical Software, 95(1), 1-36. https://CRAN.R-project.org/package=sandwich
+
+3. METHODS PARAGRAPH
+=====================
+  Instrumental variables (IV / 2SLS): The 2SLS estimate for education was B=9.62, 95% CI [8.95, 10.29], p < .001 (first-stage F=507.83). (Fox J, 2024)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,20 +88,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Instrumental variables (IV / 2SLS)
-  Why this test: Recommended when you estimate a causal effect in the presence of an endogenous predictor, using an instrument.
-    Fox J, Kleiber C, Zeileis A (2024). ivreg: Instrumental-Variables Regression by 2SLS, 2SM, or 2SMM, with Diagnostics. R package. https://CRAN.R-project.org/package=ivreg
-  Statistical basis:
-    Two-stage least squares (2SLS) estimation
-      Fox J, Kleiber C, Zeileis A (2024). ivreg: Instrumental-Variables Regression by 2SLS, 2SM, or 2SMM, with Diagnostics. R package. https://CRAN.R-project.org/package=ivreg
-    Weak-instrument first-stage F rule of thumb
-      Stock, J. H., Yogo, M. (2005). "Testing for Weak Instruments in Linear IV Regression." In Identification and Inference for Econometric Models (Andrews & Stock, eds.), Cambridge University Press, 80-108.
-    Heteroscedasticity-robust standard errors
-      Zeileis A, Köll S, Graham N (2020). "Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R." Journal of Statistical Software, 95(1), 1-36. https://CRAN.R-project.org/package=sandwich
-    Wu-Hausman endogeneity test
-      Wu, D. M. (1973). "Alternative tests of independence between stochastic regressors and disturbances." Econometrica, 41(4), 733-750. https://doi.org/10.2307/1914093
-    Sargan over-identification test
-      Sargan, J. D. (1958). "The estimation of economic relationships using instrumental variables." Econometrica, 26(3), 393-415. https://doi.org/10.2307/1907619

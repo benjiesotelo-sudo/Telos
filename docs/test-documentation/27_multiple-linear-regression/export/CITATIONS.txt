@@ -1,6 +1,26 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Lüdecke D, Ben-Shachar MS, Patil I, Makowski D (2020). "Extracting, Computing and Exploring the Parameters of Statistical Models using R." Journal of Open Source Software, 5(53), 2445. https://CRAN.R-project.org/package=parameters
+  O’Brien, R. M. (2007). "A caution regarding rules of thumb for variance inflation factors." Quality & Quantity, 41(5), 673-690. https://doi.org/10.1007/s11135-006-9018-6
+  R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna.
+
+3. METHODS PARAGRAPH
+=====================
+  Multiple linear regression: The model explained R²=.55 of the variance, F(4,235)=70.38, p < .001; predictor pretest_score gave B=0.31, p < .001. (O’Brien, 2007)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,16 +86,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Multiple linear regression
-  Why this test: Recommended when you predict one numeric outcome from two or more predictors and want each predictor’s independent contribution.
-    O’Brien, R. M. (2007). "A caution regarding rules of thumb for variance inflation factors." Quality & Quantity, 41(5), 673-690. https://doi.org/10.1007/s11135-006-9018-6
-  Statistical basis:
-    Ordinary least squares regression coefficients (B), SE, CI
-      R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna.
-    Standardized coefficients (β)
-      Lüdecke D, Ben-Shachar MS, Patil I, Makowski D (2020). "Extracting, Computing and Exploring the Parameters of Statistical Models using R." Journal of Open Source Software, 5(53), 2445. https://CRAN.R-project.org/package=parameters
-    Variance inflation factor (VIF) cutoff guidance
-      O’Brien, R. M. (2007). "A caution regarding rules of thumb for variance inflation factors." Quality & Quantity, 41(5), 673-690. https://doi.org/10.1007/s11135-006-9018-6

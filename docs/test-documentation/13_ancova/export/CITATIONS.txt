@@ -1,6 +1,27 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.
+  Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver & Boyd.
+  Fox J, Weisberg S (2019). An R Companion to Applied Regression, Third edition. Sage, Thousand Oaks CA. https://CRAN.R-project.org/package=car
+  Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package. https://CRAN.R-project.org/package=emmeans
+
+3. METHODS PARAGRAPH
+=====================
+  ANCOVA: Controlling for the covariate, an ANCOVA gave F(2,236)=55.07, p < .001, partial η²=.32 [0.24, 1.00]. (Fisher, 1925)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,18 +87,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-ANCOVA
-  Why this test: Recommended when you compare group means on one numeric outcome while statistically controlling for a covariate.
-    Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver & Boyd.
-  Statistical basis:
-    ANCOVA (group means adjusted for a covariate)
-      Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver & Boyd.
-    Type III sums of squares (car::Anova)
-      Fox J, Weisberg S (2019). An R Companion to Applied Regression, Third edition. Sage, Thousand Oaks CA. https://CRAN.R-project.org/package=car
-    Estimated marginal (covariate-adjusted) means
-      Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package. https://CRAN.R-project.org/package=emmeans
-    Partial η² effect-size benchmarks
-      Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.

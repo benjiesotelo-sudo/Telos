@@ -12,9 +12,9 @@
 \toprule
 Condition & Mean rank \\
 \midrule
-score\_t1 & 1.23 \\
-score\_t2 & 2.04 \\
-score\_t3 & 2.73 \\
+rt\_baseline & 3.00 \\
+rt\_low & 2.00 \\
+rt\_high & 1.00 \\
 \bottomrule
 \end{tabular}
 
@@ -22,7 +22,7 @@ score\_t3 & 2.73 \\
 \toprule
 $\chi$\textsuperscript{2} & df & p & Kendall's W [95\% CI] \\
 \midrule
-67.19 & 2 & $<$.001 & 0.56 [0.48, 1.00] \\
+80.00 & 2 & $<$.001 & 1.00 [1.00, 1.00] \\
 \bottomrule
 \end{tabular}
 
@@ -30,17 +30,17 @@ $\chi$\textsuperscript{2} & df & p & Kendall's W [95\% CI] \\
 \toprule
 Pair & padj \\
 \midrule
-score\_t1 - score\_t2 & $<$.001 \\
-score\_t1 - score\_t3 & $<$.001 \\
-score\_t2 - score\_t3 & $<$.001 \\
+rt\_baseline - rt\_low & $<$.001 \\
+rt\_baseline - rt\_high & $<$.001 \\
+rt\_low - rt\_high & $<$.001 \\
 \bottomrule
 \end{tabular}
 
 \includegraphics{figures/01_friedman/figure_profile.png}
 
-The nonparametric counterpart to repeated-measures ANOVA. The $\chi$\textsuperscript{2}/p tests whether ranks differ across conditions; Kendall's W is the effect size (0--1 agreement). Post-hoc shows which conditions differ. Your significance threshold ($\alpha$) is 0.05. N = 60 subjects.
+The nonparametric counterpart to repeated-measures ANOVA. The $\chi$\textsuperscript{2}/p tests whether ranks differ across conditions; Kendall's W is the effect size (0--1 agreement). Post-hoc shows which conditions differ. Your significance threshold ($\alpha$) is 0.05. N = 40 subjects.
 
-A Friedman test gave $\chi$\textsuperscript{2}(2)=67.19, p $<$ .001, W=.56 [.48, 1.00].
+A Friedman test gave $\chi$\textsuperscript{2}(2)=80.00, p $<$ .001, W=1.00 [1.00, 1.00].
 
 Statistical basis: Friedman rank test (nonparametric counterpart to repeated-measures ANOVA) (Friedman, M. (1937). "The use of ranks to avoid the assumption of normality implicit in the analysis of variance." Journal of the American Statistical Association, 32(200), 675-701.); Kendall's W effect size (agreement among rankings) (Kendall, M. G. (1948). Rank Correlation Methods. Charles Griffin \& Company.); Nemenyi post-hoc pairwise comparisons (Nemenyi, P. B. (1963). Distribution-free multiple comparisons [Doctoral dissertation, Princeton University].).
 

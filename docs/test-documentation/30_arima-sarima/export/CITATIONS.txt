@@ -1,6 +1,24 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Hyndman R, Athanasopoulos G, Bergmeir C, et al. (2024). forecast: Forecasting functions for time series and linear models. R package. https://CRAN.R-project.org/package=forecast
+
+3. METHODS PARAGRAPH
+=====================
+  ARIMA / SARIMA: An ARIMA(2,0,0)(2,0,1[4]) model was fit (AIC=133.95); the Ljung–Box test of residual autocorrelation gave p < .001. (Hyndman R, 2024)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,12 +84,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-ARIMA / SARIMA
-  Why this test: Recommended when you model and forecast a single time series with trend and/or seasonality.
-    Hyndman R, Athanasopoulos G, Bergmeir C, et al. (2024). forecast: Forecasting functions for time series and linear models. R package. https://CRAN.R-project.org/package=forecast
-  Statistical basis:
-    ARIMA/SARIMA model selection and forecasting
-      Hyndman R, Athanasopoulos G, Bergmeir C, et al. (2024). forecast: Forecasting functions for time series and linear models. R package. https://CRAN.R-project.org/package=forecast

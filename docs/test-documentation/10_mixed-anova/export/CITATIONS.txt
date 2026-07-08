@@ -1,6 +1,30 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Brown, M. B., Forsythe, A. B. (1974). "Robust tests for the equality of variances." Journal of the American Statistical Association, 69(346), 364-367. https://doi.org/10.2307/2285659
+  Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver & Boyd.
+  Greenhouse, S. W., Geisser, S. (1959). "On methods in the analysis of profile data." Psychometrika, 24(2), 95-112.
+  Huynh, H., Feldt, L. S. (1976). "Estimation of the Box correction for degrees of freedom from sample data in randomized block and split-plot designs." Journal of Educational Statistics, 1(1), 69-82.
+  Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package. https://CRAN.R-project.org/package=emmeans
+  Levene, H. (1960). "Robust tests for equality of variances." In I. Olkin (Ed.), Contributions to Probability and Statistics (pp. 278-292). Stanford University Press.
+  Mauchly, J. W. (1940). "Significance test for sphericity of a normal n-variate distribution." The Annals of Mathematical Statistics, 11(2), 204-209. https://doi.org/10.1214/aoms/1177731915
+
+3. METHODS PARAGRAPH
+=====================
+  Mixed ANOVA: A mixed ANOVA yielded a Tolerance_group × Condition interaction, F(1.60,60.96)=131.84, p < .001, partial η²=.78 [.70, 1.00]. (Fisher, 1925)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,24 +90,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Mixed ANOVA
-  Why this test: Recommended when you combine a between-groups factor with a repeated-measures factor on one numeric outcome.
-    Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver & Boyd.
-  Statistical basis:
-    Mixed (split-plot) ANOVA
-      Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver & Boyd.
-    Mauchly's test of sphericity (rendered above the correction)
-      Mauchly, J. W. (1940). "Significance test for sphericity of a normal n-variate distribution." The Annals of Mathematical Statistics, 11(2), 204-209. https://doi.org/10.1214/aoms/1177731915
-    Greenhouse-Geisser correction (sphericity violated)
-      Greenhouse, S. W., Geisser, S. (1959). "On methods in the analysis of profile data." Psychometrika, 24(2), 95-112.
-    Huynh-Feldt correction (sphericity violated)
-      Huynh, H., Feldt, L. S. (1976). "Estimation of the Box correction for degrees of freedom from sample data in randomized block and split-plot designs." Journal of Educational Statistics, 1(1), 69-82.
-    Levene's test for equal variances between groups (Brown-Forsythe median-centered variant)
-      Levene, H. (1960). "Robust tests for equality of variances." In I. Olkin (Ed.), Contributions to Probability and Statistics (pp. 278-292). Stanford University Press.
-    Brown-Forsythe median-centered variant of the homogeneity-of-variance test
-      Brown, M. B., Forsythe, A. B. (1974). "Robust tests for the equality of variances." Journal of the American Statistical Association, 69(346), 364-367. https://doi.org/10.2307/2285659
-    Estimated marginal means for post-hoc comparisons
-      Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package. https://CRAN.R-project.org/package=emmeans

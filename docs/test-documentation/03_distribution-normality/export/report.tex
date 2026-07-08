@@ -12,24 +12,24 @@
 \toprule
 Variable & Test & Statistic & N & p & Skew & Kurtosis (excess) \\
 \midrule
-score & Shapiro-Wilk & W 0.96 & 14 & .679 & 0.30 & $-$1.33 \\
-score & K--S (Lilliefors) & D 0.13 & 14 & .732 & 0.30 & $-$1.33 \\
-anxiety & Shapiro-Wilk & W 0.98 & 13 & .990 & $-$0.11 & $-$1.28 \\
-anxiety & K--S (Lilliefors) & D 0.09 & 13 & .997 & $-$0.11 & $-$1.28 \\
+exam\_score & Shapiro-Wilk & W 0.99 & 240 & .158 & $-$0.18 & $-$0.53 \\
+exam\_score & K--S (Lilliefors) & D 0.04 & 240 & .608 & $-$0.18 & $-$0.53 \\
+absences & Shapiro-Wilk & W 0.86 & 240 & $<$.001 & 1.50 & 2.43 \\
+absences & K--S (Lilliefors) & D 0.17 & 240 & $<$.001 & 1.50 & 2.43 \\
 \bottomrule
 \end{tabular}
 
-\includegraphics{figures/01_distribution-normality/figure_histogram_score.png}
+\includegraphics{figures/01_distribution-normality/figure_histogram_exam_score.png}
 
-\includegraphics{figures/01_distribution-normality/figure_qq_score.png}
+\includegraphics{figures/01_distribution-normality/figure_qq_exam_score.png}
 
-\includegraphics{figures/01_distribution-normality/figure_histogram_anxiety.png}
+\includegraphics{figures/01_distribution-normality/figure_histogram_absences.png}
 
-\includegraphics{figures/01_distribution-normality/figure_qq_anxiety.png}
+\includegraphics{figures/01_distribution-normality/figure_qq_absences.png}
 
 A small p (below .05) suggests the data depart from normality. With large samples these tests over-flag trivial deviations; with small samples they have low power, so a p $>$ .05 does not prove normality --- it only means no departure was detected. Either way, judge normality mainly from the Q--Q plot --- points hugging the diagonal indicate normality.
 
-score: Normality was assessed with the Shapiro-Wilk test, W = .96, p = .679. anxiety: Normality was assessed with the Shapiro-Wilk test, W = .98, p = .990.
+exam\_score: Normality was assessed with the Shapiro-Wilk test, W = .99, p = .158. absences: Normality was assessed with the Shapiro-Wilk test, W = .86, p $<$ .001.
 
 Statistical basis: Shapiro-Wilk test for normality (3-5000 cases) (Shapiro, S. S., Wilk, M. B. (1965). "An analysis of variance test for normality (complete samples)." Biometrika, 52(3/4), 591-611.); Additional normality tests (Lilliefors and related) (Gross J, Ligges U (2015). nortest: Tests for Normality. R package.).
 

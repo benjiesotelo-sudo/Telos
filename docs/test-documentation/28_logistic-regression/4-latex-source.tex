@@ -12,34 +12,36 @@
 \toprule
  & Log-odds (B) & Odds ratio (OR) \\
 \midrule
-(Intercept) & $-$6.59 & $<$ 0.01 \\
- & (2.92) & [$<$ 0.01, 0.24] \\
-pre\_score & 0.08 & 1.08 \\
- & (0.04) & [1.01, 1.18] \\
-age & 0.03 & 1.03 \\
- & (0.03) & [0.98, 1.09] \\
-group: b & 1.24 & 3.46 \\
- & (0.72) & [0.87, 15.44] \\
+(Intercept) & $-$2.69 & 0.07 \\
+ & (0.96) & [$<$ 0.01, 0.43] \\
+pretest\_score & 0.04 & 1.04 \\
+ & (0.02) & [1.01, 1.08] \\
+study\_hours\_per\_week & 0.19 & 1.21 \\
+ & (0.06) & [1.08, 1.37] \\
+teaching\_method: Flipped & 0.96 & 2.61 \\
+ & (0.37) & [1.27, 5.52] \\
+teaching\_method: Lecture & $-$0.50 & 0.60 \\
+ & (0.33) & [0.31, 1.16] \\
 \midrule
-Num.Obs. & 40 &  \\
-Nagelkerke R\textsuperscript{2} & 0.28 &  \\
-Omnibus $\chi$\textsuperscript{2} & 9.54 (p .023) &  \\
-Log.Lik. & $-$22.95 &  \\
-AIC & 53.91 &  \\
-BIC & 60.66 &  \\
-Accuracy & 65.0\% &  \\
-Sensitivity & 65.0\% &  \\
-Specificity & 65.0\% &  \\
-AUC [95\% CI] & .76 [.61, .91] &  \\
+Num.Obs. & 240 &  \\
+Nagelkerke R\textsuperscript{2} & 0.17 &  \\
+Omnibus $\chi$\textsuperscript{2} & 31.41 (p $<$.001) &  \\
+Log.Lik. & $-$141.46 &  \\
+AIC & 292.91 &  \\
+BIC & 310.31 &  \\
+Accuracy & 69.2\% &  \\
+Sensitivity & 86.9\% &  \\
+Specificity & 37.9\% &  \\
+AUC [95\% CI] & .71 [.64, .78] &  \\
 \bottomrule
 \end{tabular}
 
 \begin{tabular}{llll}
 \toprule
-Predicted \textbackslash{} Observed & no & yes & \% correct \\
+Predicted \textbackslash{} Observed & No & Yes & \% correct \\
 \midrule
-no & 13 & 7 & 65.0\% \\
-yes & 7 & 13 & 65.0\% \\
+No & 33 & 20 & 62.3\% \\
+Yes & 54 & 133 & 71.1\% \\
 \bottomrule
 \end{tabular}
 
@@ -47,7 +49,7 @@ yes & 7 & 13 & 65.0\% \\
 
 Each predictor's odds ratio tells how the odds of the outcome change per unit ($>$1 increases, $<$1 decreases); a term carries weight when its OR confidence interval excludes 1, and the inline omnibus $\chi$\textsuperscript{2} (with its p) tests the model as a whole. Model fit and the ROC/AUC show how well it classifies overall, alongside accuracy (overall \% correct), sensitivity (\% of actual events correctly predicted), and specificity (\% of actual non-events correctly predicted). Your significance threshold ($\alpha$) is 0.05.
 
-Predictor pre\_score was associated with the outcome, OR=1.08, 95\% CI [1.01, 1.18], p = .035 (AUC=.76).
+Predictor pretest\_score was associated with the outcome, OR=1.04, 95\% CI [1.01, 1.08], p = .025 (AUC=.71).
 
 Statistical basis: Logistic regression coefficients (log-odds / odds ratios) (R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna.); Nagelkerke pseudo-R\textsuperscript{2} (Lüdecke D, Ben-Shachar MS, Patil I, Waggoner P, Makowski D (2021). "performance: An R Package for Assessment, Comparison and Testing of Statistical Models." Journal of Open Source Software, 6(60), 3139.); ROC curve / AUC (Robin X, Turck N, Hainard A, et al. (2011). "pROC: an open-source package for R and S+ to analyze and compare ROC curves." BMC Bioinformatics, 12, 77.).
 

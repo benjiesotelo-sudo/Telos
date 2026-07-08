@@ -3,18 +3,18 @@
 # install.packages(c("ggplot2"))
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["group"]] <- factor(d[["group"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
 
 # === 01 · MANOVA ===
-m <- manova(cbind(d[["outcome"]], d[["outcome2"]]) ~ factor(d[["group"]]))
+m <- manova(cbind(d[["exam_score"]], d[["retention_score"]]) ~ factor(d[["teaching_method"]]))
 print(summary(m, test = "Pillai"))
-print(summary(aov(d[["outcome"]] ~ factor(d[["group"]]))))
-print(summary(aov(d[["outcome2"]] ~ factor(d[["group"]]))))
-gf <- factor(d[["group"]])
-agg <- do.call(rbind, lapply(list(c(d[["outcome"]]), c(d[["outcome2"]])), function(v) {
+print(summary(aov(d[["exam_score"]] ~ factor(d[["teaching_method"]]))))
+print(summary(aov(d[["retention_score"]] ~ factor(d[["teaching_method"]]))))
+gf <- factor(d[["teaching_method"]])
+agg <- do.call(rbind, lapply(list(c(d[["exam_score"]]), c(d[["retention_score"]])), function(v) {
   mm <- tapply(v, gf, mean); nn <- tapply(v, gf, length); ss <- tapply(v, gf, sd)
   se <- ss / sqrt(nn); tq <- qt(0.975, nn - 1)
   data.frame(g = names(mm), m = as.numeric(mm), lo = as.numeric(mm - tq * se), hi = as.numeric(mm + tq * se)) }))
-agg$dv <- rep(c("outcome", "outcome2"), each = nlevels(gf))
+agg$dv <- rep(c("exam_score", "retention_score"), each = nlevels(gf))
 print(ggplot(agg, aes(g, m)) + geom_pointrange(aes(ymin = lo, ymax = hi), colour = "#0c447c") +
   facet_wrap(~dv, scales = "free_y") + labs(x = NULL, y = NULL))

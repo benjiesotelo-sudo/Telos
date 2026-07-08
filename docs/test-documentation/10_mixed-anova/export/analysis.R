@@ -5,22 +5,22 @@ library(afex)
 library(emmeans)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["subject_id"]] <- factor(d[["subject_id"]])
-d[["group"]] <- factor(d[["group"]])
+d[["participant_id"]] <- factor(d[["participant_id"]])
+d[["tolerance_group"]] <- factor(d[["tolerance_group"]])
 
 # === 01 · Mixed ANOVA ===
-conds <- c("score_t1", "score_t2", "score_t3")
-nrw <- length(d[["score_t1"]])
-long <- data.frame(sid = factor(rep(d[["subject_id"]], length(conds))),
-  grp = factor(rep(d[["group"]], length(conds))),
+conds <- c("sleep_baseline", "sleep_low", "sleep_high")
+nrw <- length(d[["sleep_baseline"]])
+long <- data.frame(sid = factor(rep(d[["participant_id"]], length(conds))),
+  grp = factor(rep(d[["tolerance_group"]], length(conds))),
   condition = factor(rep(conds, each = nrw), levels = conds),
-  score = c(d[["score_t1"]], d[["score_t2"]], d[["score_t3"]]))
+  score = c(d[["sleep_baseline"]], d[["sleep_low"]], d[["sleep_high"]]))
 m <- afex::aov_ez(id = "sid", dv = "score", data = long, between = "grp", within = "condition",
   anova_table = list(es = "pes", correction = "GG"))
 print(m$anova_table)
 print(summary(m$Anova, multivariate = FALSE))
 print(summary(pairs(emmeans::emmeans(m, ~ condition), adjust = "bonferroni"), infer = TRUE))
-mat <- matrix(c(d[["score_t1"]], d[["score_t2"]], d[["score_t3"]]), ncol = length(conds)); gv <- factor(d[["group"]])
+mat <- matrix(c(d[["sleep_baseline"]], d[["sleep_low"]], d[["sleep_high"]]), ncol = length(conds)); gv <- factor(d[["tolerance_group"]])
 agg <- do.call(rbind, lapply(levels(gv), function(l) {
   sub <- mat[gv == l, , drop = FALSE]; mm <- colMeans(sub); se <- apply(sub, 2, sd) / sqrt(nrow(sub))
   tq <- qt(0.975, nrow(sub) - 1)

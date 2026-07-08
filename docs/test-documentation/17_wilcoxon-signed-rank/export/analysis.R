@@ -7,7 +7,7 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Wilcoxon signed-rank ===
-a <- d[["pre"]]; b <- d[["post"]]
+a <- d[["rt_baseline"]]; b <- d[["rt_high"]]
 res <- wilcox.test(a, b, paired = TRUE, correct = TRUE, alternative = "two.sided")
 print(res)
 print(coin::wilcoxsign_test(a ~ b))

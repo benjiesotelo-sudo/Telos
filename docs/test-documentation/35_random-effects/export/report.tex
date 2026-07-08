@@ -12,26 +12,26 @@
 \toprule
  & (1) \\
 \midrule
-(Intercept) & $-$0.77 \\
- & (0.28) \\
- & [$-$1.31, $-$0.22] \\
-leverage & $-$4.05 \\
- & (1.29) \\
- & [$-$6.62, $-$1.49] \\
-rd\_spend & 0.55 \\
- & (0.16) \\
- & [0.24, 0.86] \\
-size & 0.96 \\
+(Intercept) & 0.13 \\
+ & (0.47) \\
+ & [$-$0.79, 1.06] \\
+investment & 0.40 \\
+ & (0.10) \\
+ & [0.20, 0.59] \\
+education\_spend & $-$1.57 \\
+ & (0.24) \\
+ & [$-$2.04, $-$1.10] \\
+urbanization & 0.11 \\
  & (0.05) \\
- & [0.86, 1.05] \\
+ & [0.00, 0.22] \\
 \midrule
-Num.Obs. & 96 \\
-N entities & 12 \\
-R\textsuperscript{2} & 0.98 \\
-R\textsuperscript{2} Adj. & 0.98 \\
-Within R\textsuperscript{2} & .91 \\
+Num.Obs. & 100 \\
+N entities & 10 \\
+R\textsuperscript{2} & 0.93 \\
+R\textsuperscript{2} Adj. & 0.93 \\
+Within R\textsuperscript{2} & .36 \\
 Between R\textsuperscript{2} & 1.00 \\
-Overall R\textsuperscript{2} & .98 \\
+Overall R\textsuperscript{2} & .93 \\
 \bottomrule
 \end{tabular}
 
@@ -39,7 +39,7 @@ Overall R\textsuperscript{2} & .98 \\
 
 Like fixed effects but treats entity differences as random, allowing time-invariant predictors. Read each B/p as usual --- but only trust this model if the Hausman test favours random over fixed effects. Method: R plm package (Croissant \& Millo, 2008). Your significance threshold ($\alpha$) is 0.05.
 
-In a random-effects model, predictor leverage gave B=$-$4.05, p = .002.
+In a random-effects model, predictor investment gave B=0.40, p $<$ .001.
 
 Statistical basis: Random-effects (GLS) panel estimator (Croissant, Y., Millo, G. (2008). "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2), 1-43.).
 

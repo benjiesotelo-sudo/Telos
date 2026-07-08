@@ -4,11 +4,11 @@
 library(tseries)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["month"]] <- factor(d[["month"]])
+d[["quarter"]] <- factor(d[["quarter"]])
 
 # === 01 · Stationarity tests (ADF, KPSS) ===
-dd_ord <- d[order(d$month), ]
-x_ts <- ts(dd_ord$sales, frequency = 1)
+dd_ord <- d[order(d$quarter), ]
+x_ts <- ts(dd_ord$gdp_growth, frequency = 1)
 print(tseries::adf.test(x_ts))
 print(tseries::kpss.test(x_ts))
 print(tseries::pp.test(x_ts))
@@ -18,7 +18,7 @@ sdf <- rbind(data.frame(panel = "Level", t = idx, y = as.numeric(x_ts)),
              data.frame(panel = "First diff.", t = idx, y = dx))
 sdf$panel <- factor(sdf$panel, levels = c("Level", "First diff."))
 print(ggplot(sdf, aes(t, y)) + geom_line(colour = "#0c447c") +
-  facet_wrap(~panel, scales = "free_y", ncol = 1) + labs(x = "month", y = NULL) + theme_minimal())
+  facet_wrap(~panel, scales = "free_y", ncol = 1) + labs(x = "quarter", y = NULL) + theme_minimal())
 # Figure 2 — ACF + PACF
 ci <- qnorm(0.975) / sqrt(nn); ac <- acf(x_ts, plot = FALSE); pac <- pacf(x_ts, plot = FALSE)
 adf2 <- rbind(data.frame(panel = "ACF", lag = as.numeric(ac$lag[-1]), value = as.numeric(ac$acf[-1])),

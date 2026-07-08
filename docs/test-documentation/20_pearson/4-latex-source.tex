@@ -12,7 +12,7 @@
 \toprule
 Pair & r & 95\% CI & t & df & p & N \\
 \midrule
-hours\_studied -- exam\_score & 0.70 & [0.50, 0.83] & 6.07 & 38 & $<$.001 & 40 \\
+study\_hours\_per\_week -- exam\_score & 0.41 & [0.30, 0.51] & 6.97 & 238 & $<$.001 & 240 \\
 \bottomrule
 \end{tabular}
 
@@ -20,7 +20,7 @@ hours\_studied -- exam\_score & 0.70 & [0.50, 0.83] & 6.07 & 38 & $<$.001 & 40 \
 
 r ranges from $-$1 to +1: the sign is the direction, the magnitude the strength (\textasciitilde{}.1 small, .3 medium, .5 large). p tests whether it differs from zero; the 95\% CI shows the precision. r measures only linear association --- a strong curved relationship can give r near 0, and r is sensitive to outliers, so always inspect the scatterplot (use Spearman's rs for monotonic-but-nonlinear or outlier-affected data). Correlation does not imply causation. Your significance threshold ($\alpha$) is 0.05.
 
-hours\_studied and exam\_score were correlated, r(38)=.70, p $<$ .001, 95\% CI [0.50, 0.83].
+study\_hours\_per\_week and exam\_score were correlated, r(238)=.41, p $<$ .001, 95\% CI [0.30, 0.51].
 
 Statistical basis: Pearson product-moment correlation coefficient (r) (Pearson, K. (1895). "Note on regression and inheritance in the case of two parents." Proceedings of the Royal Society of London, 58, 240-242.); r effect-size benchmarks (.1/.3/.5) (Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.).
 

@@ -12,7 +12,7 @@
 \toprule
 Endogenous & Instrument & Coef. & SE & Partial F & p \\
 \midrule
-educ & educ\_iv & 1.16 & 0.06 & 438.50 & $<$.001 \\
+education & mother\_education & 0.54 & 0.02 & 507.83 & $<$.001 \\
 \bottomrule
 \end{tabular}
 
@@ -20,21 +20,21 @@ educ & educ\_iv & 1.16 & 0.06 & 438.50 & $<$.001 \\
 \toprule
  & OLS & 2SLS \\
 \midrule
-(Intercept) & 178.90 & 202.74 \\
- & (2.41) & (4.10) \\
- & [174.16, 183.65] & [194.65, 210.83] \\
-educ & 9.57 & 7.82 \\
- & (0.16) & (0.28) \\
- & [9.25, 9.88] & [7.26, 8.38] \\
-exper & $-$0.02 & $-$0.02 \\
- & (0.05) & (0.06) \\
- & [$-$0.11, 0.08] & [$-$0.14, 0.09] \\
+(Intercept) & 207.67 & 240.20 \\
+ & (2.49) & (4.71) \\
+ & [202.77, 212.57] & [230.92, 249.49] \\
+education & 11.97 & 9.62 \\
+ & (0.17) & (0.34) \\
+ & [11.63, 12.31] & [8.95, 10.29] \\
+experience & 0.62 & 0.63 \\
+ & (0.06) & (0.07) \\
+ & [0.51, 0.72] & [0.50, 0.76] \\
 \midrule
-Num.Obs. &  & 200 \\
-RMSE &  & 6.67 \\
-F &  & 373.44 \\
-\multicolumn{3}{l}{Weak-instrument F = 438.50, p $<$ .001 (rule of thumb: F $>$ 10)} \\
-\multicolumn{3}{l}{Wu--Hausman = 1022.75, p $<$ .001} \\
+Num.Obs. &  & 250 \\
+RMSE &  & 7.52 \\
+F &  & 447.72 \\
+\multicolumn{3}{l}{Weak-instrument F = 507.83, p $<$ .001 (rule of thumb: F $>$ 10)} \\
+\multicolumn{3}{l}{Wu--Hausman = 1029.75, p $<$ .001} \\
 \multicolumn{3}{l}{Sargan: --- (just-identified)} \\
 \bottomrule
 \end{tabular}
@@ -43,7 +43,7 @@ F &  & 373.44 \\
 
 Check the first-stage F first (rule of thumb $>$ 10 = strong instruments). Then read the 2SLS B for the endogenous predictor as the causal effect, with p/CI. This causal reading rests on the instrument being valid --- relevant and affecting the outcome only through the endogenous predictor (the exclusion restriction). That is an assumption you must justify on theory; the Sargan test only checks over-identification (extra instruments), not validity, and is unavailable for just-identified models. Method: R ivreg / AER package; weak-instrument F (Stock \& Yogo, 2005). Your significance threshold ($\alpha$) is 0.05.
 
-The 2SLS estimate for educ was B=7.82, 95\% CI [7.26, 8.38], p $<$ .001 (first-stage F=438.50).
+The 2SLS estimate for education was B=9.62, 95\% CI [8.95, 10.29], p $<$ .001 (first-stage F=507.83).
 
 Statistical basis: Two-stage least squares (2SLS) estimation (Fox J, Kleiber C, Zeileis A (2024). ivreg: Instrumental-Variables Regression by 2SLS, 2SM, or 2SMM, with Diagnostics. R package.); Weak-instrument first-stage F rule of thumb (Stock, J. H., Yogo, M. (2005). "Testing for Weak Instruments in Linear IV Regression." In Identification and Inference for Econometric Models (Andrews \& Stock, eds.), Cambridge University Press, 80-108.); Heteroscedasticity-robust standard errors (Zeileis A, Köll S, Graham N (2020). "Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R." Journal of Statistical Software, 95(1), 1-36.); Wu-Hausman endogeneity test (Wu, D. M. (1973). "Alternative tests of independence between stochastic regressors and disturbances." Econometrica, 41(4), 733-750.); Sargan over-identification test (Sargan, J. D. (1958). "The estimation of economic relationships using instrumental variables." Econometrica, 26(3), 393-415.).
 

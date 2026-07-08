@@ -1,6 +1,25 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Gross J, Ligges U (2015). nortest: Tests for Normality. R package. https://CRAN.R-project.org/package=nortest
+  Shapiro, S. S., Wilk, M. B. (1965). "An analysis of variance test for normality (complete samples)." Biometrika, 52(3/4), 591-611.
+
+3. METHODS PARAGRAPH
+=====================
+  Distribution & normality: exam_score: Normality was assessed with the Shapiro-Wilk test, W = .99, p = .158. absences: Normality was assessed with the Shapiro-Wilk test, W = .86, p < .001. (Shapiro, 1965)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,14 +85,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Distribution & normality
-  Why this test: Recommended when you want to check whether a numeric variable is approximately normally distributed.
-    Shapiro, S. S., Wilk, M. B. (1965). "An analysis of variance test for normality (complete samples)." Biometrika, 52(3/4), 591-611.
-  Statistical basis:
-    Shapiro-Wilk test for normality (3-5000 cases)
-      Shapiro, S. S., Wilk, M. B. (1965). "An analysis of variance test for normality (complete samples)." Biometrika, 52(3/4), 591-611.
-    Additional normality tests (Lilliefors and related)
-      Gross J, Ligges U (2015). nortest: Tests for Normality. R package. https://CRAN.R-project.org/package=nortest

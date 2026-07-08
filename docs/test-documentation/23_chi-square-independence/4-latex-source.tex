@@ -10,12 +10,12 @@
 
 \begin{tabular}{llll}
 \toprule
-Row \textbackslash{} Column & no & yes & Total \\
+Row \textbackslash{} Column & No & Yes & Total \\
 \midrule
-discussion & 11 [7.60] (68.8\% / 57.9\%) r=2.20 & 5 [8.40] (31.3\% / 23.8\%) r=$-$2.20 & 16 \\
-lecture & 4 [6.17] (30.8\% / 21.1\%) r=$-$1.47 & 9 [6.83] (69.2\% / 42.9\%) r=1.47 & 13 \\
-seminar & 4 [5.22] (36.4\% / 21.1\%) r=$-$0.87 & 7 [5.78] (63.6\% / 33.3\%) r=0.87 & 11 \\
-Total & 19 & 21 & 40 \\
+Blended & 30 [29.00] (37.5\% / 34.5\%) r=0.28 & 50 [51.00] (62.5\% / 32.7\%) r=$-$0.28 & 80 \\
+Flipped & 17 [29.00] (21.3\% / 19.5\%) r=$-$3.42 & 63 [51.00] (78.8\% / 41.2\%) r=3.42 & 80 \\
+Lecture & 40 [29.00] (50.0\% / 46.0\%) r=3.13 & 40 [51.00] (50.0\% / 26.1\%) r=$-$3.13 & 80 \\
+Total & 87 & 153 & 240 \\
 \bottomrule
 \end{tabular}
 
@@ -23,7 +23,7 @@ Total & 19 & 21 & 40 \\
 \toprule
 $\chi$\textsuperscript{2} & df & p & Cram\'{e}r's V [95\% CI] \\
 \midrule
-4.90 & 2 & .086 & 0.35 [0.00, 1.00] \\
+14.39 & 2 & $<$.001 & 0.24 [0.13, 1.00] \\
 \bottomrule
 \end{tabular}
 
@@ -31,7 +31,7 @@ $\chi$\textsuperscript{2} & df & p & Cram\'{e}r's V [95\% CI] \\
 
 Tests whether two categorical variables are associated. A p below alpha means they are related; Cram\'{e}r's V gives the strength of association (0--1); each cell's standardized residual (r) beyond about $\pm$1.96 flags a category combination that significantly drives the association. Valid only when expected counts are mostly $\ge$ 5 (the app flags this and suggests Fisher's exact) and each case appears once (raw counts, not percentages). Your significance threshold ($\alpha$) is 0.05.
 
-A chi-square test of independence gave $\chi$\textsuperscript{2}(2, N=40)=4.90, p = .086, V=.35 [.00, 1.00].
+A chi-square test of independence gave $\chi$\textsuperscript{2}(2, N=240)=14.39, p $<$ .001, V=.24 [.13, 1.00].
 
 Statistical basis: Chi-square test of independence (Pearson, K. (1900). "On the criterion that a given system of deviations from the probable in the case of a correlated system of variables is such that it can be reasonably supposed to have arisen from random sampling." Philosophical Magazine, 50(302), 157-175.); Cram\'{e}r's V effect size (w-family; Cohen, 1988) (Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.).
 

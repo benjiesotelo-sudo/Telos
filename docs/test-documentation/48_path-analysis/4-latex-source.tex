@@ -12,9 +12,9 @@
 \toprule
 Path & B & SE & z & p & Std. $\beta$ & 95\% CI & R\textsuperscript{2} \\
 \midrule
-x1 $\rightarrow$ x2 & 0.30 & 0.06 & 5.23 & $<$.001 & .30 & [.19, .40] & .09 \\
-x2 $\rightarrow$ x3 & 0.22 & 0.05 & 4.05 & $<$.001 & .23 & [.12, .34] & .24 \\
-x1 $\rightarrow$ x3 & 0.36 & 0.05 & 7.29 & $<$.001 & .37 & [.28, .47] & .24 \\
+esg\_score $\rightarrow$ norm\_score & $-$0.10 & 0.05 & $-$1.93 & .054 & $-$.10 & [$-$.20, .00] & .01 \\
+norm\_score $\rightarrow$ intent\_score & 0.28 & 0.05 & 5.54 & $<$.001 & .29 & [.19, .38] & .18 \\
+esg\_score $\rightarrow$ intent\_score & 0.35 & 0.05 & 7.76 & $<$.001 & .34 & [.26, .42] & .18 \\
 \bottomrule
 \end{tabular}
 
@@ -22,7 +22,7 @@ x1 $\rightarrow$ x3 & 0.36 & 0.05 & 7.29 & $<$.001 & .37 & [.28, .47] & .24 \\
 \toprule
 Path & Estimate & SE & boot 95\% CI & p \\
 \midrule
-x1 $\rightarrow$ x2 $\rightarrow$ x3 & 0.07 & 0.02 & [0.03, 0.11] & .001 \\
+esg\_score $\rightarrow$ norm\_score $\rightarrow$ intent\_score & $-$0.03 & 0.02 & [-0.06, -0.00] & .073 \\
 \bottomrule
 \end{tabular}
 

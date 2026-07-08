@@ -1,6 +1,26 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Friedman, M. (1937). "The use of ranks to avoid the assumption of normality implicit in the analysis of variance." Journal of the American Statistical Association, 32(200), 675-701.
+  Kendall, M. G. (1948). Rank Correlation Methods. Charles Griffin & Company.
+  Nemenyi, P. B. (1963). Distribution-free multiple comparisons [Doctoral dissertation, Princeton University].
+
+3. METHODS PARAGRAPH
+=====================
+  Friedman: A Friedman test gave χ²(2)=80.00, p < .001, W=1.00 [1.00, 1.00]. (Friedman, 1937)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,16 +86,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Friedman
-  Why this test: Recommended when you compare three or more related conditions without assuming normality.
-    Friedman, M. (1937). "The use of ranks to avoid the assumption of normality implicit in the analysis of variance." Journal of the American Statistical Association, 32(200), 675-701.
-  Statistical basis:
-    Friedman rank test (nonparametric counterpart to repeated-measures ANOVA)
-      Friedman, M. (1937). "The use of ranks to avoid the assumption of normality implicit in the analysis of variance." Journal of the American Statistical Association, 32(200), 675-701.
-    Kendall's W effect size (agreement among rankings)
-      Kendall, M. G. (1948). Rank Correlation Methods. Charles Griffin & Company.
-    Nemenyi post-hoc pairwise comparisons
-      Nemenyi, P. B. (1963). Distribution-free multiple comparisons [Doctoral dissertation, Princeton University].

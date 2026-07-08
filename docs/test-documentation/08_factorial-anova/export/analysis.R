@@ -7,11 +7,11 @@ library(effectsize)
 library(emmeans)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["group"]] <- factor(d[["group"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
 d[["gender"]] <- factor(d[["gender"]])
 
 # === 01 · Factorial ANOVA ===
-fad <- data.frame(.sid = factor(seq_along(d[["outcome"]])), y = d[["outcome"]], f1 = factor(d[["group"]]), f2 = factor(d[["gender"]]))
+fad <- data.frame(.sid = factor(seq_along(d[["exam_score"]])), y = d[["exam_score"]], f1 = factor(d[["teaching_method"]]), f2 = factor(d[["gender"]]))
 bal <- data.frame(y = fad$y, cell = interaction(fad$f1, fad$f2, sep = " x "))
 print(datasummary_balance(~cell, data = bal, dinm = FALSE))  # Table 1 cell descriptives (Arel-Bundock datasummary)
 m <- afex::aov_car(y ~ f1 * f2 + Error(.sid), data = fad, anova_table = list(es = "pes"))

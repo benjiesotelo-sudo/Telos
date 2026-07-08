@@ -5,6 +5,6 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Kendall's tau ===
-ct <- suppressWarnings(cor.test(d[["satisfaction"]], d[["motivation"]], method = "kendall", exact = FALSE, alternative = "two.sided"))
+ct <- suppressWarnings(cor.test(d[["motivation_1"]], d[["motivation_2"]], method = "kendall", exact = FALSE, alternative = "two.sided"))
 print(ct)
-print(ggplot(d, aes(satisfaction, motivation)) + geom_point())
+print(ggplot(d, aes(motivation_1, motivation_2)) + geom_point())

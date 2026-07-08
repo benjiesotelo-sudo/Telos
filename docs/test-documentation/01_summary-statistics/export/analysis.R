@@ -7,7 +7,7 @@ d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 d[["gender"]] <- factor(d[["gender"]])
 
 # === 01 · Summary statistics ===
-summ <- data.frame("score" = d[["score"]], "anxiety" = d[["anxiety"]], grp = d[["gender"]], check.names = FALSE)
+summ <- data.frame("exam_score" = d[["exam_score"]], "study_hours_per_week" = d[["study_hours_per_week"]], grp = d[["gender"]], check.names = FALSE)
 print(datasummary_skim(summ, type = "numeric", by = "grp"))
-print(ggplot(d, aes(score)) + geom_histogram(bins = 12))
-print(ggplot(d, aes(anxiety)) + geom_histogram(bins = 12))
+print(ggplot(d, aes(exam_score)) + geom_histogram(bins = 12))
+print(ggplot(d, aes(study_hours_per_week)) + geom_histogram(bins = 12))

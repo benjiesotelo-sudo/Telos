@@ -12,8 +12,8 @@
 \toprule
 Direction & F & df & p \\
 \midrule
-X$\rightarrow$Y & 47.89 & 4, 63 & $<$.001 \\
-Y$\rightarrow$X & 30.62 & 4, 63 & $<$.001 \\
+X$\rightarrow$Y & 122.15 & 4, 111 & $<$.001 \\
+Y$\rightarrow$X & 3.42 & 4, 111 & .011 \\
 \bottomrule
 \end{tabular}
 
@@ -21,10 +21,10 @@ Y$\rightarrow$X & 30.62 & 4, 63 & $<$.001 \\
 \toprule
 Lag & AIC & BIC & HQ \\
 \midrule
-1 & 6.78 & 6.98 & 6.86 \\
-2 & 5.80 & 6.12 & 5.93 \\
-3 & 5.36 & 5.81 & 5.54 \\
-4 & 4.96 & 5.55 & 5.19 \\
+1 & $-$5.14 & $-$5.00 & $-$5.08 \\
+2 & $-$5.14 & $-$4.90 & $-$5.04 \\
+3 & $-$5.17 & $-$4.84 & $-$5.04 \\
+4 & $-$5.23 & $-$4.81 & $-$5.06 \\
 \bottomrule
 \end{tabular}
 
@@ -32,7 +32,7 @@ Lag & AIC & BIC & HQ \\
 
 A significant X$\rightarrow$Y p means past values of X help predict Y beyond Y's own past --- this is predictive precedence, not proof that X causes Y. Check both directions. The result depends entirely on the lag order (this card uses a max lag of 4): choose it on theory or by an information criterion --- vars::VARselect reports the AIC- and BIC-minimising lag --- and report it, since different lags can flip the conclusion. Make both series stationary first. Method: R lmtest::grangertest (Granger, 1969). Your significance threshold ($\alpha$) is 0.05.
 
-Granger test X$\rightarrow$Y: F(4,63)=47.89, p $<$ .001; Y$\rightarrow$X: F(4,63)=30.62, p $<$ .001 (lag=4).
+Granger test X$\rightarrow$Y: F(4,111)=122.15, p $<$ .001; Y$\rightarrow$X: F(4,111)=3.42, p = .011 (lag=4).
 
 Statistical basis: Granger causality F-test (Granger, C. W. J. (1969). "Investigating causal relations by econometric models and cross-spectral methods." Econometrica, 37(3), 424-438.); Implementation (lmtest::grangertest) (Zeileis A, Hothorn T (2002). "Diagnostic Checking in Regression Relationships." R News, 2(3), 7-10.).
 

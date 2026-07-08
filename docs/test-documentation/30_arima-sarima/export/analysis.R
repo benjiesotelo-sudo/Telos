@@ -4,21 +4,21 @@
 library(forecast)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["month"]] <- factor(d[["month"]])
+d[["quarter"]] <- factor(d[["quarter"]])
 
 # === 01 · ARIMA / SARIMA ===
 # sort by time so the series is in order
-dd_ord <- d[order(d$month), ]
-x_ts <- ts(dd_ord$sales, frequency = 12)
+dd_ord <- d[order(d$quarter), ]
+x_ts <- ts(dd_ord$gdp_growth, frequency = 4)
 fit <- forecast::auto.arima(x_ts)
 print(fit)
 print(confint(fit, level = 0.95))
 print(Box.test(residuals(fit), type = "Ljung-Box"))
 print(c(AIC = AIC(fit), BIC = BIC(fit), logLik = as.numeric(logLik(fit)), sigma2 = fit$sigma2))
 # Forecast table + figure
-fc <- forecast::forecast(fit, h = 12, level = c(80, 95))
+fc <- forecast::forecast(fit, h = 8, level = c(80, 95))
 print(fc)
-print(forecast::autoplot(fc) + labs(x = "month", y = "sales") + theme_minimal())
+print(forecast::autoplot(fc) + labs(x = "quarter", y = "gdp_growth") + theme_minimal())
 # Residual diagnostics — residual ACF + Normal Q-Q
 r <- as.numeric(residuals(fit)); nn <- length(r); ac <- acf(r, plot = FALSE)
 panels <- rbind(

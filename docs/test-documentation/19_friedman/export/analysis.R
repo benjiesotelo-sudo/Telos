@@ -3,11 +3,11 @@
 # install.packages(c("ggplot2"))
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["subject_id"]] <- factor(d[["subject_id"]])
+d[["participant_id"]] <- factor(d[["participant_id"]])
 
 # === 01 · Friedman ===
-conds <- c("score_t1", "score_t2", "score_t3")
-mat <- matrix(c(d[["score_t1"]], d[["score_t2"]], d[["score_t3"]]), ncol = length(conds), dimnames = list(NULL, conds))
+conds <- c("rt_baseline", "rt_low", "rt_high")
+mat <- matrix(c(d[["rt_baseline"]], d[["rt_low"]], d[["rt_high"]]), ncol = length(conds), dimnames = list(NULL, conds))
 ft <- friedman.test(mat)
 print(ft)
 k <- ncol(mat); n <- nrow(mat); w <- unname(ft$statistic) / (n * (k - 1))

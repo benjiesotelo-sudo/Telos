@@ -12,9 +12,11 @@
 \toprule
 Construct & CR & AVE & $\omega$ & $\alpha$ \\
 \midrule
-visual & .61 & .37 & .61 & .63 \\
-textual & .89 & .72 & .89 & .88 \\
-speed & .69 & .42 & .69 & .69 \\
+esg & .86 & .60 & .86 & .86 \\
+norm & .88 & .65 & .88 & .88 \\
+intent & .85 & .65 & .85 & .85 \\
+attitude & .88 & .65 & .88 & .88 \\
+service\_quality & .86 & .62 & .86 & .86 \\
 \bottomrule
 \end{tabular}
 
@@ -22,7 +24,7 @@ speed & .69 & .42 & .69 & .69 \\
 
 CR (Composite Reliability) measures how reliably a set of items captures its construct (0--1); $\ge$ .70 is the conventional threshold (Nunnally, 1978; Bagozzi \& Yi, 1988). CR is computed from the CFA loadings via semTools::compRelSEM() --- for a congeneric (unidimensional) factor CR equals McDonald's $\omega$, so the two columns will always match. AVE is shown alongside for quick convergent-validity reference ($\ge$ .50; Fornell \& Larcker, 1981) --- for the full discriminant-validity assessment (Fornell--Larcker + HTMT matrices) run the AVE card. $\alpha$ (Cronbach's) is a secondary/legacy coefficient --- it assumes tau-equivalence (equal loadings) and is a lower bound when loadings differ (McNeish, 2018). All cutoffs are labelled guidelines, not pass/fail gates. Applies to reflective constructs only.
 
-Composite reliability for visual was not satisfactory (CR = .61 $\ge$ .70).
+Composite reliability for esg was satisfactory (CR = .86 $\ge$ .70).
 
 Statistical basis: CR (composite reliability) $\ge$ .70 acceptable (Nunnally, J. C. (1978). Psychometric Theory (2nd ed.). McGraw-Hill.); CR $\ge$ .70 threshold, independent corroboration (Bagozzi, R. P., Yi, Y. (1988). "On the evaluation of structural equation models." Journal of the Academy of Marketing Science, 16(1), 74-94.); AVE shown alongside for convergent-validity reference ($\ge$ .50) (Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50.); $\alpha$ retained as a secondary/legacy coefficient (lower bound when loadings differ) (McNeish, D. (2018). "Thanks coefficient alpha, we'll take it from here." Psychological Methods, 23(3), 412-433.).
 

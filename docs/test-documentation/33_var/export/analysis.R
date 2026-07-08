@@ -3,11 +3,11 @@
 # install.packages(c("vars"))
 library(vars)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["month"]] <- factor(d[["month"]])
+d[["quarter"]] <- factor(d[["quarter"]])
 
 # === 01 · VAR ===
-dd_ord <- d[order(d$month), ]
-vdf <- dd_ord[, c("sales", "visitors")]
+dd_ord <- d[order(d$quarter), ]
+vdf <- dd_ord[, c("gdp_growth", "inflation", "unemployment")]
 # Lag selection (search bound capped so models stay identified)
 safe_max <- max(1L, min(10L, floor((nrow(vdf) - 1L) / ncol(vdf))))
 sel <- vars::VARselect(vdf, lag.max = safe_max, type = 'const')

@@ -1,6 +1,27 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Horn, J. L. (1965). "A rationale and test for the number of factors in factor analysis." Psychometrika, 30(2), 179-185. https://doi.org/10.1007/BF02289447
+  Kaiser, H. F., Rice, J. (1974). "Little Jiffy, Mark IV." Educational and Psychological Measurement, 34(1), 111-117.
+  Watkins, M. W. (2018). "Exploratory Factor Analysis: A Guide to Best Practice." Journal of Black Psychology, 44(3), 219-246. https://doi.org/10.1177/0095798418771807
+  Zwick, W. R., Velicer, W. F. (1986). "Comparison of five rules for determining the number of components to retain." Psychological Bulletin, 99(3), 432-442.
+
+3. METHODS PARAGRAPH
+=====================
+  Exploratory factor analysis (EFA): EFA (KMO = .83, Bartlett's χ²(55) = 2134.6, p < .001) with parallel analysis retained 3 factors explaining 63.5% of variance (oblimin rotation). (Watkins, 2018)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,18 +87,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Exploratory factor analysis (EFA)
-  Why this test: Recommended when you want to discover the underlying factor structure behind a set of observed variables.
-    Watkins, M. W. (2018). "Exploratory Factor Analysis: A Guide to Best Practice." Journal of Black Psychology, 44(3), 219-246. https://doi.org/10.1177/0095798418771807
-  Statistical basis:
-    KMO sampling-adequacy verbal labels (≥ .60 acceptable, ≥ .70 preferred)
-      Kaiser, H. F., Rice, J. (1974). "Little Jiffy, Mark IV." Educational and Psychological Measurement, 34(1), 111-117.
-    Parallel analysis as the preferred factor-retention rule
-      Horn, J. L. (1965). "A rationale and test for the number of factors in factor analysis." Psychometrika, 30(2), 179-185. https://doi.org/10.1007/BF02289447
-    Kaiser eigenvalue > 1 rule systematically over-extracts
-      Zwick, W. R., Velicer, W. F. (1986). "Comparison of five rules for determining the number of components to retain." Psychological Bulletin, 99(3), 432-442.
-    EFA best-practice reporting standard
-      Watkins, M. W. (2018). "Exploratory Factor Analysis: A Guide to Best Practice." Journal of Black Psychology, 44(3), 219-246. https://doi.org/10.1177/0095798418771807

@@ -12,29 +12,35 @@
 \toprule
 Construct & AVE & CR & $\omega$ & $\alpha$ \\
 \midrule
-visual & .37 & .61 & .61 & .63 \\
-textual & .72 & .89 & .89 & .88 \\
-speed & .42 & .69 & .69 & .69 \\
+esg & .60 & .86 & .86 & .86 \\
+norm & .65 & .88 & .88 & .88 \\
+intent & .65 & .85 & .85 & .85 \\
+attitude & .65 & .88 & .88 & .88 \\
+service\_quality & .62 & .86 & .86 & .86 \\
 \bottomrule
 \end{tabular}
 
-\begin{tabular}{lccc}
+\begin{tabular}{lccccc}
 \toprule
- & visual & textual & speed \\
+ & esg & norm & intent & attitude & service\_quality \\
 \midrule
-visual & \textbf{.61} &  &  \\
-textual & .46 & \textbf{.85} &  \\
-speed & .47 & .28 & \textbf{.65} \\
+esg & \textbf{.78} &  &  &  &  \\
+norm & $-$.11 & \textbf{.81} &  &  &  \\
+intent & .37 & .29 & \textbf{.81} &  &  \\
+attitude & $-$.02 & $-$.03 & .01 & \textbf{.81} &  \\
+service\_quality & .00 & $-$.14 & .19 & .16 & \textbf{.79} \\
 \bottomrule
 \end{tabular}
 
-\begin{tabular}{lccc}
+\begin{tabular}{lccccc}
 \toprule
- & visual & textual & speed \\
+ & esg & norm & intent & attitude & service\_quality \\
 \midrule
-visual &  &  &  \\
-textual & .38 &  &  \\
-speed & .39 & .28 &  \\
+esg &  &  &  &  &  \\
+norm & .10 &  &  &  &  \\
+intent & .36 & .29 &  &  &  \\
+attitude & .03 & .03 & .03 &  &  \\
+service\_quality & .05 & .13 & .19 & .14 &  \\
 \bottomrule
 \end{tabular}
 
@@ -42,7 +48,7 @@ speed & .39 & .28 &  \\
 
 AVE (Average Variance Extracted) is the average share of item variance a construct captures; $\ge$ .50 means items converge on their construct (Fornell \& Larcker, 1981). CR (Composite Reliability) $\ge$ .70 indicates acceptable construct reliability. $\omega$ (McDonald's omega) is the preferred headline reliability coefficient; $\alpha$ (Cronbach's) is shown as a secondary/legacy coefficient. For discriminant validity, Fornell--Larcker (Table 2): each construct's $\surd$AVE (bold diagonal) should exceed its correlations with other constructs. HTMT (Table 3): values $<$ .85 support discriminant validity for conceptually distinct constructs --- use HTMT as the primary criterion and Fornell--Larcker as a legacy check. AVE $<$ .50 may still be acceptable when CR $>$ .60 (F\&L caveat), but treat this as a caution, not a lenient pass. All cutoffs are heuristics, not pass/fail gates. Applies to reflective constructs only.
 
-Convergent validity was not fully supported, all AVE $\ge$ .50 and CR $\ge$ .70; discriminant validity held, all HTMT $<$ .85.
+Convergent validity was supported, all AVE $\ge$ .50 and CR $\ge$ .70; discriminant validity held, all HTMT $<$ .85.
 
 Statistical basis: AVE (average variance extracted) convergent validity, $\ge$ .50 (Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50.); CR (composite reliability) $\ge$ .70 acceptable (Nunnally, J. C. (1978). Psychometric Theory (2nd ed.). McGraw-Hill.); CR $\ge$ .70 threshold, independent corroboration (Bagozzi, R. P., Yi, Y. (1988). "On the evaluation of structural equation models." Journal of the Academy of Marketing Science, 16(1), 74-94.); HTMT $<$ .85 discriminant validity (primary criterion) (Henseler, J., Ringle, C. M., Sarstedt, M. (2015). "A new criterion for assessing discriminant validity in variance-based structural equation modeling." Journal of the Academy of Marketing Science, 43(1), 115-135.); Reliability preference ($\omega$ over $\alpha$) (McNeish, D. (2018). "Thanks coefficient alpha, we'll take it from here." Psychological Methods, 23(3), 412-433.).
 

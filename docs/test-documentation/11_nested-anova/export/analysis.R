@@ -10,8 +10,8 @@ d[["classroom"]] <- factor(d[["classroom"]])
 
 # === 01 · Nested ANOVA ===
 af <- factor(d[["school"]]); bf <- factor(d[["classroom"]])  # named factors keep clean summary row names af / af:bf
-print(datasummary_balance(~af, data = data.frame(y = d[["outcome"]], af = af), dinm = FALSE))  # Table 1 by top-level group (Arel-Bundock datasummary)
-m <- aov(d[["outcome"]] ~ af / bf)
+print(datasummary_balance(~af, data = data.frame(y = d[["exam_score"]], af = af), dinm = FALSE))  # Table 1 by top-level group (Arel-Bundock datasummary)
+m <- aov(d[["exam_score"]] ~ af / bf)
 s <- summary(m)[[1]]; rownames(s) <- trimws(rownames(s))
 msA <- s["af", "Mean Sq"]; msB <- s["af:bf", "Mean Sq"]; msR <- s["Residuals", "Mean Sq"]
 dfA <- s["af", "Df"]; dfB <- s["af:bf", "Df"]; dfR <- s["Residuals", "Df"]
@@ -19,9 +19,9 @@ fA <- msA / msB; pA <- pf(fA, dfA, dfB, lower.tail = FALSE)  # random nesting: A
 fB <- msB / msR; pB <- pf(fB, dfB, dfR, lower.tail = FALSE)
 print(data.frame(source = c("A", "B"), F = c(fA, fB), p = c(pA, pB)))
 print(effectsize::omega_squared(m, partial = FALSE))
-cellm <- aggregate(list(m = d[["outcome"]]), by = list(a = af, b = bf), FUN = mean)
-nc <- aggregate(list(n = d[["outcome"]]), by = list(a = af, b = bf), FUN = length)
-sdv <- aggregate(list(s = d[["outcome"]]), by = list(a = af, b = bf), FUN = sd)
+cellm <- aggregate(list(m = d[["exam_score"]]), by = list(a = af, b = bf), FUN = mean)
+nc <- aggregate(list(n = d[["exam_score"]]), by = list(a = af, b = bf), FUN = length)
+sdv <- aggregate(list(s = d[["exam_score"]]), by = list(a = af, b = bf), FUN = sd)
 cellm$lo <- cellm$m - qt(0.975, nc$n - 1) * sdv$s / sqrt(nc$n)
 cellm$hi <- cellm$m + qt(0.975, nc$n - 1) * sdv$s / sqrt(nc$n)
 print(ggplot(cellm, aes(a, m, colour = b)) +

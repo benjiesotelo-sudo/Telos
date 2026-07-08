@@ -1,6 +1,27 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Dickey, D. A., Fuller, W. A. (1979). "Distribution of the estimators for autoregressive time series with a unit root." Journal of the American Statistical Association, 74(366a), 427-431.
+  Kwiatkowski, D., Phillips, P. C. B., Schmidt, P., Shin, Y. (1992). "Testing the null hypothesis of stationarity against the alternative of a unit root." Journal of Econometrics, 54(1-3), 159-178.
+  Phillips, P. C. B., Perron, P. (1988). "Testing for a unit root in time series regression." Biometrika, 75(2), 335-346.
+  Trapletti A, Hornik K (2024). tseries: Time Series Analysis and Computational Finance. R package. https://CRAN.R-project.org/package=tseries
+
+3. METHODS PARAGRAPH
+=====================
+  Stationarity tests (ADF, KPSS): ADF gave τ=−3.83, p = .020; KPSS gave LM=0.08, p > .100; Phillips–Perron gave Z=−13.17, p = .354 (α=0.05). (Dickey, 1979)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,18 +87,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Stationarity tests (ADF, KPSS)
-  Why this test: Recommended when you test whether a time series is stationary before further time-series modeling.
-    Dickey, D. A., Fuller, W. A. (1979). "Distribution of the estimators for autoregressive time series with a unit root." Journal of the American Statistical Association, 74(366a), 427-431.
-  Statistical basis:
-    Augmented Dickey-Fuller unit-root test
-      Dickey, D. A., Fuller, W. A. (1979). "Distribution of the estimators for autoregressive time series with a unit root." Journal of the American Statistical Association, 74(366a), 427-431.
-    KPSS stationarity test
-      Kwiatkowski, D., Phillips, P. C. B., Schmidt, P., Shin, Y. (1992). "Testing the null hypothesis of stationarity against the alternative of a unit root." Journal of Econometrics, 54(1-3), 159-178.
-    Phillips-Perron unit-root test
-      Phillips, P. C. B., Perron, P. (1988). "Testing for a unit root in time series regression." Biometrika, 75(2), 335-346.
-    Implementation (tseries package)
-      Trapletti A, Hornik K (2024). tseries: Time Series Analysis and Computational Finance. R package. https://CRAN.R-project.org/package=tseries

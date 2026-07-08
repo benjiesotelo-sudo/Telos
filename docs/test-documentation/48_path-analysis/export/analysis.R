@@ -9,12 +9,12 @@ d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Path analysis ===
 # ---- CB-SEM via lavaan::sem (measurement + structural + indirect + moderation) ----
-model_str <- "x2 ~ p_0_1*x1\nx3 ~ p_1_2*x2 + p_0_2*x1\nie_0_1_2 := p_0_1*p_1_2"
+model_str <- "norm_score ~ p_0_1*esg_score\nintent_score ~ p_1_2*norm_score + p_0_2*esg_score\nie_0_1_2 := p_0_1*p_1_2"
 
 # Single awaited bootstrap fit for mediation/moderation (no RNG chunking — preserves WebR≡native parity).
 gc()
 set.seed(20260620)
-fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = 5000)
+fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = 1000)
 # Dual CI (percentile + bias-corrected) from the SAME bootstrap draws — both recompute CIs off
 # fit@boot without re-running the bootstrap (design §A2; matches runCbSem.ts exactly).
 pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)

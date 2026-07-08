@@ -1,6 +1,26 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.
+  Pearson, K. (1895). "Note on regression and inheritance in the case of two parents." Proceedings of the Royal Society of London, 58, 240-242.
+  Student (1908). "The probable error of a mean." Biometrika, 6(1), 1-25. https://doi.org/10.1093/biomet/6.1.1
+
+3. METHODS PARAGRAPH
+=====================
+  Paired t-test: A paired-samples t-test gave M=1.2, t(39)=14.14, p < .001, dz=2.24 [1.65, 2.81]. (Student, 1908)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,16 +86,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Paired t-test
-  Why this test: Recommended when you compare two related (repeated or matched) measurements on the same subjects.
-    Student (1908). "The probable error of a mean." Biometrika, 6(1), 1-25. https://doi.org/10.1093/biomet/6.1.1
-  Statistical basis:
-    Paired-samples t-test
-      Student (1908). "The probable error of a mean." Biometrika, 6(1), 1-25. https://doi.org/10.1093/biomet/6.1.1
-    Cohen's dz effect size
-      Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.
-    Paired correlation (Pearson r) between the two conditions
-      Pearson, K. (1895). "Note on regression and inheritance in the case of two parents." Proceedings of the Royal Society of London, 58, 240-242.

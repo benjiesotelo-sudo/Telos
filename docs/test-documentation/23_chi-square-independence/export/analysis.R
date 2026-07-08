@@ -3,16 +3,16 @@
 # install.packages(c("ggplot2"))
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["method"]] <- factor(d[["method"]])
-d[["passed"]] <- factor(d[["passed"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
+d[["passed_course"]] <- factor(d[["passed_course"]])
 
 # === 01 · Chi-square independence ===
-sub <- d[!is.na(d[["method"]]) & trimws(d[["method"]]) != "" & !is.na(d[["passed"]]) & trimws(d[["passed"]]) != "", ]
-tab <- table(sub[["method"]], sub[["passed"]])
+sub <- d[!is.na(d[["teaching_method"]]) & trimws(d[["teaching_method"]]) != "" & !is.na(d[["passed_course"]]) & trimws(d[["passed_course"]]) != "", ]
+tab <- table(sub[["teaching_method"]], sub[["passed_course"]])
 g <- suppressWarnings(chisq.test(tab, correct = TRUE))
 print(g)
 print(g$expected)
 print(prop.table(tab, 1) * 100)
 print(prop.table(tab, 2) * 100)
 cat("Cramer's V:", sqrt(unname(suppressWarnings(chisq.test(tab, correct = FALSE))$statistic) / (sum(tab) * (min(dim(tab)) - 1))), "\n")
-print(ggplot(sub, aes(method, fill = passed)) + geom_bar(position = "dodge"))
+print(ggplot(sub, aes(teaching_method, fill = passed_course)) + geom_bar(position = "dodge"))

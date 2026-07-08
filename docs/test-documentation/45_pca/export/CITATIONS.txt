@@ -1,6 +1,26 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Frick, S., Killisch, R., Bißantz, N., Wetzel, E. (2025). "PCA Is Not EFA." European Journal of Psychological Assessment, 41(6), 425-426. https://doi.org/10.1027/1015-5759/a000938
+  Jolliffe, I. T., Cadima, J. (2016). "Principal component analysis: a review and recent developments." Philosophical Transactions of the Royal Society A, 374, 20150202. https://doi.org/10.1098/rsta.2015.0202
+  Zwick, W. R., Velicer, W. F. (1986). "Comparison of five rules for determining the number of components to retain." Psychological Bulletin, 99(3), 432-442.
+
+3. METHODS PARAGRAPH
+=====================
+  Principal component analysis (PCA): PCA (correlation matrix; parallel analysis) retained 3 components explaining 73.3% of total variance. (Jolliffe, 2016)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,16 +86,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Principal component analysis (PCA)
-  Why this test: Recommended when you want to reduce a set of correlated variables to a smaller number of composite components.
-    Jolliffe, I. T., Cadima, J. (2016). "Principal component analysis: a review and recent developments." Philosophical Transactions of the Royal Society A, 374, 20150202. https://doi.org/10.1098/rsta.2015.0202
-  Statistical basis:
-    Principal component analysis as a data-reduction method (not a latent-variable model)
-      Jolliffe, I. T., Cadima, J. (2016). "Principal component analysis: a review and recent developments." Philosophical Transactions of the Royal Society A, 374, 20150202. https://doi.org/10.1098/rsta.2015.0202
-    PCA is not EFA - components are composites, not reflective factors
-      Frick, S., Killisch, R., Bißantz, N., Wetzel, E. (2025). "PCA Is Not EFA." European Journal of Psychological Assessment, 41(6), 425-426. https://doi.org/10.1027/1015-5759/a000938
-    Kaiser eigenvalue > 1 rule tends to over-extract
-      Zwick, W. R., Velicer, W. F. (1986). "Comparison of five rules for determining the number of components to retain." Psychological Bulletin, 99(3), 432-442.

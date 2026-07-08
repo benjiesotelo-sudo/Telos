@@ -5,12 +5,12 @@ library(plm)
 library(lmtest)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["firm"]] <- factor(d[["firm"]])
+d[["province"]] <- factor(d[["province"]])
 
 # === 01 · Hausman test ===
-pdat <- plm::pdata.frame(d, index = c("firm", "year"))
-fe <- plm::plm(roa ~ leverage + rd_spend + size, data = pdat, model = 'within')
-re <- plm::plm(roa ~ leverage + rd_spend + size, data = pdat, model = 'random')
+pdat <- plm::pdata.frame(d, index = c("province", "year"))
+fe <- plm::plm(growth ~ investment + education_spend + urbanization, data = pdat, model = 'within')
+re <- plm::plm(growth ~ investment + education_spend + urbanization, data = pdat, model = 'random')
 print(plm::phtest(fe, re))
 # clustered (arellano/HC1) SE + 95% CI per model on the common FE slopes
 fe_vc <- plm::vcovHC(fe, method = 'arellano', type = 'HC1', cluster = 'group')

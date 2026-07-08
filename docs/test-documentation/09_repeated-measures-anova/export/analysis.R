@@ -5,20 +5,20 @@ library(afex)
 library(emmeans)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["subject_id"]] <- factor(d[["subject_id"]])
+d[["participant_id"]] <- factor(d[["participant_id"]])
 
 # === 01 · Repeated-measures ANOVA ===
-conds <- c("score_t1", "score_t2", "score_t3")
-nrw <- length(d[["score_t1"]])
-long <- data.frame(sid = factor(rep(d[["subject_id"]], length(conds))),
+conds <- c("sleep_baseline", "sleep_low", "sleep_high")
+nrw <- length(d[["sleep_baseline"]])
+long <- data.frame(sid = factor(rep(d[["participant_id"]], length(conds))),
   condition = factor(rep(conds, each = nrw), levels = conds),
-  score = c(d[["score_t1"]], d[["score_t2"]], d[["score_t3"]]))
+  score = c(d[["sleep_baseline"]], d[["sleep_low"]], d[["sleep_high"]]))
 m <- afex::aov_ez(id = "sid", dv = "score", data = long, within = "condition",
   anova_table = list(es = "pes", correction = "GG"))
 print(m$anova_table)
 print(summary(m$Anova, multivariate = FALSE))
 print(summary(pairs(emmeans::emmeans(m, ~ condition), adjust = "bonferroni"), infer = TRUE, level = 0.95))
-mat <- matrix(c(d[["score_t1"]], d[["score_t2"]], d[["score_t3"]]), ncol = length(conds))
+mat <- matrix(c(d[["sleep_baseline"]], d[["sleep_low"]], d[["sleep_high"]]), ncol = length(conds))
 mm <- colMeans(mat); sdv <- apply(mat, 2, sd); se <- sdv / sqrt(nrow(mat)); tq <- qt(0.975, nrow(mat) - 1)
 agg <- data.frame(cond = factor(conds, levels = conds), m = mm, lo = mm - tq * se, hi = mm + tq * se)
 print(ggplot(agg, aes(cond, m, group = 1)) + geom_line(colour = "#0c447c") +

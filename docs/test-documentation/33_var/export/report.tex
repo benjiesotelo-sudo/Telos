@@ -12,89 +12,80 @@
 \toprule
 Lag & AIC & BIC & HQ \\
 \midrule
-1 & 6.67 & 6.88 & 6.75 \\
-2 & 6.64 & 6.98 & 6.77 \\
-3 & 6.57 & 7.05 & 6.76 \\
-4 & 5.98 & 6.60 & 6.23 \\
-5 & 5.96 & 6.71 & 6.25 \\
-6 & 5.87 & 6.76 & 6.22 \\
-7 & 5.55 & 6.58 & 5.96 \\
-8 & 4.94 & 6.10 & 5.40 \\
-9 & 4.65 & 5.95 & 5.16 \\
-10 & 4.69 & 6.13 & 5.25 \\
+1 & $-$8.25 & $-$7.96 & $-$8.13 \\
+2 & $-$8.25 & $-$7.73 & $-$8.04 \\
+3 & $-$8.23 & $-$7.50 & $-$7.93 \\
+4 & $-$8.20 & $-$7.24 & $-$7.81 \\
+5 & $-$8.30 & $-$7.12 & $-$7.82 \\
+6 & $-$8.22 & $-$6.82 & $-$7.65 \\
+7 & $-$8.21 & $-$6.59 & $-$7.55 \\
+8 & $-$8.14 & $-$6.30 & $-$7.39 \\
+9 & $-$8.10 & $-$6.04 & $-$7.27 \\
+10 & $-$8.13 & $-$5.85 & $-$7.21 \\
 \bottomrule
 \end{tabular}
 
-\begin{tabular}{lll}
+\begin{tabular}{llll}
 \toprule
- & sales & visitors \\
+ & gdp\_growth & inflation & unemployment \\
 \midrule
-sales.l1 & $-$0.22 & 0.36 \\
- & (0.15) & (0.18) \\
- & [$-$0.53, 0.08] & [$-$0.02, 0.73] \\
-visitors.l1 & 0.46 & 0.08 \\
- & (0.12) & (0.15) \\
- & [0.22, 0.70] & [$-$0.22, 0.37] \\
-sales.l2 & $-$0.22 & 0.15 \\
- & (0.14) & (0.18) \\
- & [$-$0.52, 0.07] & [$-$0.21, 0.50] \\
-visitors.l2 & 0.50 & $-$0.03 \\
- & (0.13) & (0.16) \\
- & [0.23, 0.77] & [$-$0.36, 0.30] \\
-sales.l3 & $-$0.02 & 0.32 \\
- & (0.15) & (0.18) \\
- & [$-$0.32, 0.27] & [$-$0.04, 0.68] \\
-visitors.l3 & 0.57 & $-$0.16 \\
- & (0.14) & (0.18) \\
- & [0.28, 0.86] & [$-$0.52, 0.20] \\
-sales.l4 & $-$0.38 & 0.14 \\
- & (0.14) & (0.17) \\
- & [$-$0.66, $-$0.10] & [$-$0.21, 0.49] \\
-visitors.l4 & 0.46 & 0.10 \\
- & (0.16) & (0.19) \\
- & [0.15, 0.78] & [$-$0.29, 0.49] \\
-sales.l5 & $-$0.21 & 0.29 \\
- & (0.14) & (0.18) \\
- & [$-$0.50, 0.08] & [$-$0.07, 0.64] \\
-visitors.l5 & 0.24 & $-$0.50 \\
- & (0.14) & (0.18) \\
- & [$-$0.05, 0.53] & [$-$0.86, $-$0.15] \\
-sales.l6 & $-$0.41 & 0.06 \\
- & (0.14) & (0.17) \\
- & [$-$0.70, $-$0.13] & [$-$0.29, 0.41] \\
-visitors.l6 & 0.13 & $-$0.53 \\
- & (0.17) & (0.20) \\
- & [$-$0.20, 0.47] & [$-$0.94, $-$0.12] \\
-sales.l7 & $-$0.34 & 0.18 \\
- & (0.15) & (0.19) \\
- & [$-$0.65, $-$0.04] & [$-$0.19, 0.55] \\
-visitors.l7 & $-$0.05 & $-$0.42 \\
- & (0.17) & (0.21) \\
- & [$-$0.39, 0.29] & [$-$0.84, $-$0.00] \\
-sales.l8 & 0.10 & 0.30 \\
- & (0.16) & (0.20) \\
- & [$-$0.22, 0.43] & [$-$0.10, 0.70] \\
-visitors.l8 & 0.13 & $-$0.20 \\
- & (0.16) & (0.19) \\
- & [$-$0.19, 0.44] & [$-$0.59, 0.19] \\
-sales.l9 & 0.36 & 0.24 \\
- & (0.15) & (0.18) \\
- & [0.06, 0.66] & [$-$0.13, 0.61] \\
-visitors.l9 & 0.18 & 0.39 \\
- & (0.14) & (0.17) \\
- & [$-$0.09, 0.45] & [0.05, 0.73] \\
-const & $-$261.13 & 238.95 \\
- & (96.47) & (118.72) \\
- & [$-$455.54, $-$66.71] & [$-$0.32, 478.22] \\
+gdp\_growth.l1 & 0.44 & 0.22 & $-$0.82 \\
+ & (0.11) & (0.07) & (0.05) \\
+ & [0.22, 0.67] & [0.07, 0.37] & [$-$0.91, $-$0.72] \\
+inflation.l1 & 0.18 & 0.09 & 0.16 \\
+ & (0.18) & (0.12) & (0.08) \\
+ & [$-$0.18, 0.54] & [$-$0.15, 0.32] & [0.00, 0.32] \\
+unemployment.l1 & $-$0.34 & $-$0.15 & $-$0.14 \\
+ & (0.23) & (0.15) & (0.10) \\
+ & [$-$0.80, 0.13] & [$-$0.45, 0.15] & [$-$0.34, 0.06] \\
+gdp\_growth.l2 & 0.26 & $-$0.05 & $-$0.11 \\
+ & (0.23) & (0.15) & (0.10) \\
+ & [$-$0.19, 0.71] & [$-$0.35, 0.24] & [$-$0.31, 0.08] \\
+inflation.l2 & 0.00 & 0.19 & $-$0.02 \\
+ & (0.19) & (0.12) & (0.08) \\
+ & [$-$0.37, 0.37] & [$-$0.05, 0.43] & [$-$0.18, 0.14] \\
+unemployment.l2 & $-$0.11 & 0.10 & $-$0.12 \\
+ & (0.23) & (0.15) & (0.10) \\
+ & [$-$0.57, 0.36] & [$-$0.20, 0.40] & [$-$0.32, 0.08] \\
+gdp\_growth.l3 & 0.11 & 0.07 & $-$0.12 \\
+ & (0.23) & (0.15) & (0.10) \\
+ & [$-$0.35, 0.56] & [$-$0.23, 0.37] & [$-$0.31, 0.08] \\
+inflation.l3 & $-$0.12 & 0.12 & 0.12 \\
+ & (0.18) & (0.12) & (0.08) \\
+ & [$-$0.48, 0.24] & [$-$0.11, 0.36] & [$-$0.03, 0.28] \\
+unemployment.l3 & $-$0.12 & $-$0.21 & $-$0.19 \\
+ & (0.23) & (0.15) & (0.10) \\
+ & [$-$0.59, 0.34] & [$-$0.51, 0.09] & [$-$0.39, 0.01] \\
+gdp\_growth.l4 & $-$0.00 & $-$0.13 & $-$0.14 \\
+ & (0.23) & (0.15) & (0.10) \\
+ & [$-$0.45, 0.45] & [$-$0.43, 0.16] & [$-$0.34, 0.06] \\
+inflation.l4 & $-$0.06 & $-$0.05 & 0.02 \\
+ & (0.18) & (0.12) & (0.08) \\
+ & [$-$0.43, 0.30] & [$-$0.29, 0.19] & [$-$0.14, 0.17] \\
+unemployment.l4 & 0.11 & $-$0.21 & 0.02 \\
+ & (0.24) & (0.15) & (0.10) \\
+ & [$-$0.36, 0.58] & [$-$0.51, 0.10] & [$-$0.19, 0.22] \\
+gdp\_growth.l5 & $-$0.09 & $-$0.22 & 0.03 \\
+ & (0.22) & (0.14) & (0.10) \\
+ & [$-$0.53, 0.35] & [$-$0.50, 0.07] & [$-$0.16, 0.22] \\
+inflation.l5 & 0.01 & $-$0.11 & 0.06 \\
+ & (0.18) & (0.12) & (0.08) \\
+ & [$-$0.35, 0.37] & [$-$0.35, 0.12] & [$-$0.10, 0.22] \\
+unemployment.l5 & 0.35 & 0.03 & 0.06 \\
+ & (0.11) & (0.07) & (0.05) \\
+ & [0.13, 0.56] & [$-$0.11, 0.17] & [$-$0.04, 0.15] \\
+const & 1.14 & 4.30 & 7.61 \\
+ & (3.25) & (2.11) & (1.40) \\
+ & [$-$5.30, 7.58] & [0.11, 8.49] & [4.83, 10.39] \\
 \midrule
-Num.Obs. & 63 & 63 \\
-R\textsuperscript{2} & 1.00 & .99 \\
-R\textsuperscript{2} Adj. & .99 & .99 \\
-RMSE & 2.18 & 2.68 \\
-Log.Lik. & $-$138.42 & $-$151.50 \\
-\multicolumn{3}{l}{Selected lag (p) = 9} \\
-\multicolumn{3}{l}{Max root modulus = 1.00 (stable)} \\
-\multicolumn{3}{l}{Portmanteau (serial) $\chi$\textsuperscript{2}(28) = 112.35, p $<$ .001} \\
+Num.Obs. & 115 & 115 & 115 \\
+R\textsuperscript{2} & .88 & .70 & .96 \\
+R\textsuperscript{2} Adj. & .87 & .65 & .96 \\
+RMSE & 0.36 & 0.24 & 0.16 \\
+Log.Lik. & $-$46.53 & 2.89 & 50.06 \\
+\multicolumn{4}{l}{Selected lag (p) = 5} \\
+\multicolumn{4}{l}{Max root modulus = .96 (stable)} \\
+\multicolumn{4}{l}{Portmanteau (serial) $\chi$\textsuperscript{2}(99) = 92.09, p = .676} \\
 \bottomrule
 \end{tabular}
 
@@ -102,10 +93,15 @@ Log.Lik. & $-$138.42 & $-$151.50 \\
 \toprule
 Variable & Impulse & Share \\
 \midrule
-sales & sales & .50 \\
-sales & visitors & .50 \\
-visitors & sales & .26 \\
-visitors & visitors & .74 \\
+gdp\_growth & gdp\_growth & .99 \\
+gdp\_growth & inflation & .00 \\
+gdp\_growth & unemployment & .01 \\
+inflation & gdp\_growth & .68 \\
+inflation & inflation & .29 \\
+inflation & unemployment & .04 \\
+unemployment & gdp\_growth & .93 \\
+unemployment & inflation & .01 \\
+unemployment & unemployment & .06 \\
 \bottomrule
 \end{tabular}
 
@@ -113,7 +109,7 @@ visitors & visitors & .74 \\
 
 A VAR models several series as functions of their joint past. The impulse-response plots show how a shock to one series propagates to the others over time; read each IRF together with its bootstrap confidence band, and note that orthogonalised (Cholesky) IRFs depend on the ordering of the series. Lag selection picks how many past periods to include. A level VAR assumes stationary series --- difference them (or use a VECM) if they are not. The Portmanteau test (vars::serial.test) checks the residuals for remaining serial correlation: a small p suggests the lag order is too low to whiten the residuals. Method: R vars package (Pfaff, 2008; Lütkepohl, New Introduction to Multiple Time Series Analysis).
 
-A VAR(9) model was selected by AIC; impulse-response functions are shown (Figure).
+A VAR(5) model was selected by AIC; impulse-response functions are shown (Figure).
 
 Statistical basis: Vector autoregression (VAR) estimation (Pfaff B (2008). "VAR, SVAR and SVEC Models: Implementation Within R Package vars." Journal of Statistical Software, 27(4).); VAR modeling framework and impulse-response interpretation (Lütkepohl, H. (2005). New Introduction to Multiple Time Series Analysis. Springer-Verlag, Berlin.).
 

@@ -9,10 +9,10 @@ d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Composite reliability (CR) ===
 # ---- Composite Reliability (CR) / ω / AVE / α via lavaan + semTools + psych ----
-construct_names <- c("visual", "textual", "speed")
+construct_names <- c("esg", "norm", "intent", "attitude", "service_quality")
 k <- length(construct_names)
 
-model_str <- "visual =~ x1 + x2 + x3\ntextual =~ x4 + x5 + x6\nspeed =~ x7 + x8 + x9"
+model_str <- "esg =~ esg1 + esg2 + esg3 + esg4\nnorm =~ norm1 + norm2 + norm3 + norm4\nintent =~ intent1 + intent2 + intent3\nattitude =~ attitude1 + attitude2 + attitude3 + attitude4\nservice_quality =~ service_quality1 + service_quality2 + service_quality3 + service_quality4"
 
 # Fit CFA
 fit <- lavaan::cfa(model_str, data = d, std.lv = FALSE)
@@ -23,8 +23,8 @@ cr_vec  <- unlist(semTools::compRelSEM(fit))
 ave_vec <- semTools::AVE(fit)
 
 # Per-construct Cronbach's α via psych::alpha
-construct_items_flat <- c("x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9")
-construct_items_lens <- c(3, 3, 3)
+construct_items_flat <- c("esg1", "esg2", "esg3", "esg4", "norm1", "norm2", "norm3", "norm4", "intent1", "intent2", "intent3", "attitude1", "attitude2", "attitude3", "attitude4", "service_quality1", "service_quality2", "service_quality3", "service_quality4")
+construct_items_lens <- c(4, 4, 3, 4, 4)
 alpha_vec <- numeric(k)
 item_start <- 1L
 for (ci in seq_len(k)) {

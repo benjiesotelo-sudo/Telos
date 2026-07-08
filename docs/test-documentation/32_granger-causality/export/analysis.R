@@ -5,22 +5,22 @@ library(lmtest)
 library(vars)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["month"]] <- factor(d[["month"]])
+d[["quarter"]] <- factor(d[["quarter"]])
 
 # === 01 · Granger causality ===
-dd_ord <- d[order(d$month), ]
-# X -> Y: does ad_spend Granger-cause sales?
-print(lmtest::grangertest(d$sales ~ d$ad_spend, order = 4))
-# Y -> X: does sales Granger-cause ad_spend?
-print(lmtest::grangertest(d$ad_spend ~ d$sales, order = 4))
+dd_ord <- d[order(d$quarter), ]
+# X -> Y: does gdp_growth Granger-cause unemployment?
+print(lmtest::grangertest(d$unemployment ~ d$gdp_growth, order = 4))
+# Y -> X: does unemployment Granger-cause gdp_growth?
+print(lmtest::grangertest(d$gdp_growth ~ d$unemployment, order = 4))
 # Lag-order selection table (R1 gap-fix, advisory only) - the tests above use the fixed max lag
 safe_max <- max(1L, min(4L, floor((nrow(dd_ord) - 1L) / 2L)))
-print(vars::VARselect(data.frame(x = dd_ord$ad_spend, y = dd_ord$sales), lag.max = safe_max, type = "const")$criteria)
+print(vars::VARselect(data.frame(x = dd_ord$gdp_growth, y = dd_ord$unemployment), lag.max = safe_max, type = "const")$criteria)
 # Figure — cross-series time plot
 nn <- nrow(dd_ord); idx <- seq_len(nn)
-gdf <- rbind(data.frame(t = idx, value = dd_ord$ad_spend, series = "ad_spend"),
-             data.frame(t = idx, value = dd_ord$sales, series = "sales"))
-gdf$series <- factor(gdf$series, levels = c("ad_spend", "sales"))
+gdf <- rbind(data.frame(t = idx, value = dd_ord$gdp_growth, series = "gdp_growth"),
+             data.frame(t = idx, value = dd_ord$unemployment, series = "unemployment"))
+gdf$series <- factor(gdf$series, levels = c("gdp_growth", "unemployment"))
 print(ggplot(gdf, aes(x = t, y = value, colour = series)) + geom_line() +
   scale_colour_manual(values = c("#0c447c", "#e07020")) +
-  labs(x = "month", y = NULL, colour = NULL) + theme_minimal() + theme(legend.position = "top"))
+  labs(x = "quarter", y = NULL, colour = NULL) + theme_minimal() + theme(legend.position = "top"))

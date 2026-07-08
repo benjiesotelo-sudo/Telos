@@ -50,30 +50,38 @@ bc_ci <- function(draws, t0, level = 0.95) {
 
 # Measurement model (reflective = mode_A; formative = mode_B)
 mm <- constructs(
-  composite("visual", c("x1", "x2", "x3"), weights = mode_A),
-  composite("textual", c("x4", "x5", "x6"), weights = mode_A),
-  composite("speed", c("x7", "x8", "x9"), weights = mode_A)
+  composite("esg", c("esg1", "esg2", "esg3", "esg4"), weights = mode_A),
+  composite("norm", c("norm1", "norm2", "norm3", "norm4"), weights = mode_A),
+  composite("service_quality", c("service_quality1", "service_quality2", "service_quality3", "service_quality4"), weights = mode_A),
+  composite("attitude", c("attitude1", "attitude2", "attitude3", "attitude4"), weights = mode_A),
+  composite("intent", c("intent1", "intent2", "intent3"), weights = mode_A),
+  interaction_term(iv = "norm", moderator = "attitude", method = two_stage, weights = mode_A)
 )
 
 # Structural model (paths by construct name)
 sm <- relationships(
-  paths(from = "visual", to = "textual"),
-  paths(from = "textual", to = "speed"),
-  paths(from = "visual", to = "speed")
+  paths(from = "esg", to = "intent"),
+  paths(from = "norm", to = "intent"),
+  paths(from = "service_quality", to = "intent"),
+  paths(from = "attitude", to = "intent"),
+  paths(from = "norm*attitude", to = "intent")
 )
+
+# Moderation (U6-T4): interaction_term construct(s) added to the measurement model above.
+cat("interaction_term(iv = \"norm\", moderator = \"attitude\", method = two_stage)\n")
 
 # Estimate + bootstrap (percentile CI; serial cores under the shim)
 gc()
 pls <- estimate_pls(data = d, measurement_model = mm, structural_model = sm)
 s <- summary(pls)
 set.seed(20260620)
-bo <- bootstrap_model(seminr_model = pls, nboot = 5000, cores = 1)
+bo <- bootstrap_model(seminr_model = pls, nboot = 1000, cores = 1)
 sb <- summary(bo)
 gc()
 
 # The DRAWN construct names only - excludes seminr's derived interaction construct (no meaningful
 # alpha/AVE/HTMT/outer rows; its structural row still flows through the path loop below).
-construct_names <- c("visual", "textual", "speed")
+construct_names <- c("esg", "norm", "service_quality", "attitude", "intent")
 formative_names <- c()
 
 # ---- Table 1: Measurement model (construct alpha/rhoA/CR/AVE + item mean/sd/loading-or-weight/t/p) ----
@@ -111,8 +119,8 @@ print(round(s$validity$htmt[construct_names, construct_names, drop = FALSE], 3))
 # ---- Table 3: Structural paths (β + t/p + dual 95% CI: percentile & hand-rolled BC) ----
 bp <- sb$bootstrapped_paths
 fsq <- s$fSquare
-path_from_all <- c("visual", "textual", "visual")
-path_to_all   <- c("textual", "speed", "speed")
+path_from_all <- c("esg", "norm", "service_quality", "attitude", "norm*attitude")
+path_to_all   <- c("intent", "intent", "intent", "intent", "intent")
 struct_beta <- numeric(length(path_from_all)); struct_t <- numeric(length(path_from_all))
 struct_p <- numeric(length(path_from_all))
 struct_perc_lo <- numeric(length(path_from_all)); struct_perc_hi <- numeric(length(path_from_all))
@@ -165,9 +173,9 @@ print(round(quality_tab[, c("r2", "r2adj", "q2")], 4))
 cat("\n--- Table 5: Indirect effects ---\n")
 k_cn <- length(construct_names)
 adj <- matrix(FALSE, k_cn, k_cn, dimnames = list(construct_names, construct_names))
-adj["visual", "textual"] <- TRUE
-adj["textual", "speed"] <- TRUE
-adj["visual", "speed"] <- TRUE
+adj["esg", "intent"] <- TRUE
+adj["norm", "intent"] <- TRUE
+adj["service_quality", "intent"] <- TRUE
 for (a in construct_names) for (z in construct_names) if (a != z) {
   for (m in construct_names[adj[a, ] & adj[, z]]) {
     sig <- tryCatch(specific_effect_significance(bo, from = a, through = m, to = z, alpha = 0.05),
@@ -175,6 +183,57 @@ for (a in construct_names) for (z in construct_names) if (a != z) {
     if (!is.null(sig)) { cat(sprintf("  %s -> %s -> %s: ", a, m, z)); print(round(sig, 4)) }
   }
 }
+
+# ---- Table 6: Conditional effects (simple slopes at -1SD/mean/+1SD, percentile 95% CI) ----
+# Same derivation as plsSem.ts's R block: mod_sd is the moderator's OBSERVED composite-score SD
+# (Aiken & West 1991 applied to the composite/summed-indicator metric); levels are fixed at the
+# original mod_sd for every bootstrap draw (draws differ only in the main/interaction path terms).
+mod_iv_name <- c("norm")
+mod_name    <- c("attitude")
+mod_int_name <- c("norm*attitude")
+mod_target_name <- c("intent")
+slope_levels <- character(0); slope_mods <- character(0)
+slope_bs <- numeric(0); slope_los <- numeric(0); slope_his <- numeric(0)
+cat("\n--- Table 6: Conditional effects (simple slopes) ---\n")
+for (mi in seq_along(mod_iv_name)) {
+  mod_sd <- stats::sd(pls$construct_scores[, mod_name[mi]])
+  key_main <- paste0(mod_iv_name[mi], "  ->  ", mod_target_name[mi])
+  key_int  <- paste0(mod_int_name[mi], "  ->  ", mod_target_name[mi])
+  b_main <- as.numeric(bp[key_main, "Original Est."])
+  b_int  <- as.numeric(bp[key_int, "Original Est."])
+  main_draws <- bo$boot_paths[mod_iv_name[mi], mod_target_name[mi], ]
+  int_draws  <- bo$boot_paths[mod_int_name[mi], mod_target_name[mi], ]
+  levels <- c("-1SD" = -mod_sd, "mean" = 0, "+1SD" = mod_sd)
+  for (lvl_name in names(levels)) {
+    lvl <- levels[[lvl_name]]
+    draws <- main_draws + int_draws * lvl
+    se <- stats::sd(draws)
+    qs <- stats::quantile(draws, probs = c(0.025, 0.975))
+    b_lvl <- b_main + b_int * lvl
+    p_lvl <- 2 * min(mean(draws <= 0), mean(draws > 0))
+    cat(sprintf("  %s (%s): b=%.6f se=%.6f p=%.6f ci=[%.6f, %.6f]\n",
+                mod_int_name[mi], lvl_name, b_lvl, se, p_lvl, qs[1], qs[2]))
+    slope_levels <- c(slope_levels, lvl_name); slope_mods <- c(slope_mods, mod_int_name[mi])
+    slope_bs <- c(slope_bs, b_lvl); slope_los <- c(slope_los, as.numeric(qs[1])); slope_his <- c(slope_his, as.numeric(qs[2]))
+  }
+}
+
+# ---- Figure: whiskered simple-slopes plot (same R text as simpleSlopesPlot.ts - export = app) ----
+levels <- slope_levels; mods <- slope_mods; bs <- slope_bs; los <- slope_los; his <- slope_his
+library(ggplot2)
+df_plot <- data.frame(
+  level = factor(levels, levels = c("-1SD", "mean", "+1SD")),
+  moderation = factor(mods, levels = unique(mods)),
+  b = bs, lo = los, hi = his
+)
+p_slopes <- ggplot2::ggplot(df_plot, ggplot2::aes(x = level, y = b)) +
+  ggplot2::geom_point(size = 3, colour = "#d97757") +
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = lo, ymax = hi), width = 0.15, colour = "#d97757") +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dotted", colour = "#888") +
+  ggplot2::labs(x = NULL, y = "Conditional effect (simple slope)") +
+  ggplot2::theme_minimal(base_size = 11)
+if (length(unique(mods)) > 1) p_slopes <- p_slopes + ggplot2::facet_wrap(~ moderation, ncol = 1)
+print(p_slopes)
 
 # Figure: path diagram — semPaths stand-in (the app exports the annotated SVG via html-to-image)
 cat("\n--- Figure: PLS path diagram (semPaths reproducible stand-in) ---\n")

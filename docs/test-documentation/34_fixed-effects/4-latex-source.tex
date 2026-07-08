@@ -12,23 +12,23 @@
 \toprule
  & (1) \\
 \midrule
-leverage & $-$5.57 \\
- & (1.47) \\
- & [$-$8.49, $-$2.66] \\
-rd\_spend & 1.89 \\
- & (0.74) \\
- & [0.41, 3.37] \\
-size & 0.14 \\
- & (0.43) \\
- & [$-$0.71, 0.99] \\
+investment & 0.13 \\
+ & (0.04) \\
+ & [0.04, 0.22] \\
+education\_spend & 0.15 \\
+ & (0.16) \\
+ & [$-$0.18, 0.47] \\
+urbanization & $-$0.03 \\
+ & (0.02) \\
+ & [$-$0.06, 0.01] \\
 \midrule
-Num.Obs. & 96 \\
-N entities & 12 \\
-Within R\textsuperscript{2} & .91 \\
-Adj. within R\textsuperscript{2} & .90 \\
+Num.Obs. & 100 \\
+N entities & 10 \\
+Within R\textsuperscript{2} & .44 \\
+Adj. within R\textsuperscript{2} & .36 \\
 Between R\textsuperscript{2} & 1.00 \\
-Overall R\textsuperscript{2} & .79 \\
-F-test & F(3, 81) = 288.78, p $<$ .001 \\
+Overall R\textsuperscript{2} & .90 \\
+F-test & F(3, 87) = 22.81, p $<$ .001 \\
 \bottomrule
 \end{tabular}
 
@@ -36,7 +36,7 @@ F-test & F(3, 81) = 288.78, p $<$ .001 \\
 
 Each B is the within-entity effect of a predictor, controlling for everything stable about each entity. p and the clustered CI assess it; within R\textsuperscript{2} is the variance explained by the time-varying predictors. Method: R plm package (Croissant \& Millo, 2008). Your significance threshold ($\alpha$) is 0.05.
 
-In a fixed-effects model, predictor leverage gave B=$-$5.57, p $<$ .001 (clustered SE).
+In a fixed-effects model, predictor investment gave B=0.13, p = .003 (clustered SE).
 
 Statistical basis: Fixed-effects (within) panel estimator (Croissant, Y., Millo, G. (2008). "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2), 1-43.).
 

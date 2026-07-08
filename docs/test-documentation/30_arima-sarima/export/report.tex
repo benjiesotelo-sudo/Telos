@@ -12,20 +12,32 @@
 \toprule
  & (1) \\
 \midrule
-sar1 & $-$0.48 \\
+ar1 & 0.48 \\
+ & (0.11) \\
+ & [0.27, 0.68] \\
+ar2 & 0.33 \\
+ & (0.09) \\
+ & [0.16, 0.50] \\
+sar1 & 1.06 \\
  & (0.12) \\
- & [$-$0.71, $-$0.25] \\
-drift & 1.67 \\
- & (0.04) \\
- & [1.60, 1.74] \\
+ & [0.81, 1.30] \\
+sar2 & $-$0.53 \\
+ & (0.12) \\
+ & [$-$0.76, $-$0.30] \\
+sma1 & $-$0.70 \\
+ & (0.08) \\
+ & [$-$0.87, $-$0.54] \\
+intercept & 2.49 \\
+ & (0.12) \\
+ & [2.25, 2.73] \\
 \midrule
-Num.Obs. & 72 \\
-$\sigma$\textsuperscript{2} & 21.66 \\
+Num.Obs. & 120 \\
+$\sigma$\textsuperscript{2} & 0.16 \\
 Ljung--Box p & $<$.001 \\
-AIC & 361.95 \\
-BIC & 368.23 \\
-Log.Lik. & $-$177.97 \\
-\multicolumn{2}{l}{Ljung--Box Q(23) = 169.43, p $<$ .001 (lag 24, residual autocorrelation)} \\
+AIC & 133.95 \\
+BIC & 153.46 \\
+Log.Lik. & $-$59.98 \\
+\multicolumn{2}{l}{Ljung--Box Q(5) = 23.82, p $<$ .001 (lag 10, residual autocorrelation)} \\
 \bottomrule
 \end{tabular}
 
@@ -33,18 +45,14 @@ Log.Lik. & $-$177.97 \\
 \toprule
 Period & Forecast & 80\% PI & 95\% PI \\
 \midrule
-1 & 226.60 & [220.64, 232.56] & [217.48, 235.72] \\
-2 & 236.15 & [230.19, 242.12] & [227.03, 245.27] \\
-3 & 241.39 & [235.43, 247.36] & [232.27, 250.51] \\
-4 & 244.45 & [238.49, 250.42] & [235.33, 253.57] \\
-5 & 252.00 & [246.03, 257.96] & [242.88, 261.12] \\
-6 & 248.34 & [242.38, 254.30] & [239.22, 257.46] \\
-7 & 242.50 & [236.53, 248.46] & [233.38, 251.62] \\
-8 & 240.04 & [234.08, 246.01] & [230.92, 249.17] \\
-9 & 234.35 & [228.39, 240.32] & [225.23, 243.47] \\
-10 & 234.30 & [228.34, 240.26] & [225.18, 243.42] \\
-11 & 234.14 & [228.18, 240.11] & [225.02, 243.27] \\
-12 & 237.35 & [231.39, 243.32] & [228.23, 246.47] \\
+1 & 1.79 & [1.27, 2.30] & [1.00, 2.58] \\
+2 & 1.73 & [1.15, 2.30] & [0.85, 2.60] \\
+3 & 1.51 & [0.87, 2.15] & [0.53, 2.49] \\
+4 & 1.66 & [0.98, 2.34] & [0.63, 2.70] \\
+5 & 2.12 & [1.34, 2.90] & [0.93, 3.31] \\
+6 & 2.25 & [1.43, 3.07] & [1.00, 3.50] \\
+7 & 2.06 & [1.20, 2.91] & [0.75, 3.37] \\
+8 & 2.31 & [1.43, 3.19] & [0.97, 3.66] \\
 \bottomrule
 \end{tabular}
 
@@ -54,7 +62,7 @@ Period & Forecast & 80\% PI & 95\% PI \\
 
 The chosen (p,d,q)(P,D,Q) orders describe the model. The Ljung--Box Q(df) row tests whether the residuals still carry autocorrelation up to the reported lag (a large p means none is detected); use it with AIC/BIC to judge fit. The forecast table and plot give predictions with uncertainty bands. AIC/BIC compare models only when fit to the same series with identical differencing (d, D) and transformation; lower is better, but they are relative, not absolute, measures of fit. Method: R forecast package (Hyndman \& Khandakar, 2008; Hyndman \& Athanasopoulos, Forecasting: Principles and Practice).
 
-An ARIMA(0,0,0)(1,1,0[12]) model was fit (AIC=361.95); the Ljung--Box test of residual autocorrelation gave p $<$ .001.
+An ARIMA(2,0,0)(2,0,1[4]) model was fit (AIC=133.95); the Ljung--Box test of residual autocorrelation gave p $<$ .001.
 
 Statistical basis: ARIMA/SARIMA model selection and forecasting (Hyndman R, Athanasopoulos G, Bergmeir C, et al. (2024). forecast: Forecasting functions for time series and linear models. R package.).
 

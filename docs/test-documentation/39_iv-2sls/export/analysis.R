@@ -8,19 +8,19 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Instrumental variables (IV / 2SLS) ===
-iv  <- ivreg::ivreg(wage ~ educ + exper | educ_iv + exper, data = d)
-ols <- lm(wage ~ educ + exper, data = d)
+iv  <- ivreg::ivreg(wage ~ education + experience | mother_education + experience, data = d)
+ols <- lm(wage ~ education + experience, data = d)
 V  <- sandwich::vcovHC(iv, type = 'HC1')
 Vo <- sandwich::vcovHC(ols, type = 'HC1')
 print(lmtest::coeftest(iv, vcov. = V))
 print(lmtest::coefci(iv, vcov. = V, level = 0.95))
 print(lmtest::coeftest(ols, vcov. = Vo))
 # First stage (instrument strength) — partial F = (t-stat)^2, one fit per endogenous regressor (R1 gap-fix)
-cat("\n== First stage:", "educ", "==\n"); print(summary(lm(educ ~ educ_iv + exper, data = d))$coefficients)
+cat("\n== First stage:", "education", "==\n"); print(summary(lm(education ~ mother_education + experience, data = d))$coefficients)
 # Diagnostics: weak instruments F, Wu-Hausman, Sargan (when over-identified)
 print(summary(iv, diagnostics = TRUE))
 # Figure — OLS vs 2SLS coefficient plot (endogenous regressors)
-terms <- c("educ")
+terms <- c("education")
 ivc <- lmtest::coefci(iv, vcov. = V, level = 0.95); olc <- lmtest::coefci(ols, vcov. = Vo, level = 0.95)
 pdat <- rbind(
   data.frame(term = terms, model = "OLS", est = unname(coef(ols)[terms]), lo = olc[terms, 1], hi = olc[terms, 2]),

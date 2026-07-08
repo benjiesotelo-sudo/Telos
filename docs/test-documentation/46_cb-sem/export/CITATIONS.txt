@@ -1,6 +1,34 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Aiken, L. S., West, S. G. (1991). Multiple Regression: Testing and Interpreting Interactions. Sage.
+  Appelbaum, M., Cooper, H., Kline, R. B., Mayo-Wilson, E., Nezu, A. M., Rao, S. M. (2018). "Journal article reporting standards for quantitative research in psychology." American Psychologist, 73(1), 3-25. https://doi.org/10.1037/amp0000191
+  Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50. https://doi.org/10.1177/002224378101800104
+  Hu, L., Bentler, P. M. (1999). "Cutoff criteria for fit indexes in covariance structure analysis: Conventional criteria versus new alternatives." Structural Equation Modeling, 6(1), 1-55. https://doi.org/10.1080/10705519909540118
+  Kline, R. B. (2023). Principles and Practice of Structural Equation Modeling (5th ed.). Guilford Press.
+  Lin, G. C., Wen, Z., Marsh, H. W., Lin, H. S. (2010). "Structural equation models of latent interactions: Clarification of orthogonalizing and double-mean-centering strategies." Structural Equation Modeling, 17(3), 374-391.
+  MacCallum, R. C., Browne, M. W., Sugawara, H. M. (1996). "Power analysis and determination of sample size for covariance structure modeling." Psychological Methods, 1(2), 130-149. https://doi.org/10.1037/1082-989X.1.2.130
+  Marsh, H. W., Hau, K. T., Wen, Z. (2004). "In search of golden rules: Comment on hypothesis-testing approaches to setting cutoff values for fit indices." Structural Equation Modeling, 11(3), 320-341. https://doi.org/10.1207/s15328007sem1103_2
+  Marsh, H. W., Wen, Z., Hau, K. T. (2004). "Structural equation models of latent interactions: evaluation of alternative estimation strategies and indicator construction." Psychological Methods, 9(3), 275-300.
+  McNeish, D. (2018). "Thanks coefficient alpha, we'll take it from here." Psychological Methods, 23(3), 412-433. https://doi.org/10.1037/met0000144
+  Rosseel, Y. (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36. https://doi.org/10.18637/jss.v048.i02
+
+3. METHODS PARAGRAPH
+=====================
+  CB-SEM: The model fit well (CFI=1.00, RMSEA=.01, SRMR=.03); the path from esg to intent gave β=.43, p < .001. (Kline, 2023; Appelbaum, 2018)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,31 +94,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-CB-SEM
-  Why this test: Recommended when you test a theory-specified measurement + structural model among latent constructs (confirmatory, not exploratory).
-    Kline, R. B. (2023). Principles and Practice of Structural Equation Modeling (5th ed.). Guilford Press.
-    Appelbaum, M., Cooper, H., Kline, R. B., Mayo-Wilson, E., Nezu, A. M., Rao, S. M. (2018). "Journal article reporting standards for quantitative research in psychology." American Psychologist, 73(1), 3-25. https://doi.org/10.1037/amp0000191
-  Statistical basis:
-    Model estimation (lavaan)
-      Rosseel, Y. (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36. https://doi.org/10.18637/jss.v048.i02
-    Fit-index cutoffs (CFI/TLI ≥ .95, RMSEA ≤ .06, SRMR ≤ .08)
-      Hu, L., Bentler, P. M. (1999). "Cutoff criteria for fit indexes in covariance structure analysis: Conventional criteria versus new alternatives." Structural Equation Modeling, 6(1), 1-55. https://doi.org/10.1080/10705519909540118
-    Cutoffs are guidelines, not pass/fail gates
-      Marsh, H. W., Hau, K. T., Wen, Z. (2004). "In search of golden rules: Comment on hypothesis-testing approaches to setting cutoff values for fit indices." Structural Equation Modeling, 11(3), 320-341. https://doi.org/10.1207/s15328007sem1103_2
-    RMSEA 90% confidence interval
-      MacCallum, R. C., Browne, M. W., Sugawara, H. M. (1996). "Power analysis and determination of sample size for covariance structure modeling." Psychological Methods, 1(2), 130-149. https://doi.org/10.1037/1082-989X.1.2.130
-    AVE / Fornell-Larcker discriminant validity
-      Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50. https://doi.org/10.1177/002224378101800104
-    Reliability preference (ω over α)
-      McNeish, D. (2018). "Thanks coefficient alpha, we'll take it from here." Psychological Methods, 23(3), 412-433. https://doi.org/10.1037/met0000144
-    Reporting standard (APA JARS-Quant)
-      Appelbaum, M., Cooper, H., Kline, R. B., Mayo-Wilson, E., Nezu, A. M., Rao, S. M. (2018). "Journal article reporting standards for quantitative research in psychology." American Psychologist, 73(1), 3-25. https://doi.org/10.1037/amp0000191
-    Double-mean-centering for latent moderation (semTools::indProd)
-      Lin, G. C., Wen, Z., Marsh, H. W., Lin, H. S. (2010). "Structural equation models of latent interactions: Clarification of orthogonalizing and double-mean-centering strategies." Structural Equation Modeling, 17(3), 374-391.
-    Mean-centering strategy for latent interactions (precursor)
-      Marsh, H. W., Wen, Z., Hau, K. T. (2004). "Structural equation models of latent interactions: evaluation of alternative estimation strategies and indicator construction." Psychological Methods, 9(3), 275-300.
-    Simple slopes at -1SD/mean/+1SD
-      Aiken, L. S., West, S. G. (1991). Multiple Regression: Testing and Interpreting Interactions. Sage.

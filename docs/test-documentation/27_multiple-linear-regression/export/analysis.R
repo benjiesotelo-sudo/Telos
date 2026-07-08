@@ -6,11 +6,10 @@ library(ggplot2)
 library(parameters)
 library(car)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["group"]] <- factor(d[["group"]])
-d[["method"]] <- factor(d[["method"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
 
 # === 01 · Multiple linear regression ===
-m <- lm(post_score ~ pre_score + age + group + method, data = d)
+m <- lm(exam_score ~ pretest_score + study_hours_per_week + teaching_method, data = d)
 modelsummary(list("(1)" = m), statistic = c("std.error", "conf.int"), stars = FALSE, fmt = 3, gof_map = c("nobs", "r.squared", "adj.r.squared", "aic", "bic", "logLik", "rmse"), output = "markdown")
 print(parameters::standardise_parameters(m, method = "refit", ci = 0.95))
 print(car::vif(m))

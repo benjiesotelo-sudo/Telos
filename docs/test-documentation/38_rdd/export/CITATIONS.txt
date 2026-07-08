@@ -1,6 +1,25 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Calonico S, Cattaneo MD, Farrell MH, Titiunik R (2017). "rdrobust: Software for Regression-Discontinuity Designs." The Stata Journal, 17(2), 372-404. https://CRAN.R-project.org/package=rdrobust
+  Calonico, S., Cattaneo, M. D., Titiunik, R. (2014). "Robust Nonparametric Confidence Intervals for Regression-Discontinuity Designs." Econometrica, 82(6), 2295-2326.
+
+3. METHODS PARAGRAPH
+=====================
+  Regression discontinuity (RDD): At the cutoff, the treatment effect was 0.35, 95% CI [0.21, 0.49], p < .001. (Calonico S, 2017)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,14 +85,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Regression discontinuity (RDD)
-  Why this test: Recommended when you estimate a treatment effect at a cutoff that assigns treatment.
-    Calonico S, Cattaneo MD, Farrell MH, Titiunik R (2017). "rdrobust: Software for Regression-Discontinuity Designs." The Stata Journal, 17(2), 372-404. https://CRAN.R-project.org/package=rdrobust
-  Statistical basis:
-    Robust bias-corrected local-polynomial regression discontinuity inference
-      Calonico, S., Cattaneo, M. D., Titiunik, R. (2014). "Robust Nonparametric Confidence Intervals for Regression-Discontinuity Designs." Econometrica, 82(6), 2295-2326.
-    Implementation (rdrobust package)
-      Calonico S, Cattaneo MD, Farrell MH, Titiunik R (2017). "rdrobust: Software for Regression-Discontinuity Designs." The Stata Journal, 17(2), 372-404. https://CRAN.R-project.org/package=rdrobust

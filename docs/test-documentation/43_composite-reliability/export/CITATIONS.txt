@@ -1,6 +1,27 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Bagozzi, R. P., Yi, Y. (1988). "On the evaluation of structural equation models." Journal of the Academy of Marketing Science, 16(1), 74-94.
+  Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50. https://doi.org/10.1177/002224378101800104
+  McNeish, D. (2018). "Thanks coefficient alpha, we'll take it from here." Psychological Methods, 23(3), 412-433. https://doi.org/10.1037/met0000144
+  Nunnally, J. C. (1978). Psychometric Theory (2nd ed.). McGraw-Hill.
+
+3. METHODS PARAGRAPH
+=====================
+  Composite reliability (CR): Composite reliability for esg was satisfactory (CR = .86 ≥ .70). (Nunnally, 1978)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,18 +87,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Composite reliability (CR)
-  Why this test: Recommended when you assess how reliably a set of items measures its latent construct.
-    Nunnally, J. C. (1978). Psychometric Theory (2nd ed.). McGraw-Hill.
-  Statistical basis:
-    CR (composite reliability) ≥ .70 acceptable
-      Nunnally, J. C. (1978). Psychometric Theory (2nd ed.). McGraw-Hill.
-    CR ≥ .70 threshold, independent corroboration
-      Bagozzi, R. P., Yi, Y. (1988). "On the evaluation of structural equation models." Journal of the Academy of Marketing Science, 16(1), 74-94.
-    AVE shown alongside for convergent-validity reference (≥ .50)
-      Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50. https://doi.org/10.1177/002224378101800104
-    α retained as a secondary/legacy coefficient (lower bound when loadings differ)
-      McNeish, D. (2018). "Thanks coefficient alpha, we'll take it from here." Psychological Methods, 23(3), 412-433. https://doi.org/10.1037/met0000144

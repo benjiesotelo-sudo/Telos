@@ -8,7 +8,7 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Cronbach's alpha ===
-items <- c("x1", "x2", "x3")
+items <- c("esg1", "esg2", "esg3", "esg4")
 d_items <- d[, items, drop = FALSE]
 
 # ---- Cronbach's α ----
@@ -37,7 +37,7 @@ omega_ci <- quantile(boot_omegas, c(0.025, 0.975), na.rm = TRUE)
 cat("omega 95% CI:", omega_ci[1], omega_ci[2], "\n")
 
 # ---- Item-total bar chart ----
-items_display <- c("x1", "x2", "x3")
+items_display <- c("esg1", "esg2", "esg3", "esg4")
 r_drop <- a_obj$item.stats$r.drop
 d_plot <- data.frame(item = factor(items_display, levels = rev(items_display)), r = r_drop)
 print(ggplot2::ggplot(d_plot, ggplot2::aes(x = r, y = item)) +

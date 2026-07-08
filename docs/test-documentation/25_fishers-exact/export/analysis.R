@@ -3,11 +3,11 @@
 # install.packages(c("ggplot2"))
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["passed"]] <- factor(d[["passed"]])
 d[["gender"]] <- factor(d[["gender"]])
+d[["passed_course"]] <- factor(d[["passed_course"]])
 
 # === 01 · Fisher's exact ===
-sub <- d[!is.na(d[["passed"]]) & trimws(d[["passed"]]) != "" & !is.na(d[["gender"]]) & trimws(d[["gender"]]) != "", ]
-tab <- table(sub[["passed"]], sub[["gender"]])
+sub <- d[!is.na(d[["gender"]]) & trimws(d[["gender"]]) != "" & !is.na(d[["passed_course"]]) & trimws(d[["passed_course"]]) != "", ]
+tab <- table(sub[["gender"]], sub[["passed_course"]])
 print(fisher.test(tab, alternative = "two.sided"))
-print(ggplot(sub, aes(passed, fill = gender)) + geom_bar(position = "dodge"))
+print(ggplot(sub, aes(gender, fill = passed_course)) + geom_bar(position = "dodge"))

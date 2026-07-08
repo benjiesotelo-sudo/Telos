@@ -6,10 +6,11 @@ library(ggplot2)
 library(MASS)
 library(performance)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["group"]] <- factor(d[["group"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
+d[["gender"]] <- factor(d[["gender"]])
 
 # === 01 · Poisson / negative binomial ===
-m <- glm(complaints ~ age + group + offset(log(months_observed)), family = poisson, data = d)
+m <- glm(absences ~ teaching_method + gender + offset(log(weeks_enrolled)), family = poisson, data = d)
 modelsummary(list("Odds ratio" = m), exponentiate = TRUE, statistic = "conf.int", stars = FALSE, fmt = 3, gof_map = c("nobs", "r.squared", "adj.r.squared", "aic", "bic", "logLik", "rmse"), output = "markdown")
 # Poisson dispersion ratio (overdispersion)
 print(performance::check_overdispersion(m)$dispersion_ratio)

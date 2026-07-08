@@ -12,9 +12,9 @@
 \toprule
 Test & Statistic & Lag & p & Conclusion \\
 \midrule
-ADF & $-$8.38 & 4 & .010 & stationary \\
-KPSS & 1.81 & 3 & $<$ .010 & non-stationary \\
-PP & $-$26.93 & 3 & $<$ .010 & stationary \\
+ADF & $-$3.83 & 4 & .020 & stationary \\
+KPSS & 0.08 & 4 & $>$ .100 & stationary \\
+PP & $-$13.17 & 4 & .354 & non-stationary \\
 \bottomrule
 \end{tabular}
 
@@ -24,7 +24,7 @@ PP & $-$26.93 & 3 & $<$ .010 & stationary \\
 
 For ADF, a small p means stationary; for KPSS, a small p means non-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value. Method: R tseries package ADF/KPSS/PP (Dickey \& Fuller; Kwiatkowski, Phillips, Schmidt \& Shin, 1992; Phillips \& Perron, 1988). Your significance threshold ($\alpha$) is 0.05.
 
-ADF gave $\tau$=$-$8.38, p = .010; KPSS gave LM=1.81, p $<$ .010; Phillips--Perron gave Z=$-$26.93, p $<$ .010 ($\alpha$=0.05).
+ADF gave $\tau$=$-$3.83, p = .020; KPSS gave LM=0.08, p $>$ .100; Phillips--Perron gave Z=$-$13.17, p = .354 ($\alpha$=0.05).
 
 Statistical basis: Augmented Dickey-Fuller unit-root test (Dickey, D. A., Fuller, W. A. (1979). "Distribution of the estimators for autoregressive time series with a unit root." Journal of the American Statistical Association, 74(366a), 427-431.); KPSS stationarity test (Kwiatkowski, D., Phillips, P. C. B., Schmidt, P., Shin, Y. (1992). "Testing the null hypothesis of stationarity against the alternative of a unit root." Journal of Econometrics, 54(1-3), 159-178.); Phillips-Perron unit-root test (Phillips, P. C. B., Perron, P. (1988). "Testing for a unit root in time series regression." Biometrika, 75(2), 335-346.); Implementation (tseries package) (Trapletti A, Hornik K (2024). tseries: Time Series Analysis and Computational Finance. R package.).
 

@@ -4,19 +4,19 @@
 library(emmeans)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["group"]] <- factor(d[["group"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
 
 # === 01 · MANCOVA ===
 # covariates FIRST, factor(s) LAST -> factor row matches car::Manova Type II (spike-proven)
-m <- manova(cbind(d[["outcome"]], d[["outcome2"]]) ~ d[["baseline"]] + factor(d[["group"]]))
+m <- manova(cbind(d[["exam_score"]], d[["retention_score"]]) ~ d[["pretest_score"]] + factor(d[["teaching_method"]]))
 print(summary(m, test = "Pillai"))
-print(summary(aov(d[["outcome"]] ~ d[["baseline"]] + factor(d[["group"]]))))
-print(summary(aov(d[["outcome2"]] ~ d[["baseline"]] + factor(d[["group"]]))))
-agg <- do.call(rbind, lapply(list(c(d[["outcome"]]), c(d[["outcome2"]])), function(v) {
-  d2 <- data.frame(y = v, cov_1 = d[["baseline"]], fac_1 = factor(d[["group"]]))
+print(summary(aov(d[["exam_score"]] ~ d[["pretest_score"]] + factor(d[["teaching_method"]]))))
+print(summary(aov(d[["retention_score"]] ~ d[["pretest_score"]] + factor(d[["teaching_method"]]))))
+agg <- do.call(rbind, lapply(list(c(d[["exam_score"]]), c(d[["retention_score"]])), function(v) {
+  d2 <- data.frame(y = v, cov_1 = d[["pretest_score"]], fac_1 = factor(d[["teaching_method"]]))
   lm_fit <- lm(y ~ cov_1 + fac_1, data = d2)
   em <- as.data.frame(emmeans::emmeans(lm_fit, ~ fac_1))
   data.frame(g = as.character(em[["fac_1"]]), m = em$emmean, lo = em$lower.CL, hi = em$upper.CL) }))
-agg$dv <- rep(c("outcome", "outcome2"), each = nlevels(factor(d[["group"]])))
+agg$dv <- rep(c("exam_score", "retention_score"), each = nlevels(factor(d[["teaching_method"]])))
 print(ggplot(agg, aes(g, m)) + geom_pointrange(aes(ymin = lo, ymax = hi), colour = "#0c447c") +
   facet_wrap(~dv, scales = "free_y") + labs(x = NULL, y = NULL))

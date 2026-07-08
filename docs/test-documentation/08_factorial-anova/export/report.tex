@@ -12,12 +12,12 @@
 \toprule
 Factor A $\times$ B & N & Mean & Std. Dev. \\
 \midrule
-control $\times$ f & 10 & 31.14 & 8.22 \\
-drug\_a $\times$ f & 10 & 34.69 & 7.22 \\
-drug\_b $\times$ f & 10 & 33.66 & 8.27 \\
-control $\times$ m & 10 & 33.81 & 6.79 \\
-drug\_a $\times$ m & 10 & 33.00 & 6.86 \\
-drug\_b $\times$ m & 10 & 41.96 & 4.65 \\
+Blended $\times$ Female & 40 & 66.63 & 6.73 \\
+Flipped $\times$ Female & 40 & 70.88 & 6.55 \\
+Lecture $\times$ Female & 40 & 59.58 & 7.45 \\
+Blended $\times$ Male & 40 & 64.36 & 6.86 \\
+Flipped $\times$ Male & 40 & 70.62 & 6.69 \\
+Lecture $\times$ Male & 40 & 61.34 & 7.67 \\
 \bottomrule
 \end{tabular}
 
@@ -25,9 +25,19 @@ drug\_b $\times$ m & 10 & 41.96 & 4.65 \\
 \toprule
 Source & SS & df & MS & F & p & partial $\eta$\textsuperscript{2} [95\% CI] \\
 \midrule
-group & 307.07 & 2 & 153.53 & 3.04 & .056 & 0.10 [0.00, 1.00] \\
-gender & 143.53 & 1 & 143.53 & 2.84 & .098 & 0.05 [0.00, 1.00] \\
-group $\times$ gender & 250.84 & 2 & 125.42 & 2.48 & .093 & 0.08 [0.00, 1.00] \\
+teaching\_method & 4234.40 & 2 & 2117.20 & 43.14 & $<$.001 & 0.27 [0.19, 1.00] \\
+gender & 3.85 & 1 & 3.85 & 0.08 & .780 & 0.00 [0.00, 1.00] \\
+teaching\_method $\times$ gender & 162.25 & 2 & 81.12 & 1.65 & .194 & 0.01 [0.00, 1.00] \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lllll}
+\toprule
+Contrast & Mdiff & SE & padj & 95\% CI \\
+\midrule
+Blended - Flipped & $-$5.26 & 1.11 & $<$.001 & [$-$7.87, $-$2.64] \\
+Blended - Lecture & 5.03 & 1.11 & $<$.001 & [2.42, 7.64] \\
+Flipped - Lecture & 10.29 & 1.11 & $<$.001 & [7.68, 12.90] \\
 \bottomrule
 \end{tabular}
 
@@ -35,7 +45,7 @@ group $\times$ gender & 250.84 & 2 & 125.42 & 2.48 & .093 & 0.08 [0.00, 1.00] \\
 
 Each factor's F/p is its main effect; the A$\times$B row tests whether the effect of one factor depends on the other. A significant interaction usually takes priority --- read it from the interaction plot before the main effects. A significant effect for any factor with 3+ levels tells you the levels differ somewhere, not which ones --- use the post-hoc / simple-effects (emmeans) table to find the specific pairs. Your significance threshold ($\alpha$) is 0.05.
 
-A two-way ANOVA gave A$\times$B interaction F(2,54)=2.48, p = .093, partial $\eta$\textsuperscript{2}=.08 [.00, 1.00].
+A two-way ANOVA gave A$\times$B interaction F(2,234)=1.65, p = .194, partial $\eta$\textsuperscript{2}=.01 [.00, 1.00].
 
 Statistical basis: Factorial ANOVA (main effects + interaction) (Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver \& Boyd.); Estimated marginal means for interaction / simple-effects follow-up (Lenth RV (2024). emmeans: Estimated Marginal Means, aka Least-Squares Means. R package.); $\eta$\textsuperscript{2} effect-size benchmarks (Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.).
 

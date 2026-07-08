@@ -12,9 +12,9 @@
 \toprule
 Covariate & Std. mean diff (pre) & Std. mean diff (post) & Variance ratio \\
 \midrule
-exper & $-$0.04 & $-$0.10 & 1.10 \\
-wage & 1.07 & 0.23 & 1.14 \\
-ability & 1.36 & 0.37 & 1.28 \\
+age & $-$0.14 & 0.07 & 1.03 \\
+education\_years & $-$0.32 & 0.00 & 0.97 \\
+prior\_earnings & $-$0.32 & $-$0.06 & 1.04 \\
 \bottomrule
 \end{tabular}
 
@@ -22,15 +22,15 @@ ability & 1.36 & 0.37 & 1.28 \\
 \toprule
  & (1) \\
 \midrule
-Treatment (ATT) & 5.88 \\
- & (0.25) \\
- & [5.37, 6.38] \\
+Treatment (ATT) & 1948.76 \\
+ & (549.28) \\
+ & [856.07, 3041.46] \\
 \midrule
-Num.Obs. & 134 \\
-Treated (matched) & 67 \\
-Control (matched) & 67 \\
+Num.Obs. & 84 \\
+Treated (matched) & 42 \\
+Control (matched) & 42 \\
 \multicolumn{2}{l}{Common support: 0 treated unit(s) dropped (off common support)} \\
-\multicolumn{2}{l}{Propensity overlap: treated [0.11, 0.82], control [0.03, 0.78]} \\
+\multicolumn{2}{l}{Propensity overlap: treated [0.06, 0.30], control [0.05, 0.30]} \\
 \bottomrule
 \end{tabular}
 
@@ -38,7 +38,7 @@ Control (matched) & 67 \\
 
 First confirm balance --- matched groups should look alike on the covariates (small standardized differences). Then read the ATT as the treatment effect for the treated, with p/CI. The common-support rows tell you how many treated units were dropped for lacking a comparable control and where the two groups’ propensity scores overlap --- good overlap with few drops means the ATT generalizes to most of the treated. PSM only balances the covariates you measured and included, so the causal reading also assumes no important confounder was left unmeasured (ignorability) --- an assumption that cannot be verified from the data. Method: R MatchIt package (Ho, Imai, King \& Stuart, 2011); balance diagnostics (Austin, 2011). Your significance threshold ($\alpha$) is 0.05.
 
-After propensity-score matching, the ATT was 5.88, 95\% CI [5.37, 6.38], p $<$ .001.
+After propensity-score matching, the ATT was 1948.76, 95\% CI [856.07, 3041.46], p $<$ .001.
 
 Statistical basis: Propensity score matching (Ho DE, Imai K, King G, Stuart EA (2011). "MatchIt: Nonparametric Preprocessing for Parametric Causal Inference." Journal of Statistical Software, 42(8), 1-28.); Covariate-balance diagnostics (Austin, P. C. (2011). "An Introduction to Propensity Score Methods for Reducing the Effects of Confounding in Observational Studies." Multivariate Behavioral Research, 46(3), 399-424.).
 

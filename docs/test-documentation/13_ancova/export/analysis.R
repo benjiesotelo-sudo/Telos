@@ -6,10 +6,10 @@ library(effectsize)
 library(emmeans)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["group"]] <- factor(d[["group"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
 
 # === 01 · ANCOVA ===
-ac <- data.frame(y = d[["outcome"]], cov_1 = d[["baseline"]], fac_1 = factor(d[["group"]]))
+ac <- data.frame(y = d[["exam_score"]], cov_1 = d[["pretest_score"]], fac_1 = factor(d[["teaching_method"]]))
 ctr <- list(fac_1 = "contr.sum")
 m <- lm(y ~ cov_1 + fac_1, data = ac, contrasts = ctr)
 a3 <- car::Anova(m, type = 3)

@@ -1,6 +1,28 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Bagozzi, R. P., Yi, Y. (1988). "On the evaluation of structural equation models." Journal of the Academy of Marketing Science, 16(1), 74-94.
+  Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50. https://doi.org/10.1177/002224378101800104
+  Henseler, J., Ringle, C. M., Sarstedt, M. (2015). "A new criterion for assessing discriminant validity in variance-based structural equation modeling." Journal of the Academy of Marketing Science, 43(1), 115-135. https://doi.org/10.1007/s11747-014-0403-8
+  McNeish, D. (2018). "Thanks coefficient alpha, we'll take it from here." Psychological Methods, 23(3), 412-433. https://doi.org/10.1037/met0000144
+  Nunnally, J. C. (1978). Psychometric Theory (2nd ed.). McGraw-Hill.
+
+3. METHODS PARAGRAPH
+=====================
+  Average variance extracted (AVE): Convergent validity was supported, all AVE ≥ .50 and CR ≥ .70; discriminant validity held, all HTMT < .85. (Fornell, 1981)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,20 +88,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Average variance extracted (AVE)
-  Why this test: Recommended when you assess how well a set of indicators converges on its intended latent construct and is distinct from other constructs.
-    Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50. https://doi.org/10.1177/002224378101800104
-  Statistical basis:
-    AVE (average variance extracted) convergent validity, ≥ .50
-      Fornell, C., Larcker, D. F. (1981). "Evaluating structural equation models with unobservable variables and measurement error." Journal of Marketing Research, 18(1), 39-50. https://doi.org/10.1177/002224378101800104
-    CR (composite reliability) ≥ .70 acceptable
-      Nunnally, J. C. (1978). Psychometric Theory (2nd ed.). McGraw-Hill.
-    CR ≥ .70 threshold, independent corroboration
-      Bagozzi, R. P., Yi, Y. (1988). "On the evaluation of structural equation models." Journal of the Academy of Marketing Science, 16(1), 74-94.
-    HTMT < .85 discriminant validity (primary criterion)
-      Henseler, J., Ringle, C. M., Sarstedt, M. (2015). "A new criterion for assessing discriminant validity in variance-based structural equation modeling." Journal of the Academy of Marketing Science, 43(1), 115-135. https://doi.org/10.1007/s11747-014-0403-8
-    Reliability preference (ω over α)
-      McNeish, D. (2018). "Thanks coefficient alpha, we'll take it from here." Psychological Methods, 23(3), 412-433. https://doi.org/10.1037/met0000144

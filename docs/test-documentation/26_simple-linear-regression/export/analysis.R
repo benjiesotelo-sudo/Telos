@@ -6,6 +6,6 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Simple linear regression ===
-m <- lm(post_score ~ pre_score, data = d)
+m <- lm(exam_score ~ study_hours_per_week, data = d)
 modelsummary(list("(1)" = m), statistic = c("std.error", "conf.int"), stars = FALSE, fmt = 3, gof_map = c("nobs", "r.squared", "adj.r.squared", "aic", "bic", "logLik", "rmse"), output = "markdown")
-print(ggplot(d, aes(pre_score, post_score)) + geom_point() + geom_smooth(method = "lm"))
+print(ggplot(d, aes(study_hours_per_week, exam_score)) + geom_point() + geom_smooth(method = "lm"))

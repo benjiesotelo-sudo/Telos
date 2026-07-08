@@ -5,11 +5,11 @@ library(rdrobust)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Regression discontinuity (RDD) ===
-rd <- rdrobust::rdrobust(d$score, d$running_var, c = 50, p = 1, level = 95)
+rd <- rdrobust::rdrobust(d$later_gpa, d$entrance_score, c = 60, p = 1, level = 95)
 print(summary(rd))
 # Bandwidth-sensitivity re-estimates at half/double the MSE-optimal h (R1 gap-fix)
 h0 <- rd$bws[1, 1]
-print(summary(rdrobust::rdrobust(d$score, d$running_var, c = 50, p = 1, level = 95, h = h0 / 2)))
-print(summary(rdrobust::rdrobust(d$score, d$running_var, c = 50, p = 1, level = 95, h = h0 * 2)))
+print(summary(rdrobust::rdrobust(d$later_gpa, d$entrance_score, c = 60, p = 1, level = 95, h = h0 / 2)))
+print(summary(rdrobust::rdrobust(d$later_gpa, d$entrance_score, c = 60, p = 1, level = 95, h = h0 * 2)))
 # Figure — RD plot (binned scatter + fitted lines either side of the cutoff)
-print(rdrobust::rdplot(d$score, d$running_var, c = 50, hide = TRUE)$rdplot)
+print(rdrobust::rdplot(d$later_gpa, d$entrance_score, c = 60, hide = TRUE)$rdplot)

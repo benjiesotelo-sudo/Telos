@@ -4,10 +4,10 @@
 library(modelsummary)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["group"]] <- factor(d[["group"]])
+d[["teaching_method"]] <- factor(d[["teaching_method"]])
 
 # === 01 · Frequencies & cross-tabs ===
-sub <- d[!is.na(d[["group"]]) & trimws(d[["group"]]) != "", ]
-sub[["group"]] <- factor(sub[["group"]])
-print(datasummary(group ~ N + Percent(), data = sub))
-print(ggplot(sub, aes(group)) + geom_bar())
+sub <- d[!is.na(d[["teaching_method"]]) & trimws(d[["teaching_method"]]) != "", ]
+sub[["teaching_method"]] <- factor(sub[["teaching_method"]])
+print(datasummary(teaching_method ~ N + Percent(), data = sub))
+print(ggplot(sub, aes(teaching_method)) + geom_bar())

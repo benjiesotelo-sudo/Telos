@@ -9,17 +9,17 @@ d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Propensity score matching ===
 # code treatment to 0/1 by the positive level
-md0 <- d; md0$treat <- ifelse(as.character(d$enroll) == "1", 1, 0)
-m <- MatchIt::matchit(treat ~ exper + wage + ability, data = md0, method = 'nearest', ratio = 1)
+md0 <- d; md0$treat <- ifelse(as.character(d$enrolled) == "1", 1, 0)
+m <- MatchIt::matchit(treat ~ age + education_years + prior_earnings, data = md0, method = 'nearest', ratio = 1)
 print(summary(m))  # covariate balance (before / after)
 # ATT via weighted lm on matched data with subclass-clustered SE
 md <- MatchIt::match.data(m)
-att <- lm(health ~ treat, data = md, weights = md$weights)
+att <- lm(post_earnings ~ treat, data = md, weights = md$weights)
 V <- sandwich::vcovCL(att, cluster = md$subclass)
 print(lmtest::coeftest(att, vcov. = V))
 print(lmtest::coefci(att, vcov. = V, level = 0.95))
 # Figure — love plot (|SMD| per covariate, unmatched vs matched, ref line at 0.1)
-sm <- summary(m); covn <- c("exper", "wage", "ability")
+sm <- summary(m); covn <- c("age", "education_years", "prior_earnings")
 lp <- data.frame(cov = rep(covn, 2),
   smd = abs(c(sm$sum.all[covn, "Std. Mean Diff."], sm$sum.matched[covn, "Std. Mean Diff."])),
   sample = factor(rep(c("Unmatched", "Matched"), each = length(covn)), levels = c("Unmatched", "Matched")))

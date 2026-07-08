@@ -7,12 +7,12 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Paired t-test ===
-print(psych::describe(data.frame(a = d[["pre"]], b = d[["post"]])))
-res <- t.test(d[["pre"]], d[["post"]], paired = TRUE, conf.level = 0.95, alternative = "two.sided")
+print(psych::describe(data.frame(a = d[["sleep_baseline"]], b = d[["sleep_high"]])))
+res <- t.test(d[["sleep_baseline"]], d[["sleep_high"]], paired = TRUE, conf.level = 0.95, alternative = "two.sided")
 print(res)
-effectsize::cohens_d(d[["pre"]], d[["post"]], paired = TRUE)
-pl <- data.frame(case = rep(seq_along(d[["pre"]]), 2),
-  cond = factor(rep(c("pre", "post"), each = length(d[["pre"]])), levels = c("pre", "post")),
-  value = c(d[["pre"]], d[["post"]]))
+effectsize::cohens_d(d[["sleep_baseline"]], d[["sleep_high"]], paired = TRUE)
+pl <- data.frame(case = rep(seq_along(d[["sleep_baseline"]]), 2),
+  cond = factor(rep(c("sleep_baseline", "sleep_high"), each = length(d[["sleep_baseline"]])), levels = c("sleep_baseline", "sleep_high")),
+  value = c(d[["sleep_baseline"]], d[["sleep_high"]]))
 print(ggplot(pl, aes(cond, value, group = case)) +
   geom_line(colour = "#9cc2ec") + geom_point(colour = "#0c447c") + labs(x = NULL, y = NULL))

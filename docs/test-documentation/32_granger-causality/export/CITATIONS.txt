@@ -1,6 +1,25 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Granger, C. W. J. (1969). "Investigating causal relations by econometric models and cross-spectral methods." Econometrica, 37(3), 424-438.
+  Zeileis A, Hothorn T (2002). "Diagnostic Checking in Regression Relationships." R News, 2(3), 7-10. https://CRAN.R-project.org/package=lmtest
+
+3. METHODS PARAGRAPH
+=====================
+  Granger causality: Granger test X→Y: F(4,111)=122.15, p < .001; Y→X: F(4,111)=3.42, p = .011 (lag=4). (Granger, 1969)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,14 +85,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Granger causality
-  Why this test: Recommended when you test whether past values of one series help predict another series.
-    Granger, C. W. J. (1969). "Investigating causal relations by econometric models and cross-spectral methods." Econometrica, 37(3), 424-438.
-  Statistical basis:
-    Granger causality F-test
-      Granger, C. W. J. (1969). "Investigating causal relations by econometric models and cross-spectral methods." Econometrica, 37(3), 424-438.
-    Implementation (lmtest::grangertest)
-      Zeileis A, Hothorn T (2002). "Diagnostic Checking in Regression Relationships." R News, 2(3), 7-10. https://CRAN.R-project.org/package=lmtest

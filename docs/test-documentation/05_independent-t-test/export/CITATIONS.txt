@@ -1,6 +1,28 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Brown, M. B., Forsythe, A. B. (1974). "Robust tests for the equality of variances." Journal of the American Statistical Association, 69(346), 364-367. https://doi.org/10.2307/2285659
+  Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.
+  Levene, H. (1960). "Robust tests for equality of variances." In I. Olkin (Ed.), Contributions to Probability and Statistics (pp. 278-292). Stanford University Press.
+  Student (1908). "The probable error of a mean." Biometrika, 6(1), 1-25. https://doi.org/10.1093/biomet/6.1.1
+  Welch, B. L. (1947). "The generalization of Student's problem when several different population variances are involved." Biometrika, 34(1-2), 28-35. https://doi.org/10.1093/biomet/34.1-2.28
+
+3. METHODS PARAGRAPH
+=====================
+  Independent t-test: An independent-samples t-test compared Female (M=65.7, SD=8.3) and Male (M=65.4, SD=8.0), t(237.73)=0.24, p = .810, d=0.03 [−0.22, 0.28]. (Student, 1908; Welch, 1947)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,21 +88,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Independent t-test
-  Why this test: Recommended when you compare the means of two independent groups on one numeric outcome.
-    Student (1908). "The probable error of a mean." Biometrika, 6(1), 1-25. https://doi.org/10.1093/biomet/6.1.1
-    Welch, B. L. (1947). "The generalization of Student's problem when several different population variances are involved." Biometrika, 34(1-2), 28-35. https://doi.org/10.1093/biomet/34.1-2.28
-  Statistical basis:
-    Independent-samples t-test (pooled variance)
-      Student (1908). "The probable error of a mean." Biometrika, 6(1), 1-25. https://doi.org/10.1093/biomet/6.1.1
-    Welch's correction (unequal variances, the app's default)
-      Welch, B. L. (1947). "The generalization of Student's problem when several different population variances are involved." Biometrika, 34(1-2), 28-35. https://doi.org/10.1093/biomet/34.1-2.28
-    Cohen's d effect-size benchmarks (.2/.5/.8)
-      Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.
-    Levene's test for equal variances (Brown-Forsythe median-centered variant)
-      Levene, H. (1960). "Robust tests for equality of variances." In I. Olkin (Ed.), Contributions to Probability and Statistics (pp. 278-292). Stanford University Press.
-    Brown-Forsythe median-centered variant of the homogeneity-of-variance test
-      Brown, M. B., Forsythe, A. B. (1974). "Robust tests for the equality of variances." Journal of the American Statistical Association, 69(346), 364-367. https://doi.org/10.2307/2285659

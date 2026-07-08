@@ -12,20 +12,22 @@
 \toprule
  & Log-count (B) & IRR \\
 \midrule
-(Intercept) & $-$1.46 & 0.23 \\
- & (0.23) & [0.15, 0.36] \\
-age & 0.01 & 1.01 \\
- & (0.005) & [1.00, 1.02] \\
-group: b & 0.17 & 1.19 \\
- & (0.14) & [0.90, 1.56] \\
+(Intercept) & $-$1.09 & 0.34 \\
+ & (0.06) & [0.30, 0.38] \\
+teaching\_method: Flipped & $-$0.56 & 0.57 \\
+ & (0.08) & [0.49, 0.67] \\
+teaching\_method: Lecture & 0.28 & 1.33 \\
+ & (0.06) & [1.17, 1.51] \\
+gender: Male & $-$0.04 & 0.96 \\
+ & (0.06) & [0.86, 1.07] \\
 \midrule
-Num.Obs. & 40 &  \\
-Dispersion & 1.69 &  \\
-Residual deviance & 67.57 &  \\
-df & 37 &  \\
-Log.Lik. & $-$98.18 &  \\
-AIC & 202.37 &  \\
-BIC & 207.44 &  \\
+Num.Obs. & 240 &  \\
+Dispersion & 3.14 &  \\
+Residual deviance & 633.11 &  \\
+df & 236 &  \\
+Log.Lik. & $-$683.51 &  \\
+AIC & 1375.03 &  \\
+BIC & 1388.95 &  \\
 \bottomrule
 \end{tabular}
 
@@ -33,7 +35,7 @@ BIC & 207.44 &  \\
 
 Models event counts. Each predictor's incidence-rate ratio (IRR) gives the multiplicative change in the expected count per unit ($>$1 more, $<$1 fewer); p tests significance. Check dispersion to pick Poisson vs. negative binomial. If cases have unequal exposure (different observation time/area/population), add an offset of log(exposure) so the model predicts rates, not raw counts --- omitting it biases the IRRs. Your significance threshold ($\alpha$) is 0.05.
 
-Predictor age was associated with the count, IRR=1.01, 95\% CI [1.00, 1.02], p = .007.
+Predictor teaching\_method: Flipped was associated with the count, IRR=0.57, 95\% CI [0.49, 0.67], p $<$ .001.
 
 Statistical basis: Poisson regression (incidence-rate ratios) (R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna.); Negative binomial regression (glm.nb) for overdispersed counts (Venables WN, Ripley BD (2002). Modern Applied Statistics with S, Fourth edition. Springer, New York.); Overdispersion check (Lüdecke D, Ben-Shachar MS, Patil I, Waggoner P, Makowski D (2021). "performance: An R Package for Assessment, Comparison and Testing of Statistical Models." Journal of Open Source Software, 6(60), 3139.).
 

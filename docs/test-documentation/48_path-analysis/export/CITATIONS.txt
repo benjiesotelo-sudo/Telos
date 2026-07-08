@@ -1,6 +1,26 @@
 Telos — Citations for the Exported Analysis
 ===========================================
 
+A tiered reference kit: cite the app, cite your selected tests’ references, drop in a
+methods-paragraph summary, and credit the R packages your analysis.R depends on.
+
+1. CITE THIS APP
+================
+Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
+  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+
+2. YOUR REFERENCE LIST
+=======================
+  Kenny, D. A., Kaniskan, B., McCoach, D. B. (2015). "The performance of RMSEA in models with small degrees of freedom." Sociological Methods & Research, 44(3), 486-507.
+  MacKinnon, D. P., Lockwood, C. M., Williams, J. (2004). "Confidence limits for the indirect effect: Distribution of the product and resampling methods." Multivariate Behavioral Research, 39(1), 99-128.
+  Rosseel, Y. (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36. https://doi.org/10.18637/jss.v048.i02
+
+3. METHODS PARAGRAPH
+=====================
+  Path analysis: A path model fit to the observed variables; the indirect effect of X on Y through M was significant, bootstrap 95% CI excluding 0. (Rosseel, 2012)
+
+4. APPENDIX: R PACKAGE CITATIONS
+=================================
 The exported analysis.R was generated for R and relies on the packages cited below.
 Please cite the R version and each package you use in any resulting work.
 
@@ -66,16 +86,3 @@ R packages (citation()-style references — run citation("<pkg>") in R for the c
 
 Tables are formatted per APA-7 (7th ed.); econometric methods follow each package cited reference.
 
-Statistical basis (why each test was recommended, and its methodological references)
-========================================================================================
-
-Path analysis
-  Why this test: Recommended when you model directed relationships (including mediation) among observed variables without a latent measurement model.
-    Rosseel, Y. (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36. https://doi.org/10.18637/jss.v048.i02
-  Statistical basis:
-    Path model estimation (lavaan::sem, observed variables only)
-      Rosseel, Y. (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36. https://doi.org/10.18637/jss.v048.i02
-    RMSEA interpreted cautiously at small df / small N for over-identified models
-      Kenny, D. A., Kaniskan, B., McCoach, D. B. (2015). "The performance of RMSEA in models with small degrees of freedom." Sociological Methods & Research, 44(3), 486-507.
-    Bootstrap percentile CIs for indirect (mediated) effects
-      MacKinnon, D. P., Lockwood, C. M., Williams, J. (2004). "Confidence limits for the indirect effect: Distribution of the product and resampling methods." Multivariate Behavioral Research, 39(1), 99-128.

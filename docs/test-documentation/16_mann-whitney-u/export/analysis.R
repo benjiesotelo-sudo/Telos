@@ -5,13 +5,13 @@ library(coin)
 library(effectsize)
 library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
-d[["group"]] <- factor(d[["group"]])
+d[["gender"]] <- factor(d[["gender"]])
 
 # === 01 · Mann-Whitney U ===
-df <- data.frame(score = d[["score"]], g = factor(d[["group"]]))
-res <- wilcox.test(d[["score"]] ~ factor(d[["group"]]), correct = TRUE, alternative = "two.sided")
+df <- data.frame(score = d[["absences"]], g = factor(d[["gender"]]))
+res <- wilcox.test(d[["absences"]] ~ factor(d[["gender"]]), correct = TRUE, alternative = "two.sided")
 print(res)
 print(coin::wilcox_test(score ~ g, data = df))
 print(effectsize::rank_biserial(score ~ g, data = df))
-print(ggplot(data.frame(group = factor(d[["group"]]), score = d[["score"]]), aes(group, score)) +
+print(ggplot(data.frame(group = factor(d[["gender"]]), score = d[["absences"]]), aes(group, score)) +
   geom_boxplot(fill = "#9cc2ec", colour = "#0c447c") + labs(x = NULL, y = NULL))

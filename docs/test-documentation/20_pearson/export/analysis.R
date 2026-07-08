@@ -5,6 +5,6 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Pearson correlation ===
-ct <- cor.test(d[["hours_studied"]], d[["exam_score"]], method = "pearson", conf.level = 0.95, alternative = "two.sided")
+ct <- cor.test(d[["study_hours_per_week"]], d[["exam_score"]], method = "pearson", conf.level = 0.95, alternative = "two.sided")
 print(ct)
-print(ggplot(d, aes(hours_studied, exam_score)) + geom_point() + geom_smooth(method = "lm"))
+print(ggplot(d, aes(study_hours_per_week, exam_score)) + geom_point() + geom_smooth(method = "lm"))

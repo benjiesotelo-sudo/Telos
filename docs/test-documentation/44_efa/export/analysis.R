@@ -6,7 +6,7 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · Exploratory factor analysis (EFA) ===
-items <- c("x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9")
+items <- c("esg1", "esg2", "esg3", "esg4", "norm1", "norm2", "norm3", "norm4", "intent1", "intent2", "intent3")
 d_items <- d[, items, drop = FALSE]
 n <- nrow(d_items)
 

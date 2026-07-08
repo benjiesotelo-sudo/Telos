@@ -6,10 +6,10 @@ library(ggplot2)
 d <- read.csv("cleaned.csv", stringsAsFactors = FALSE)
 
 # === 01 · One-sample t-test ===
-res <- t.test(d[["post"]], mu = 70, conf.level = 0.95, alternative = "two.sided")
+res <- t.test(d[["pretest_score"]], mu = 50, conf.level = 0.95, alternative = "two.sided")
 print(res)
-effectsize::cohens_d(d[["post"]], mu = 70)
-if (length(d[["post"]]) >= 3 && length(d[["post"]]) <= 5000) print(shapiro.test(d[["post"]]))
-print(ggplot(data.frame(x = d[["post"]]), aes(x)) +
-  geom_histogram(bins = nclass.Sturges(d[["post"]]), fill = "#9cc2ec", colour = "#0c447c") +
-  geom_vline(xintercept = 70, colour = "#0c447c", linetype = "dashed") + labs(x = NULL, y = NULL))
+effectsize::cohens_d(d[["pretest_score"]], mu = 50)
+if (length(d[["pretest_score"]]) >= 3 && length(d[["pretest_score"]]) <= 5000) print(shapiro.test(d[["pretest_score"]]))
+print(ggplot(data.frame(x = d[["pretest_score"]]), aes(x)) +
+  geom_histogram(bins = nclass.Sturges(d[["pretest_score"]]), fill = "#9cc2ec", colour = "#0c447c") +
+  geom_vline(xintercept = 50, colour = "#0c447c", linetype = "dashed") + labs(x = NULL, y = NULL))

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Telos test documentation - index</title>
+<style>
+:root{ --bg:#faf9f5; --ink:#141413; --muted:#6e6c64; --hair:rgba(20,20,19,.16); --clay:#d97757; --card:#fff; --code:#f4f2ec; }
+@media (prefers-color-scheme:dark){ :root{ --bg:#141413; --ink:#faf9f5; --muted:#b0aea5; --hair:rgba(250,249,245,.16); --card:#211f1c; --code:#1b1a17; } }
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,'Helvetica Neue',sans-serif;line-height:1.55}
+.page{max-width:960px;margin:0 auto;padding:32px 20px 90px}
+header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:8px}
+.eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+h1{font-size:clamp(24px,4.5vw,32px);font-weight:650;margin:6px 0 4px}
+.meta{font-size:12.5px;color:var(--muted)}
+nav{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--hair);padding:8px 0;margin-bottom:8px;z-index:5;font-size:12.5px;display:flex;gap:14px;flex-wrap:wrap}
+nav a{color:var(--clay);text-decoration:none;font-weight:600}
+section{margin-top:40px}
+h2{font-size:19px;font-weight:650;border-top:1px solid var(--hair);padding-top:14px;margin:0 0 12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:0 10px 8px;border-bottom:1px solid var(--hair)}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--hair);vertical-align:top}
+tbody tr:hover{background:var(--code)}
+td.n{font-family:ui-monospace,Menlo,monospace;color:var(--clay);white-space:nowrap}
+td.size{color:var(--muted);white-space:nowrap;text-align:right;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+td.scenario{color:var(--muted)}
+a{color:var(--ink);text-decoration:none;font-weight:600}
+a:hover{color:var(--clay);text-decoration:underline}
+footer{margin-top:56px;border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:var(--muted)}
+</style></head><body><div class="page">
+<header>
+<div class="eyebrow">Telos · per-test documentation · index</div>
+<h1>Telos test documentation</h1>
+<div class="meta">Generated 2026-07-08 · commit 27b7d53 · 48 tests · each row links to a self-contained single-file audit record (config, output, R script, PDF report, exported tables/figures, citations, manifest)</div>
+</header>
+<nav><a href="#descriptive">Descriptive</a><a href="#group-comparison">Group comparison</a><a href="#association">Association</a><a href="#regression">Regression</a><a href="#econometrics-time-series">Econometrics · time series</a><a href="#econometrics-panel">Econometrics · panel</a><a href="#econometrics-causal">Econometrics · causal</a><a href="#latent-variables-reliability">Latent variables · reliability</a><a href="#latent-variables-factor-analysis">Latent variables · factor analysis</a><a href="#latent-variables-sem">Latent variables · SEM</a><a href="#data-reduction">Data reduction</a></nav>
+<section id="descriptive">
+<h2>Descriptive</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">01</td><td><a href="01_summary-statistics.html">Summary statistics</a></td><td class="scenario">Campus study: exam-score and study-hour descriptives by gender (the honest null).</td><td class="size">1158 KB</td></tr>
+<tr><td class="n">02</td><td><a href="02_frequencies-crosstabs.html">Frequencies &amp; cross-tabs</a></td><td class="scenario">Campus study: how many students landed in each teaching method.</td><td class="size">816 KB</td></tr>
+<tr><td class="n">03</td><td><a href="03_distribution-normality.html">Distribution &amp; normality</a></td><td class="scenario">Campus study: exam score looks normal, but absences is right-skewed.</td><td class="size">1316 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="group-comparison">
+<h2>Group comparison</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">04</td><td><a href="04_one-sample-t-test.html">One-sample t-test</a></td><td class="scenario">Campus study: do entering students' pretest scores differ from the 50-point national baseline?</td><td class="size">1010 KB</td></tr>
+<tr><td class="n">05</td><td><a href="05_independent-t-test.html">Independent t-test</a></td><td class="scenario">Campus study: do male and female students' exam scores differ (the honest null)?</td><td class="size">1081 KB</td></tr>
+<tr><td class="n">06</td><td><a href="06_paired-t-test.html">Paired t-test</a></td><td class="scenario">Sleep &amp; caffeine: does a high dose reduce sleep quality versus baseline?</td><td class="size">1212 KB</td></tr>
+<tr><td class="n">07</td><td><a href="07_one-way-anova.html">One-way ANOVA + post-hoc</a></td><td class="scenario">Campus study: which teaching method produces the highest exam scores (99% CI)?</td><td class="size">1339 KB</td></tr>
+<tr><td class="n">08</td><td><a href="08_factorial-anova.html">Factorial ANOVA</a></td><td class="scenario">Campus study: teaching method x gender on exam score.</td><td class="size">1476 KB</td></tr>
+<tr><td class="n">09</td><td><a href="09_repeated-measures-anova.html">Repeated-measures ANOVA</a></td><td class="scenario">Sleep &amp; caffeine: sleep quality across three caffeine doses, same participants.</td><td class="size">1404 KB</td></tr>
+<tr><td class="n">10</td><td><a href="10_mixed-anova.html">Mixed ANOVA</a></td><td class="scenario">Sleep &amp; caffeine: dose x caffeine-tolerance group on sleep quality.</td><td class="size">1658 KB</td></tr>
+<tr><td class="n">11</td><td><a href="11_nested-anova.html">Nested ANOVA</a></td><td class="scenario">Campus study: classrooms nested within schools on exam score.</td><td class="size">1094 KB</td></tr>
+<tr><td class="n">12</td><td><a href="12_welch-anova.html">Welch's ANOVA</a></td><td class="scenario">Campus study: teaching-method effect on exam score, unequal variances (Games-Howell post-hoc).</td><td class="size">1185 KB</td></tr>
+<tr><td class="n">13</td><td><a href="13_ancova.html">ANCOVA</a></td><td class="scenario">Campus study: method effect on exam score, adjusting for entering ability.</td><td class="size">1315 KB</td></tr>
+<tr><td class="n">14</td><td><a href="14_manova.html">MANOVA</a></td><td class="scenario">Campus study: method effect on exam AND retention score together.</td><td class="size">1166 KB</td></tr>
+<tr><td class="n">15</td><td><a href="15_mancova.html">MANCOVA</a></td><td class="scenario">Campus study: method effect on exam AND retention, adjusting for entering ability.</td><td class="size">1232 KB</td></tr>
+<tr><td class="n">16</td><td><a href="16_mann-whitney-u.html">Mann-Whitney U</a></td><td class="scenario">Campus study: do absence counts (skewed) differ by gender?</td><td class="size">1076 KB</td></tr>
+<tr><td class="n">17</td><td><a href="17_wilcoxon-signed-rank.html">Wilcoxon signed-rank</a></td><td class="scenario">Sleep &amp; caffeine: does a high dose speed up reaction time (skewed RT)?</td><td class="size">1032 KB</td></tr>
+<tr><td class="n">18</td><td><a href="18_kruskal-wallis.html">Kruskal-Wallis</a></td><td class="scenario">Campus study: absence counts (skewed) across teaching methods.</td><td class="size">1124 KB</td></tr>
+<tr><td class="n">19</td><td><a href="19_friedman.html">Friedman</a></td><td class="scenario">Sleep &amp; caffeine: reaction time (skewed) across three doses, same participants.</td><td class="size">1011 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="association">
+<h2>Association</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">20</td><td><a href="20_pearson.html">Pearson correlation</a></td><td class="scenario">Campus study: do study hours predict exam score?</td><td class="size">1028 KB</td></tr>
+<tr><td class="n">21</td><td><a href="21_spearman.html">Spearman correlation</a></td><td class="scenario">Campus study: does self-reported motivation (Likert) track exam rank?</td><td class="size">899 KB</td></tr>
+<tr><td class="n">22</td><td><a href="22_kendalls-tau.html">Kendall's tau</a></td><td class="scenario">Campus study: do two motivation-scale items agree (rank concordance)?</td><td class="size">818 KB</td></tr>
+<tr><td class="n">23</td><td><a href="23_chi-square-independence.html">Chi-square independence</a></td><td class="scenario">Campus study: is teaching method related to pass/fail?</td><td class="size">1204 KB</td></tr>
+<tr><td class="n">24</td><td><a href="24_chi-square-goodness-of-fit.html">Chi-square goodness-of-fit</a></td><td class="scenario">Campus study: does enrollment match the department's planned 50/30/20 method split?</td><td class="size">1071 KB</td></tr>
+<tr><td class="n">25</td><td><a href="25_fishers-exact.html">Fisher's exact</a></td><td class="scenario">Campus study: gender x pass/fail, exact test.</td><td class="size">1071 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="regression">
+<h2>Regression</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">26</td><td><a href="26_simple-linear-regression.html">Simple linear regression</a></td><td class="scenario">Campus study: predicting exam score from study hours alone.</td><td class="size">1380 KB</td></tr>
+<tr><td class="n">27</td><td><a href="27_multiple-linear-regression.html">Multiple linear regression</a></td><td class="scenario">Campus study: exam score from entering ability, study hours, and method together.</td><td class="size">1392 KB</td></tr>
+<tr><td class="n">28</td><td><a href="28_logistic-regression.html">Logistic regression</a></td><td class="scenario">Campus study: predicting pass/fail from ability, effort, and method (classification table).</td><td class="size">1506 KB</td></tr>
+<tr><td class="n">29</td><td><a href="29_poisson-negative-binomial.html">Poisson / negative binomial</a></td><td class="scenario">Campus study: modeling overdispersed absence counts by method and gender.</td><td class="size">1231 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="econometrics-time-series">
+<h2>Econometrics · time series</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">30</td><td><a href="30_arima-sarima.html">ARIMA / SARIMA</a></td><td class="scenario">Macro quarterly: forecasting GDP growth over an 8-year business cycle.</td><td class="size">1548 KB</td></tr>
+<tr><td class="n">31</td><td><a href="31_stationarity-tests.html">Stationarity tests (ADF, KPSS)</a></td><td class="scenario">Macro quarterly: is GDP growth stationary around its cyclical mean?</td><td class="size">1237 KB</td></tr>
+<tr><td class="n">32</td><td><a href="32_granger-causality.html">Granger causality</a></td><td class="scenario">Macro quarterly: does GDP growth predict next quarter's unemployment (Okun's law)?</td><td class="size">1139 KB</td></tr>
+<tr><td class="n">33</td><td><a href="33_var.html">VAR</a></td><td class="scenario">Macro quarterly: joint dynamics of growth, inflation, and unemployment.</td><td class="size">2285 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="econometrics-panel">
+<h2>Econometrics · panel</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">34</td><td><a href="34_fixed-effects.html">Fixed effects</a></td><td class="scenario">Province panel: does investment raise growth, controlling for province effects?</td><td class="size">1069 KB</td></tr>
+<tr><td class="n">35</td><td><a href="35_random-effects.html">Random effects</a></td><td class="scenario">Province panel: random-effects estimate of investment's growth effect.</td><td class="size">1040 KB</td></tr>
+<tr><td class="n">36</td><td><a href="36_hausman-test.html">Hausman test</a></td><td class="scenario">Province panel: fixed vs. random effects for the investment-growth model.</td><td class="size">1066 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="econometrics-causal">
+<h2>Econometrics · causal</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">37</td><td><a href="37_did.html">Difference-in-differences (DiD)</a></td><td class="scenario">Minimum wage: did the 2018 hike change employment relative to non-hike states (parallel pre-trends)?</td><td class="size">1154 KB</td></tr>
+<tr><td class="n">38</td><td><a href="38_rdd.html">Regression discontinuity (RDD)</a></td><td class="scenario">Scholarship: does crossing the entrance-score cutoff raise later GPA (bandwidth-sensitivity check)?</td><td class="size">1043 KB</td></tr>
+<tr><td class="n">39</td><td><a href="39_iv-2sls.html">Instrumental variables (IV / 2SLS)</a></td><td class="scenario">Returns to education: causal wage effect of schooling, instrumented by mother's education.</td><td class="size">1317 KB</td></tr>
+<tr><td class="n">40</td><td><a href="40_propensity-score-matching.html">Propensity score matching</a></td><td class="scenario">Job training: does the program raise earnings once we match on background (selection-bias demo)?</td><td class="size">1194 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="latent-variables-reliability">
+<h2>Latent variables · reliability</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">41</td><td><a href="41_cronbachs-alpha.html">Cronbach's alpha</a></td><td class="scenario">Tourism ESG: internal consistency of the ESG-perception scale.</td><td class="size">1050 KB</td></tr>
+<tr><td class="n">42</td><td><a href="42_ave.html">Average variance extracted (AVE)</a></td><td class="scenario">Tourism ESG: convergent &amp; discriminant validity across all five constructs.</td><td class="size">1451 KB</td></tr>
+<tr><td class="n">43</td><td><a href="43_composite-reliability.html">Composite reliability (CR)</a></td><td class="scenario">Tourism ESG: composite reliability of each construct.</td><td class="size">1170 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="latent-variables-factor-analysis">
+<h2>Latent variables · factor analysis</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">44</td><td><a href="44_efa.html">Exploratory factor analysis (EFA)</a></td><td class="scenario">Tourism ESG: do ESG perception, norm, and intention form three distinct factors?</td><td class="size">1502 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="latent-variables-sem">
+<h2>Latent variables · SEM</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">46</td><td><a href="46_cb-sem.html">CB-SEM</a></td><td class="scenario">Tourism ESG: does environmental attitude strengthen the norm-intention link (moderation, simple-slopes figure)?</td><td class="size">3419 KB</td></tr>
+<tr><td class="n">47</td><td><a href="47_pls-sem.html">PLS-SEM</a></td><td class="scenario">Tourism ESG: the same moderated structural model, estimated variance-based (PLS interaction_term).</td><td class="size">3008 KB</td></tr>
+<tr><td class="n">48</td><td><a href="48_path-analysis.html">Path analysis</a></td><td class="scenario">Tourism ESG: does ESG perception's effect on intention run partly through norm (observed composites)?</td><td class="size">1268 KB</td></tr>
+</tbody>
+</table>
+</section>
+<section id="data-reduction">
+<h2>Data reduction</h2>
+<table>
+<thead><tr><th>#</th><th>Test</th><th>Scenario</th><th>Size</th></tr></thead>
+<tbody>
+<tr><td class="n">45</td><td><a href="45_pca.html">Principal component analysis (PCA)</a></td><td class="scenario">Tourism ESG: reducing 11 survey items to a handful of components.</td><td class="size">1337 KB</td></tr>
+</tbody>
+</table>
+</section>
+<footer>Telos test documentation · one file per test · every embedded artifact is generated by the real app driven by the documentation harness (tests/docs/document-tests.spec.ts) · statistics verified against native R.</footer>
+</div></body></html>

@@ -12,17 +12,17 @@
 \toprule
  & (1) \\
 \midrule
-Post & 2.02 \\
- & (0.09) \\
- & [1.84, 2.19] \\
-Treated $\times$ Post & 1.53 \\
- & (0.12) \\
- & [1.29, 1.76] \\
+Post & 2.33 \\
+ & (0.04) \\
+ & [2.24, 2.41] \\
+Treated $\times$ Post & $-$1.92 \\
+ & (0.08) \\
+ & [$-$2.07, $-$1.76] \\
 \midrule
-Num.Obs. & 96 \\
-N entities & 12 \\
-Within R\textsuperscript{2} & .84 \\
-F & F(2, 82) = 216.31, p $<$ .001 \\
+Num.Obs. & 160 \\
+N entities & 20 \\
+Within R\textsuperscript{2} & .59 \\
+F & F(2, 138) = 98.41, p $<$ .001 \\
 \bottomrule
 \end{tabular}
 
@@ -30,8 +30,8 @@ F & F(2, 82) = 216.31, p $<$ .001 \\
 \toprule
 Group & Pre & Post \\
 \midrule
-Control & 19.21 & 21.22 \\
-Treated & 12.92 & 16.46 \\
+Control & 61.23 & 63.56 \\
+Treated & 60.65 & 61.06 \\
 \bottomrule
 \end{tabular}
 
@@ -39,7 +39,7 @@ Treated & 12.92 & 16.46 \\
 
 The Treated$\times$Post coefficient is the estimated treatment effect. It rests on the parallel-trends assumption: that the groups would have moved together absent treatment. Similar pre-treatment trends (inspect the pre-period of the plot) make this more plausible but do not prove it --- a visual check is supportive, not confirmatory, since the assumption is about the unobservable post-period counterfactual. The note adds a formal pre-trends test (a pre-period leads-and-lags joint F of the treated$\times$time interactions): a small p flags diverging pre-trends, while a large p is consistent with parallel trends. Method: R plm package with clustered standard errors (Croissant \& Millo, 2008; Bertrand, Duflo \& Mullainathan, 2004). Your significance threshold ($\alpha$) is 0.05.
 
-The DiD estimate was B=1.53, 95\% CI [1.29, 1.76], p $<$ .001 (clustered SE).
+The DiD estimate was B=$-$1.92, 95\% CI [$-$2.07, $-$1.76], p $<$ .001 (clustered SE).
 
 Statistical basis: Difference-in-differences via entity fixed effects (plm within estimator) (Croissant, Y., Millo, G. (2008). "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2), 1-43.); Clustered standard errors / parallel-trends interpretation (Bertrand, M., Duflo, E., Mullainathan, S. (2004). "How Much Should We Trust Differences-in-Differences Estimates?" Quarterly Journal of Economics, 119(1), 249-275.).
 

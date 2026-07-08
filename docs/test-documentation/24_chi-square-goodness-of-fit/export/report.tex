@@ -12,9 +12,9 @@
 \toprule
 Category & Observed & Expected & Std. residual \\
 \midrule
-discussion & 16 & 20.00 & $-$1.26 \\
-lecture & 13 & 12.00 & 0.35 \\
-seminar & 11 & 8.00 & 1.19 \\
+Blended & 80 & 72.00 & 1.13 \\
+Flipped & 80 & 48.00 & 5.16 \\
+Lecture & 80 & 120.00 & $-$5.16 \\
 \bottomrule
 \end{tabular}
 
@@ -22,7 +22,7 @@ seminar & 11 & 8.00 & 1.19 \\
 \toprule
 $\chi$\textsuperscript{2} & df (k$-$1) & p & Cohen's w [95\% CI] \\
 \midrule
-2.01 & 2 & .366 & 0.22 [0.00, 2.00] \\
+35.56 & 2 & $<$.001 & 0.38 [0.27, 2.00] \\
 \bottomrule
 \end{tabular}
 
@@ -30,7 +30,7 @@ $\chi$\textsuperscript{2} & df (k$-$1) & p & Cohen's w [95\% CI] \\
 
 Tests whether one categorical variable's counts depart from an expected distribution (equal by default). A p below alpha means the observed split differs from expected; a standardized residual beyond about $\pm$1.96 flags a category that significantly drives the result. Valid only when expected counts are mostly $\ge$ 5 (some texts allow $\ge$ 1 if no more than 20\% are below 5); for sparse categories use an exact / simulated test instead. Your significance threshold ($\alpha$) is 0.05.
 
-A goodness-of-fit test, $\chi$\textsuperscript{2}(2, N=40)=2.01, p = .366, w=.22 [.00, 2.00].
+A goodness-of-fit test, $\chi$\textsuperscript{2}(2, N=240)=35.56, p $<$ .001, w=.38 [.27, 2.00].
 
 Statistical basis: Chi-square goodness-of-fit test (Pearson, K. (1900). "On the criterion that a given system of deviations from the probable in the case of a correlated system of variables is such that it can be reasonably supposed to have arisen from random sampling." Philosophical Magazine, 50(302), 157-175.); Cohen's w effect-size benchmark (Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge.).
 
