@@ -133,7 +133,10 @@ async function documentTest(page: Page, c: Case) {
     }
   }
   for (const s of c.set) {
-    const el = page.getByLabel(s.label).first()
+    // exact match: a substring match on e.g. 'post-hoc' or 'CI' can resolve to the journey-bar
+    // sub-dot button whose aria-label is the FULL test name ("One-way ANOVA + post-hoc"), which
+    // sits earlier in the DOM than the actual option control (whose aria-label is the bare label).
+    const el = page.getByLabel(s.label, { exact: true }).first()
     if (s.action === 'fill') await el.fill(s.value!)
     else if (s.action === 'select') await el.selectOption(s.value!)
     else await el.check()
@@ -246,7 +249,11 @@ const CASES: Case[] = [
     scenario: 'Campus study: predicting pass/fail from ability, effort, and method (classification table).' },
   { nn: '29', id: 'poisson-negative-binomial', name: 'Poisson / negative binomial', question: 'predict a count outcome', fixture: 'campus-study.csv', pickName: 'Poisson / negative binomial', dataConfig: [], drags: [['absences', 'outcome'], ['teaching_method', 'predictors'], ['gender', 'predictors'], ['weeks_enrolled', 'exposure']], set: [],
     scenario: 'Campus study: modeling overdispersed absence counts by method and gender.' },
-  { nn: '30', id: 'arima-sarima', name: 'ARIMA / SARIMA', question: 'model & forecast one series', fixture: 'macro-quarterly.csv', pickName: 'ARIMA / SARIMA', dataConfig: [], drags: [['quarter', 'time'], ['gdp_growth', 'series']], set: [],
+  // seasonal period 4 + horizon 8: macro-quarterly is QUARTERLY — the card's default (12, a monthly
+  // convention) mis-fit a [12] seasonal term on the first sweep pass (Ljung-Box p<.001); the README row
+  // always documented 4/8, the set actions were simply missing (docs-v2 sweep 2 config fix).
+  { nn: '30', id: 'arima-sarima', name: 'ARIMA / SARIMA', question: 'model & forecast one series', fixture: 'macro-quarterly.csv', pickName: 'ARIMA / SARIMA', dataConfig: [], drags: [['quarter', 'time'], ['gdp_growth', 'series']],
+    set: [{ label: 'seasonal period', action: 'fill', value: '4' }, { label: 'forecast horizon', action: 'fill', value: '8' }],
     scenario: 'Macro quarterly: forecasting GDP growth over an 8-year business cycle.' },
   { nn: '31', id: 'stationarity-tests', name: 'Stationarity tests (ADF, KPSS)', question: 'is the series stationary?', fixture: 'macro-quarterly.csv', pickName: 'Stationarity tests (ADF, KPSS)', dataConfig: [], drags: [['quarter', 'time'], ['gdp_growth', 'series']], set: [],
     scenario: 'Macro quarterly: is GDP growth stationary around its cyclical mean?' },
