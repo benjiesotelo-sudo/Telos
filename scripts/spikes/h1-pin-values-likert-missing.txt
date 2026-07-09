@@ -1,0 +1,61 @@
+This is lavaan 0.6-21
+lavaan is FREE software! Please report any bugs.
+Holes punched per column (expect 15 each):
+a1 a2 a3 b1 b2 b3 
+15 15 15 15 15 15 
+cont1/cont2 NA count (expect 0, 0): 0 0 
+
+#### WLSMV / listwise (likert5-missing)
+chisq            2.83662035
+df               17.00000000
+pvalue           NA
+cfi              1.00000000
+tli              1.00675747
+rmsea            0.00000000
+srmr             0.01548063
+wrmr             0.22506429
+chisq.scaled     10.15902364
+df.scaled        17.00000000
+pvalue.scaled    0.89680942
+cfi.scaled       1.00000000
+tli.scaled       1.00798399
+rmsea.scaled     0.00000000
+cfi.robust       NA
+tli.robust       NA
+rmsea.robust     NA
+PE struct  B ~ A   est=-8.23816289 se=95.23218062
+PE struct  B ~ C   est=5.64882719 se=73.65573946
+
+#### WLSMV / pairwise (likert5-missing)
+chisq            4.27951977
+df               17.00000000
+pvalue           NA
+cfi              1.00000000
+tli              1.00482376
+rmsea            0.00000000
+srmr             0.01668349
+wrmr             0.27644167
+chisq.scaled     13.56372223
+df.scaled        17.00000000
+pvalue.scaled    0.69770752
+cfi.scaled       1.00000000
+tli.scaled       1.00312497
+rmsea.scaled     0.00000000
+cfi.robust       NA
+tli.robust       NA
+rmsea.robust     NA
+PE struct  B ~ A   est=-1.65201156 se=3.86662800
+PE struct  B ~ C   est=0.51425752 se=2.97225654
+Warning messages:
+1: lavaan->lav_object_post_check():  
+   some estimated lv variances are negative 
+2: lavaan->lav_object_post_check():  
+   some estimated lv variances are negative 
+Warning message:
+lavaan->lav_object_post_check():  
+   some estimated lv variances are negative 
+Warning message:
+lavaan->lav_object_post_check():  
+   some estimated lv variances are negative 
+
+Degeneracy guard: chisq.scaled listwise = 10.15902364  pairwise = 13.56372223  differ = TRUE 
