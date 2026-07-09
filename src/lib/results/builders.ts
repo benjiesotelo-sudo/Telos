@@ -127,7 +127,11 @@ export interface CardContent {
   values?: ResultValues
 }
 export type RunProgress = (p: { message: string; elapsedMs?: number; estMs?: number }) => void
-export type Runner = (engine: Engine, ds: Dataset, setup: TestSetup, onProgress?: RunProgress) => Promise<unknown>
+/** columnLevels (H1 wiring): raw column name -> Configure-data measurement level, built by runAll from
+ *  the session's ColumnMeta[] (the same source SemControls' container reads). Only the CB-SEM/
+ *  path-analysis runners consume it (semFitArgs' WLSMV `ordered = c(...)` auto-declaration); every
+ *  other runner simply ignores the extra argument. */
+export type Runner = (engine: Engine, ds: Dataset, setup: TestSetup, onProgress?: RunProgress, columnLevels?: Record<string, string>) => Promise<unknown>
 
 const alphaOf = (setup: TestSetup) => Number(setup.options['alpha'] ?? 0.05)
 
@@ -231,10 +235,10 @@ export const RUNNERS: Record<string, Runner> = {
     const standardize = setup.options['standardize'] !== false
     return runPca(engine, ds, setup.roles['variables'], { retention, nComponents, standardize })
   },
-  'cb-sem': (engine, ds, setup, onProgress) => runCbSem(engine, ds, setup, onProgress),
+  'cb-sem': (engine, ds, setup, onProgress, columnLevels) => runCbSem(engine, ds, setup, onProgress, columnLevels),
   'pls-sem': (engine, ds, setup, onProgress) => runPlsSem(engine, ds, setup, onProgress),
   // Path analysis = observed-only CB-SEM: reuse runCbSem, forcing modelKind:'path' (no measurement model).
-  'path-analysis': (engine, ds, setup, onProgress) => runCbSem(engine, ds, { ...setup, modelKind: 'path' }, onProgress),
+  'path-analysis': (engine, ds, setup, onProgress, columnLevels) => runCbSem(engine, ds, { ...setup, modelKind: 'path' }, onProgress, columnLevels),
 }
 export const BUILDERS: Record<string, (spec: TestSpec, result: unknown) => CardContent> = {
   'independent-t-test': (spec, result) => buildIndependentTTest(spec, result as TTestResult),

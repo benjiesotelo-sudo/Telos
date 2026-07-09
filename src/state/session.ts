@@ -342,6 +342,12 @@ export const useSession = create<SessionState>((set, get) => {
         const engine = await getEngine((m) => set({ runPhase: m }))
         set({ runPhase: 'Running analysis…' })
         const s = get(); const ds = workingDataset(s)
+        // H1 wiring: Configure-data measurement levels flow to the runners as a plain name->level map
+        // (CB-SEM/path-analysis read it for WLSMV's `ordered = c(...)` auto-declaration via semFitArgs;
+        // all other runners ignore the extra argument). Unset levels (null) are simply absent.
+        const columnLevels = Object.fromEntries(
+          s.columns.filter((c) => c.level !== null).map((c) => [c.name, c.level as string]),
+        )
         for (const id of s.selection) {
           const spec = SPECS[id]; const setup = s.setups[id]
           if (!spec || !setup || setup.blocked) continue
@@ -358,7 +364,7 @@ export const useSession = create<SessionState>((set, get) => {
             // (don't mutate the stored setup — keeps the canvas/state clean if columns are later toggled).
             const used = s.columns.filter((c) => c.used).map((c) => c.name)
             const runSetup = withPathModeConstructs(setup, used)
-            const result = await runner(engine, ds, runSetup, onProgress)
+            const result = await runner(engine, ds, runSetup, onProgress, columnLevels)
             const rest = { ...get().errors }; delete rest[id]
             set({ runs: { ...get().runs, [id]: { result, stale: false } }, errors: rest })
           } catch (e) {

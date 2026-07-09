@@ -3,6 +3,7 @@ import { useSession, stepsOf, canEnter, workingDataset, gateOk, serializeSetups,
 import type { Dataset, TTestResult } from '../lib/stats/types'
 import { SPECS } from '../lib/registry/catalog'
 import { RUNNERS } from '../lib/results/builders'
+import { getEngine } from '../lib/webr/getEngine'
 
 // runAll boots WebR via getEngine; stub it so the path-mode seeding test runs without WASM.
 vi.mock('../lib/webr/getEngine', () => ({ getEngine: vi.fn(async () => ({} as never)) }))
@@ -590,5 +591,97 @@ describe('setColumnUsed — path-mode column re-toggle clears drawn paths', () =
     expect(setup.paths).toEqual([{ from: 1, to: 2 }])            // untouched
     expect(setup.constructs).toHaveLength(2)                      // untouched
     expect(setup.constructs![1].items).toEqual(['q3'])           // untouched
+  })
+})
+
+describe('runAll threads Configure-data column levels into the CB-SEM fit (H1 wiring seam)', () => {
+  // The PRODUCTION path: session store (ColumnMeta.level, the same source SemControls' container
+  // reads) -> runAll -> RUNNERS['cb-sem'] -> runCbSem's columnLevels param -> semFitArgs ->
+  // lavaan's `ordered = c(...)`. Engine is faked at the getEngine seam, so the assertion is on the
+  // ACTUAL R source runCbSem hands to engine.runJson -- nothing passes columnLevels manually.
+  beforeEach(() => useSession.getState().reset())
+
+  const col = (name: string, level: 'ordinal' | 'ratio') =>
+    ({ name, detected: 'int64' as const, tags: [] as never[], level, used: true })
+  const semDs: Dataset = { columns: ['a1', 'a2', 'b1', 'b2'], rows: Array.from({ length: 12 }, (_, i) => ({
+    a1: (i % 5) + 1, a2: ((i + 1) % 5) + 1, b1: i + 1, b2: i + 2,
+  })) }
+  const wlsmvSetup = {
+    roles: {}, options: { estimator: 'WLSMV', nboot: 200 }, props: {}, blocked: null,
+    modelKind: 'latent' as const,
+    constructs: [
+      { id: 1, name: 'A', items: ['a1', 'a2'] },
+      { id: 2, name: 'B', items: ['b1', 'b2'] },
+    ],
+    paths: [{ from: 1, to: 2 }],
+  }
+  // Canned engine responses: the main R_STATS block, then runCfaReliability's block (same two-call
+  // shape as runCbSem.moderation.test.ts's fakeEngine; no moderation -> no capturePlot call).
+  const mainRaw = {
+    fit: {}, df: 1, cfaLoadings: [], structural: [], rsquareIds: { 2: 0.4 }, indirect: [],
+    estLoadings: {}, estPaths: [], moderationRows: [], slopeRows: [],
+  }
+  const cfaRaw = {
+    perConstruct: [
+      { name: 'A', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'B', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+    ],
+    fornellLarcker: [[1, 0], [0, 1]], htmt: [[0, 0], [0, 0]], labels: ['A', 'B'], corLvP: [[0, 0], [0, 0]],
+  }
+  const fakeEngine = () => {
+    const runJson = vi.fn().mockResolvedValueOnce(mainRaw).mockResolvedValueOnce(cfaRaw)
+    vi.mocked(getEngine).mockResolvedValueOnce({ runJson } as never)
+    return runJson
+  }
+
+  it('ordinal ColumnMeta levels reach lavaan: a WLSMV run through runAll emits ordered = c(...) in the R source', async () => {
+    const runJson = fakeEngine()
+    useSession.setState({
+      raw: semDs,
+      columns: [col('a1', 'ordinal'), col('a2', 'ordinal'), col('b1', 'ratio'), col('b2', 'ratio')],
+      selection: ['cb-sem'],
+      setups: { 'cb-sem': wlsmvSetup },
+    })
+    await useSession.getState().runAll()
+
+    expect(useSession.getState().errors['cb-sem']).toBeUndefined()
+    expect(runJson).toHaveBeenCalled()
+    const [source] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(source).toContain('estimator = "WLSMV", ordered = c("a1", "a2")')
+  })
+
+  it('all-scale ColumnMeta levels through the SAME path hit the semFitArgs ordinal guard (levels flow, not a default)', async () => {
+    const runJson = fakeEngine()
+    useSession.setState({
+      raw: semDs,
+      columns: [col('a1', 'ratio'), col('a2', 'ratio'), col('b1', 'ratio'), col('b2', 'ratio')],
+      selection: ['cb-sem'],
+      setups: { 'cb-sem': wlsmvSetup },
+    })
+    await useSession.getState().runAll()
+
+    expect(useSession.getState().errors['cb-sem']).toMatch(/at least one ordinal indicator/)
+    expect(runJson).not.toHaveBeenCalled() // the guard throws before any engine call
+  })
+
+  it('path-analysis (path mode) receives the same columnLevels map as its 5th runner arg', async () => {
+    const pcol = (name: string) =>
+      ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used: true })
+    const pds: Dataset = { columns: ['x1', 'x4', 'x7'], rows: [
+      { x1: 1, x4: 2, x7: 3 }, { x1: 2, x4: 3, x7: 4 }, { x1: 3, x4: 4, x7: 5 },
+    ] }
+    useSession.setState({
+      raw: pds,
+      columns: [pcol('x1'), pcol('x4'), pcol('x7')],
+      selection: ['path-analysis'],
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }],
+      } },
+    })
+    const spy = vi.spyOn(RUNNERS, 'path-analysis').mockResolvedValue({ ok: true } as never)
+    await useSession.getState().runAll()
+    expect(spy.mock.calls[0][4]).toEqual({ x1: 'ratio', x4: 'ratio', x7: 'ratio' })
+    spy.mockRestore()
   })
 })

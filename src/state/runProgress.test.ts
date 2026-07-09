@@ -46,8 +46,9 @@ describe('Unit 9a — runAll threads onProgress into the runner and clears it af
       })
       await useSession.getState().runAll()
       // the runner saw a real onProgress (4th arg) and the payload reached the store mid-run
+      // (5th arg = columnLevels, the H1 wiring seam -- see session.test.ts's dedicated describe)
       expect(fakeRunner).toHaveBeenCalledTimes(1)
-      expect(fakeRunner.mock.calls[0].length).toBe(4)
+      expect(fakeRunner.mock.calls[0].length).toBe(5)
       expect(fakeRunner.mock.calls[0][3]).toBeTypeOf('function')
       // store cleared after the run completes
       expect(useSession.getState().runProgress).toBeNull()

@@ -517,8 +517,8 @@ export async function runCbSem(
    *  usedCols itself before handing indicatorLevels to semFitArgs (an ordinal column outside this model
    *  must never leak into lavaan's `ordered = c(...)`). Optional, defaults to empty: with no known
    *  levels WLSMV's own guard correctly refuses ("at least one ordinal indicator") rather than silently
-   *  guessing. NOTE: the session store -> this parameter bridge (Configure-data's ColumnMeta[] ->
-   *  columnLevels) is NOT yet wired at the builders.ts/session.ts call site -- see the Task 3 report. */
+   *  guessing. Wired in production by session.ts's runAll (ColumnMeta[] -> name->level map) through
+   *  builders.ts's Runner 5th argument. */
   columnLevels: Record<string, string> = {},
 ): Promise<CbSemResult> {
   const mode = resolveMode(setup)
