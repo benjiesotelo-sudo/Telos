@@ -11,8 +11,8 @@ Design language: dominantly white tool surfaces on a warm paper background, Work
 ```bash
 npm install          # install deps + postinstall copies WebR runtime to public/webr/
 npm run dev          # dev server at http://localhost:5173
-npm test             # vitest unit tests (136 files / 810 tests; engine suites run serialized, ~30 minutes)
-npm run test:fast    # everything except the WebR engine suites — the seconds-fast inner loop
+npm test             # vitest full suite incl. the WebR engine tests (~1,700 tests; engine suites run serialized, ~30 minutes)
+npm run test:fast    # everything except the WebR engine suites (1,490 tests, ~25 s) — the seconds-fast inner loop
 npm run e2e          # playwright test -- installs Chromium itself on first run
 npm run build        # tsc + copy-webr + vite build → dist/
 npm run preview      # serve dist/ locally for manual check
@@ -95,7 +95,16 @@ The export panel offers five tick-able formats, bundled into one `telos-export.z
 
 Any R or LaTeX export also bundles a `LICENSES.txt` crediting the R packages the script uses, WebR, R, and the fonts (OFL).
 
+## Contributing & support
+
+Bug reports, questions, and pull requests all go through [GitHub Issues](https://github.com/benjiesotelo-sudo/Telos/issues) - see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines (including the never-attach-real-participant-data rule).
+
 ## Licences
+
+Telos itself is licensed under the [GNU AGPL-3.0](LICENSE).
+Cite it as: Sotelo, B. (2026). *Telos (v1.0.0)* [Computer software]. https://doi.org/10.5281/zenodo.21281648
+
+Bundled/runtime assets:
 
 | Asset | Licence | Source |
 |---|---|---|
