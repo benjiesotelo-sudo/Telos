@@ -724,8 +724,9 @@ describe('runCbSem - semFitArgs wiring (mocked engine, no WebR)', () => {
 // real-WebR counterpart to the mocked-engine wiring tests above -- 7 cells (ML x {listwise,fiml,
 // pairwise}, MLR x {listwise,fiml}, WLSMV x {listwise,pairwise}; MLR+pairwise is lavaan-invalid and is
 // not a cell at all, see semFitArgs.ts's guard) run against the REAL engine and compared to h1Pins.ts's
-// native-R 4.6.0/lavaan 0.6-21 pins at toBeCloseTo(pin, 7) -- NEVER byte/string equality (h1Pins.ts's
-// module doc comment is the single source of truth for that rule and its cross-engine-drift rationale).
+// native-R 4.6.0/lavaan 0.6-21 pins at toBeCloseTo(pin, 7) -- except the two WLSMV cells at 5dp -- and
+// NEVER byte/string equality (h1Pins.ts's module doc comment is the single source of truth for both
+// rules and the cross-engine-drift rationale, incl. the ruled WLSMV exception).
 // Excluded from test:fast by convention (same real-engine describe-block style as the rest of this
 // file); minutes not seconds -- run directly via `npx vitest run src/lib/stats/runCbSem.test.ts`.
 describe('runCbSem - H1 known-answer matrix (real WebR, 7 cells vs native-R pins)', () => {
@@ -781,28 +782,29 @@ describe('runCbSem - H1 known-answer matrix (real WebR, 7 cells vs native-R pins
     WLSMV: { chisq: 'chisq.scaled', df: 'df.scaled', pvalue: 'pvalue.scaled', cfi: 'cfi.scaled', tli: 'tli.scaled', rmsea: 'rmsea.scaled', srmr: 'srmr' },
   }
 
-  /** Compares a real-WebR CbSemResult against one h1Pins.ts cell at 7dp (the module's documented
-   *  comparison rule). Structural rows are matched by fromName/toName parsed off the pin's
-   *  "toName ~ fromName" param string; est/se compare against the row's unstandardized b/se, and
-   *  ciLower/ciUpper (when the pin carries them) compare against ciPercLower/ciPercUpper -- the Wald
-   *  (delta-method) CI parameterEstimates() returns for a non-bootstrapped fit, which every cell here
-   *  is (see PD_SETUP/WLSMV_SETUP doc comments above: neither model has an indirect chain). */
-  function assertCell(result: CbSemResult, cell: H1PinCell) {
+  /** Compares a real-WebR CbSemResult against one h1Pins.ts cell at `precision` decimal places (7 by
+   *  default, the module's documented comparison rule; the two WLSMV cells pass 5 per h1Pins.ts's
+   *  "WLSMV EXCEPTION" ruling paragraph). Structural rows are matched by fromName/toName parsed off
+   *  the pin's "toName ~ fromName" param string; est/se compare against the row's unstandardized b/se,
+   *  and ciLower/ciUpper (when the pin carries them) compare against ciPercLower/ciPercUpper -- the
+   *  Wald (delta-method) CI parameterEstimates() returns for a non-bootstrapped fit, which every cell
+   *  here is (see PD_SETUP/WLSMV_SETUP doc comments above: neither model has an indirect chain). */
+  function assertCell(result: CbSemResult, cell: H1PinCell, precision = 7) {
     const map = FIT_KEY_MAP[cell.estimator]
     for (const [appKey, pinKey] of Object.entries(map)) {
       const pinVal = cell.fit[pinKey]
       if (pinVal === undefined) continue
-      expect(result.fit![appKey], `fit.${appKey} (pin key ${pinKey})`).toBeCloseTo(pinVal, 7)
+      expect(result.fit![appKey], `fit.${appKey} (pin key ${pinKey})`).toBeCloseTo(pinVal, precision)
     }
     const s = result.structural!
     for (const row of cell.structural) {
       const [toName, fromName] = row.param.split(' ~ ')
       const actual = s.find((r) => r.fromName === fromName && r.toName === toName)
       expect(actual, `structural row "${row.param}" not found`).toBeDefined()
-      expect(Number(actual!.b), `${row.param} est`).toBeCloseTo(row.est, 7)
-      expect(Number(actual!.se), `${row.param} se`).toBeCloseTo(row.se, 7)
-      if (row.ciLower !== undefined) expect(Number(actual!.ciPercLower), `${row.param} ciLower`).toBeCloseTo(row.ciLower, 7)
-      if (row.ciUpper !== undefined) expect(Number(actual!.ciPercUpper), `${row.param} ciUpper`).toBeCloseTo(row.ciUpper, 7)
+      expect(Number(actual!.b), `${row.param} est`).toBeCloseTo(row.est, precision)
+      expect(Number(actual!.se), `${row.param} se`).toBeCloseTo(row.se, precision)
+      if (row.ciLower !== undefined) expect(Number(actual!.ciPercLower), `${row.param} ciLower`).toBeCloseTo(row.ciLower, precision)
+      if (row.ciUpper !== undefined) expect(Number(actual!.ciPercUpper), `${row.param} ciUpper`).toBeCloseTo(row.ciUpper, precision)
     }
     expect(result.estimator).toBe(cell.estimator)
     expect(result.bootstrapped).toBe(false)
@@ -841,14 +843,17 @@ describe('runCbSem - H1 known-answer matrix (real WebR, 7 cells vs native-R pins
   it('Cell 6: WLSMV / listwise', async () => {
     const setup: TestSetup = { ...WLSMV_SETUP, options: { ...WLSMV_SETUP.options, missing: 'listwise' } }
     const result = await runCbSem(engine, likertData(), setup, undefined, WLSMV_COLUMN_LEVELS)
-    assertCell(result, CELL_6_WLSMV_LISTWISE)
+    // 5dp (ruled): WLSMV's DWLS robust-covariance path shows measured 1e-7..6e-7 cross-engine drift
+    // on chisq.scaled + structural est/se (task-5 report Finding B; h1Pins.ts "WLSMV EXCEPTION").
+    assertCell(result, CELL_6_WLSMV_LISTWISE, 5)
     expect(result.orderedItems).toEqual(['a1', 'a2', 'a3', 'b1', 'b2', 'b3'])
   }, 600_000)
 
   it('Cell 7: WLSMV / pairwise', async () => {
     const setup: TestSetup = { ...WLSMV_SETUP, options: { ...WLSMV_SETUP.options, missing: 'pairwise' } }
     const result = await runCbSem(engine, likertData(), setup, undefined, WLSMV_COLUMN_LEVELS)
-    assertCell(result, CELL_7_WLSMV_PAIRWISE)
+    // 5dp (ruled): same measured WLSMV cross-engine drift class as Cell 6 above.
+    assertCell(result, CELL_7_WLSMV_PAIRWISE, 5)
     expect(result.orderedItems).toEqual(['a1', 'a2', 'a3', 'b1', 'b2', 'b3'])
   }, 600_000)
 })

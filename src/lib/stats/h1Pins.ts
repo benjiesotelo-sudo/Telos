@@ -4,11 +4,24 @@
  * PROVENANCE + COMPARISON RULE (read before using these pins - do not skip this):
  * Every value below is a NATIVE R 4.6.0 / lavaan 0.6-21 result (never a WebR/browser value).
  * Downstream tests MUST compare a real WebR-computed result against these pins with
- * `toBeCloseTo(pin, 7)` (7 decimal places) - NEVER assert exact 8dp string/byte equality across
- * engines. The Task 0 spike (docs/superpowers/reviews/2026-07-10-h1-estimator-spike.md,
+ * `toBeCloseTo(pin, 7)` (7 decimal places), EXCEPT the two WLSMV cells which compare at
+ * `toBeCloseTo(pin, 5)` - see the next paragraph. NEVER assert exact 8dp string/byte equality
+ * across engines. The Task 0 spike (docs/superpowers/reviews/2026-07-10-h1-estimator-spike.md,
  * "Cross-engine parity" section) cataloged seven genuine 1-ULP (1e-8) native-vs-WebR discrepancies
- * in se/ci/derived-fit-index values (never in point estimates) - a uniform 7dp tolerance absorbs
+ * in se/ci/derived-fit-index values (never in point estimates) - a 7dp tolerance absorbs
  * these and any similar backend-rounding drift without masking a real regression.
+ *
+ * WLSMV EXCEPTION (cells 6-7 compare at 5dp; controller-ruled 2026-07-10, on the morning ratify
+ * list): the real-WebR known-answer run (Task 5, .superpowers/sdd/task-5-report.md, "Finding B")
+ * measured a systematic native-vs-WebR drift of 1e-7 to 6e-7 absolute on chisq.scaled and the
+ * structural est/se under WLSMV specifically - about 10-60x the 1-ULP class above, concentrated
+ * in the DWLS robust-covariance path (WLSMV's scaled chi-square correction and its parameter
+ * SEs); cfi/tli/rmsea/srmr/pvalue/df all stayed within ~5e-8. In RELATIVE terms the drift is
+ * ~5e-8 (tight); it just exceeds the absolute 7dp rule on values of magnitude ~13. Ruled a
+ * genuine engine-difference class, not a defect: WLSMV cells use precision 5 (tolerance 5e-6,
+ * ~8x headroom over the worst measured delta of 6.2e-7), which is still far below any
+ * statistically meaningful difference and still catches real wiring regressions, which show up
+ * at 1e-2 or larger. All non-WLSMV cells stay at the uniform 7dp rule.
  *
  * The matrix is 7 cells, not 8: MLR + missing="pairwise" is lavaan-invalid (a hard `eigen():
  * infinite or missing values` error from inside the robust vcov step, root-caused in the spike's
@@ -76,7 +89,7 @@ export const CELL_1_ML_LISTWISE: H1PinCell = {
     cfi: 0.96436775, // line 8
     tli: 0.94244021, // line 9
     rmsea: 0.12486138, // line 10
-    srmr: 0.0584042, // line 11
+    srmr: 0.05840425, // line 11 (Task 5 fix: was mistranscribed 0.0584042 - the capture's trailing 5 was dropped)
   },
   structural: [
     { param: 'dem60 ~ ind60', est: 1.49440497, se: 0.47740694, ciLower: 0.55870456, ciUpper: 2.43010538 }, // line 16
@@ -135,7 +148,7 @@ export const CELL_4_MLR_LISTWISE: H1PinCell = {
     cfi: 0.96436775, // line 53
     tli: 0.94244021, // line 54
     rmsea: 0.12486138, // line 55
-    srmr: 0.0584042, // line 56
+    srmr: 0.05840425, // line 56 (Task 5 fix: was mistranscribed 0.0584042 - the capture's trailing 5 was dropped)
     'chisq.scaled': 23.92735147, // line 57
     'df.scaled': 13.0, // line 58
     'pvalue.scaled': 0.03180492, // line 59
