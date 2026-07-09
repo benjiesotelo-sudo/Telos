@@ -5,12 +5,17 @@ import { EMITTERS, PACKAGES, getItemDomain, getRenameEntries } from './emitters'
 import { header, readData, factorLines } from './helpers'
 import { lvNames } from '../../stats/lvName'
 
-/** Assemble the full reproducible R script for the selected tests, in selection order. */
+/** Assemble the full reproducible R script for the selected tests, in selection order.
+ *  `columnLevels` (H1 wiring, Task 7): raw dataset column name -> Configure-data measurement level, the
+ *  SAME map session.ts's runAll builds for the app runner (Task 3) -- threaded through to every emitter
+ *  so cb-sem/path-analysis's WLSMV `ordered = c(...)` declaration matches what the app would fit.
+ *  Optional/defaults to {} so every existing call site (and every non-SEM emitter) is unaffected. */
 export function emitRScript(
   selection: string[],
   setups: Record<string, TestSetup>,
   specs: Record<string, TestSpec>,
   dataset: Dataset,
+  columnLevels: Record<string, string> = {},
 ): string {
   const pkgs = [...new Set(selection.flatMap((id) => PACKAGES[id] ?? []))]
   const factors = [...new Set(selection.flatMap((id) => factorLines(setups[id], specs[id], dataset).split('\n')))]
@@ -48,7 +53,7 @@ export function emitRScript(
 
   const blocks = selection.map((id, i) => {
     const nn = String(i + 1).padStart(2, '0')
-    const body = EMITTERS[id] ? EMITTERS[id](specs[id], setups[id], dataset, itemMap) : '# (emitter pending)'
+    const body = EMITTERS[id] ? EMITTERS[id](specs[id], setups[id], dataset, itemMap, columnLevels) : '# (emitter pending)'
     return `\n# === ${nn} · ${specs[id]?.name ?? id} ===\n${body}`
   })
 

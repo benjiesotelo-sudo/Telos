@@ -4,10 +4,11 @@ import type { Construct, StructuralPath, TestSetup } from '../../../../state/ses
 import { MAKECLUSTER_SHIM } from '../../../webr/parallelShim'
 import { R_SATURATED_PREDICATE } from '../../../stats/semSaturation'
 import { lvNames } from '../../../stats/lvName'
-import { buildModel } from '../../../stats/runCbSem'
+import { buildModel, CB_SEM_DEFAULT_MISSING } from '../../../stats/runCbSem'
 import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE, moderatorMainEffectPaths } from '../../../stats/moderationModel'
 import { BC_CI_R } from '../../../stats/plsBcCi'
 import { SIMPLE_SLOPES_PLOT_R } from '../../../stats/simpleSlopesPlot'
+import { semFitArgs, type SemFitArgs } from '../../../stats/semFitArgs'
 
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim - same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
@@ -67,6 +68,28 @@ export function buildItemMap(domain: string[], globalMap?: Map<string, string>):
   const safe = lvNames(domain)
   const localMap = new Map(domain.map((raw, i) => [raw, safe[i]]))
   return (raw) => localMap.get(raw) ?? raw
+}
+
+/** Student-readable one-line-per-non-default-choice comment block, emitted directly above the sem() fit
+ *  call (H1 wiring, Task 7) - explains why the fragment departs from the ML+listwise default in plain
+ *  language, for a reader following analysis.R without the app open. Empty array for every default
+ *  choice (the byte-pin: a default setup's script is untouched by this feature). */
+function semChoiceCommentLines(fitArgs: SemFitArgs): string[] {
+  const lines: string[] = []
+  if (fitArgs.estimator === 'MLR') {
+    lines.push('# Estimator: MLR (robust maximum likelihood) - robust standard errors and scaled fit statistics.')
+  } else if (fitArgs.estimator === 'WLSMV') {
+    lines.push('# Estimator: WLSMV (robust weighted least squares) - polychoric correlations for ordinal indicators, robust to non-normality.')
+  }
+  if (fitArgs.missing === 'fiml') {
+    lines.push('# Missing data: FIML (missing = "ml") - uses all available cases instead of dropping incomplete rows.')
+  } else if (fitArgs.missing === 'pairwise') {
+    lines.push('# Missing data: Pairwise (missing = "pairwise") - uses all available pairwise information instead of dropping incomplete rows.')
+  }
+  if (fitArgs.orderedR.length > 0) {
+    lines.push(`# Ordinal indicators (ordered =): ${fitArgs.orderedR.join(', ')} - declared from your Configure-data measurement levels.`)
+  }
+  return lines
 }
 
 export const latentEmitters: Record<string, Emitter> = {
@@ -420,7 +443,7 @@ export const latentEmitters: Record<string, Emitter> = {
   // Single bootstrap fit for mediation/moderation (percentile + bias-corrected CI from the SAME draws,
   // design D7/D10/§A2/§A7 - no RNG chunking). Diagram = semPlot::semPaths.
   // Fit table suppressed strictly when fitMeasures(fit,"df") == 0 (shared df==0 predicate; design §3.6/§5.1).
-  'cb-sem': (spec, setup, _dataset, itemMap) => {
+  'cb-sem': (spec, setup, _dataset, itemMap, columnLevels = {}) => {
     const constructs: { id: number; name: string; items: string[] }[] =
       (setup.constructs as { id: number; name: string; items: string[] }[]) ?? []
     const paths: { from: number; to: number }[] =
@@ -455,10 +478,34 @@ export const latentEmitters: Record<string, Emitter> = {
     // moderation setup throws here exactly like it would in the app runner, never reaching a bad script.
     const { model, hasIndirect, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, moderations, itemNameOf)
     const hasModeration = moderationDefs.length > 0
-    // Moderation ALWAYS bootstraps (design §A7), independent of any indirect-effect chain - same widened
-    // gate as runCbSem.ts's `needsBootstrap` (Task 4.4).
-    const needsBootstrap = hasIndirect || hasModeration
     const modelR = model.replace(/\n/g, '\\n')
+
+    // H1 wiring (Task 7): semFitArgs.ts is the SINGLE source of truth for estimator/missing/ordered fit
+    // parameterization, shared with the app runner (runCbSem.ts, Task 3) - export ≡ app by construction,
+    // not by parallel maintenance. indicatorDomain/indicatorNameOf mirror runCbSem.ts's own `usedCols`/
+    // `itemNameOf` exactly (the construct names in path mode, the items in latent mode) so a WLSMV
+    // ordered= declaration lands on the same observed columns the app would fit against. `columnLevels`
+    // is the raw dataset column -> Configure-data measurement level map (threaded from the session the
+    // same way Task 3 threads it into the runner); defaults to {} so every column falls back to 'scale'.
+    const indicatorDomain = isPath ? nameDomain : usedCols
+    const indicatorNameOf = isPath ? nameOf : itemNameOf
+    const indicatorLevels: Record<string, string> = Object.fromEntries(
+      indicatorDomain.map((raw) => [raw, columnLevels[raw] ?? 'scale']),
+    )
+    const fitArgs = semFitArgs({
+      estimator: String(setup.options['estimator'] ?? 'ML'),
+      missing: String(setup.options['missing'] ?? CB_SEM_DEFAULT_MISSING),
+      indicatorLevels,
+      itemNameOf: indicatorNameOf,
+      hasModeration,
+      wantsBootstrap: hasIndirect || hasModeration,
+    })
+    // Moderation ALWAYS bootstraps (design §A7), independent of any indirect-effect chain - same widened
+    // gate as runCbSem.ts's `needsBootstrap` (Task 4.4), now sourced from semFitArgs so bootstrap is also
+    // estimator-gated (ML only) exactly like the app - MLR/WLSMV never silently fall into se="bootstrap".
+    const needsBootstrap = fitArgs.needsBootstrap
+    const semFrag = fitArgs.fragment ? `, ${fitArgs.fragment}` : ''
+    const choiceComments = semChoiceCommentLines(fitArgs)
 
     const out: string[] = [
       '# ---- CB-SEM via lavaan::sem (measurement + structural + indirect + moderation) ----',
@@ -485,6 +532,7 @@ export const latentEmitters: Record<string, Emitter> = {
     }
 
     out.push(
+      ...(choiceComments.length ? ['', ...choiceComments] : []),
       '',
       '# Single awaited bootstrap fit for mediation/moderation (no RNG chunking - preserves WebR≡native parity).',
       'gc()',
@@ -492,7 +540,7 @@ export const latentEmitters: Record<string, Emitter> = {
     )
     if (needsBootstrap) {
       out.push(
-        `fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = ${nboot})`,
+        `fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = ${nboot}${semFrag})`,
         '# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws - both recompute CIs off',
         '# fit@boot without re-running the bootstrap (design §A2; matches runCbSem.ts exactly).',
         'pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)',
@@ -501,7 +549,7 @@ export const latentEmitters: Record<string, Emitter> = {
       )
     } else {
       out.push(
-        'fit <- lavaan::sem(model_str, data = d)',
+        `fit <- lavaan::sem(model_str, data = d${semFrag})`,
         'pe  <- lavaan::parameterEstimates(fit, level = 0.95)',
         '# No bootstrap -> no BC column; keep pe_bc shaped the same as pe but with the CI blanked out',
         '# (never fabricate a bias-corrected interval that was never bootstrapped).',

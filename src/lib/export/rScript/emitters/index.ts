@@ -8,8 +8,14 @@ import { latentEmitters, latentPackages, latentItemDomain, latentRenameEntries }
 
 /** One test → its R snippet. `itemMap` (4th arg) is the SEM-family-only selection-global raw-column ->
  *  sanitized-R-token map (U10 fix, built once in emit.ts from the union of every selected test's item
- *  domain) — every non-SEM emitter ignores it. */
-export type Emitter = (spec: TestSpec, setup: TestSetup, dataset: Dataset, itemMap?: Map<string, string>) => string
+ *  domain) - every non-SEM emitter ignores it. `columnLevels` (5th arg, H1 wiring Task 7) is the raw
+ *  dataset column name -> Configure-data measurement level map (the SAME map session.ts's runAll builds
+ *  for the app runner, Task 3) - only cb-sem/path-analysis read it (for WLSMV's `ordered = c(...)`
+ *  auto-declaration via semFitArgs.ts); every other emitter ignores it. */
+export type Emitter = (
+  spec: TestSpec, setup: TestSetup, dataset: Dataset, itemMap?: Map<string, string>,
+  columnLevels?: Record<string, string>,
+) => string
 
 export const EMITTERS: Record<string, Emitter> = { ...regressionEmitters, ...groupEmitters, ...assocDescEmitters, ...latentEmitters }
 export const PACKAGES: Record<string, string[]> = { ...regressionPackages, ...groupPackages, ...assocDescPackages, ...latentPackages }

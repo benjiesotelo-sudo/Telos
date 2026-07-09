@@ -65,7 +65,13 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
     // Non-path setups pass through unchanged → the other 47 tests' exports are byte-identical. Don't mutate s.setups.
     const usedCols = s.columns.filter((c) => c.used).map((c) => c.name)
     const exportSetups = Object.fromEntries(Object.entries(s.setups).map(([id, st]) => [id, withPathModeConstructs(st, usedCols)]))
-    files['analysis.R'] = enc(emitRScript(fresh, exportSetups, SPECS, workingDataset(s))); files['cleaned.csv'] = enc(toCsv(workingDataset(s)))
+    // H1 wiring (Task 7, mirrors session.ts's runAll -> Task 3): Configure-data measurement levels flow
+    // to the export emitters the SAME way they flow to the app runners, so a WLSMV cb-sem/path-analysis
+    // export declares the identical `ordered = c(...)` set the on-screen run used (export ≡ app).
+    const columnLevels = Object.fromEntries(
+      s.columns.filter((c) => c.level !== null).map((c) => [c.name, c.level as string]),
+    )
+    files['analysis.R'] = enc(emitRScript(fresh, exportSetups, SPECS, workingDataset(s), columnLevels)); files['cleaned.csv'] = enc(toCsv(workingDataset(s)))
   }
   if (formats.r || formats.latex) files['LICENSES.txt'] = enc(licensesText())
   // CITATIONS.txt + references.bib ship with EVERY content download (tables/figures/r/latex, any

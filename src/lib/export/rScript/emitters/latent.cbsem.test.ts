@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { latentEmitters, latentPackages } from './latent'
 import type { TestSetup } from '../../../../state/session'
+import { semFitArgs } from '../../../stats/semFitArgs'
 
 const SETUP: TestSetup = {
   roles: {},
@@ -182,6 +183,84 @@ describe("latentEmitters['cb-sem'] - no moderation (regression guard, U5-T4)", (
   it('still emits dual CI on the (non-moderation, indirect) structural/indirect tables', () => {
     expect(r).toContain('boot.ci.type = "perc"')
     expect(r).toContain('boot.ci.type = "bca.simple"')
+  })
+})
+
+// H1 wiring, Task 7 (export emitter parity): the emitter must build the SAME SemFitArgsInput as the app
+// runner (runCbSem.ts, Task 3) and splice fitArgs.fragment into both sem() call sites verbatim, plus a
+// student-readable comment block above the fit (one line per non-default choice, zero for defaults).
+describe("latentEmitters['cb-sem'] - H1 wiring: export emitter parity (Task 7)", () => {
+  // Deliberately non-bootstrap (single direct path, no indirect chain, no moderation): a clean, minimal
+  // fixture for the byte-pin and fragment-substitution assertions below.
+  const H1_SETUP: TestSetup = {
+    roles: {}, options: { estimator: 'ML', nboot: 5000, ciType: 'percentile' }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'A', items: ['x1', 'x2', 'x3'] },
+      { id: 2, name: 'B', items: ['y1', 'y2', 'y3'] },
+    ],
+    paths: [{ from: 1, to: 2 }],
+  }
+
+  it('default (ML + listwise) setup emits a script byte-identical to the pre-H1 snapshot (byte-pin)', () => {
+    const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, H1_SETUP, { columns: [], rows: [] } as never)
+    expect(r).toMatchSnapshot()
+  })
+
+  it('MLR + fiml emits the fit-argument fragment AND the student-readable comment block above the fit', () => {
+    const setup: TestSetup = { ...H1_SETUP, options: { ...H1_SETUP.options, estimator: 'MLR', missing: 'fiml' } }
+    const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never)
+    expect(r).toContain('# Estimator: MLR (robust maximum likelihood) - robust standard errors and scaled fit statistics.')
+    expect(r).toContain('# Missing data: FIML (missing = "ml") - uses all available cases instead of dropping incomplete rows.')
+    expect(r).toContain('fit <- lavaan::sem(model_str, data = d, estimator = "MLR", missing = "ml")')
+  })
+
+  it('WLSMV emits ordered = c(...) with sanitized item names + the ordinal disclosure comment', () => {
+    const setup: TestSetup = {
+      ...H1_SETUP,
+      options: { ...H1_SETUP.options, estimator: 'WLSMV' },
+      constructs: [
+        { id: 1, name: 'A', items: ['a 1', 'x2', 'x3'] },
+        { id: 2, name: 'B', items: ['y1', 'y2', 'y3'] },
+      ],
+    }
+    // Configure-data measurement levels, threaded in as the emitter's 5th argument (session -> export
+    // entry point -> emitter, mirroring Task 3's runner threading of the SAME map).
+    const columnLevels = { 'a 1': 'ordinal' }
+    const r = latentEmitters['cb-sem'](
+      { id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never, undefined, columnLevels,
+    )
+    expect(r).toContain('ordered = c("a_1")')
+    expect(r).toContain('# Ordinal indicators (ordered =): a_1 - declared from your Configure-data measurement levels.')
+  })
+
+  it('the emitted fragment equals semFitArgs(...).fragment verbatim (the parity assertion)', () => {
+    const setup: TestSetup = { ...H1_SETUP, options: { ...H1_SETUP.options, estimator: 'MLR', missing: 'fiml' } }
+    const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never)
+    const expected = semFitArgs({
+      estimator: 'MLR',
+      missing: 'fiml',
+      indicatorLevels: { x1: 'scale', x2: 'scale', x3: 'scale', y1: 'scale', y2: 'scale', y3: 'scale' },
+      itemNameOf: (raw) => raw,
+      hasModeration: false,
+      wantsBootstrap: false,
+    })
+    expect(r).toContain(`fit <- lavaan::sem(model_str, data = d, ${expected.fragment})`)
+  })
+
+  it('a stale missing:"mi" (removed multiple-imputation option) normalizes to the DEFAULT - no fragment, no comment - exactly like the runner fallback', () => {
+    const setup: TestSetup = { ...H1_SETUP, options: { ...H1_SETUP.options, missing: 'mi' } }
+    const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never)
+    expect(r).toContain('fit <- lavaan::sem(model_str, data = d)')
+    expect(r).not.toContain('# Missing data:')
+    expect(r).not.toContain('missing = ')
+  })
+
+  it('a stale-invalid setup (WLSMV saved but no ordinal indicator after a data change) throws - the guard propagates, never a silent fallback', () => {
+    const setup: TestSetup = { ...H1_SETUP, options: { ...H1_SETUP.options, estimator: 'WLSMV' } }
+    expect(() =>
+      latentEmitters['cb-sem']({ id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never),
+    ).toThrow(/at least one ordinal indicator/)
   })
 })
 

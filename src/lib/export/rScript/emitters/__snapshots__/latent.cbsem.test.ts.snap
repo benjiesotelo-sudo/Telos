@@ -1,0 +1,74 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`latentEmitters['cb-sem'] - H1 wiring: export emitter parity (Task 7) > default (ML + listwise) setup emits a script byte-identical to the pre-H1 snapshot (byte-pin) 1`] = `
+"# ---- CB-SEM via lavaan::sem (measurement + structural + indirect + moderation) ----
+model_str <- "A =~ x1 + x2 + x3\\nB =~ y1 + y2 + y3\\nB ~ p_1_2*A"
+
+# Single awaited bootstrap fit for mediation/moderation (no RNG chunking - preserves WebR≡native parity).
+gc()
+set.seed(20260620)
+fit <- lavaan::sem(model_str, data = d)
+pe  <- lavaan::parameterEstimates(fit, level = 0.95)
+# No bootstrap -> no BC column; keep pe_bc shaped the same as pe but with the CI blanked out
+# (never fabricate a bias-corrected interval that was never bootstrapped).
+pe_bc <- pe; pe_bc$ci.lower <- NA_real_; pe_bc$ci.upper <- NA_real_
+gc()
+ss <- lavaan::standardizedSolution(fit)
+
+# Row alignment by (lhs, rhs) key WITHIN an op-filtered subset, never by row position -- pe/pe_bc
+# are TWO separate parameterEstimates() calls (perc vs bca.simple); the moderation spike (docs/
+# superpowers/reviews/2026-07-06-moderation-spike.md §5.3) found position drift is not safe to
+# assume across them. Scoped to a single op (e.g. "~") so the key is unique -- keying the FULL
+# table would collide on every unlabeled row (label == "" for most non-structural parameters).
+pair_key <- function(dfr) paste(dfr$lhs, dfr$rhs, sep = "\\u0001")
+
+# ---- Table 3: Measurement model (CFA) - B / SE / z / p / Std. loading ----
+cat("\\n--- Table 3: Measurement model (CFA) ---\\n")
+print(ss[ss$op == "=~", c("lhs","rhs","est.std")])
+
+# ---- Table 4: Reliability & validity - CR / AVE / ω / α ----
+# Do NOT call semTools::reliability() - deprecated 2022.
+cr_vec  <- unlist(semTools::compRelSEM(fit))
+ave_vec <- semTools::AVE(fit)
+cat("\\n--- Table 4: Reliability & validity ---\\n")
+print(round(rbind(CR = cr_vec, AVE = ave_vec[names(cr_vec)]), 3))
+
+# ---- Table 5: Fit indices (suppressed strictly when df == 0 - saturated) ----
+# Shared predicate: byte-identical to the app screen (src/lib/stats/semSaturation.ts R_SATURATED_PREDICATE).
+if (!(as.numeric(lavaan::fitMeasures(fit, "df")) == 0)) {
+  fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",
+                                   "rmsea.ci.lower","rmsea.ci.upper","srmr"))
+  cat("\\n--- Table 5: Fit indices ---\\n")
+  print(round(fm, 3))
+} else {
+  cat("\\n--- Model is saturated (df = 0): fit indices not reported ---\\n")
+}
+
+# ---- Table 6: Structural paths (B / SE / z / p / std.β + dual 95% CI: percentile & bias-corrected) ----
+# Scoped to the DRAWN paths' own p_<from>_<to> labels (buildModel labels every drawn structural path
+# this way, and ONLY those) -- matches runCbSem.ts's struct_rows, which iterates the drawn path_from/
+# path_to arrays rather than filtering by bare op == "~".
+pe_reg <- pe[pe$op == "~" & grepl("^p_", pe$label), ]
+pe_bc_reg <- pe_bc[pe_bc$op == "~" & grepl("^p_", pe_bc$label), ]
+ss_reg <- ss[ss$op == "~" & grepl("^p_", ss$label), ]
+reg_key <- pair_key(pe_reg)
+rownames(pe_bc_reg) <- pair_key(pe_bc_reg); rownames(ss_reg) <- pair_key(ss_reg)
+struct_tab <- data.frame(
+  lhs = pe_reg$lhs, rhs = pe_reg$rhs, label = pe_reg$label,
+  est = pe_reg$est, se = pe_reg$se, z = pe_reg$z, pvalue = pe_reg$pvalue,
+  std = ss_reg[reg_key, "est.std"],
+  perc.lower = pe_reg$ci.lower, perc.upper = pe_reg$ci.upper,
+  bc.lower = pe_bc_reg[reg_key, "ci.lower"], bc.upper = pe_bc_reg[reg_key, "ci.upper"]
+)
+cat("\\n--- Table 6: Structural paths ---\\n")
+print(struct_tab)
+cat("\\n--- R-square (endogenous) ---\\n")
+print(round(lavInspect(fit, "rsquare"), 3))
+
+# ---- Figure: path diagram (reproducible stand-in for the app-drawn annotated SVG) ----
+semPlot::semPaths(fit, what = "std", layout = "tree", edge.label.cex = 0.9,
+                  nodeLabels = NULL, residuals = FALSE, intercepts = FALSE)
+
+# Note: this is the closest reproducible native-R rendering of the path diagram; the app's live
+# canvas draws the same structural paths (see figure_path-diagram.png from the app export)."
+`;

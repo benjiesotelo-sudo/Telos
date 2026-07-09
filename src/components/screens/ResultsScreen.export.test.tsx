@@ -216,6 +216,40 @@ describe('buildExportFiles (Task 10)', () => {
     expect(Object.keys(files).some((k) => k.includes('figure_simple-slopes.png'))).toBe(true)
   })
 
+  // H1 wiring (Task 7): the SAME session.columns ColumnMeta[] Task 3 threads into the app runner
+  // (runAll -> Runner's 5th arg) must reach the export emitter too, so a WLSMV cb-sem export declares
+  // the identical `ordered = c(...)` set an on-screen run would have used. Store-level (buildExportFiles
+  // is the export entry point session.ts's runAll mirrors) - proves the PRODUCTION seam, not just the
+  // emitter called directly.
+  it('threads Configure-data ordinal ColumnMeta through to analysis.R as ordered = c(...) (session -> export entry point -> emitter)', () => {
+    const col = (name: string, level: 'ordinal' | 'ratio') =>
+      ({ name, detected: 'float64' as const, tags: [] as never[], level, used: true })
+    const s = {
+      selection: ['cb-sem'],
+      setups: { 'cb-sem': {
+        roles: {}, options: { estimator: 'WLSMV' }, props: {}, blocked: null,
+        modelKind: 'latent' as const,
+        constructs: [
+          { id: 1, name: 'A', items: ['x1', 'x2', 'x3'] },
+          { id: 2, name: 'B', items: ['y1', 'y2', 'y3'] },
+        ],
+        paths: [{ from: 1, to: 2 }],
+      } },
+      runs: { 'cb-sem': { result: {
+        mode: 'cfa-only', saturated: true,
+        cfaLoadings: [], reliability: [], fornellLarcker: [], htmt: [], corLvP: [], discriminantLabels: [],
+        estimates: { paths: [], loadings: {}, r2: {} }, itemStats: [],
+      }, stale: false } },
+      raw: { columns: ['x1', 'x2', 'x3', 'y1', 'y2', 'y3'], rows: [{ x1: 1, x2: 2, x3: 3, y1: 1, y2: 2, y3: 3 }] },
+      // x2 marked ordinal on Configure-data; everything else scale-level (ratio).
+      columns: [col('x1', 'ratio'), col('x2', 'ordinal'), col('x3', 'ratio'), col('y1', 'ratio'), col('y2', 'ratio'), col('y3', 'ratio')],
+      missingPolicy: 'leave',
+    } as unknown as SessionState
+    const files = buildExportFiles(s, { tables: false, figures: false, pdf: false, latex: false, r: true })
+    const r = new TextDecoder().decode(files['analysis.R'])
+    expect(r).toContain('ordered = c("x2")')
+  })
+
   it('report.tex figure NN matches the figure PNG NN when an earlier selected test is not fresh', () => {
     const s = session()
     // Self-contained runs (the shared fixture is mutated by sibling tests): A has NO run, B is fresh.
