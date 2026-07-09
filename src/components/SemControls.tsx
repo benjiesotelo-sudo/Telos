@@ -15,13 +15,25 @@ export function estBootstrapMinutes(track: 'cb-sem' | 'pls-sem', nboot: number):
 }
 
 // CB-SEM missing-data options. `mlOnly` ones are greyed when the estimator is not ML-family (WLSMV).
-const MISSING_OPTS: Array<{ id: string; label: string; mlOnly: boolean }> = [
+// `mlrBlocked` (pairwise) is greyed under MLR specifically - lavaan hard-errors MLR + pairwise
+// (Task 0 spike, docs/superpowers/reviews/2026-07-10-h1-estimator-spike.md), mirrored here so the
+// UI never lets the user reach that thrown guard (semFitArgs.ts) in the first place.
+const MISSING_OPTS: Array<{ id: string; label: string; mlOnly: boolean; mlrBlocked?: boolean }> = [
   { id: 'fiml', label: 'FIML (full-information ML)', mlOnly: true },
-  { id: 'mi', label: 'Multiple imputation', mlOnly: false },
-  { id: 'pairwise', label: 'Pairwise', mlOnly: false },
+  { id: 'pairwise', label: 'Pairwise', mlOnly: false, mlrBlocked: true },
   { id: 'listwise', label: 'Listwise deletion', mlOnly: false },
 ]
+export const MISSING_OPTION_IDS = MISSING_OPTS.map((m) => m.id)
+const MISSING_OPTION_ID_SET = new Set(MISSING_OPTION_IDS)
 const isMlFamily = (estimator: string) => estimator === 'ML' || estimator === 'MLR'
+const isMissingDisabled = (m: (typeof MISSING_OPTS)[number], estimator: string) =>
+  (m.mlOnly && !isMlFamily(estimator)) || (!!m.mlrBlocked && estimator === 'MLR')
+
+// Step-4a (Configure-data) missing-policy labels, mirrored from ConfigureDataScreen's POLICIES list
+// so the SEM step-4a mismatch note reads the same word the user picked there.
+const STEP4A_POLICY_LABEL: Record<string, string> = { drop: 'Drop rows', impute: 'Impute', leave: 'Leave as-is' }
+// The SEM fit's effective missing-data handling, in the mismatch note's wording.
+const SEM_MISSING_LABEL: Record<string, string> = { fiml: 'FIML', pairwise: 'pairwise' }
 
 export interface SemControlsUIProps {
   track: 'cb-sem' | 'pls-sem'
@@ -38,6 +50,13 @@ export interface SemControlsUIProps {
    *  WLSMV reaches the runner with moderations present; this closes the UI-side seam so the
    *  estimator dropdown never lets the user reach that thrown error in the first place. */
   hasModeration?: boolean
+  /** Any construct item's column level is 'ordinal' (Configure-data). WLSMV needs at least one
+   *  ordinal indicator (semFitArgs.ts's own guard) - mirrored here so the WLSMV option greys out
+   *  in the UI before the user can reach that thrown error. */
+  hasOrdinalIndicator: boolean
+  /** Session-level Configure-data missing policy ('leave' | 'drop' | 'impute') - compared against
+   *  the SEM-local missing choice for the step-4a mismatch note. */
+  globalMissingPolicy: string
   onSetPipeline: (p: 'full' | 'cfa-only') => void
   onSetEfa: (on: boolean) => void
   onSetEstimator: (e: string) => void
@@ -48,12 +67,18 @@ export interface SemControlsUIProps {
 /** Pure presentational bespoke controls — NOT generic option pills (locked stages, conditional greying, computed estimate). */
 export function SemControlsUI({
   track, modelKind, pipeline, efa, estimator, missing, nboot, running, hasModeration = false,
+  hasOrdinalIndicator, globalMissingPolicy,
   onSetPipeline, onSetEfa, onSetEstimator, onSetMissing, onSetNboot,
 }: SemControlsUIProps) {
   const isCb = track === 'cb-sem'
   const showPipeline = isCb && modelKind !== 'path'
   const estMin = estBootstrapMinutes(track, nboot)
   const ci = nboot >= 10000 ? 'BCa' : 'percentile'
+  const bootstrapAllowed = estimator === 'ML'
+  const bootstrapDisabled = running || !bootstrapAllowed
+  // Step-4a mismatch: the SEM fit's effective missing handling diverges from what the user picked
+  // on Configure-data ('leave' means no global policy was set, so there's nothing to diverge from).
+  const showStep4aMismatch = missing !== 'listwise' && globalMissingPolicy !== 'leave'
   return (
     <div className="sem-controls">
       {/* ── Pipeline-stage selector (CB-SEM, latent only) — OPTIONAL/ADVANCED, defaults to full ── */}
@@ -91,7 +116,8 @@ export function SemControlsUI({
               onChange={(e) => onSetEstimator(e.target.value)}
               style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
               {['WLSMV', 'ML', 'MLR'].map((e) => (
-                <option key={e} value={e} disabled={e === 'WLSMV' && hasModeration}>{e}</option>
+                <option key={e} value={e}
+                  disabled={e === 'WLSMV' && (hasModeration || !hasOrdinalIndicator)}>{e}</option>
               ))}
             </select>
           </label>
@@ -101,7 +127,7 @@ export function SemControlsUI({
               onChange={(e) => onSetMissing(e.target.value)}
               style={{ border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }}>
               {MISSING_OPTS.map((m) => (
-                <option key={m.id} value={m.id} disabled={m.mlOnly && !isMlFamily(estimator)}>{m.label}</option>
+                <option key={m.id} value={m.id} disabled={isMissingDisabled(m, estimator)}>{m.label}</option>
               ))}
             </select>
           </label>
@@ -110,10 +136,25 @@ export function SemControlsUI({
               FIML requires an ML-family estimator (ML or MLR); under WLSMV use pairwise.
             </p>
           )}
+          {estimator === 'MLR' && (
+            <p className="hint" role="note" style={{ marginTop: 4 }}>
+              Pairwise is not supported under MLR; use FIML or listwise.
+            </p>
+          )}
           {hasModeration && (
             <p className="hint" role="note" style={{ marginTop: 4 }}>
               WLSMV is unavailable while a moderation edge is drawn - latent moderation forces an
               ML-family estimator (ML or MLR); remove the moderation edge to use WLSMV.
+            </p>
+          )}
+          {!hasOrdinalIndicator && (
+            <p className="hint" role="note" style={{ marginTop: 4 }}>
+              WLSMV needs at least one ordinal indicator; all your indicators are scale-level - use ML or MLR.
+            </p>
+          )}
+          {showStep4aMismatch && (
+            <p className="hint" role="note" style={{ marginTop: 4 }}>
+              {`Your Configure-data missing setting is "${STEP4A_POLICY_LABEL[globalMissingPolicy] ?? globalMissingPolicy}"; this SEM fit uses ${SEM_MISSING_LABEL[missing] ?? missing} instead.`}
             </p>
           )}
         </fieldset>
@@ -126,13 +167,13 @@ export function SemControlsUI({
           {BOOTSTRAP_PRESETS.map((n) => (
             <label key={n} className={`pill${nboot === n ? ' on' : ''}`} style={{ cursor: 'pointer' }}>
               <input type="radio" name="sem-nboot" value={n} checked={nboot === n}
-                disabled={running} onChange={() => onSetNboot(n)} style={{ marginRight: 6 }} />
+                disabled={bootstrapDisabled} onChange={() => onSetNboot(n)} style={{ marginRight: 6 }} />
               {n === 1000 ? '1k' : n === 5000 ? '5k' : '10k'}
             </label>
           ))}
           <label className="pill">
             resamples{' '}
-            <input type="number" min={100} step={100} value={nboot} disabled={running}
+            <input type="number" min={100} step={100} value={nboot} disabled={bootstrapDisabled}
               aria-label="bootstrap resamples" onChange={(e) => onSetNboot(Number(e.target.value))}
               style={{ width: '6em', border: 0, background: 'transparent', font: 'inherit', color: 'inherit' }} />
           </label>
@@ -143,6 +184,11 @@ export function SemControlsUI({
             ? 'BCa confidence intervals (publication-grade; BCa needs ≈7k+ resamples to be accurate).'
             : 'Percentile confidence intervals (cross-track consistency; BCa reserved for the 10k preset).'}
         </p>
+        {!bootstrapAllowed && (
+          <p className="hint" role="note" style={{ marginTop: 4 }}>
+            Bootstrap CIs require the ML estimator; MLR/WLSMV report their own robust standard errors and delta-method CIs.
+          </p>
+        )}
       </fieldset>
     </div>
   )
@@ -152,7 +198,10 @@ export function SemControlsUI({
  *  no 'missing' key in setup.options (freshSetup filters kind:'display' registry options out — see
  *  src/state/session.ts), so the UI must show the SAME value the runner treats as its effective default:
  *  CB_SEM_DEFAULT_MISSING (runCbSem.ts) — never a value of its own that could drift out of sync. */
-export const missingOptionValue = (o: TestSetup['options']): string => String(o.missing ?? CB_SEM_DEFAULT_MISSING)
+export const missingOptionValue = (o: TestSetup['options']): string => {
+  const v = String(o.missing ?? CB_SEM_DEFAULT_MISSING)
+  return MISSING_OPTION_ID_SET.has(v) ? v : CB_SEM_DEFAULT_MISSING
+}
 
 /** Store-connected bespoke controls — values persist into setup.options, read by runCbSem/runPlsSem + emitters. */
 export function SemControls({ testId }: { testId: string }) {
@@ -161,6 +210,9 @@ export function SemControls({ testId }: { testId: string }) {
   if (!setup) return null
   const track = testId === 'pls-sem' ? 'pls-sem' : 'cb-sem'
   const o = setup.options
+  const columnLevel = new Map(s.columns.map((c) => [c.name, c.level]))
+  const hasOrdinalIndicator = (setup.constructs ?? []).some((c) =>
+    c.items.some((item) => columnLevel.get(item) === 'ordinal'))
   return (
     <SemControlsUI
       track={track}
@@ -172,6 +224,8 @@ export function SemControls({ testId }: { testId: string }) {
       nboot={Number(o.nboot ?? 5000)}
       running={s.runStatus === 'running'}
       hasModeration={(setup.moderations ?? []).length > 0}
+      hasOrdinalIndicator={hasOrdinalIndicator}
+      globalMissingPolicy={s.missingPolicy}
       onSetPipeline={(p) => s.setOption(testId, 'pipeline', p)}
       onSetEfa={(on) => s.setOption(testId, 'efa', on)}
       onSetEstimator={(e) => s.setOption(testId, 'estimator', e)}

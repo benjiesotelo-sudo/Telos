@@ -1,7 +1,7 @@
 // src/components/SemControls.test.tsx
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { SemControlsUI, missingOptionValue, BOOTSTRAP_PRESETS, estBootstrapMinutes } from './SemControls'
+import { SemControlsUI, missingOptionValue, MISSING_OPTION_IDS, BOOTSTRAP_PRESETS, estBootstrapMinutes } from './SemControls'
 import { CB_SEM_DEFAULT_MISSING } from '../lib/stats/runCbSem'
 import type { TestSetup } from '../state/session'
 
@@ -18,6 +18,8 @@ function renderUI(over: Partial<Parameters<typeof SemControlsUI>[0]> = {}) {
       missing="fiml"
       nboot={5000}
       running={false}
+      hasOrdinalIndicator={true}
+      globalMissingPolicy="leave"
       onSetPipeline={noop}
       onSetEfa={noop}
       onSetEstimator={noop}
@@ -145,6 +147,122 @@ describe('missingOptionValue - the connected default agrees with the runner (def
   it('renders into SemControlsUI as the selected option when passed through as the missing prop', () => {
     const html = renderUI({ missing: missingOptionValue({}) })
     expect(html).toContain(`value="${CB_SEM_DEFAULT_MISSING}" selected=""`)
+  })
+})
+
+describe('MISSING_OPTS - multiple imputation removed (H1 wiring slice, Task 2)', () => {
+  it('option ids are exactly fiml/pairwise/listwise - no more "mi"', () => {
+    expect(MISSING_OPTION_IDS).toEqual(['fiml', 'pairwise', 'listwise'])
+  })
+
+  it('does not render "Multiple imputation" anywhere in the missing-data dropdown', () => {
+    const html = renderUI()
+    expect(html).not.toMatch(/Multiple imputation/)
+    expect(html).not.toContain('value="mi"')
+  })
+})
+
+describe('Bootstrap greys under non-ML estimators (bootstrap CIs are ML-only, Task 2 behavior 2)', () => {
+  it('disables the bootstrap resample input and shows a note when estimator is MLR', () => {
+    const html = renderUI({ estimator: 'MLR' })
+    const inputTag = html.match(/<input[^>]*aria-label="bootstrap resamples"[^>]*>/)
+    expect(inputTag?.[0]).toContain('disabled=""')
+    expect(html).toContain(
+      'Bootstrap CIs require the ML estimator; MLR/WLSMV report their own robust standard errors and delta-method CIs.'
+    )
+  })
+
+  it('disables the bootstrap resample input when estimator is WLSMV', () => {
+    const html = renderUI({ estimator: 'WLSMV', missing: 'pairwise' })
+    const inputTag = html.match(/<input[^>]*aria-label="bootstrap resamples"[^>]*>/)
+    expect(inputTag?.[0]).toContain('disabled=""')
+  })
+
+  it('leaves the bootstrap resample input enabled under ML (no note)', () => {
+    const html = renderUI({ estimator: 'ML' })
+    const inputTag = html.match(/<input[^>]*aria-label="bootstrap resamples"[^>]*>/)
+    expect(inputTag?.[0]).not.toContain('disabled')
+    expect(html).not.toContain('Bootstrap CIs require the ML estimator')
+  })
+})
+
+describe('WLSMV requires at least one ordinal indicator (Task 2 behavior 3)', () => {
+  it('greys the WLSMV option when no construct item is ordinal-level', () => {
+    const html = renderUI({ estimator: 'ML', hasOrdinalIndicator: false })
+    expect(html).toContain('value="WLSMV" disabled=""')
+    expect(html).toContain(
+      'WLSMV needs at least one ordinal indicator; all your indicators are scale-level - use ML or MLR.'
+    )
+  })
+
+  it('leaves WLSMV selectable when at least one indicator is ordinal', () => {
+    const html = renderUI({ estimator: 'ML', hasOrdinalIndicator: true })
+    expect(html).not.toContain('value="WLSMV" disabled=""')
+    expect(html).not.toMatch(/WLSMV needs at least one ordinal indicator/)
+  })
+
+  it('shows the ordinal-indicator note even while WLSMV is the stale selection', () => {
+    const html = renderUI({ estimator: 'WLSMV', missing: 'pairwise', hasOrdinalIndicator: false })
+    expect(html).toContain('value="WLSMV" disabled=""')
+    expect(html).toMatch(/WLSMV needs at least one ordinal indicator/)
+  })
+})
+
+describe('Step-4a missing-policy mismatch note (Task 2 behavior 4)', () => {
+  it('shows the mismatch note: global "drop" vs SEM fiml', () => {
+    const html = renderUI({ missing: 'fiml', globalMissingPolicy: 'drop' })
+    expect(html).toContain('Your Configure-data missing setting is &quot;Drop rows&quot;; this SEM fit uses FIML instead.')
+  })
+
+  it('shows the mismatch note: global "impute" vs SEM pairwise', () => {
+    const html = renderUI({ estimator: 'WLSMV', missing: 'pairwise', globalMissingPolicy: 'impute' })
+    expect(html).toContain('Your Configure-data missing setting is &quot;Impute&quot;; this SEM fit uses pairwise instead.')
+  })
+
+  it('does not show the note when the global policy is "leave" (default, no Configure-data override)', () => {
+    const html = renderUI({ missing: 'fiml', globalMissingPolicy: 'leave' })
+    expect(html).not.toMatch(/Configure-data missing setting/)
+  })
+
+  it('does not show the note when the SEM missing choice is listwise (no divergence to flag)', () => {
+    const html = renderUI({ missing: 'listwise', globalMissingPolicy: 'drop' })
+    expect(html).not.toMatch(/Configure-data missing setting/)
+  })
+})
+
+describe('missingOptionValue - stale/removed ids fall back to the runner default (Task 2 behavior 5)', () => {
+  it('a stale missing:"mi" (removed multiple-imputation option) resolves to CB_SEM_DEFAULT_MISSING', () => {
+    expect(missingOptionValue({ missing: 'mi' })).toBe(CB_SEM_DEFAULT_MISSING)
+    expect(missingOptionValue({ missing: 'mi' })).not.toBe('mi')
+  })
+
+  it('renders that fallback into SemControlsUI rather than an unknown/impossible option', () => {
+    const html = renderUI({ missing: missingOptionValue({ missing: 'mi' }) })
+    expect(html).toContain(`value="${CB_SEM_DEFAULT_MISSING}" selected=""`)
+  })
+})
+
+describe('pairwise missing option disabled under MLR (Task 0 spike amendment: lavaan hard-errors MLR+pairwise)', () => {
+  it('pairwise is enabled under ML', () => {
+    const html = renderUI({ estimator: 'ML', missing: 'listwise' })
+    expect(html).not.toContain('value="pairwise" disabled=""')
+  })
+
+  it('pairwise is enabled under WLSMV', () => {
+    const html = renderUI({ estimator: 'WLSMV', missing: 'pairwise' })
+    expect(html).not.toContain('value="pairwise" disabled=""')
+  })
+
+  it('pairwise is disabled under MLR, with the mirrored hint text', () => {
+    const html = renderUI({ estimator: 'MLR', missing: 'listwise' })
+    expect(html).toContain('value="pairwise" disabled=""')
+    expect(html).toContain('Pairwise is not supported under MLR; use FIML or listwise.')
+  })
+
+  it('a stale saved setup (missing="pairwise", estimator switched to MLR) renders without crashing and shows pairwise disabled - the id itself is still valid so missingOptionValue passes it through unchanged, matching the existing stale-FIML-under-WLSMV convention', () => {
+    const html = renderUI({ estimator: 'MLR', missing: 'pairwise' })
+    expect(html).toContain('value="pairwise" disabled=""')
+    expect(missingOptionValue({ missing: 'pairwise' })).toBe('pairwise')
   })
 })
 
