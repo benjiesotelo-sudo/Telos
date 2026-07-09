@@ -6,7 +6,18 @@
 #   1. Regenerates the EXACT SAME base likert data as h1-estimator-spike.R (same set.seed(20260710)
 #      generator, unchanged) -- so this is genuinely the same underlying fixture, not a new dataset.
 #   2. Punches deterministic NA holes into a1..b3 ONLY (cont1/cont2 untouched) under a SEPARATE,
-#      documented seed step: set.seed(20260711), ~5% of cells per column (300 * 0.05 = 15 rows/col).
+#      documented seed step: set.seed(20260711), 1% of cells per column (300 * 0.01 = 3 rows/col).
+#      RECONDITIONED (controller ruling, 2026-07-10): the first cut used a 5% hole rate, which
+#      pushed BOTH WLSMV fits into improper (Heywood) solutions - lavaan's post-check flagged
+#      negative estimated lv variances and the structural SEs blew up 1-2 orders of magnitude
+#      above the estimates. Pins must never encode an improper solution as ground truth. A
+#      deterministic sweep over the controller's levers, run with EXACTLY this script's eager
+#      generation order (base seed 20260710, then set.seed(20260711), then sample() per column),
+#      found: 3% leaves the LISTWISE cell improper, 2% leaves the PAIRWISE cell improper, and
+#      raising n to 500 (a different base draw) is improper at 2/3/5% for both cells - 1% at the
+#      unchanged n=300 base is the mildest change where BOTH cells pass lavaan's post-check
+#      cleanly, with no warnings and structural SEs the same order as the estimates (matching the
+#      spike's clean holeless cells). Same seeds, same base data - only the hole rate changed.
 #   3. Writes docs/testing/likert5-missing.csv (mirrors where the complete-data likert5.csv lives).
 #   4. Re-fits WLSMV under missing="listwise" and missing="pairwise" on the missing variant and
 #      prints fitMeasures + structural (B ~ A, B ~ C) rows at 8dp via sprintf, matching the
@@ -27,7 +38,7 @@ likert <- data.frame(a1 = lik(lv), a2 = lik(lv), a3 = lik(lv),
 # --- Step 2: punch NA holes, a1..b3 ONLY, cont1/cont2 untouched, separate seed ---
 set.seed(20260711)
 ord_cols <- c("a1", "a2", "a3", "b1", "b2", "b3")
-hole_size <- round(n * 0.05) # 15 rows per column
+hole_size <- round(n * 0.01) # 3 rows per column (see RECONDITIONED note above: 5% -> Heywood)
 for (col in ord_cols) {
   idx <- sample(seq_len(n), size = hole_size)
   likert[idx, col] <- NA
@@ -57,11 +68,24 @@ fmt <- function(x) if (is.na(x)) "NA" else sprintf("%.8f", x)
 headline_w <- c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "srmr", "wrmr",
                 "chisq.scaled", "df.scaled", "pvalue.scaled", "cfi.scaled", "tli.scaled", "rmsea.scaled",
                 "cfi.robust", "tli.robust", "rmsea.robust")
+# Conditioning check (controller ruling): each fit must be a PROPER solution - lavaan's
+# post-check passes (no negative lv variances, positive-definite lv covariance) AND no warning of
+# any kind fires during fitting. PROPER: TRUE printed per cell below is the machine-checkable
+# proof in this capture; if either cell ever prints FALSE, the pins in src/lib/stats/h1Pins.ts
+# must NOT be regenerated from that run - recondition the fixture first.
 for (miss in c("listwise", "pairwise")) {
-  fit <- lavaan::sem(mixed_model, data = likert, estimator = "WLSMV",
-                     ordered = ord_cols, missing = miss)
+  warns <- character(0)
+  fit <- withCallingHandlers(
+    lavaan::sem(mixed_model, data = likert, estimator = "WLSMV",
+                ordered = ord_cols, missing = miss),
+    warning = function(w) { warns <<- c(warns, conditionMessage(w)); invokeRestart("muffleWarning") }
+  )
+  proper <- isTRUE(suppressWarnings(lavaan::lavInspect(fit, "post.check"))) && length(warns) == 0
   fm <- lavaan::fitMeasures(fit)
   cat("\n#### WLSMV /", miss, "(likert5-missing)\n")
+  cat("PROPER:", proper, "\n")
+  if (length(warns)) cat("WARNINGS:", paste(unique(warns), collapse = " | "), "\n")
+  stopifnot(proper)
   for (nm in headline_w) {
     if (nm %in% names(fm)) cat(sprintf("%-16s %s\n", nm, fmt(fm[[nm]])))
   }

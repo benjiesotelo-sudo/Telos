@@ -1,61 +1,52 @@
 This is lavaan 0.6-21
 lavaan is FREE software! Please report any bugs.
-Holes punched per column (expect 15 each):
+Holes punched per column (expect 3 each):
 a1 a2 a3 b1 b2 b3 
-15 15 15 15 15 15 
+ 3  3  3  3  3  3 
 cont1/cont2 NA count (expect 0, 0): 0 0 
 
 #### WLSMV / listwise (likert5-missing)
-chisq            2.83662035
+PROPER: TRUE 
+chisq            4.02273301
 df               17.00000000
 pvalue           NA
 cfi              1.00000000
-tli              1.00675747
+tli              1.00498665
 rmsea            0.00000000
-srmr             0.01548063
-wrmr             0.22506429
-chisq.scaled     10.15902364
+srmr             0.01639998
+wrmr             0.26801962
+chisq.scaled     13.32849031
 df.scaled        17.00000000
-pvalue.scaled    0.89680942
+pvalue.scaled    0.71393303
 cfi.scaled       1.00000000
-tli.scaled       1.00798399
+tli.scaled       1.00344299
 rmsea.scaled     0.00000000
 cfi.robust       NA
 tli.robust       NA
 rmsea.robust     NA
-PE struct  B ~ A   est=-8.23816289 se=95.23218062
-PE struct  B ~ C   est=5.64882719 se=73.65573946
+PE struct  B ~ A   est=-0.66155525 se=1.28310502
+PE struct  B ~ C   est=-0.25762892 se=0.98898067
 
 #### WLSMV / pairwise (likert5-missing)
-chisq            4.27951977
+PROPER: TRUE 
+chisq            4.42200721
 df               17.00000000
 pvalue           NA
 cfi              1.00000000
-tli              1.00482376
+tli              1.00462289
 rmsea            0.00000000
-srmr             0.01668349
-wrmr             0.27644167
-chisq.scaled     13.56372223
+srmr             0.01673756
+wrmr             0.28100608
+chisq.scaled     14.25227769
 df.scaled        17.00000000
-pvalue.scaled    0.69770752
+pvalue.scaled    0.64917065
 cfi.scaled       1.00000000
-tli.scaled       1.00312497
+tli.scaled       1.00246658
 rmsea.scaled     0.00000000
 cfi.robust       NA
 tli.robust       NA
 rmsea.robust     NA
-PE struct  B ~ A   est=-1.65201156 se=3.86662800
-PE struct  B ~ C   est=0.51425752 se=2.97225654
-Warning messages:
-1: lavaan->lav_object_post_check():  
-   some estimated lv variances are negative 
-2: lavaan->lav_object_post_check():  
-   some estimated lv variances are negative 
-Warning message:
-lavaan->lav_object_post_check():  
-   some estimated lv variances are negative 
-Warning message:
-lavaan->lav_object_post_check():  
-   some estimated lv variances are negative 
+PE struct  B ~ A   est=-0.58584362 se=0.89745109
+PE struct  B ~ C   est=-0.32155693 se=0.68700198
 
-Degeneracy guard: chisq.scaled listwise = 10.15902364  pairwise = 13.56372223  differ = TRUE 
+Degeneracy guard: chisq.scaled listwise = 13.32849031  pairwise = 14.25227769  differ = TRUE 

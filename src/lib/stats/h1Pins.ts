@@ -32,13 +32,22 @@
  * Cells 6-7: WLSMV needs its OWN missing-data fixture, not the spike's likert5.csv - that fixture
  * has no NA holes at all, so its listwise/pairwise fits are byte-identical (spike Q3 note), which
  * cannot distinguish cells 6 and 7. tests/e2e/fixtures/likert5-missing.csv (same base generator as
- * likert5.csv, seed 20260710, plus a SEPARATE seeded hole-punching step, set.seed(20260711), ~5%
+ * likert5.csv, seed 20260710, plus a SEPARATE seeded hole-punching step, set.seed(20260711), 1%
  * of cells in a1..b3 ONLY, cont1/cont2 left untouched - see
  * scripts/spikes/h1-likert-missing-pin-values.R) was fit fresh for this task and captured in
  * scripts/spikes/h1-pin-values-likert-missing.txt (this task's new native capture). Every line
  * number cited in cells 6-7 refers to that file. The two cells' chisq.scaled and structural
  * estimates were verified to differ (see h1Pins.test.ts's degeneracy-guard test and the capture
  * file's own "Degeneracy guard" line).
+ *
+ * PROPER-SOLUTION GUARANTEE for cells 6-7 (controller ruling): both WLSMV fits are verified
+ * PROPER solutions - lavaan's post-check passes (no negative lv variances, positive-definite lv
+ * covariance) and NO warning fires during fitting; the capture file prints "PROPER: TRUE" per
+ * cell (machine-checked - the regeneration script stopifnot()s on it, so an improper fit can
+ * never silently produce a capture). The hole rate is 1% because a deterministic sweep showed
+ * 2-5% rates push these fits into improper Heywood solutions (negative lv variances, SEs 1-2
+ * orders of magnitude above the estimates). If these cells are ever regenerated, both PROPER
+ * lines in the fresh capture must read TRUE or the pins are not valid ground truth.
  */
 
 export interface H1PinCell {
@@ -178,52 +187,54 @@ export const CELL_5_MLR_FIML: H1PinCell = {
 // omitted here rather than pinned as NaN/sentinel.
 // -------------------------------------------------------------------------------------------
 
-/** Cell 6: WLSMV / listwise. scripts/spikes/h1-pin-values-likert-missing.txt lines 8-27. */
+/** Cell 6: WLSMV / listwise. scripts/spikes/h1-pin-values-likert-missing.txt lines 8-28
+ *  (PROPER: TRUE at line 9). */
 export const CELL_6_WLSMV_LISTWISE: H1PinCell = {
   estimator: 'WLSMV',
   missing: 'listwise',
   fit: {
-    chisq: 2.83662035, // line 9
-    df: 17.0, // line 10
-    cfi: 1.0, // line 12
-    tli: 1.00675747, // line 13
-    rmsea: 0.0, // line 14
-    srmr: 0.01548063, // line 15
-    wrmr: 0.22506429, // line 16
-    'chisq.scaled': 10.15902364, // line 17
-    'df.scaled': 17.0, // line 18
-    'pvalue.scaled': 0.89680942, // line 19
-    'cfi.scaled': 1.0, // line 20
-    'tli.scaled': 1.00798399, // line 21
-    'rmsea.scaled': 0.0, // line 22
+    chisq: 4.02273301, // line 10
+    df: 17.0, // line 11
+    cfi: 1.0, // line 13
+    tli: 1.00498665, // line 14
+    rmsea: 0.0, // line 15
+    srmr: 0.01639998, // line 16
+    wrmr: 0.26801962, // line 17
+    'chisq.scaled': 13.32849031, // line 18
+    'df.scaled': 17.0, // line 19
+    'pvalue.scaled': 0.71393303, // line 20
+    'cfi.scaled': 1.0, // line 21
+    'tli.scaled': 1.00344299, // line 22
+    'rmsea.scaled': 0.0, // line 23
   },
   structural: [
-    { param: 'B ~ A', est: -8.23816289, se: 95.23218062 }, // line 26
-    { param: 'B ~ C', est: 5.64882719, se: 73.65573946 }, // line 27
+    { param: 'B ~ A', est: -0.66155525, se: 1.28310502 }, // line 27
+    { param: 'B ~ C', est: -0.25762892, se: 0.98898067 }, // line 28
   ],
 }
 
-/** Cell 7: WLSMV / pairwise. scripts/spikes/h1-pin-values-likert-missing.txt lines 29-48. */
+/** Cell 7: WLSMV / pairwise. scripts/spikes/h1-pin-values-likert-missing.txt lines 30-50
+ *  (PROPER: TRUE at line 31). */
 export const CELL_7_WLSMV_PAIRWISE: H1PinCell = {
   estimator: 'WLSMV',
   missing: 'pairwise',
   fit: {
-    chisq: 4.27951977, // line 30
-    df: 17.0, // line 31
-    cfi: 1.0, // line 33
-    tli: 1.00482376, // line 34
-    rmsea: 0.0, // line 35
-    srmr: 0.01668349, // line 36
-    wrmr: 0.27644167, // line 37
-    'chisq.scaled': 13.56372223, // line 38
-    'df.scaled': 17.0, // line 39
-    'pvalue.scaled': 0.69770752, // line 40
-    'cfi.scaled': 1.0, // line 41
-    'tli.scaled': 1.00312497, // line 42
-    'rmsea.scaled': 0.0, // line 43
+    chisq: 4.42200721, // line 32
+    df: 17.0, // line 33
+    cfi: 1.0, // line 35
+    tli: 1.00462289, // line 36
+    rmsea: 0.0, // line 37
+    srmr: 0.01673756, // line 38
+    wrmr: 0.28100608, // line 39
+    'chisq.scaled': 14.25227769, // line 40
+    'df.scaled': 17.0, // line 41
+    'pvalue.scaled': 0.64917065, // line 42
+    'cfi.scaled': 1.0, // line 43
+    'tli.scaled': 1.00246658, // line 44
+    'rmsea.scaled': 0.0, // line 45
   },
   structural: [
-    { param: 'B ~ A', est: -1.65201156, se: 3.866628 }, // line 47
-    { param: 'B ~ C', est: 0.51425752, se: 2.97225654 }, // line 48
+    { param: 'B ~ A', est: -0.58584362, se: 0.89745109 }, // line 49
+    { param: 'B ~ C', est: -0.32155693, se: 0.68700198 }, // line 50
   ],
 }
