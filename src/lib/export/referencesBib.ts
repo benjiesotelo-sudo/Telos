@@ -5,7 +5,7 @@
 // text contains a literal brace or '@', so no escaping is needed).
 import { version } from '../../../package.json'
 import { CITATIONS, type Ref } from '../registry/citations'
-import { APP_YEAR, ZENODO_DOI_PLACEHOLDER } from './citeApp'
+import { APP_YEAR, ZENODO_DOI } from './citeApp'
 
 function firstAuthorWord(authors: string): string {
   return authors.split(',')[0].trim().split(/\s+/)[0]?.toLowerCase().replace(/[^a-z]/g, '') || 'ref'
@@ -50,7 +50,7 @@ export function referencesBibText(selection: string[]): string {
     author: 'Sotelo, B.',
     title: `Telos (v${version}) [Computer software]`,
     year: String(APP_YEAR),
-    doi: ZENODO_DOI_PLACEHOLDER,
+    doi: ZENODO_DOI,
   }))
 
   for (const ref of collectRefs(selection)) {
