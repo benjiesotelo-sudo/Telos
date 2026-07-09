@@ -1,0 +1,210 @@
+
+library(lavaan)
+
+p_all <- length(all_cols)
+d <- as.data.frame(lapply(seq_len(p_all), function(i) item_cols_flat[((i - 1) * n + 1):(i * n)]))
+colnames(d) <- all_cols
+
+# Latent moderation (design §A7): fold double-mean-centered product-indicator columns into d BEFORE
+# the fit, one indProd() call per moderation edge. No-op (mod_ids empty) on every non-moderation run.
+
+# Defensive defaults: the WebR call site (runCbSem.ts) deliberately OMITS these vars from the env
+# object on a non-moderation run rather than sending empty JS arrays -- webr's JS->R env marshalling
+# misdetects an empty array as tabular "array of row-objects" data (Array.prototype.every is vacuously
+# true on []) and crashes converting it to a data.frame. R defines its own empty typed vectors instead.
+if (!exists('mod_ids', inherits = FALSE)) {
+  mod_ids <- integer(0); mod_var1_flat <- character(0); mod_var1_lens <- integer(0)
+  mod_var2_flat <- character(0); mod_var2_lens <- integer(0); mod_matched <- logical(0)
+  mod_target <- character(0)
+}
+if (length(mod_ids) > 0) {
+  suppressMessages(library(semTools))
+  v1_start <- 1L; v2_start <- 1L
+  for (mi in seq_along(mod_ids)) {
+    v1 <- mod_var1_flat[v1_start:(v1_start + mod_var1_lens[mi] - 1L)]; v1_start <- v1_start + mod_var1_lens[mi]
+    v2 <- mod_var2_flat[v2_start:(v2_start + mod_var2_lens[mi] - 1L)]; v2_start <- v2_start + mod_var2_lens[mi]
+    d <- indProd(d, var1 = v1, var2 = v2, match = as.logical(mod_matched[mi]), meanC = TRUE, doubleMC = TRUE)
+  }
+}
+
+
+# Single awaited fit with bootstrap SE/CI for mediation (no RNG chunking — preserves WebR≡native parity).
+gc()
+set.seed(20260620)
+if (has_indirect) {
+  fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = as.integer(nboot))
+  pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)
+  pe_bc   <- lavaan::parameterEstimates(fit, boot.ci.type = "bca.simple", level = 0.95)
+  pe <- pe_perc # pe stays the primary table (est/se/z/p unaffected by CI-type choice)
+} else {
+  fit <- lavaan::sem(model_str, data = d)
+  pe <- lavaan::parameterEstimates(fit, level = 0.95)
+  pe_bc <- pe # no bootstrap -> no distinct BC column; ci.lower/upper below are simply absent (NA)
+}
+gc()
+
+ss <- lavaan::standardizedSolution(fit)
+df_val <- as.numeric(lavaan::fitMeasures(fit, "df"))
+
+# id↔name lookup
+name2id <- setNames(as.integer(con_ids), con_names)
+
+# --- Fit indices (always computed; builder/emitter suppress when df==0) ---
+fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",
+                                 "rmsea.ci.lower","rmsea.ci.upper","srmr"))
+fit_list <- list(
+  chisq = as.numeric(fm["chisq"]), df = as.numeric(fm["df"]), pvalue = as.numeric(fm["pvalue"]),
+  cfi = as.numeric(fm["cfi"]), tli = as.numeric(fm["tli"]), rmsea = as.numeric(fm["rmsea"]),
+  rmseaLower = as.numeric(fm["rmsea.ci.lower"]), rmseaUpper = as.numeric(fm["rmsea.ci.upper"]),
+  srmr = as.numeric(fm["srmr"])
+)
+
+# --- CFA loadings (measurement; empty in path mode) ---
+if (is_path) {
+  cfa_rows <- list()
+} else {
+  load_idx <- which(ss$op == "=~")
+  pe_load  <- pe[pe$op == "=~", ]
+  cfa_rows <- lapply(load_idx, function(i) {
+    lhs <- ss$lhs[i]; rhs <- ss$rhs[i]
+    m <- which(pe_load$lhs == lhs & pe_load$rhs == rhs)[1]
+    list(
+      construct = con_display[match(lhs, con_names)], item = rhs,
+      b = as.numeric(pe_load$est[m]), se = as.numeric(pe_load$se[m]),
+      z = as.numeric(pe_load$z[m]), p = as.numeric(pe_load$pvalue[m]),
+      stdLoading = as.numeric(ss$est.std[i]),
+      rhs = rhs
+    )
+  })
+}
+
+# --- Structural paths (id-keyed from/to, display order from path_from/path_to) ---
+reg_idx <- which(ss$op == "~")
+pe_reg  <- pe[pe$op == "~", ]
+pe_bc_reg <- pe_bc[pe_bc$op == "~", ]
+rsq <- tryCatch(lavInspect(fit, "rsquare"), error = function(e) numeric(0))
+struct_rows <- lapply(seq_along(path_from), function(k) {
+  fid <- as.integer(path_from[k]); tid <- as.integer(path_to[k])
+  fnm <- con_names[match(fid, con_ids)]; tnm <- con_names[match(tid, con_ids)]
+  i <- which(ss$lhs[reg_idx] == tnm & ss$rhs[reg_idx] == fnm)[1]
+  gi <- reg_idx[i]
+  m <- which(pe_reg$lhs == tnm & pe_reg$rhs == fnm)[1]
+  mb <- which(pe_bc_reg$lhs == tnm & pe_bc_reg$rhs == fnm)[1]
+  r2_val <- if (tnm %in% names(rsq)) as.numeric(rsq[tnm]) else NA_real_
+  list(
+    from = fid, to = tid,
+    fromName = con_display[match(fid, con_ids)], toName = con_display[match(tid, con_ids)],
+    b = as.numeric(pe_reg$est[m]), se = as.numeric(pe_reg$se[m]),
+    z = as.numeric(pe_reg$z[m]), p = as.numeric(pe_reg$pvalue[m]),
+    stdBeta = as.numeric(ss$est.std[gi]),
+    ciLower = as.numeric(ss$ci.lower[gi]), ciUpper = as.numeric(ss$ci.upper[gi]),
+    ciPercLower = as.numeric(pe_reg$ci.lower[m]), ciPercUpper = as.numeric(pe_reg$ci.upper[m]),
+    ciBcLower = if (has_indirect) as.numeric(pe_bc_reg$ci.lower[mb]) else NA_real_,
+    ciBcUpper = if (has_indirect) as.numeric(pe_bc_reg$ci.upper[mb]) else NA_real_,
+    r2 = r2_val
+  )
+})
+
+# R² by construct id (endogenous only)
+rsq_ids <- list()
+for (nm in names(rsq)) {
+  if (nm %in% names(name2id)) rsq_ids[[as.character(name2id[[nm]])]] <- as.numeric(rsq[nm])
+}
+
+# --- Indirect effects (:= defined; bootstrap percentile + bca.simple CIs from the same run) ---
+# Filtered to the "ie_" label prefix ONLY -- moderation's own := defs ("slope_lo_<id>" etc., extracted
+# separately below into moderation.slopes) must NOT be conflated into this table (design §A7/U2-T5).
+ind_idx <- which(pe$op == ":=" & grepl("^ie_", pe$lhs))
+ss_def  <- ss[ss$op == ":=", ]
+pe_bc_def <- pe_bc[pe_bc$op == ":=", ]
+indirect_rows <- lapply(ind_idx, function(i) {
+  lbl <- pe$lhs[i]
+  sm <- which(ss_def$lhs == lbl)[1]
+  mb <- which(pe_bc_def$lhs == lbl)[1]
+  list(
+    label = lbl,
+    est = as.numeric(pe$est[i]),
+    stdEst = if (length(sm)) as.numeric(ss_def$est.std[sm]) else NA_real_,
+    se = as.numeric(pe$se[i]),
+    ciLower = as.numeric(pe$ci.lower[i]),
+    ciUpper = as.numeric(pe$ci.upper[i]),
+    ciPercLower = as.numeric(pe$ci.lower[i]), ciPercUpper = as.numeric(pe$ci.upper[i]),
+    ciBcLower = if (has_indirect) as.numeric(pe_bc_def$ci.lower[mb]) else NA_real_,
+    ciBcUpper = if (has_indirect) as.numeric(pe_bc_def$ci.upper[mb]) else NA_real_,
+    p = as.numeric(pe$pvalue[i])
+  )
+})
+
+# --- Moderation: one interaction-term row per moderation edge, plus its three := simple-slope rows
+# (-1SD/mean/+1SD, design §A7/U2-T5). Matched by structural NAME (target/predictor), same convention
+# as struct_rows above -- NOT by lavaan label, matching the existing struct_rows lookup style. Bootstrap
+# columns (pe/pe_bc) are indexed by structural name here too, never by ParTable row position (the
+# moderation spike's real footgun -- see docs/superpowers/reviews/2026-07-06-moderation-spike.md §5.3).
+mod_rows <- list()
+slope_rows <- list()
+if (length(mod_ids) > 0) {
+  for (mi in seq_along(mod_ids)) {
+    mid <- mod_ids[mi]
+    tnm <- mod_target[mi]
+    intnm <- paste0("INT_", mid)
+    gi <- which(ss$lhs == tnm & ss$rhs == intnm & ss$op == "~")[1]
+    m  <- which(pe$lhs == tnm & pe$rhs == intnm & pe$op == "~")[1]
+    mb <- which(pe_bc$lhs == tnm & pe_bc$rhs == intnm & pe_bc$op == "~")[1]
+    mod_rows[[mi]] <- list(
+      id = as.integer(mid),
+      b = as.numeric(pe$est[m]), se = as.numeric(pe$se[m]),
+      z = as.numeric(pe$z[m]), p = as.numeric(pe$pvalue[m]),
+      stdBeta = as.numeric(ss$est.std[gi]),
+      ciPercLower = as.numeric(pe$ci.lower[m]), ciPercUpper = as.numeric(pe$ci.upper[m]),
+      ciBcLower = as.numeric(pe_bc$ci.lower[mb]), ciBcUpper = as.numeric(pe_bc$ci.upper[mb])
+    )
+    for (lvl in c("lo", "mid", "hi")) {
+      lbl <- paste0("slope_", lvl, "_", mid)
+      i  <- which(pe$lhs == lbl & pe$op == ":=")[1]
+      ib <- which(pe_bc$lhs == lbl & pe_bc$op == ":=")[1]
+      if (!is.na(i)) slope_rows[[length(slope_rows) + 1]] <- list(
+        modId = as.integer(mid), level = lvl,
+        est = as.numeric(pe$est[i]), se = as.numeric(pe$se[i]),
+        z = as.numeric(pe$z[i]), p = as.numeric(pe$pvalue[i]),
+        ciPercLower = as.numeric(pe$ci.lower[i]), ciPercUpper = as.numeric(pe$ci.upper[i]),
+        ciBcLower = as.numeric(pe_bc$ci.lower[ib]), ciBcUpper = as.numeric(pe_bc$ci.upper[ib])
+      )
+    }
+  }
+}
+
+# --- Estimates block for the canvas overlay (loadings keyed by item name) ---
+est_loadings <- list()
+if (!is_path) {
+  for (i in load_idx) est_loadings[[ss$rhs[i]]] <- as.numeric(ss$est.std[i])
+}
+est_paths <- lapply(struct_rows, function(r) list(from = r$from, to = r$to, beta = r$stdBeta))
+
+# Canvas moderation-arrow overlay (Task 5.3): one interaction beta per moderation edge, in mod_ids
+# order (the SAME id ordering moderations[] uses TS-side -- see moderationIndProdEnv). INT_<mid> is
+# the interaction construct's R-side name per moderationModel.ts's buildModerationLines. R only
+# computes the beta; moderatorId/pathIndex are filled TS-side by zipping this array against
+# moderationDefs, mirroring how est_paths above is derived from struct_rows rather than requiring R to
+# know about canvas ids.
+est_moderation <- list()
+if (length(mod_ids) > 0) {
+  for (mi in seq_along(mod_ids)) {
+    int_name <- paste0("INT_", mod_ids[mi])
+    gi <- which(ss$op == "~" & ss$rhs == int_name)[1]
+    est_moderation[[mi]] <- list(beta = as.numeric(ss$est.std[gi]))
+  }
+}
+
+list(
+  fit = fit_list,
+  df = df_val,
+  cfaLoadings = cfa_rows,
+  structural = struct_rows,
+  rsquareIds = rsq_ids,
+  indirect = indirect_rows,
+  moderationRows = mod_rows,
+  slopeRows = slope_rows,
+  estLoadings = est_loadings,
+  estPaths = est_paths,
+  estModeration = est_moderation
+)

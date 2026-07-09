@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { Engine } from '../webr/engine'
 import { runCbSem, computeItemStats, CB_SEM_DEFAULT_MISSING } from './runCbSem'
 import { isSaturated } from './semSaturation'
 import { loadCsvFixture } from './csvFixture'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { TestSetup, Construct } from '../../state/session'
 import type { Dataset } from './types'
@@ -458,5 +459,193 @@ describe('computeItemStats — item Mean/SD per missing-setting', () => {
     const untouched = computeItemStats(data, constructs, listwiseRows, String(untouchedOptions['missing'] ?? CB_SEM_DEFAULT_MISSING))
     const explicitListwise = computeItemStats(data, constructs, listwiseRows, 'listwise')
     expect(untouched).toEqual(explicitListwise)
+  })
+})
+
+// H1 wiring (docs/superpowers/specs/2026-07-10-h1-estimator-missing-wiring-design.md): runCbSem now
+// consumes semFitArgs.ts for the estimator/missing/ordered fragment, estimator-conditional robust fit
+// measures, the full-rows-with-NA missing-data path, and the ML-only bootstrap gate. TDD against the
+// MOCKED engine only -- the real-WebR 8-cell known-answer matrix (native-R pins from the Task 0 spike,
+// docs/superpowers/reviews/2026-07-10-h1-estimator-spike.md) is a later task. Follows the mocked-engine
+// pattern established in runCbSem.moderation.test.ts (engine.runJson captured source/env assertions).
+describe('runCbSem — semFitArgs wiring (mocked engine, no WebR)', () => {
+  const items = { a: ['a1', 'a2'], b: ['b1', 'b2'], c: ['c1', 'c2'] }
+  const allCols = [...items.a, ...items.b, ...items.c]
+  const data: Dataset = {
+    columns: allCols,
+    rows: Array.from({ length: 10 }, (_, i) => Object.fromEntries(allCols.map((c, j) => [c, i + j + 1]))),
+  }
+  // Two constructs, one direct path: no indirect chain, no moderation -- wantsBootstrap is false here
+  // regardless of estimator, so this setup isolates the fragment/fit-measures/full-rows plumbing from
+  // the bootstrap gate (covered separately below by the three-construct chain setup).
+  const baseSetup: TestSetup = {
+    roles: {}, options: { estimator: 'ML', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'A', items: items.a },
+      { id: 2, name: 'B', items: items.b },
+    ],
+    paths: [{ from: 1, to: 2 }],
+  }
+  // Three-construct chain A->B->C (+ direct A->C): buildModel auto-derives an indirect := def, so
+  // hasIndirect is true -- this is what wantsBootstrap keys off.
+  const chainSetup: TestSetup = {
+    ...baseSetup,
+    constructs: [
+      { id: 1, name: 'A', items: items.a },
+      { id: 2, name: 'B', items: items.b },
+      { id: 3, name: 'C', items: items.c },
+    ],
+    paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }, { from: 1, to: 3 }],
+  }
+
+  const cfaResult2 = {
+    perConstruct: [
+      { name: 'A', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'B', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+    ],
+    fornellLarcker: [[1, 0], [0, 1]], htmt: [[0, 0], [0, 0]], labels: ['A', 'B'], corLvP: [[0, 0], [0, 0]],
+  }
+  const cfaResult3 = {
+    perConstruct: [
+      { name: 'A', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'B', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'C', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+    ],
+    fornellLarcker: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], htmt: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+    labels: ['A', 'B', 'C'], corLvP: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+  }
+  const baseRaw2 = {
+    fit: {}, df: 1, cfaLoadings: [], structural: [], rsquareIds: { 2: 0.4 }, indirect: [],
+    estLoadings: {}, estPaths: [], moderationRows: [], slopeRows: [],
+  }
+  const chainRaw3 = {
+    fit: {}, df: 1, cfaLoadings: [], structural: [], rsquareIds: { 2: 0.4, 3: 0.5 },
+    indirect: [{ label: 'ie_1_2_3', est: 0.1, se: 0.1, ciLower: -0.1, ciUpper: 0.3, ciPercLower: -0.1, ciPercUpper: 0.3, ciBcLower: -0.1, ciBcUpper: 0.3, p: 0.3 }],
+    estLoadings: {}, estPaths: [], moderationRows: [], slopeRows: [],
+  }
+
+  /** Fakes the two engine.runJson round-trips runCbSem makes in latent mode (main R_STATS block, then
+   *  runCfaReliability's own block) -- same pattern as runCbSem.moderation.test.ts's fakeEngine. */
+  function fakeEngine(mainStats: Record<string, unknown>, cfaResult: Record<string, unknown>) {
+    const runJson = vi.fn().mockResolvedValueOnce(mainStats).mockResolvedValueOnce(cfaResult)
+    const engine = { runJson } as unknown as Engine
+    return { engine, runJson }
+  }
+
+  it('ML + listwise (untouched setup): the generated R source matches the pre-H1 baseline exactly, apart from the has_indirect guard this task adds to moderation ciBc* reads', async () => {
+    const { engine, runJson } = fakeEngine(baseRaw2, cfaResult2)
+    await runCbSem(engine, data, baseSetup)
+    const [source] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+
+    // Golden fixture: the ACTUAL pre-H1 runCbSem's generated R source for this exact setup (captured
+    // by running the pre-change code, not transcribed by hand -- see the Task 3 report for provenance).
+    const golden = readFileSync(join(__dirname, 'fixtures/runCbSemPreH1.r.txt'), 'utf-8')
+
+    // The ONE mandated correctness fix this task also makes (parent task brief "Bootstrap gate" note):
+    // mod_rows/slope_rows' ciBcLower/ciBcUpper now read has_indirect-guarded, exactly like struct_rows/
+    // indirect_rows already did -- moderation under MLR is now legal but never bootstraps, so pe_bc is
+    // just pe aliased back (Wald CIs) and must read as NA, not masquerade as a bootstrap BC interval.
+    const goldenWithGuardFix = golden
+      .replace(
+        'ciBcLower = as.numeric(pe_bc$ci.lower[mb]), ciBcUpper = as.numeric(pe_bc$ci.upper[mb])',
+        'ciBcLower = if (has_indirect) as.numeric(pe_bc$ci.lower[mb]) else NA_real_,\n      ciBcUpper = if (has_indirect) as.numeric(pe_bc$ci.upper[mb]) else NA_real_',
+      )
+      .replace(
+        'ciBcLower = as.numeric(pe_bc$ci.lower[ib]), ciBcUpper = as.numeric(pe_bc$ci.upper[ib])',
+        'ciBcLower = if (has_indirect) as.numeric(pe_bc$ci.lower[ib]) else NA_real_,\n        ciBcUpper = if (has_indirect) as.numeric(pe_bc$ci.upper[ib]) else NA_real_',
+      )
+    const sourceWithoutNewComment = source.replace(
+      '# ciBc* are guarded by has_indirect exactly like struct_rows/indirect_rows above (H1 wiring: moderation\n# under MLR is legal but never bootstraps, so pe_bc is just pe aliased back -- Wald CIs, not BC -- and\n# must read as NA here, not silently masquerade as a bootstrap BC interval).\n',
+      '',
+    )
+    expect(sourceWithoutNewComment).toBe(goldenWithGuardFix)
+  })
+
+  it('MLR + fiml: the fragment reaches both sem() lines, robust fit-index names are requested, and env carries no ci_type', async () => {
+    const mlrSetup: TestSetup = { ...baseSetup, options: { ...baseSetup.options, estimator: 'MLR', missing: 'fiml' } }
+    const { engine, runJson } = fakeEngine(baseRaw2, cfaResult2)
+    await runCbSem(engine, data, mlrSetup)
+    const [source, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(source).toContain(
+      'fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = as.integer(nboot), estimator = "MLR", missing = "ml")',
+    )
+    expect(source).toContain('fit <- lavaan::sem(model_str, data = d, estimator = "MLR", missing = "ml")')
+    expect(source).toContain(
+      'fm <- lavaan::fitMeasures(fit, c("chisq.scaled","df.scaled","pvalue.scaled","cfi.robust",',
+    )
+    expect(source).toContain('fit_list$robust <- TRUE')
+    expect(env).not.toHaveProperty('ci_type')
+  })
+
+  it('WLSMV + pairwise: the fragment includes ordered= sanitized to used columns only, filtered from a whole-dataset columnLevels map', async () => {
+    const wlsmvSetup: TestSetup = { ...baseSetup, options: { ...baseSetup.options, estimator: 'WLSMV', missing: 'pairwise' } }
+    const { engine, runJson } = fakeEngine(baseRaw2, cfaResult2)
+    // c1 is a real ordinal column in the dataset but NOT part of this model's used columns (A/B only) --
+    // it must never leak into lavaan's ordered = c(...) (brief item 1: "build indicatorLevels ... per
+    // USED raw column").
+    const result = await runCbSem(engine, data, wlsmvSetup, undefined, { a1: 'ordinal', a2: 'ordinal', c1: 'ordinal' })
+    const [source] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(source).toContain(
+      'fit <- lavaan::sem(model_str, data = d, estimator = "WLSMV", missing = "pairwise", ordered = c("a1", "a2"))',
+    )
+    expect(source).toContain('fm <- lavaan::fitMeasures(fit, c("chisq.scaled","df.scaled","pvalue.scaled","cfi.scaled",')
+    expect(result.orderedItems).toEqual(['a1', 'a2'])
+  })
+
+  it('fiml full-rows path: env carries ALL rows (not listwise-deleted) with NaN marshaled for missing cells', async () => {
+    const holeyData: Dataset = {
+      columns: data.columns,
+      rows: data.rows.map((r, i) => (i === 3 ? { ...r, a1: null } : r)),
+    }
+    const mlrSetup: TestSetup = { ...baseSetup, options: { ...baseSetup.options, estimator: 'MLR', missing: 'fiml' } }
+    const { engine, runJson } = fakeEngine(baseRaw2, cfaResult2)
+    await runCbSem(engine, holeyData, mlrSetup)
+    const [, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(env.n).toBe(10) // full rows -- the null a1 row is NOT dropped, unlike listwise
+    const flat = env.item_cols_flat as number[]
+    // item_cols_flat is column-major over usedCols = ['a1','a2','b1','b2']; row 3's a1 is the null cell.
+    expect(Number.isNaN(flat[3])).toBe(true)
+    expect(flat.filter((v) => Number.isNaN(v))).toHaveLength(1)
+  })
+
+  it('a listwise (non-fiml) run with the SAME hole drops the row instead of marshaling NaN (contrast case)', async () => {
+    const holeyData: Dataset = {
+      columns: data.columns,
+      rows: data.rows.map((r, i) => (i === 3 ? { ...r, a1: null } : r)),
+    }
+    const { engine, runJson } = fakeEngine(baseRaw2, cfaResult2)
+    await runCbSem(engine, holeyData, baseSetup) // ML + listwise (default)
+    const [, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(env.n).toBe(9) // listwise-deleted: the holey row is gone entirely
+    const flat = env.item_cols_flat as number[]
+    expect(flat.some((v) => Number.isNaN(v))).toBe(false)
+  })
+
+  it('needsBootstrap is false under MLR even with an indirect chain (bootstrap requires ML) -- env.has_indirect and result.bootstrapped both false, ciMethod delta', async () => {
+    const mlrChainSetup: TestSetup = { ...chainSetup, options: { ...chainSetup.options, estimator: 'MLR' } }
+    const { engine, runJson } = fakeEngine(chainRaw3, cfaResult3)
+    const result = await runCbSem(engine, data, mlrChainSetup)
+    const [, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(env.has_indirect).toBe(false)
+    expect(result.bootstrapped).toBe(false)
+    expect(result.ciMethod).toBe('delta')
+    expect(result.estimator).toBe('MLR')
+  })
+
+  it('ML + indirect chain (default): new CbSemResult fields report the pre-H1-equivalent bootstrap/ML behavior', async () => {
+    const { engine } = fakeEngine(chainRaw3, cfaResult3)
+    const result = await runCbSem(engine, data, chainSetup)
+    expect(result.estimator).toBe('ML')
+    expect(result.ciMethod).toBe('bootstrap')
+    expect(result.bootstrapped).toBe(true)
+    expect(result.orderedItems).toEqual([])
+  })
+
+  it('an unrecognized estimator/missing value (stale UI junk) falls back to ML/listwise rather than throwing', async () => {
+    const staleSetup: TestSetup = { ...baseSetup, options: { ...baseSetup.options, estimator: 'mi', missing: 'mi' } }
+    const { engine } = fakeEngine(baseRaw2, cfaResult2)
+    const result = await runCbSem(engine, data, staleSetup)
+    expect(result.estimator).toBe('ML')
   })
 })

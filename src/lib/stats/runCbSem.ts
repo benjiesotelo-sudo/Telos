@@ -5,6 +5,7 @@ import type { RunProgress } from '../results/builders'
 import { runCfaReliability, type CfaConstructResult } from './cfaReliability'
 import { isSaturated } from './semSaturation'
 import { lvNames } from './lvName'
+import { semFitArgs, type SemFitArgs, type SemEstimator } from './semFitArgs'
 import {
   validateModerations, buildModerationLines, moderationIndProdEnv, INDPROD_R,
   MODERATION_DISCLOSURE, type ModerationDef,
@@ -73,14 +74,28 @@ export interface CbSemResult {
    *  disclosure, U3-T3). Optional so existing hand-built CbSemResult fixtures need no change; defaults
    *  to 5000 in the builder (the app's own default). */
   nboot?: number
-  /** Whether the R fit actually used se="bootstrap" -- true iff hasIndirect || moderations present
-   *  (mirrors the runner's own `needsBootstrap` gate below EXACTLY; not recomputed independently).
-   *  Drives Table 5's CI honesty (fix round, U3-T3): a direct-paths-only model never bootstraps, so its
-   *  ciBcLower/ciBcUpper come back null and its ciPercLower/ciPercUpper are delta-method (Wald) CIs, not
-   *  bootstrap percentile CIs -- the builder must not render fabricated BC values or claim a bootstrap
-   *  provenance that never happened. Optional so existing hand-built CbSemResult fixtures need no change;
-   *  defaults to true in the builder (matches every existing fixture, which is always bootstrap-shaped). */
+  /** Whether the R fit actually used se="bootstrap" -- true iff (hasIndirect || moderations present)
+   *  AND the estimator is ML (H1 wiring: bootstrap runs under ML only, semFitArgs.ts's needsBootstrap;
+   *  mirrors the runner's own `needsBootstrap` gate below EXACTLY; not recomputed independently).
+   *  Drives Table 5's CI honesty (fix round, U3-T3): a direct-paths-only model, or any MLR/WLSMV model,
+   *  never bootstraps, so its ciBcLower/ciBcUpper come back null and its ciPercLower/ciPercUpper are
+   *  delta-method (Wald) CIs, not bootstrap percentile CIs -- the builder must not render fabricated BC
+   *  values or claim a bootstrap provenance that never happened. Optional so existing hand-built
+   *  CbSemResult fixtures need no change; defaults to true in the builder (matches every existing
+   *  fixture, which is always bootstrap-shaped). */
   bootstrapped?: boolean
+  /** The estimator the run actually used (H1 wiring, semFitArgs.ts). Optional so existing hand-built
+   *  CbSemResult fixtures need no change; defaults to 'ML' in the builder (matches every existing
+   *  fixture, which predates the estimator dropdown being wired). */
+  estimator?: SemEstimator
+  /** Raw indicator names lavaan treated as ordinal via `ordered = c(...)` -- non-empty only under
+   *  WLSMV (the card discloses exactly which indicators were auto-declared, design §H1 ruling 2).
+   *  Optional so existing hand-built CbSemResult fixtures need no change; defaults to an empty list. */
+  orderedItems?: string[]
+  /** What indirect/moderation CIs in this run actually are: 'bootstrap' (percentile/BCa, ML only) or
+   *  'delta' (Wald, MLR/WLSMV -- mirrors `bootstrapped: false`'s CI-honesty contract above). Optional
+   *  so existing hand-built CbSemResult fixtures need no change; defaults to 'bootstrap' in the builder. */
+  ciMethod?: 'bootstrap' | 'delta'
 }
 
 export interface ItemStat { construct: string; item: string; mean: number; sd: number; n: number }
@@ -92,19 +107,19 @@ function sampleMeanSd(values: number[]): { mean: number; sd: number } {
   return { mean, sd: Math.sqrt(variance) }
 }
 
-/** The ONLY missing-data handling CB-SEM's fit itself performs today: the R_STATS block below calls
- *  lavaan::sem() with no `missing=` argument (both here and in the export emitter), so lavaan falls back
- *  to ITS OWN default -- listwise deletion. This is the single source of truth for that fact: the UI's
- *  missing-data dropdown default (SemControls.tsx) and computeItemStats' own fallback (below) both read
- *  this constant, so an untouched dropdown never overstates what the model actually does. Selecting a
- *  different mode only changes Table 1 item Mean/SD until the fit itself is wired to `missing=`
- *  (known gap, tracked separately -- not a stats change here). */
+/** CB-SEM's default missing-data handling: listwise deletion, lavaan::sem()'s own default when no
+ *  `missing=` argument is supplied. This is the single source of truth for that default: the UI's
+ *  missing-data dropdown default (SemControls.tsx) and computeItemStats' own fallback (below) both
+ *  read this constant, so an untouched dropdown never overstates what the model actually does.
+ *  Selecting fiml/pairwise now genuinely changes the fit itself too (H1 wiring, semFitArgs.ts is the
+ *  single source of truth for the estimator/missing argument fragment) -- not just Table 1 below. */
 export const CB_SEM_DEFAULT_MISSING = 'listwise'
 
 /** Table 1 item Mean/SD (design §A1). listwise → the SAME estimation-sample rows the model fit uses
- *  (single shared N); fiml/mi/pairwise → each item's own observed (non-null, finite) values from the
- *  RAW dataset, independent per item (N varies by item). Does not change how the model itself is fit
- *  (known gap, tracked separately -- the fit is always listwise today regardless of this setting). */
+ *  (single shared N); fiml/pairwise → each item's own observed (non-null, finite) values from the
+ *  RAW dataset, independent per item (N varies by item). The model fit itself now honors this SAME
+ *  missing setting too (H1 wiring, semFitArgs.ts): fiml/pairwise both flow into lavaan's own `missing=`
+ *  handling, not just this display table. */
 export function computeItemStats(
   data: Dataset,
   constructs: Construct[],
@@ -152,11 +167,11 @@ function listwise(data: Dataset, cols: string[]): Record<string, unknown>[] {
 //     original user-typed display names (same order) for every UI-facing name in the returned tables.
 //   has_indirect logical(1): whether bootstrap SE/CI is needed -- true when a := indirect def exists
 //     OR when any moderation is present (moderation ALWAYS bootstraps, design §A7; the TS call site
-//     widens this beyond a literal "has an indirect chain" reading, name kept for minimal diff)
+//     widens this beyond a literal "has an indirect chain" reading, name kept for minimal diff) --
+//     now gated additionally on the estimator being ML (H1 wiring: bootstrap runs under ML only,
+//     semFitArgs.ts's needsBootstrap). Dual CIs (percentile + bca.simple) are computed unconditionally
+//     from the SAME bootstrap draws whenever has_indirect is true.
 //   nboot        integer: bootstrap resamples (single awaited call)
-//   ci_type      character(1): unread by the R script below (vestigial -- kept only so the setup option
-//     round-trips without erroring; see the TS call site). Dual CIs (percentile + bca.simple) are now
-//     computed unconditionally from the SAME bootstrap draws whenever has_indirect is true.
 //   is_path      logical(1): observed-only mode (no =~; suppress loadings/reliability)
 //   mod_ids etc. numeric/character: moderation env (see moderationIndProdEnv) -- empty on non-moderation runs
 //
@@ -166,7 +181,47 @@ function listwise(data: Dataset, cols: string[]): Record<string, unknown>[] {
 // structural/indirect estimates; this recomputes CIs from the bootstrap draws already stored on
 // fit@boot, so it does not re-run the bootstrap ("ONE bootstrap run" per spec). lavInspect(fit,'rsquare')
 // gives endogenous R² by latent name.
-const R_STATS = String.raw`
+/** Estimator-conditional fit-index extraction (H1 wiring; spike-verified key names, docs/superpowers/
+ *  reviews/2026-07-10-h1-estimator-spike.md Q1). ML has no `.scaled`/`.robust` suffixed names at all.
+ *  MLR exposes BOTH families, populated -- this uses `.robust` for cfi/tli/rmsea (chisq/df/pvalue only
+ *  ever exist as `.scaled`; lavaan never publishes a `chisq.robust`). WLSMV's `.robust` keys EXIST but
+ *  are ALWAYS NA (spike-verified), so WLSMV uses the `.scaled` family throughout. Every branch maps its
+ *  estimator-specific names back onto the SAME stable fit_list keys (chisq/df/pvalue/cfi/tli/rmsea/
+ *  rmseaLower/rmseaUpper/srmr) so the builder's shape never changes across estimators; fit_list$robust
+ *  flags the non-ML branches for the builder's estimator-aware labeling (a later task). The ML branch's
+ *  text is BYTE-IDENTICAL to the pre-H1 script (fixtures/runCbSemPreH1.r.txt) -- the default cell must
+ *  never change. */
+function fitListBlock(estimator: SemEstimator): string {
+  if (estimator === 'ML') {
+    return String.raw`fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",
+                                 "rmsea.ci.lower","rmsea.ci.upper","srmr"))
+fit_list <- list(
+  chisq = as.numeric(fm["chisq"]), df = as.numeric(fm["df"]), pvalue = as.numeric(fm["pvalue"]),
+  cfi = as.numeric(fm["cfi"]), tli = as.numeric(fm["tli"]), rmsea = as.numeric(fm["rmsea"]),
+  rmseaLower = as.numeric(fm["rmsea.ci.lower"]), rmseaUpper = as.numeric(fm["rmsea.ci.upper"]),
+  srmr = as.numeric(fm["srmr"])
+)`
+  }
+  const s = estimator === 'MLR' ? 'robust' : 'scaled' // WLSMV: .robust keys exist but are always NA (spike Q1)
+  return String.raw`fm <- lavaan::fitMeasures(fit, c("chisq.scaled","df.scaled","pvalue.scaled","cfi.${s}",
+                                 "tli.${s}","rmsea.${s}","rmsea.ci.lower.${s}","rmsea.ci.upper.${s}","srmr"))
+fit_list <- list(
+  chisq = as.numeric(fm["chisq.scaled"]), df = as.numeric(fm["df.scaled"]), pvalue = as.numeric(fm["pvalue.scaled"]),
+  cfi = as.numeric(fm["cfi.${s}"]), tli = as.numeric(fm["tli.${s}"]), rmsea = as.numeric(fm["rmsea.${s}"]),
+  rmseaLower = as.numeric(fm["rmsea.ci.lower.${s}"]), rmseaUpper = as.numeric(fm["rmsea.ci.upper.${s}"]),
+  srmr = as.numeric(fm["srmr"])
+)
+fit_list$robust <- TRUE`
+}
+
+// R script factory (H1 wiring): the estimator/missing/ordered argument fragment and the fit-index
+// extraction both come from the SAME SemFitArgs the export emitter consumes (semFitArgs.ts), so app and
+// export stay byte-identical by construction. `frag` is '' exactly for ML + listwise (the byte-pin) --
+// both sem() lines below then read identically to the pre-H1 script.
+const rStats = (fitArgs: SemFitArgs): string => {
+  const frag = fitArgs.fragment ? ', ' + fitArgs.fragment : ''
+  const fitBlock = fitListBlock(fitArgs.estimator)
+  return String.raw`
 library(lavaan)
 
 p_all <- length(all_cols)
@@ -181,12 +236,12 @@ ${INDPROD_R}
 gc()
 set.seed(20260620)
 if (has_indirect) {
-  fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = as.integer(nboot))
+  fit <- lavaan::sem(model_str, data = d, se = "bootstrap", bootstrap = as.integer(nboot)${frag})
   pe_perc <- lavaan::parameterEstimates(fit, boot.ci.type = "perc", level = 0.95)
   pe_bc   <- lavaan::parameterEstimates(fit, boot.ci.type = "bca.simple", level = 0.95)
   pe <- pe_perc # pe stays the primary table (est/se/z/p unaffected by CI-type choice)
 } else {
-  fit <- lavaan::sem(model_str, data = d)
+  fit <- lavaan::sem(model_str, data = d${frag})
   pe <- lavaan::parameterEstimates(fit, level = 0.95)
   pe_bc <- pe # no bootstrap -> no distinct BC column; ci.lower/upper below are simply absent (NA)
 }
@@ -199,14 +254,7 @@ df_val <- as.numeric(lavaan::fitMeasures(fit, "df"))
 name2id <- setNames(as.integer(con_ids), con_names)
 
 # --- Fit indices (always computed; builder/emitter suppress when df==0) ---
-fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",
-                                 "rmsea.ci.lower","rmsea.ci.upper","srmr"))
-fit_list <- list(
-  chisq = as.numeric(fm["chisq"]), df = as.numeric(fm["df"]), pvalue = as.numeric(fm["pvalue"]),
-  cfi = as.numeric(fm["cfi"]), tli = as.numeric(fm["tli"]), rmsea = as.numeric(fm["rmsea"]),
-  rmseaLower = as.numeric(fm["rmsea.ci.lower"]), rmseaUpper = as.numeric(fm["rmsea.ci.upper"]),
-  srmr = as.numeric(fm["srmr"])
-)
+${fitBlock}
 
 # --- CFA loadings (measurement; empty in path mode) ---
 if (is_path) {
@@ -289,6 +337,9 @@ indirect_rows <- lapply(ind_idx, function(i) {
 # as struct_rows above -- NOT by lavaan label, matching the existing struct_rows lookup style. Bootstrap
 # columns (pe/pe_bc) are indexed by structural name here too, never by ParTable row position (the
 # moderation spike's real footgun -- see docs/superpowers/reviews/2026-07-06-moderation-spike.md §5.3).
+# ciBc* are guarded by has_indirect exactly like struct_rows/indirect_rows above (H1 wiring: moderation
+# under MLR is legal but never bootstraps, so pe_bc is just pe aliased back -- Wald CIs, not BC -- and
+# must read as NA here, not silently masquerade as a bootstrap BC interval).
 mod_rows <- list()
 slope_rows <- list()
 if (length(mod_ids) > 0) {
@@ -305,7 +356,8 @@ if (length(mod_ids) > 0) {
       z = as.numeric(pe$z[m]), p = as.numeric(pe$pvalue[m]),
       stdBeta = as.numeric(ss$est.std[gi]),
       ciPercLower = as.numeric(pe$ci.lower[m]), ciPercUpper = as.numeric(pe$ci.upper[m]),
-      ciBcLower = as.numeric(pe_bc$ci.lower[mb]), ciBcUpper = as.numeric(pe_bc$ci.upper[mb])
+      ciBcLower = if (has_indirect) as.numeric(pe_bc$ci.lower[mb]) else NA_real_,
+      ciBcUpper = if (has_indirect) as.numeric(pe_bc$ci.upper[mb]) else NA_real_
     )
     for (lvl in c("lo", "mid", "hi")) {
       lbl <- paste0("slope_", lvl, "_", mid)
@@ -316,7 +368,8 @@ if (length(mod_ids) > 0) {
         est = as.numeric(pe$est[i]), se = as.numeric(pe$se[i]),
         z = as.numeric(pe$z[i]), p = as.numeric(pe$pvalue[i]),
         ciPercLower = as.numeric(pe$ci.lower[i]), ciPercUpper = as.numeric(pe$ci.upper[i]),
-        ciBcLower = as.numeric(pe_bc$ci.lower[ib]), ciBcUpper = as.numeric(pe_bc$ci.upper[ib])
+        ciBcLower = if (has_indirect) as.numeric(pe_bc$ci.lower[ib]) else NA_real_,
+        ciBcUpper = if (has_indirect) as.numeric(pe_bc$ci.upper[ib]) else NA_real_
       )
     }
   }
@@ -358,6 +411,7 @@ list(
   estModeration = est_moderation
 )
 `
+}
 
 /** Build the full lavaan model string: =~ measurement (latent only) + ~ structural + auto := indirect defs.
  *  rNameOf gives the SANITIZED lavaan identifier per construct id (display names with spaces are illegal
@@ -458,16 +512,15 @@ export async function runCbSem(
   data: Dataset,
   setup: TestSetup,
   onProgress?: RunProgress,
+  /** Raw dataset column name -> Configure-data measurement level (any string; only 'ordinal' matters
+   *  here). Covers the WHOLE dataset, not just this model's used columns -- the runner filters down to
+   *  usedCols itself before handing indicatorLevels to semFitArgs (an ordinal column outside this model
+   *  must never leak into lavaan's `ordered = c(...)`). Optional, defaults to empty: with no known
+   *  levels WLSMV's own guard correctly refuses ("at least one ordinal indicator") rather than silently
+   *  guessing. NOTE: the session store -> this parameter bridge (Configure-data's ColumnMeta[] ->
+   *  columnLevels) is NOT yet wired at the builders.ts/session.ts call site -- see the Task 3 report. */
+  columnLevels: Record<string, string> = {},
 ): Promise<CbSemResult> {
-  // Latent moderation FORCES ML estimation (design §A7): the indProd product-indicator approach assumes
-  // continuous indicators, so it is incompatible with WLSMV/ordinal. Synchronous, ahead of any engine
-  // call, so a bad combination never reaches WebR/R at all.
-  if ((setup.moderations?.length ?? 0) > 0 && setup.options['estimator'] === 'WLSMV') {
-    throw new Error(
-      'Latent moderation requires an ML-family estimator (ML or MLR); switch off WLSMV or remove the moderation edge.',
-    )
-  }
-
   const mode = resolveMode(setup)
   const isPath = mode === 'path'
   const constructs = setup.constructs ?? []
@@ -483,11 +536,7 @@ export async function runCbSem(
   const usedCols = isPath
     ? [...new Set(constructs.map((c) => c.name))]
     : [...new Set(constructs.flatMap((c) => c.items))]
-  const rows = listwise(data, usedCols)
-  const n = rows.length
-  const item_cols_flat = usedCols.flatMap((col) => rows.map((r) => r[col] as number))
   const missingSetting = String(setup.options['missing'] ?? CB_SEM_DEFAULT_MISSING)
-  const itemStats = isPath ? [] : computeItemStats(data, constructs, rows, missingSetting)
 
   // Sanitized R-side item identifiers (lavaan `=~` RHS tokens are illegal with spaces), one call across
   // ALL used items so cross-construct collisions after sanitizing still dedupe correctly (same approach
@@ -506,16 +555,53 @@ export async function runCbSem(
     : rItemNames
 
   const { model, hasIndirect, indirectDefs, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, setup.moderations ?? [], itemNameOf)
-  const nboot = Number(setup.options['nboot'] ?? 5000)
-  // was: const ci_type = setup.options['ciType'] === 'bca' ? 'bca' : 'perc'   // 'bca' is not a valid
-  // lavaan boot.ci.type -- dead code, would error if ever reached (design §A2 fix).
-  const ci_type = setup.options['ciType'] === 'bca' ? 'bca.simple' : 'perc' // vestigial: dual CI (below)
-  // is now computed unconditionally whenever has_indirect; ci_type is kept only so the option round-trips
-  // without erroring, not to gate which CI type is present.
 
-  // Moderation ALWAYS bootstraps (design §A7), independent of whether an indirect-effect chain exists --
-  // widens the R script's bootstrap gate (`has_indirect`, see R_STATS comment) beyond a literal reading.
-  const needsBootstrap = hasIndirect || moderationDefs.length > 0
+  // Fit parameterization (H1 wiring, docs/superpowers/specs/2026-07-10-h1-estimator-missing-wiring-
+  // design.md): semFitArgs.ts is the SINGLE source of truth for estimator/missing/ordered, shared with
+  // the export emitter, so app and export arguments are byte-identical by construction. All guards
+  // (FIML needs ML-family, WLSMV needs >=1 ordinal indicator, moderation forces ML-family, MLR rejects
+  // pairwise) live there and throw synchronously here, before any engine call -- replaces the old
+  // inline moderation-WLSMV-only throw. indicatorLevels is filtered to usedCols (path mode: the
+  // observed columns; latent mode: the items) so a dataset column outside this model never reaches
+  // lavaan's `ordered = c(...)`.
+  const indicatorLevels: Record<string, string> = Object.fromEntries(
+    usedCols.map((raw) => [raw, columnLevels[raw] ?? 'scale']),
+  )
+  const fitArgs = semFitArgs({
+    estimator: String(setup.options['estimator'] ?? 'ML'),
+    missing: missingSetting,
+    indicatorLevels,
+    itemNameOf,
+    hasModeration: moderationDefs.length > 0,
+    wantsBootstrap: hasIndirect || moderationDefs.length > 0,
+  })
+
+  // Data path (H1 wiring): listwise stays the shared estimation-sample rows; fiml/pairwise pass the
+  // FULL rows (with genuine holes) so lavaan's own `missing=` handling actually runs on incomplete
+  // cases instead of this runner silently listwise-deleting them first. A JS NaN placed in a numeric env
+  // array marshals to R as a proper NA -- the SAME mechanism engine.runJson uses in production, not a
+  // test-only path (spike-verified, docs/superpowers/reviews/2026-07-10-h1-estimator-spike.md Q5).
+  // computeItemStats keeps receiving the LISTWISE rows for its own listwise branch regardless of the
+  // fit's missing setting (Table 1 display concern, computed separately from the fit's rows).
+  const listwiseRows = listwise(data, usedCols)
+  const rows = fitArgs.passFullRows ? data.rows : listwiseRows
+  const n = rows.length
+  const item_cols_flat = usedCols.flatMap((col) =>
+    rows.map((r) => {
+      const v = r[col]
+      return typeof v === 'number' && Number.isFinite(v) ? v : NaN
+    }),
+  )
+  const itemStats = isPath ? [] : computeItemStats(data, constructs, listwiseRows, missingSetting)
+
+  const nboot = Number(setup.options['nboot'] ?? 5000)
+
+  // Bootstrap runs under estimator ML only (H1 wiring ruling 3); MLR/WLSMV report their own robust SEs
+  // and delta-method CIs for indirect effects/moderation, flowing through the EXISTING bootstrapped:false
+  // machinery below. moderationDefs.length is folded into wantsBootstrap above (moderation ALWAYS wants
+  // to bootstrap, design §A7), so needsBootstrap here mirrors the old hasIndirect||moderation gate exactly
+  // when estimator is ML, and is forced false otherwise.
+  const needsBootstrap = fitArgs.needsBootstrap
   const bootstrapLabel = hasIndirect && moderationDefs.length > 0
     ? 'indirect effects and moderation slopes'
     : moderationDefs.length > 0 ? 'moderation slopes' : 'indirect effects'
@@ -539,7 +625,6 @@ export async function runCbSem(
     con_display: constructs.map((c) => c.name),
     has_indirect: needsBootstrap,
     nboot,
-    ci_type,
     is_path: isPath,
     // Only sent when non-empty: an empty JS array crashes webR's env marshalling (it misdetects []
     // as tabular "array of row-objects" data -- see the guard comment in moderationModel.ts's
@@ -547,7 +632,7 @@ export async function runCbSem(
     ...(moderationDefs.length ? moderationIndProdEnv(moderationDefs) : {}),
   }
 
-  const raw = await engine.runJson<RawResult>(R_STATS, env)
+  const raw = await engine.runJson<RawResult>(rStats(fitArgs), env)
 
   // Integrity guard (U2-T6, reviewer-recommended): a requested moderation must never silently vanish.
   // The R side always pushes one mod_rows entry per mod_ids element and up to 3 slope_rows per moderation
@@ -698,5 +783,8 @@ export async function runCbSem(
     nboot,
     bootstrapped: needsBootstrap,
     figModSlopesPng,
+    estimator: fitArgs.estimator,
+    orderedItems: fitArgs.orderedRaw,
+    ciMethod: fitArgs.ciMethod,
   }
 }

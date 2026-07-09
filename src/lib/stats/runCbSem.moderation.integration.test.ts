@@ -98,8 +98,17 @@ describe('runCbSem — latent moderation (matched, equal indicator counts)', () 
   it('rejects WLSMV + moderation before touching the engine', async () => {
     const engine2 = new Engine()
     const bad: TestSetup = { ...SETUP, options: { ...SETUP.options, estimator: 'WLSMV' } }
+    // At least one ordinal indicator so semFitArgs's "needs an ordinal indicator" guard doesn't fire
+    // first and mask the moderation-specific message this test asserts (H1 wiring: semFitArgs.ts checks
+    // the ordinal guard before the moderation guard -- see runCbSem.test.ts's semFitArgs-wiring describe).
     await expect(
-      runCbSem(engine2, loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/sem-moderation.csv')), bad),
+      runCbSem(
+        engine2,
+        loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/sem-moderation.csv')),
+        bad,
+        undefined,
+        { sn1: 'ordinal' },
+      ),
     ).rejects.toThrow(/ML-family estimator/)
   })
 })
