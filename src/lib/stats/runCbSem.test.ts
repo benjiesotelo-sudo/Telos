@@ -468,7 +468,7 @@ describe('computeItemStats — item Mean/SD per missing-setting', () => {
 // MOCKED engine only -- the real-WebR 8-cell known-answer matrix (native-R pins from the Task 0 spike,
 // docs/superpowers/reviews/2026-07-10-h1-estimator-spike.md) is a later task. Follows the mocked-engine
 // pattern established in runCbSem.moderation.test.ts (engine.runJson captured source/env assertions).
-describe('runCbSem — semFitArgs wiring (mocked engine, no WebR)', () => {
+describe('runCbSem - semFitArgs wiring (mocked engine, no WebR)', () => {
   const items = { a: ['a1', 'a2'], b: ['b1', 'b2'], c: ['c1', 'c2'] }
   const allCols = [...items.a, ...items.b, ...items.c]
   const data: Dataset = {
@@ -647,5 +647,68 @@ describe('runCbSem — semFitArgs wiring (mocked engine, no WebR)', () => {
     const { engine } = fakeEngine(baseRaw2, cfaResult2)
     const result = await runCbSem(engine, data, staleSetup)
     expect(result.estimator).toBe('ML')
+  })
+
+  it('moderation under MLR: non-bootstrapped run keeps the moderation rows/slopes, BC CIs come through as null (has_indirect-guarded R reads), ciMethod delta', async () => {
+    // Moderation + MLR is legal (only WLSMV is blocked) but NEVER bootstraps (bootstrap needs ML), so
+    // the R side's pe_bc is just pe aliased back and the mod_rows/slope_rows ciBc* reads must be
+    // has_indirect-guarded to NA -- the same convention struct_rows' bootstrapped:false path already
+    // uses (R NA_real_ -> JSON null, passed through to TS untouched). The mock's null ciBc* fields are
+    // exactly what the guarded R would produce on a non-bootstrapped run.
+    const modSetup: TestSetup = {
+      ...baseSetup,
+      options: { ...baseSetup.options, estimator: 'MLR' },
+      constructs: [
+        { id: 1, name: 'A', items: items.a },
+        { id: 2, name: 'B', items: items.b },
+        { id: 3, name: 'C', items: items.c },
+      ],
+      paths: [{ from: 1, to: 3 }],
+      moderations: [{ id: 1, moderatorId: 2, pathIndex: 0 }],
+    }
+    const naModRow = {
+      id: 1, b: 0.1, se: 0.1, z: 1, p: 0.3, stdBeta: 0.1,
+      ciPercLower: -0.1, ciPercUpper: 0.3, ciBcLower: null, ciBcUpper: null,
+    }
+    const naSlopeRow = (level: 'lo' | 'mid' | 'hi') => ({
+      modId: 1, level, est: 0.1, se: 0.1, z: 1, p: 0.3,
+      ciPercLower: -0.1, ciPercUpper: 0.3, ciBcLower: null, ciBcUpper: null,
+    })
+    const modRaw = {
+      ...baseRaw2, rsquareIds: { 3: 0.4 },
+      moderationRows: [naModRow],
+      slopeRows: [naSlopeRow('lo'), naSlopeRow('mid'), naSlopeRow('hi')],
+      estModeration: [{ beta: 0.2 }],
+    }
+    const runJson = vi.fn().mockResolvedValueOnce(modRaw).mockResolvedValueOnce(cfaResult3)
+    const capturePlot = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]))
+    const engine = { runJson, capturePlot } as unknown as Engine
+
+    const result = await runCbSem(engine, data, modSetup)
+    const [source, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+
+    // (a) the bootstrap gate is off: env + result both say so, and the R text carries the NA guard
+    // on BOTH moderation read sites (mod_rows' [mb] and slope_rows' [ib]) -- without the guard, this
+    // run would read pe_bc (= pe aliased) Wald CIs and mislabel them as bootstrap-BC intervals.
+    expect(env.has_indirect).toBe(false)
+    expect(result.bootstrapped).toBe(false)
+    expect(source).toContain('ciBcLower = if (has_indirect) as.numeric(pe_bc$ci.lower[mb]) else NA_real_')
+    expect(source).toContain('ciBcLower = if (has_indirect) as.numeric(pe_bc$ci.lower[ib]) else NA_real_')
+
+    // (b) the TS shaping passes the NA-shaped (null) BC CIs through untouched -- same pass-through
+    // convention as struct_rows' bootstrapped:false path; percentile (Wald) CIs stay real numbers.
+    expect(result.moderation!.rows).toHaveLength(1)
+    expect(result.moderation!.rows[0].ciBcLower).toBeNull()
+    expect(result.moderation!.rows[0].ciBcUpper).toBeNull()
+    expect(result.moderation!.rows[0].ciPercLower).toBe(-0.1)
+    expect(result.moderation!.slopes).toHaveLength(3)
+    for (const slope of result.moderation!.slopes) {
+      expect(slope.ciBcLower).toBeNull()
+      expect(slope.ciBcUpper).toBeNull()
+    }
+
+    // (c) the CI-honesty disclosure fields
+    expect(result.ciMethod).toBe('delta')
+    expect(result.estimator).toBe('MLR')
   })
 })
