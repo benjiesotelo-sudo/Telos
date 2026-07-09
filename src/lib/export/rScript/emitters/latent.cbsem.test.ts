@@ -248,6 +248,30 @@ describe("latentEmitters['cb-sem'] - H1 wiring: export emitter parity (Task 7)",
     expect(r).toContain(`fit <- lavaan::sem(model_str, data = d, ${expected.fragment})`)
   })
 
+  // Reviewer-requested regression pin: the bootstrap gate is estimator-aware (fitArgs.needsBootstrap,
+  // ML only) - an MLR setup WITH a mediation chain must take the PLAIN (non-bootstrap) fit path, never
+  // silently fall into se = "bootstrap" (semFitArgs's bootstrapAllowed guard, spike-verified: lavaan
+  // does not support bootstrap the same way under robust estimators).
+  it('MLR + mediation exports the PLAIN fit (never se = "bootstrap") - the estimator-gated bootstrap pin', () => {
+    // SETUP (top of file) carries the mediation chain ind60 -> dem60 -> dem65 (auto := indirect def).
+    const setup: TestSetup = { ...SETUP, options: { ...SETUP.options, estimator: 'MLR', missing: 'fiml' } }
+    const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never)
+    // Sanity: the mediation chain is really in the model (this is not a no-indirect fixture).
+    expect(r).toContain(':=')
+    // The plain fit call carrying the fragment - NOT the bootstrap call.
+    expect(r).toContain('fit <- lavaan::sem(model_str, data = d, estimator = "MLR", missing = "ml")')
+    expect(r).not.toContain('se = "bootstrap"')
+    expect(r).not.toContain('bootstrap = 5000')
+    // None of the bootstrap-path machinery (dual-CI comment + boot.ci.type calls)...
+    expect(r).not.toContain('# Dual CI (percentile + bias-corrected) from the SAME bootstrap draws')
+    expect(r).not.toContain('boot.ci.type = "perc"')
+    expect(r).not.toContain('boot.ci.type = "bca.simple"')
+    // ...and the non-bootstrap shape instead (same as the byte-pin's default path): plain
+    // parameterEstimates + the blanked pe_bc (never a fabricated bias-corrected interval).
+    expect(r).toContain('pe  <- lavaan::parameterEstimates(fit, level = 0.95)')
+    expect(r).toContain('pe_bc <- pe; pe_bc$ci.lower <- NA_real_; pe_bc$ci.upper <- NA_real_')
+  })
+
   it('a stale missing:"mi" (removed multiple-imputation option) normalizes to the DEFAULT - no fragment, no comment - exactly like the runner fallback', () => {
     const setup: TestSetup = { ...H1_SETUP, options: { ...H1_SETUP.options, missing: 'mi' } }
     const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never)
