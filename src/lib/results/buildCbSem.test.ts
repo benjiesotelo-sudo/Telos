@@ -168,7 +168,8 @@ describe('buildCbSem', () => {
   it('labelled notes: canonical label set + order (static notes, no dynamic triggers)', () => {
     const clean: CbSemResult = { ...base, cfaLoadings: [], reliability: [], rsquare: undefined, moderation: undefined, indirect: undefined, bootstrapped: true, nboot: 10000 }
     const c = buildCbSem(SPEC, clean)
-    expect(c.notes!.map((n) => n.label)).toEqual(['Scope', 'Cutoffs', 'Estimator', 'R²', 'Caution', 'Discriminant validity', 'Indirect effects', 'Moderation'])
+    // H1 wiring (task 6): 'Estimation' is a NEW always-present note, inserted right after 'Estimator'.
+    expect(c.notes!.map((n) => n.label)).toEqual(['Scope', 'Cutoffs', 'Estimator', 'Estimation', 'R²', 'Caution', 'Discriminant validity', 'Indirect effects', 'Moderation'])
     expect(c.notes!.find((n) => n.label === 'Cutoffs')!.text).toContain('CFI/TLI ≥ .95')
     expect(c.notes!.find((n) => n.label === 'Discriminant validity')).toMatchObject({
       text: 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.',
@@ -249,7 +250,11 @@ describe('buildCbSem', () => {
   it('item-sample note states the per-item-N caveat when missing is not listwise', () => {
     const c = buildCbSem(SPEC, { ...base, missing: 'fiml' })
     const itemSample = c.notes!.find((n) => n.label === 'Item sample')!
-    expect(itemSample.text).toContain('N can vary by item under fiml/mi/pairwise')
+    // H1 wiring (task 6): 'mi' is dropped (no longer a real option) and the false "the model fit itself
+    // remains listwise" claim is corrected -- the fit now honors the selected missing-data method too.
+    expect(itemSample.text).toContain('N can vary by item under fiml/pairwise')
+    expect(itemSample.text).not.toContain('mi/pairwise')
+    expect(itemSample.text).not.toContain('remains listwise')
   })
 
   it('omits the "Item sample" note when there are no CFA loadings (path mode)', () => {
@@ -498,7 +503,9 @@ describe('buildCbSem', () => {
 describe('buildCbSem - APA template filled with live values (worked example = first structural path)', () => {
   it('fills CFI/RMSEA/SRMR from the fit indices and beta/p/names from the first structural path', () => {
     const c = buildCbSem(CB_SEM, base)
-    expect(c.apa).toBe('The model fit well (CFI=.95, RMSEA=.10, SRMR=.06); the path from ind60 to dem60 gave β=.45, p < .001.')
+    // H1 wiring (task 6, change 2): the APA sentence always names the estimator, appended as its own
+    // sentence -- 'maximum likelihood' here since `base` carries no `estimator` field (defaults to ML).
+    expect(c.apa).toBe('The model fit well (CFI=.95, RMSEA=.10, SRMR=.06); the path from ind60 to dem60 gave β=.45, p < .001. Estimated with maximum likelihood.')
   })
 
   it('every {token} resolves to a live value (no literal braces, no "__" survives)', () => {
@@ -584,8 +591,10 @@ describe('buildCbSem - real registry specs (row keys must cover every spec colum
     const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
     const c = buildCbSem(PATH_ANALYSIS, path)
     expect(c.note).toBeNull()
+    // H1 wiring (task 6): 'Estimation' is a NEW always-present note, inserted right after 'Scope'.
     expect(c.notes).toEqual([
       { label: 'Scope', text: expect.stringContaining('no latent measurement model, so no CFA loadings, reliability, or AVE are reported') },
+      { label: 'Estimation', text: expect.stringContaining('maximum likelihood') },
       { label: 'Fit', text: expect.stringContaining('global fit indices'), afterTableId: 'structural-paths' },
       { label: 'Indirect effects', text: expect.stringContaining('bias-uncorrected percentile bootstrap 95% CIs'), afterTableId: 'indirect-effects' },
     ])
@@ -620,7 +629,8 @@ describe('buildCbSem - real registry specs (row keys must cover every spec colum
   it('PATH_ANALYSIS APA: conditions "significant"/CI-excludes-0 on the actual first indirect-effect CI', () => {
     const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
     const c = buildCbSem(PATH_ANALYSIS, path)
-    expect(c.apa).toBe('A path model fit to the observed variables; the indirect effect of X on Y through M was significant, bootstrap 95% CI excluding 0.')
+    // H1 wiring (task 6, change 2): the estimator-naming sentence is appended here too (no field -> ML).
+    expect(c.apa).toBe('A path model fit to the observed variables; the indirect effect of X on Y through M was significant, bootstrap 95% CI excluding 0. Estimated with maximum likelihood.')
   })
 
   it('PATH_ANALYSIS APA: reports "not significant" / "including 0" when the CI straddles zero', () => {
@@ -629,7 +639,7 @@ describe('buildCbSem - real registry specs (row keys must cover every spec colum
       indirect: [{ ...base.indirect![0], ciPercLower: -0.2, ciPercUpper: 0.4 }],
     }
     const c = buildCbSem(PATH_ANALYSIS, path)
-    expect(c.apa).toBe('A path model fit to the observed variables; the indirect effect of X on Y through M was not significant, bootstrap 95% CI including 0.')
+    expect(c.apa).toBe('A path model fit to the observed variables; the indirect effect of X on Y through M was not significant, bootstrap 95% CI including 0. Estimated with maximum likelihood.')
   })
 
   it('PATH_ANALYSIS APA: falls back to an honest "no indirect effect" statement when the model has no mediation chain', () => {
@@ -638,5 +648,192 @@ describe('buildCbSem - real registry specs (row keys must cover every spec colum
     expect(c.apa).not.toMatch(/\{[a-zA-Z]+\}/)
     expect(c.apa).not.toContain('significant')
     expect(c.apa.toLowerCase()).toContain('no indirect')
+  })
+})
+
+// H1 wiring (plan docs/superpowers/plans/2026-07-10-h1-estimator-missing-wiring.md, Task 6): the
+// estimator/missing dropdowns now genuinely parameterize the lavaan fit (semFitArgs.ts, runCbSem.ts).
+// This builder's job is estimator-aware LABELS and PROSE only -- the runner already remaps the
+// robust/scaled fitMeasures onto the SAME fit_list keys (chisq/cfi/tli/rmsea/...), so no number-crunching
+// happens here, only column-label text and disclosure sentences.
+describe('buildCbSem - estimator-aware fit-index labels (H1 wiring, change 1)', () => {
+  // Uses the REAL CB_SEM registry spec (not the mock SPEC, whose fit-indices columns are []) so the
+  // actual column labels ('χ² (df, p)', 'CFI', ...) are exercised.
+  const label = (c: ReturnType<typeof buildCbSem>, key: string) =>
+    c.tables.find((t) => t.spec.id === 'fit-indices')!.spec.columns.find((col) => col.key === key)!.label
+
+  it('MLR: chisq gains " (scaled)"; cfi/tli/rmsea gain " (robust)"; chisqDf/srmr unchanged', () => {
+    const c = buildCbSem(CB_SEM, { ...base, estimator: 'MLR' })
+    expect(label(c, 'chisq')).toBe('χ² (df, p) (scaled)')
+    expect(label(c, 'cfi')).toBe('CFI (robust)')
+    expect(label(c, 'tli')).toBe('TLI (robust)')
+    expect(label(c, 'rmsea')).toBe('RMSEA [90% CI] (robust)')
+    expect(label(c, 'chisqDf')).toBe('χ²/df')
+    expect(label(c, 'srmr')).toBe('SRMR')
+  })
+
+  it('WLSMV: same label suffixes as MLR (spike naming: the .scaled family feeds cfi/tli/rmsea under the hood, still labeled "(robust)")', () => {
+    const c = buildCbSem(CB_SEM, { ...base, estimator: 'WLSMV', moderation: undefined })
+    expect(label(c, 'chisq')).toBe('χ² (df, p) (scaled)')
+    expect(label(c, 'cfi')).toBe('CFI (robust)')
+    expect(label(c, 'rmsea')).toBe('RMSEA [90% CI] (robust)')
+  })
+
+  it('ML (explicit) does not relabel', () => {
+    const c = buildCbSem(CB_SEM, { ...base, estimator: 'ML' })
+    expect(label(c, 'chisq')).toBe('χ² (df, p)')
+    expect(label(c, 'cfi')).toBe('CFI')
+  })
+
+  it('Hu and Bentler cutoffs note is unchanged under MLR (still applies to the robust indices)', () => {
+    const c = buildCbSem(CB_SEM, { ...base, estimator: 'MLR' })
+    expect(c.notes!.find((n) => n.label === 'Cutoffs')!.text).toContain('CFI/TLI ≥ .95')
+    expect(c.notes!.find((n) => n.label === 'Cutoffs')!.text).toContain('Hu & Bentler, 1999')
+  })
+
+  // Change 5: byte-pin. A fixture with no `estimator` field must produce the fit-indices table using
+  // the EXACT SAME registry spec object (no clone, no relabeling) -- same convention as the existing
+  // single-moderation "same object reference" pin below in this file.
+  it('byte-pin: no estimator field (defaults ML) keeps the fit-indices spec as the real registry object, untouched', () => {
+    const c = buildCbSem(CB_SEM, base)
+    const fit = c.tables.find((t) => t.spec.id === 'fit-indices')!
+    expect(fit.spec).toBe(CB_SEM.tables.find((t) => t.id === 'fit-indices'))
+  })
+})
+
+describe('buildCbSem - APA sentence names the estimator (H1 wiring, change 2)', () => {
+  it('ML (no estimator field, defaults ML) names "maximum likelihood"', () => {
+    const c = buildCbSem(CB_SEM, base)
+    expect(c.apa).toContain('Estimated with maximum likelihood.')
+  })
+
+  it('MLR names "robust maximum likelihood (MLR)"', () => {
+    const c = buildCbSem(CB_SEM, { ...base, estimator: 'MLR' })
+    expect(c.apa).toContain('Estimated with robust maximum likelihood (MLR).')
+  })
+
+  it('WLSMV names the full DWLS clause', () => {
+    const c = buildCbSem(CB_SEM, { ...base, estimator: 'WLSMV', moderation: undefined })
+    expect(c.apa).toContain(
+      'Estimated with diagonally weighted least squares with mean- and variance-adjusted test statistics (WLSMV).',
+    )
+  })
+
+  it('every {token} still resolves and the estimator clause never leaves a bare token', () => {
+    const c = buildCbSem(CB_SEM, { ...base, estimator: 'MLR' })
+    expect(c.apa).not.toMatch(/\{[a-zA-Z]+\}/)
+    expect(c.apa).not.toContain('__')
+  })
+})
+
+describe('buildCbSem - "Estimation" labelled note (H1 wiring, change 3, always present when not saturated)', () => {
+  it('base sentence states the estimator and missing method actually used (ML + listwise defaults)', () => {
+    const c = buildCbSem(SPEC, base)
+    const note = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(note.text).toContain('maximum likelihood')
+    expect(note.text).toContain('listwise')
+  })
+
+  it('names MLR', () => {
+    const c = buildCbSem(SPEC, { ...base, estimator: 'MLR' })
+    const note = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(note.text).toContain('robust maximum likelihood (MLR)')
+  })
+
+  it('WLSMV adds the exact "Treated as ordinal" disclosure from orderedItems', () => {
+    const c = buildCbSem(SPEC, {
+      ...base, estimator: 'WLSMV', moderation: undefined,
+      orderedItems: ['a1', 'a2', 'a3', 'b1', 'b2', 'b3'],
+    })
+    const note = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(note.text).toContain('Treated as ordinal: a1, a2, a3, b1, b2, b3.')
+  })
+
+  it('omits the ordinal disclosure when orderedItems is empty (even under WLSMV)', () => {
+    const c = buildCbSem(SPEC, { ...base, estimator: 'WLSMV', moderation: undefined, orderedItems: [] })
+    const note = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(note.text).not.toContain('Treated as ordinal')
+  })
+
+  it('fiml adds an all-available-cases + effective-N sentence', () => {
+    const c = buildCbSem(SPEC, { ...base, missing: 'fiml' })
+    const note = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(note.text).toContain('all available cases')
+    expect(note.text).toMatch(/\d/)
+  })
+
+  it('pairwise adds an N-basis sentence', () => {
+    const c = buildCbSem(SPEC, { ...base, missing: 'pairwise' })
+    const note = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(note.text.toLowerCase()).toContain('pair')
+  })
+
+  it('adds the exact delta-method CI disclosure when ciMethod is delta AND indirect/moderation rows exist', () => {
+    const c = buildCbSem(SPEC, { ...base, estimator: 'MLR', ciMethod: 'delta' })
+    const note = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(note.text).toContain(
+      'Indirect-effect and moderation CIs are delta-method (bootstrap CIs are available under the ML estimator).',
+    )
+  })
+
+  it('omits the delta-method disclosure when ciMethod is delta but there are no indirect/moderation rows', () => {
+    const c = buildCbSem(SPEC, {
+      ...base, estimator: 'MLR', ciMethod: 'delta', indirect: undefined, moderation: undefined,
+    })
+    const note = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(note.text).not.toContain('delta-method')
+  })
+
+  it('omits the delta-method disclosure when ciMethod is bootstrap (or absent) even with indirect rows present', () => {
+    const c = buildCbSem(SPEC, base)
+    const note = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(note.text).not.toContain('delta-method')
+  })
+
+  it('is present in PATH_ANALYSIS mode too (right after Scope)', () => {
+    const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
+    const c = buildCbSem(PATH_ANALYSIS, path)
+    expect(c.notes!.findIndex((n) => n.label === 'Estimation')).toBe(1)
+  })
+
+  it('is suppressed under saturation, same as every other note', () => {
+    const sat: CbSemResult = { ...base, saturated: true, fit: { ...base.fit!, df: 0 } }
+    const c = buildCbSem(SPEC, sat)
+    expect(c.notes!.find((n) => n.label === 'Estimation')).toBeUndefined()
+  })
+})
+
+// Change 4: Table 5 CI provenance under delta reuses the EXISTING bootstrapped:false rendering -- no
+// fabricated BC columns. This is a REGRESSION TEST pinning that contract for a REALISTIC MLR+mediation
+// result (estimator set, ciMethod 'delta', indirect rows present), mirroring runCbSem.ts:76-83's
+// contract, not new rendering code.
+describe('buildCbSem - MLR result with indirect rows: honest delta-method CIs, no fabricated BC (H1 wiring, change 4)', () => {
+  it('renders Wald percentile CIs and dashes (not fabricated values) in the BC columns', () => {
+    const mlrWithIndirect: CbSemResult = {
+      ...base,
+      estimator: 'MLR',
+      ciMethod: 'delta',
+      bootstrapped: false,
+      moderation: undefined,
+      structural: base.structural!.map((row) => ({ ...row, ciBcLower: null, ciBcUpper: null })),
+      indirect: base.indirect!.map((row) => ({ ...row, ciBcLower: null, ciBcUpper: null })),
+    }
+    const c = buildCbSem(SPEC, mlrWithIndirect)
+    const t5 = c.tables.find((t) => t.spec.id === 'structural-paths')!
+    const dataRows = t5.rows.filter((r) => r.h != null)
+    expect(dataRows.length).toBeGreaterThan(0)
+    for (const row of dataRows) {
+      expect(row.bcLower).toBe('—')
+      expect(row.bcUpper).toBe('—')
+      expect(row.bcLower).not.toBe('.00')
+      expect(row.bcUpper).not.toBe('.00')
+      // Percentile columns still carry the (Wald, delta-method) CI -- never dashed out.
+      expect(row.percLower).not.toBe('—')
+      expect(row.percUpper).not.toBe('—')
+    }
+    const ci = c.notes!.find((n) => n.label === 'CIs')!.text
+    expect(ci).toContain('delta-method')
+    expect(ci).toContain('Wald')
+    expect(ci).not.toContain('Andrews & Buchinsky')
   })
 })

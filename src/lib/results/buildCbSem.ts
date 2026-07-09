@@ -13,10 +13,23 @@ const blank = (id: string) => ({ id, title: '', columns: [] })
 const specTable = (spec: TestSpec, id: string) =>
   spec.tables.find((t) => t.id === id) ?? blank(id)
 
+// H1 wiring (task 6): estimator/missing-data prose, shared by the fit-index labels, the APA sentence,
+// and the "Estimation" labelled note below. `r.estimator`/`r.missing` are optional so every pre-H1
+// hand-built CbSemResult fixture (predating the estimator/missing dropdowns being wired) defaults to
+// ML + listwise, matching the runner's own defaults (semFitArgs.ts).
+const ESTIMATOR_NAMES = {
+  ML: 'maximum likelihood',
+  MLR: 'robust maximum likelihood (MLR)',
+  WLSMV: 'diagonally weighted least squares with mean- and variance-adjusted test statistics (WLSMV)',
+} as const
+
 export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   const isPath = r.mode === 'path'
   const tables: BuiltTable[] = []
   let itemSampleNote: string | null = null
+  const estimator = r.estimator ?? 'ML'
+  const estimatorName = ESTIMATOR_NAMES[estimator]
+  const missingSetting = String(r.missing ?? 'listwise')
 
   // T1 (merged, U3-T1): Measurement model (loadings, reliability & item descriptives) - latent only.
   // Construct rows (__group marker, A6 renderer device) carry ω/α/CR/AVE once; item rows (indented by
@@ -55,10 +68,12 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     // on which `missing` option the run actually used, so a static registry sentence can't say this
     // correctly for both cases. Appended to note.text below (folded into U3-T5's labelled notes once
     // that task lands).
-    const missingSetting = String(r.missing ?? 'listwise')
+    // H1 wiring (task 6) fix: the old parenthetical named a dropped 'mi' option and claimed "the model
+    // fit itself remains listwise" -- false since semFitArgs.ts now feeds fiml/pairwise into the fit
+    // itself (not just this display table). No other consumer pins this exact string (checked).
     const itemSampleClause = missingSetting === 'listwise'
       ? 'the listwise estimation sample (the same N as the model fit)'
-      : "each item's own observed cases (N can vary by item under fiml/mi/pairwise; the model fit itself remains listwise)"
+      : "each item's own observed cases (N can vary by item under fiml/pairwise; the model fit itself uses the same missing-data method you selected)"
     itemSampleNote = `Item Mean/SD are computed on ${itemSampleClause}.`
   }
 
@@ -100,7 +115,23 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       rmsea: `${f01(fit.rmsea)} [${f01(fit.rmseaLower)}, ${f01(fit.rmseaUpper)}]`,
       srmr: f01(fit.srmr),
     }]
-    tables.push({ spec: specTable(spec, 'fit-indices'), rows })
+    // H1 wiring (task 6, change 1): under MLR/WLSMV the runner already remaps the robust/scaled
+    // fitMeasures onto these SAME keys (runCbSem.ts's fitListBlock) - relabel the columns only, never
+    // touch the values above. Byte-pin (change 5): ML/absent estimator reuses the real registry spec
+    // object UNCHANGED (no clone), same convention as the single-moderation column-shape pin below.
+    const robustLabels = estimator === 'MLR' || estimator === 'WLSMV'
+    const baseFitSpec = specTable(spec, 'fit-indices')
+    const fitSpec = robustLabels
+      ? {
+          ...baseFitSpec,
+          columns: baseFitSpec.columns.map((col) =>
+            col.key === 'chisq' ? { ...col, label: `${col.label} (scaled)` }
+              : col.key === 'cfi' || col.key === 'tli' || col.key === 'rmsea' ? { ...col, label: `${col.label} (robust)` }
+                : col,
+          ),
+        }
+      : baseFitSpec
+    tables.push({ spec: fitSpec, rows })
   }
 
   // T6/T7 merged (U3-T3): CB-SEM merges structural paths + indirect effects + moderation into ONE
@@ -268,6 +299,42 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   // r2NoteText/disclosureText/ciNoteText are only ever populated inside the isMerged/!isPath branches
   // above), so noteExtras below is a defensive no-op today, kept only so nothing silently drops if a
   // future runner change ever populates one of them for path mode.
+  // H1 wiring (task 6, change 3): "Estimation" labelled note, always present (both isMerged and
+  // PATH_ANALYSIS, whenever the card isn't saturated) - states the estimator + missing method actually
+  // used, plus estimator/missing-conditional disclosures. Computed once, shared by both branches below.
+  const MISSING_CLAUSES: Record<string, string> = {
+    listwise: 'listwise deletion',
+    fiml: 'full information maximum likelihood (FIML)',
+    pairwise: 'pairwise deletion',
+  }
+  const missingClause = MISSING_CLAUSES[missingSetting] ?? MISSING_CLAUSES.listwise
+  const estimationSentences: string[] = [
+    `Estimated with ${estimatorName}; missing data handled via ${missingClause}.`,
+  ]
+  if (estimator === 'WLSMV' && r.orderedItems?.length) {
+    estimationSentences.push(`Treated as ordinal: ${r.orderedItems.join(', ')}.`)
+  }
+  if (missingSetting === 'fiml') {
+    const itemNs = r.itemStats.map((s) => s.n).filter((n) => Number.isFinite(n))
+    estimationSentences.push(
+      itemNs.length
+        ? `FIML uses all available cases rather than deleting incomplete rows; effective N reaches up to ${Math.max(...itemNs)} per item.`
+        : 'FIML uses all available cases rather than deleting incomplete rows.',
+    )
+  }
+  if (missingSetting === 'pairwise') {
+    estimationSentences.push(
+      "Pairwise deletion uses each variable pair's own available cases (assumes data missing completely at random); N varies by pair.",
+    )
+  }
+  const hasIndirectOrModRows = (r.indirect?.length ?? 0) > 0 || (r.moderation?.rows.length ?? 0) > 0
+  if (r.ciMethod === 'delta' && hasIndirectOrModRows) {
+    estimationSentences.push(
+      'Indirect-effect and moderation CIs are delta-method (bootstrap CIs are available under the ML estimator).',
+    )
+  }
+  const estimationNoteText = estimationSentences.join(' ')
+
   let note: CardContent['note'] = null
   let notes: CardContent['notes']
   if (isMerged) {
@@ -286,6 +353,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         { label: 'Scope', text: 'Tables shown follow the pipeline stages you ran (EFA → CFA → fit → structural); if EFA was deselected, the E1/E2 preamble is omitted; if the structural stage was deselected, Table 5 is omitted.' },
         { label: 'Cutoffs', text: 'Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 - guidelines, not pass/fail gates; RMSEA is unstable at small df / small N, so interpret it cautiously for compact models.' },
         { label: 'Estimator', text: 'Use WLSMV for ordinal indicators.' },
+        { label: 'Estimation', text: estimationNoteText },
         { label: 'R²', text: r2NoteText ? `${r2Static} ${r2NoteText}` : r2Static },
         { label: 'Caution', text: 'EFA on the same sample is exploratory - treat it as a diagnostic, not confirmatory evidence.' },
         // Cross-references buildAve.ts's dedicated card, verbatim clause lift from the pre-T5 tableNote.
@@ -309,6 +377,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       ? [{ label: 'Saturation', text: SATURATION_NOTE }]
       : [
           { label: 'Scope', text: 'Path analysis fits directed relationships among observed variables (lavaan::sem) - no latent measurement model, so no CFA loadings, reliability, or AVE are reported.' },
+          { label: 'Estimation', text: estimationNoteText },
           { label: 'Fit', text: 'When the model is saturated (df = 0, e.g. a single-mediator X → M → Y chain), it fits the data perfectly by construction and global fit indices (χ², CFI, TLI, RMSEA, SRMR) are not reported; an over-identified model (df > 0) reports fit, interpreting RMSEA cautiously at small df / small N (Kenny, Kaniskan & McCoach, 2015).', afterTableId: 'structural-paths' },
           { label: 'Indirect effects', text: 'Indirect (mediated) effects are tested with bias-uncorrected percentile bootstrap 95% CIs (5,000 resamples; MacKinnon, Lockwood & Williams, 2004); an interval excluding 0 indicates a credible indirect effect.', afterTableId: 'indirect-effects' },
         ]
@@ -455,6 +524,9 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       apa = 'A path model fit to the observed variables; this model has no indirect (mediated) effect to report (no chained structural paths were drawn).'
     }
   }
+  // H1 wiring (task 6, change 2): the APA sentence always names the estimator, appended as its own
+  // trailing sentence so it survives regardless of which branch/fallback built the rest of `apa` above.
+  apa = `${apa} Estimated with ${estimatorName}.`
 
   return {
     tables,
