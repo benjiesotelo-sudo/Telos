@@ -1,0 +1,139 @@
+This is lavaan 0.6-21
+lavaan is FREE software! Please report any bugs.
+
+####  ML / listwise 
+chisq            23.53908699
+df               13.00000000
+pvalue           0.03564413
+cfi              0.96436775
+tli              0.94244021
+rmsea            0.12486138
+srmr             0.05840425
+PE row4  dem60 =~ y1   est=1.00000000 se=0.00000000 ci=[1.00000000, 1.00000000]
+PE row5  dem60 =~ y2   est=1.26184933 se=0.21078051 ci=[0.84872713, 1.67497153]
+PE row6  dem60 =~ y3   est=1.19007981 se=0.16961670 ci=[0.85763719, 1.52252244]
+PE row7  dem60 =~ y4   est=1.26358143 se=0.15296677 ci=[0.96377207, 1.56339079]
+PE row8  dem60 ~ ind60   est=1.49440497 se=0.47740694 ci=[0.55870456, 2.43010538]
+
+####  ML / ml 
+chisq            22.15981477
+df               13.00000000
+pvalue           0.05293449
+cfi              0.97593041
+tli              0.96111835
+rmsea            0.09692617
+srmr             0.03788058
+cfi.robust       0.96777765
+tli.robust       0.94794851
+rmsea.robust     0.11587850
+PE row4  dem60 =~ y1   est=1.00000000 se=0.00000000 ci=[1.00000000, 1.00000000]
+PE row5  dem60 =~ y2   est=1.34451472 se=0.21374293 ci=[0.92558628, 1.76344316]
+PE row6  dem60 =~ y3   est=1.18582369 se=0.17509044 ci=[0.84265274, 1.52899464]
+PE row7  dem60 =~ y4   est=1.39169375 se=0.18348138 ci=[1.03207686, 1.75131064]
+PE row8  dem60 ~ ind60   est=1.46283905 se=0.38994176 ci=[0.69856724, 2.22711085]
+
+####  ML / pairwise 
+chisq            23.17939228
+df               13.00000000
+pvalue           0.03957319
+cfi              0.97483991
+tli              0.95935677
+rmsea            0.10217829
+srmr             0.05047664
+PE row4  dem60 =~ y1   est=1.00000000 se=0.00000000 ci=[1.00000000, 1.00000000]
+PE row5  dem60 =~ y2   est=1.43080264 se=0.21288198 ci=[1.01356163, 1.84804366]
+PE row6  dem60 =~ y3   est=1.26713293 se=0.17905227 ci=[0.91619692, 1.61806894]
+PE row7  dem60 =~ y4   est=1.56087813 se=0.18227220 ci=[1.20363117, 1.91812508]
+PE row8  dem60 ~ ind60   est=1.39919513 se=0.36235071 ci=[0.68900080, 2.10938947]
+
+####  MLR / listwise 
+chisq            23.53908699
+df               13.00000000
+pvalue           0.03564413
+cfi              0.96436775
+tli              0.94244021
+rmsea            0.12486138
+srmr             0.05840425
+chisq.scaled     23.92735147
+df.scaled        13.00000000
+pvalue.scaled    0.03180492
+cfi.scaled       0.96176528
+tli.scaled       0.93823622
+rmsea.scaled     0.12714056
+cfi.robust       0.96357043
+tli.robust       0.94115223
+rmsea.robust     0.12610480
+PE row4  dem60 =~ y1   est=1.00000000 se=0.00000000 ci=[1.00000000, 1.00000000]
+PE row5  dem60 =~ y2   est=1.26184933 se=0.13673386 ci=[0.99385590, 1.52984277]
+PE row6  dem60 =~ y3   est=1.19007981 se=0.18861337 ci=[0.82040441, 1.55975522]
+PE row7  dem60 =~ y4   est=1.26358143 se=0.16062049 ci=[0.94877106, 1.57839180]
+PE row8  dem60 ~ ind60   est=1.49440497 se=0.43333980 ci=[0.64507456, 2.34373538]
+
+####  MLR / ml 
+chisq            22.15981477
+df               13.00000000
+pvalue           0.05293449
+cfi              0.97593041
+tli              0.96111835
+rmsea            0.09692617
+srmr             0.03788058
+chisq.scaled     20.75446590
+df.scaled        13.00000000
+pvalue.scaled    0.07792911
+cfi.scaled       0.97795885
+tli.scaled       0.96439506
+rmsea.scaled     0.08918127
+cfi.robust       0.96911658
+tli.robust       0.95011140
+rmsea.robust     0.11363986
+PE row4  dem60 =~ y1   est=1.00000000 se=0.00000000 ci=[1.00000000, 1.00000000]
+PE row5  dem60 =~ y2   est=1.34451472 se=0.15912625 ci=[1.03263301, 1.65639643]
+PE row6  dem60 =~ y3   est=1.18582369 se=0.15871113 ci=[0.87475559, 1.49689179]
+PE row7  dem60 =~ y4   est=1.39169375 se=0.16848851 ci=[1.06146233, 1.72192517]
+PE row8  dem60 ~ ind60   est=1.46283905 se=0.32574772 ci=[0.82438525, 2.10129284]
+
+
+=== MLR/pairwise ===
+CELL FAILS (see h1-estimator-spike.R output and h1-mlr-pairwise-corroboration.R)
+
+#### WLSMV / listwise 
+chisq            4.14262150
+df               17.00000000
+pvalue           NA
+cfi              1.00000000
+tli              1.00468208
+rmsea            0.00000000
+srmr             0.01630698
+wrmr             0.27198416
+chisq.scaled     13.53275519
+df.scaled        17.00000000
+pvalue.scaled    0.69985589
+cfi.scaled       1.00000000
+tli.scaled       1.00311123
+rmsea.scaled     0.00000000
+cfi.robust       NA
+tli.robust       NA
+rmsea.robust     NA
+PE struct  B ~ A   est=-0.59963804 se=0.99269563
+PE struct  B ~ C   est=-0.30662034 se=0.76336148
+
+#### WLSMV / pairwise 
+chisq            4.14262150
+df               17.00000000
+pvalue           NA
+cfi              1.00000000
+tli              1.00468208
+rmsea            0.00000000
+srmr             0.01630698
+wrmr             0.27198416
+chisq.scaled     13.53275519
+df.scaled        17.00000000
+pvalue.scaled    0.69985589
+cfi.scaled       1.00000000
+tli.scaled       1.00311123
+rmsea.scaled     0.00000000
+cfi.robust       NA
+tli.robust       NA
+rmsea.robust     NA
+PE struct  B ~ A   est=-0.59963804 se=0.99269563
+PE struct  B ~ C   est=-0.30662034 se=0.76336148

@@ -9,10 +9,14 @@ Tasks 4, 5, and 10.
 Scripts:
 - `scripts/spikes/h1-estimator-spike.R` (native R, run via `Rscript`)
 - `scripts/spikes/h1-estimator-spike.node.mjs` (WebR twin, run via `node`)
+- `scripts/spikes/h1-mlr-pairwise-corroboration.R` (Q2 corroboration on an independent dataset)
+- `scripts/spikes/h1-pin-values.R` (sprintf transcription aid for the pinned tables below)
 
 Captured output:
 - `scripts/spikes/h1-spike-native.txt` (native R, exit 0)
 - `scripts/spikes/h1-spike-webr.txt` (WebR 0.6.0 under Node, exit 0)
+- `scripts/spikes/h1-mlr-pairwise-corroboration.txt` (exit 0)
+- `scripts/spikes/h1-pin-values.txt` (exit 0)
 
 Environment: native R 4.6.0, lavaan 0.6-21 (`packageVersion("lavaan")` confirmed).
 WebR 0.6.0 (`webr` npm package `^0.6.0`, `new WebR()` default config, matching the
@@ -117,7 +121,10 @@ error, and the fit object is `NULL` (never partially constructed).
 
 Root cause, confirmed not fixture-specific: reproduced independently with a fresh, clean n=5000
 two-factor model with 5% MCAR holes scattered across all 6 indicators (different seed, no
-overlap with the PoliticalDemocracy fixture) - same error, same call stack. Root cause is
+overlap with the PoliticalDemocracy fixture) - same error, same call stack; and the same
+data/model runs fine under `missing="listwise"` and `missing="ml"`. Committed as
+`scripts/spikes/h1-mlr-pairwise-corroboration.R` with captured output
+`scripts/spikes/h1-mlr-pairwise-corroboration.txt` (exit 0). Root cause is
 documented in lavaan's own `?lavOptions` help for the `missing` argument: `"pairwise"` deletion
 is explicitly scoped to "the (W)LS family" as its only non-listwise option; the `missing="ml"`
 alias (`"fiml"`/`"direct"`) is documented as available "if the estimator belongs to the ML
@@ -146,7 +153,8 @@ warnings.
 Yes. `docs/testing/likert5.csv` (6 ordinal items `a1..a3`/`b1..b3`, 2 continuous items
 `cont1`/`cont2`) fits under `estimator = "WLSMV", ordered = c("a1","a2","a3","b1","b2","b3")`
 for both `missing = "listwise"` and `missing = "pairwise"` with no errors or warnings
-(native output lines 398-671; identical under WebR, lines 406-681).
+(native output lines 398-671; reproduced under WebR at lines 406-681, agreement within the
+uniform 7dp cross-engine tolerance rule - see "Cross-engine parity" below).
 
 **Load-bearing observation**: the `listwise` and `pairwise` WLSMV outputs are **byte-for-byte
 identical** (confirmed via `diff`). This is not a bug in lavaan or the spike - the brief's own
@@ -220,13 +228,14 @@ cross-checked against the primary captured output in `scripts/spikes/h1-spike-na
 (the `print(x, nd = 8)` output at the cited line ranges - see the DEVIATION note on why
 `nd = 8` was needed instead of the brief's plain `round(x, 8)`).
 
-**Note on precision extraction**: the values below were regenerated with a one-off
-`sprintf("%.8f", ...)` script for clean, unwrapped transcription (lavaan's console printer
-wraps wide numeric vectors across multiple lines, which is fine to read but error-prone to
-hand-copy at 8dp). Every value was verified to match the corresponding entry in the committed
-`h1-spike-native.txt` at the line ranges cited per cell. This script was not committed (it is
-a transcription aid, not part of the spike's required file set); the committed
-`h1-spike-native.txt`/`h1-spike-webr.txt` are the primary provenance artifacts.
+**Note on precision extraction**: the values below were regenerated with the committed
+`sprintf("%.8f", ...)` transcription script `scripts/spikes/h1-pin-values.R` (captured output
+`scripts/spikes/h1-pin-values.txt`) for clean, unwrapped transcription (lavaan's console
+printer wraps wide numeric vectors across multiple lines, which is fine to read but error-prone
+to hand-copy at 8dp). Every value was verified to match the corresponding entry in the
+committed `h1-spike-native.txt` at the line ranges cited per cell, so every pinned digit is
+independently re-derivable: `Rscript scripts/spikes/h1-pin-values.R`. The committed
+`h1-spike-native.txt`/`h1-spike-webr.txt` remain the primary provenance artifacts.
 
 ### Cell 1: ML / listwise (native lines 3-53, webr lines 11-53)
 
@@ -342,24 +351,14 @@ name SET, not just values, worth flagging for Task 3's `fm` vector selection log
 | 7 | dem60 =~ y4 | 1.39169375 | 0.16848851 | 1.06146233 | 1.72192517 |
 | 8 | dem60 ~ ind60 | 1.46283905 | 0.32574772 | 0.82438525 | 2.10129284 |
 
-**WebR-vs-native discrepancy (this cell only)**: `y3 ~~ y3` `ci.upper` prints
-`6.25344234` under WebR vs `6.25344233` under native R (native line 384, webr line 392) -
-an off-by-1-ULP difference at the 8th decimal place (`1e-8` absolute). This is the ONLY
-numeric discrepancy found across the entire captured output (671 body lines, thousands of
-individual numeric tokens diffed via `diff` - every other value is byte-identical between
-native and WebR). It is consistent with differing BLAS/LAPACK backends (native R's system
-Accelerate framework on macOS vs WebR's WASM-compiled reference BLAS) producing a
-last-bit-of-precision rounding difference in an iterative variance-covariance computation, not
-a substantive algorithmic mismatch. **Recommendation for Tasks 4/5/10**: pin this specific
-value at 7dp (`6.2534423`) or add an explicit `+/-1e-8` tolerance for this one assertion if the
-test suite pins WebR output directly; every other value in this spike is safe to pin at the
-full 8dp with an exact-match assertion.
+(Cross-engine parity note: 4 of the 7 known native-vs-WebR 1-ULP discrepancies fall in this
+cell - see "Cross-engine parity" below for the full catalog and the pinning rule.)
 
 ### Cell 6: MLR / pairwise - FAILS (native line 396-397, webr line 404-405)
 
 No fitMeasures/parameterEstimates output - `sem()` itself throws before returning a fit object.
-See Q2 above for full root-cause analysis. `CELL FAILED: infinite or missing values in 'x'`
-reproduced identically under both native R and WebR.
+See Q2 above for full root-cause analysis. The same `CELL FAILED: infinite or missing values
+in 'x'` error text was captured under both native R and WebR.
 
 ### WLSMV / listwise and WLSMV / pairwise (byte-identical - see Q3)
 
@@ -384,6 +383,41 @@ pairwise)
 |---|---|---|
 | B ~ A | -0.59963804 | 0.99269563 |
 | B ~ C | -0.30662034 | 0.76336148 |
+
+## Cross-engine parity: seven 1-ULP discrepancies + pinning rule
+
+Verified by a fresh aligned diff of the two committed captures
+(`sed -n '3,671p' h1-spike-native.txt` vs `sed -n '11,679p' h1-spike-webr.txt` - stripping the
+2-line lavaan banner and the 10-line Node harness preamble respectively, leaving two 669-line
+bodies). The diff shows exactly SEVEN differing numeric values, every one an off-by-1 in the
+8th decimal place (1-ULP at the printed precision, `1e-8` absolute):
+
+| # | cell | value | native (line) | WebR (line) |
+|---|---|---|---|---|
+| 1 | Cell 2: ML / ml | PE row 14, `y3 ~~ y3`, ci.lower | 2.54844233 (125) | 2.54844234 (133) |
+| 2 | Cell 4: MLR / listwise | PE row 13, `y2 ~~ y2`, ci.lower | 3.86266380 (283) | 3.86266379 (291) |
+| 3 | Cell 4: MLR / listwise | PE row 17, `dem60 ~~ dem60`, se | 1.13991243 (287) | 1.13991244 (295) |
+| 4 | Cell 5: MLR / ml | fitMeasures `baseline.chisq.scaled` | 372.81760191 (302) | 372.81760190 (310) |
+| 5 | Cell 5: MLR / ml | fitMeasures `rfi.scaled` | 0.91007279 (318) | 0.91007280 (326) |
+| 6 | Cell 5: MLR / ml | PE row 14, `y3 ~~ y3`, se | 0.94369102 (383) | 0.94369101 (391) |
+| 7 | Cell 5: MLR / ml | PE row 15, `y4 ~~ y4`, se | 0.69581485 (384) | 0.69581486 (392) |
+
+Line numbers are into the committed `scripts/spikes/h1-spike-native.txt` and
+`scripts/spikes/h1-spike-webr.txt` respectively. All seven sit in cells 2, 4, and 5 - the three
+cells whose fits involve either FIML (`missing="ml"`) or the MLR robust vcov, i.e. the most
+iteration-heavy linear-algebra paths. Point estimates (`est` columns) never differ; the
+discrepancies are confined to se/ci/derived-fit-index values. This is consistent with differing
+BLAS/LAPACK backends (native R's macOS Accelerate framework vs WebR's WASM-compiled reference
+BLAS) producing last-bit rounding differences in variance-covariance computations, not a
+substantive algorithmic mismatch.
+
+**Pinning rule for Tasks 4/5/10 (controller ruling)**: downstream tasks pin the NATIVE-derived
+values (the tables in this doc) and compare WebR results with a tolerance equivalent to
+`toBeCloseTo(value, 7)` - i.e. agreement to 7 decimal places - for ALL cells uniformly. Never
+assert exact 8dp string equality across engines, and do not special-case the seven rows above:
+the uniform 7dp tolerance covers them and any future backend-rounding drift alike. Exact
+byte-equality between native and WebR outputs is not a property this spike establishes and must
+not be assumed by any later task.
 
 ## Deviations from the brief's transcribed script (all mechanical, no numeric/model changes)
 
@@ -452,9 +486,13 @@ harness-only workaround).
   the formula.
 - **Q5**: confirmed - a JS `NaN` in a `webR.evalRVoid(code, { env })`-bound array arrives in R
   as `is.na() == TRUE`, using the same marshalling mechanism the production app uses.
+- **Cross-engine parity**: seven 1-ULP (1e-8) native-vs-WebR discrepancies cataloged above
+  (cells 2, 4, 5; se/ci/derived-index values only, never point estimates). Ruled: downstream
+  tasks pin native values and compare WebR with a uniform 7dp tolerance
+  (`toBeCloseTo(value, 7)`); never exact 8dp string equality across engines.
 
-**Gate status: PASS with one flagged item.** No spike question was unanswerable and no cell
-silently misbehaved - every failure (MLR/pairwise) was caught, root-caused, and is a legitimate
-finding for the production wiring to guard against, not a spike infrastructure problem. The one
-open item for Benjie: confirm the Cell 5 WebR-vs-native 1-ULP discrepancy tolerance approach
-(round to 7dp vs exact-match-with-epsilon) before Task 5/10 write pinned-value assertions.
+**Gate status: PASS.** No spike question was unanswerable and no cell silently misbehaved -
+every failure (MLR/pairwise) was caught, root-caused, corroborated on an independent dataset,
+and is a legitimate finding for the production wiring to guard against, not a spike
+infrastructure problem. The cross-engine tolerance question is settled by the controller ruling
+above (uniform 7dp), so no open items remain for the downstream tasks.

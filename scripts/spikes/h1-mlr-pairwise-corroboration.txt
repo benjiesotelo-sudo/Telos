@@ -1,0 +1,11 @@
+This is lavaan 0.6-21
+lavaan is FREE software! Please report any bugs.
+ERROR: infinite or missing values in 'x' 
+MLR + pairwise succeeded: FALSE 
+MLR + listwise succeeded: TRUE 
+MLR + ml succeeded: TRUE 
+Warning messages:
+1: lavaan->lav_object_post_check():  
+   some estimated lv variances are negative 
+2: lavaan->lav_object_post_check():  
+   some estimated lv variances are negative 
