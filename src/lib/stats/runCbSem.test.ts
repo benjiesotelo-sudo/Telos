@@ -1,12 +1,19 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { Engine } from '../webr/engine'
 import { runCbSem, computeItemStats, CB_SEM_DEFAULT_MISSING } from './runCbSem'
+import type { CbSemResult } from './runCbSem'
 import { isSaturated } from './semSaturation'
 import { loadCsvFixture } from './csvFixture'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { TestSetup, Construct } from '../../state/session'
 import type { Dataset } from './types'
+import {
+  CELL_1_ML_LISTWISE, CELL_2_ML_FIML, CELL_3_ML_PAIRWISE,
+  CELL_4_MLR_LISTWISE, CELL_5_MLR_FIML,
+  CELL_6_WLSMV_LISTWISE, CELL_7_WLSMV_PAIRWISE,
+  type H1PinCell,
+} from './h1Pins'
 
 // Reference values: native R 4.6.0 / lavaan 0.6.21 on lavaan's PoliticalDemocracy (Bollen industrialization→democracy).
 // Model: ind60=~x1+x2+x3 · dem60=~y1+y2+y3+y4 · dem65=~y5+y6+y7+y8 · dem60~ind60 · dem65~dem60+ind60 · ind_ie:=a*b.
@@ -711,4 +718,137 @@ describe('runCbSem - semFitArgs wiring (mocked engine, no WebR)', () => {
     expect(result.ciMethod).toBe('delta')
     expect(result.estimator).toBe('MLR')
   })
+})
+
+// H1 known-answer matrix (Task 5, docs/superpowers/sdd/task-5-brief.md + controller amendments): the
+// real-WebR counterpart to the mocked-engine wiring tests above -- 7 cells (ML x {listwise,fiml,
+// pairwise}, MLR x {listwise,fiml}, WLSMV x {listwise,pairwise}; MLR+pairwise is lavaan-invalid and is
+// not a cell at all, see semFitArgs.ts's guard) run against the REAL engine and compared to h1Pins.ts's
+// native-R 4.6.0/lavaan 0.6-21 pins at toBeCloseTo(pin, 7) -- NEVER byte/string equality (h1Pins.ts's
+// module doc comment is the single source of truth for that rule and its cross-engine-drift rationale).
+// Excluded from test:fast by convention (same real-engine describe-block style as the rest of this
+// file); minutes not seconds -- run directly via `npx vitest run src/lib/stats/runCbSem.test.ts`.
+describe('runCbSem - H1 known-answer matrix (real WebR, 7 cells vs native-R pins)', () => {
+  const engine = new Engine()
+  beforeAll(async () => { await engine.init() }, 600_000)
+  afterAll(async () => { await engine.close() })
+
+  // Cells 1-5: Bollen PoliticalDemocracy, the 2-construct/1-path subset the pins were fit against
+  // (ind60=~x1+x2+x3; dem60=~y1+y2+y3+y4; dem60~ind60 -- NOT the 3-construct dem65 chain the top-of-file
+  // SETUP builds), fixture WITH seeded NA holes in y1..y4 (politicalDemocracy-missing.csv, Task 4's
+  // reformatted CSV). A single direct path has no mediator, so hasIndirect is false and wantsBootstrap
+  // is false regardless of estimator -- every cell's ciMethod is 'delta' and bootstrapped is false
+  // (semFitArgs.ts), matching the controller amendment's "expect needsBootstrap false and plain CIs".
+  const PD_SETUP: TestSetup = {
+    roles: {}, options: { estimator: 'ML', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'ind60', items: ['x1', 'x2', 'x3'] },
+      { id: 2, name: 'dem60', items: ['y1', 'y2', 'y3', 'y4'] },
+    ],
+    paths: [{ from: 1, to: 2 }],
+  }
+  const pdData = () => loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/politicalDemocracy-missing.csv'))
+
+  // Cells 6-7: the spike's mixed ordinal/continuous model (A=~a1+a2+a3; C=~cont1+cont2; B=~b1+b2+b3;
+  // B~A+C), fixture WITH seeded NA holes in a1..b3 ONLY (likert5-missing.csv, Task 4's reconditioned
+  // 1%-hole PROPER-solution fixture -- cont1/cont2 untouched). columnLevels marks exactly the six
+  // ordinal indicators; cont1/cont2 fall through to the runner's own 'scale' default.
+  const WLSMV_SETUP: TestSetup = {
+    roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'A', items: ['a1', 'a2', 'a3'] },
+      { id: 2, name: 'C', items: ['cont1', 'cont2'] },
+      { id: 3, name: 'B', items: ['b1', 'b2', 'b3'] },
+    ],
+    paths: [{ from: 1, to: 3 }, { from: 2, to: 3 }],
+  }
+  const WLSMV_COLUMN_LEVELS: Record<string, string> = {
+    a1: 'ordinal', a2: 'ordinal', a3: 'ordinal', b1: 'ordinal', b2: 'ordinal', b3: 'ordinal',
+    cont1: 'scale', cont2: 'scale',
+  }
+  const likertData = () => loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/likert5-missing.csv'))
+
+  // Maps this cell's h1Pins.ts fit keys (native lavaan::fitMeasures() names, e.g. 'cfi.robust' under
+  // MLR or 'cfi.scaled' under WLSMV) onto the runner's OWN stable fit_list keys (chisq/df/pvalue/cfi/
+  // tli/rmsea/srmr, uniform across every estimator -- runCbSem.ts's fitListBlock doc comment). ML
+  // requests the plain names directly; MLR/WLSMV request the .robust/.scaled family and remap it back
+  // onto the same stable keys, so this map is the inverse of that remapping, per estimator.
+  const FIT_KEY_MAP: Record<H1PinCell['estimator'], Record<string, string>> = {
+    ML: { chisq: 'chisq', df: 'df', pvalue: 'pvalue', cfi: 'cfi', tli: 'tli', rmsea: 'rmsea', srmr: 'srmr' },
+    MLR: { chisq: 'chisq.scaled', df: 'df.scaled', pvalue: 'pvalue.scaled', cfi: 'cfi.robust', tli: 'tli.robust', rmsea: 'rmsea.robust', srmr: 'srmr' },
+    WLSMV: { chisq: 'chisq.scaled', df: 'df.scaled', pvalue: 'pvalue.scaled', cfi: 'cfi.scaled', tli: 'tli.scaled', rmsea: 'rmsea.scaled', srmr: 'srmr' },
+  }
+
+  /** Compares a real-WebR CbSemResult against one h1Pins.ts cell at 7dp (the module's documented
+   *  comparison rule). Structural rows are matched by fromName/toName parsed off the pin's
+   *  "toName ~ fromName" param string; est/se compare against the row's unstandardized b/se, and
+   *  ciLower/ciUpper (when the pin carries them) compare against ciPercLower/ciPercUpper -- the Wald
+   *  (delta-method) CI parameterEstimates() returns for a non-bootstrapped fit, which every cell here
+   *  is (see PD_SETUP/WLSMV_SETUP doc comments above: neither model has an indirect chain). */
+  function assertCell(result: CbSemResult, cell: H1PinCell) {
+    const map = FIT_KEY_MAP[cell.estimator]
+    for (const [appKey, pinKey] of Object.entries(map)) {
+      const pinVal = cell.fit[pinKey]
+      if (pinVal === undefined) continue
+      expect(result.fit![appKey], `fit.${appKey} (pin key ${pinKey})`).toBeCloseTo(pinVal, 7)
+    }
+    const s = result.structural!
+    for (const row of cell.structural) {
+      const [toName, fromName] = row.param.split(' ~ ')
+      const actual = s.find((r) => r.fromName === fromName && r.toName === toName)
+      expect(actual, `structural row "${row.param}" not found`).toBeDefined()
+      expect(Number(actual!.b), `${row.param} est`).toBeCloseTo(row.est, 7)
+      expect(Number(actual!.se), `${row.param} se`).toBeCloseTo(row.se, 7)
+      if (row.ciLower !== undefined) expect(Number(actual!.ciPercLower), `${row.param} ciLower`).toBeCloseTo(row.ciLower, 7)
+      if (row.ciUpper !== undefined) expect(Number(actual!.ciPercUpper), `${row.param} ciUpper`).toBeCloseTo(row.ciUpper, 7)
+    }
+    expect(result.estimator).toBe(cell.estimator)
+    expect(result.bootstrapped).toBe(false)
+    expect(result.ciMethod).toBe('delta')
+  }
+
+  it('Cell 1: ML / listwise', async () => {
+    const result = await runCbSem(engine, pdData(), PD_SETUP)
+    assertCell(result, CELL_1_ML_LISTWISE)
+  }, 600_000)
+
+  it('Cell 2: ML / fiml (lavaan missing = "ml")', async () => {
+    const setup: TestSetup = { ...PD_SETUP, options: { ...PD_SETUP.options, missing: 'fiml' } }
+    const result = await runCbSem(engine, pdData(), setup)
+    assertCell(result, CELL_2_ML_FIML)
+  }, 600_000)
+
+  it('Cell 3: ML / pairwise', async () => {
+    const setup: TestSetup = { ...PD_SETUP, options: { ...PD_SETUP.options, missing: 'pairwise' } }
+    const result = await runCbSem(engine, pdData(), setup)
+    assertCell(result, CELL_3_ML_PAIRWISE)
+  }, 600_000)
+
+  it('Cell 4: MLR / listwise', async () => {
+    const setup: TestSetup = { ...PD_SETUP, options: { ...PD_SETUP.options, estimator: 'MLR' } }
+    const result = await runCbSem(engine, pdData(), setup)
+    assertCell(result, CELL_4_MLR_LISTWISE)
+  }, 600_000)
+
+  it('Cell 5: MLR / fiml (lavaan missing = "ml")', async () => {
+    const setup: TestSetup = { ...PD_SETUP, options: { ...PD_SETUP.options, estimator: 'MLR', missing: 'fiml' } }
+    const result = await runCbSem(engine, pdData(), setup)
+    assertCell(result, CELL_5_MLR_FIML)
+  }, 600_000)
+
+  it('Cell 6: WLSMV / listwise', async () => {
+    const setup: TestSetup = { ...WLSMV_SETUP, options: { ...WLSMV_SETUP.options, missing: 'listwise' } }
+    const result = await runCbSem(engine, likertData(), setup, undefined, WLSMV_COLUMN_LEVELS)
+    assertCell(result, CELL_6_WLSMV_LISTWISE)
+    expect(result.orderedItems).toEqual(['a1', 'a2', 'a3', 'b1', 'b2', 'b3'])
+  }, 600_000)
+
+  it('Cell 7: WLSMV / pairwise', async () => {
+    const setup: TestSetup = { ...WLSMV_SETUP, options: { ...WLSMV_SETUP.options, missing: 'pairwise' } }
+    const result = await runCbSem(engine, likertData(), setup, undefined, WLSMV_COLUMN_LEVELS)
+    assertCell(result, CELL_7_WLSMV_PAIRWISE)
+    expect(result.orderedItems).toEqual(['a1', 'a2', 'a3', 'b1', 'b2', 'b3'])
+  }, 600_000)
 })
