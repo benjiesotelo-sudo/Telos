@@ -335,6 +335,21 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   }
   const estimationNoteText = estimationSentences.join(' ')
 
+  // "Ordinal predictors" labelled note (Amendment B, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-
+  // design.md): path mode only, non-empty exactly when the run placed an ordinal column that is
+  // EXOGENOUS in the drawn paths -- lavaan's ordered-threshold modeling only applies to endogenous
+  // ordered variables, so these predictors enter the fit numerically instead (see runCbSem.ts's
+  // exogenousOrdinals doc comment for the T1 spike evidence). DRAFT copy - exact wording pending
+  // Benjie's morning ratify pass, same status as the rest of this slice's owner-delegated overnight text.
+  const ordinalPredictorsNoteText = r.exogenousOrdinals?.length
+    ? (() => {
+        const names = r.exogenousOrdinals!
+        const word = names.length === 1 ? 'predictor' : 'predictors'
+        const verb = names.length === 1 ? 'enters' : 'enter'
+        return `Ordinal ${word} ${names.join(', ')} ${verb} the model numerically, standard practice; ordered-threshold modeling applies to endogenous variables.`
+      })()
+    : null
+
   // Owner ruling C8-a: reliability (omega/alpha/CR/AVE) is always fit via its own continuous ML CFA
   // (cfaReliability.ts), independent of the estimator chosen for the structural model - disclose this
   // whenever the reliability table (T1, cfa-loadings) actually renders, mirroring that table's own gate.
@@ -370,6 +385,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         // Cross-references buildAve.ts's dedicated card, verbatim clause lift from the pre-T5 tableNote.
         { label: 'Discriminant validity', text: 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.', afterTableId: 'htmt' },
       )
+      if (ordinalPredictorsNoteText) notes.push({ label: 'Ordinal predictors', text: ordinalPredictorsNoteText })
       if (itemSampleNote) notes.push({ label: 'Item sample', text: itemSampleNote, afterTableId: 'cfa-loadings' })
       notes.push({ label: 'Indirect effects', text: 'The indirect-effects section of Table 5 appears only when the drawn structural paths form a chain (X → M → Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI.', afterTableId: 'structural-paths' })
       if (ciNoteText) notes.push({ label: 'CIs', text: ciNoteText, afterTableId: 'structural-paths' })
@@ -392,6 +408,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
           { label: 'Fit', text: 'When the model is saturated (df = 0, e.g. a single-mediator X → M → Y chain), it fits the data perfectly by construction and global fit indices (χ², CFI, TLI, RMSEA, SRMR) are not reported; an over-identified model (df > 0) reports fit, interpreting RMSEA cautiously at small df / small N (Kenny, Kaniskan & McCoach, 2015).', afterTableId: 'structural-paths' },
           { label: 'Indirect effects', text: 'Indirect (mediated) effects are tested with bias-uncorrected percentile bootstrap 95% CIs (5,000 resamples; MacKinnon, Lockwood & Williams, 2004); an interval excluding 0 indicates a credible indirect effect.', afterTableId: 'indirect-effects' },
         ]
+    if (!saturated && ordinalPredictorsNoteText) notes.push({ label: 'Ordinal predictors', text: ordinalPredictorsNoteText })
     if (noteExtras.length) notes.push({ label: 'Notes', text: noteExtras.join(' ') })
   }
 

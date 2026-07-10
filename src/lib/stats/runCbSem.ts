@@ -92,6 +92,15 @@ export interface CbSemResult {
    *  WLSMV (the card discloses exactly which indicators were auto-declared, design §H1 ruling 2).
    *  Optional so existing hand-built CbSemResult fixtures need no change; defaults to an empty list. */
   orderedItems?: string[]
+  /** Path mode only (Amendment B, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md): raw
+   *  names of PLACED ordinal columns that are NOT endogenous in the drawn paths (no path's `to` is
+   *  their construct id). lavaan only applies ordered-threshold semantics to endogenous variables --
+   *  an exogenous ordinal column declared in `ordered=` produces a "no thresholds" warning and enters
+   *  the fit numerically anyway (T1 spike evidence: estimates identical to ~9 sig figs with/without
+   *  ordered= on an exogenous variable) -- so these are excluded from `orderedItems`/`ordered=c(...)`
+   *  and disclosed separately here instead. Optional/absent so latent mode and every pre-Amendment-B
+   *  fixture need no change; empty when every placed ordinal column happens to be endogenous. */
+  exogenousOrdinals?: string[]
   /** What indirect/moderation CIs in this run actually are: 'bootstrap' (percentile/BCa, ML only) or
    *  'delta' (Wald, MLR/WLSMV -- mirrors `bootstrapped: false`'s CI-honesty contract above). Optional
    *  so existing hand-built CbSemResult fixtures need no change; defaults to 'bootstrap' in the builder. */
@@ -541,20 +550,34 @@ export async function runCbSem(
     : [...new Set(constructs.flatMap((c) => c.items))]
   const missingSetting = String(setup.options['missing'] ?? CB_SEM_DEFAULT_MISSING)
 
+  // Path mode: construct.name -> construct (id = the column's placed index, per withPathModeConstructs)
+  // so a raw used column resolves back to the SAME construct token rCols/rNameOf produce below.
+  const constructByName = new Map(constructs.map((c) => [c.name, c]))
+
   // Sanitized R-side item identifiers (lavaan `=~` RHS tokens are illegal with spaces), one call across
   // ALL used items so cross-construct collisions after sanitizing still dedupe correctly (same approach
   // as cfaReliability.ts); empty in path mode, where usedCols already holds sanitized construct names,
-  // not items. `itemNameOf` falls back to identity for anything outside usedCols (defensive; shouldn't
-  // happen since usedCols is exactly the item universe below).
+  // not items.
+  //
+  // itemNameOf must map a raw used column to whatever sanitized token the FITTED DATA FRAME actually
+  // uses for that column: latent mode's data frame columns are the sanitized ITEM tokens (rItemNames);
+  // path mode's data frame columns are the sanitized CONSTRUCT tokens (rCols, via rNameOf) -- identity
+  // is wrong there (the H1-ledgered naming mismatch: semFitArgs' orderedR is built by mapping
+  // orderedRaw through this function, so an identity itemNameOf would carry RAW column names into
+  // `ordered = c(...)` while the data frame's columns are sanitized). Falls back to identity for
+  // anything outside usedCols (defensive; shouldn't happen since usedCols is exactly the item/column
+  // universe in either mode).
   const rItemNames = isPath ? [] : lvNames(usedCols)
   const itemMap = new Map(usedCols.map((raw, i) => [raw, rItemNames[i]]))
-  const itemNameOf = (raw: string) => itemMap.get(raw) ?? raw
+  const itemNameOf = isPath
+    ? (raw: string) => rNameOf(constructByName.get(raw)!.id)
+    : (raw: string) => itemMap.get(raw) ?? raw
   const rawOfItem = new Map(rItemNames.map((san, i) => [san, usedCols[i]])) // sanitized -> raw, for mapping R output back to display names
 
   // R-side column names: in path mode the model tokens are the SANITIZED construct names; latent mode
   // uses the SANITIZED item columns (matching the measurement model's =~ RHS built via itemNameOf below).
   const rCols = isPath
-    ? usedCols.map((col) => rNameOf(constructs.find((c) => c.name === col)!.id))
+    ? usedCols.map((col) => rNameOf(constructByName.get(col)!.id))
     : rItemNames
 
   const { model, hasIndirect, indirectDefs, moderationDefs } = buildModel(constructs, paths, isPath, rNameOf, setup.moderations ?? [], itemNameOf)
@@ -567,9 +590,26 @@ export async function runCbSem(
   // inline moderation-WLSMV-only throw. indicatorLevels is filtered to usedCols (path mode: the
   // observed columns; latent mode: the items) so a dataset column outside this model never reaches
   // lavaan's `ordered = c(...)`.
+  //
+  // Amendment B (path mode only, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md): a
+  // PLACED ordinal column only declares `ordered=` when it is ENDOGENOUS in the drawn paths (some
+  // path's `to` is that column's construct id) -- lavaan applies threshold semantics only to
+  // endogenous ordered variables; declaring an exogenous one warns ("no thresholds") and changes
+  // nothing numerically (T1 spike evidence). Exogenous ordinal columns are downgraded to 'scale' here
+  // (so semFitArgs never adds them to orderedRaw) and surfaced separately via exogenousOrdinals for
+  // the card's disclosure. Latent mode is unaffected: every ordinal item is still declared regardless
+  // of its role in the structural model (untouched H1 behavior).
+  const endogenousIds = isPath ? new Set(paths.map((p) => p.to)) : null
+  const isEndogenous = (raw: string) => endogenousIds!.has(constructByName.get(raw)!.id)
   const indicatorLevels: Record<string, string> = Object.fromEntries(
-    usedCols.map((raw) => [raw, columnLevels[raw] ?? 'scale']),
+    usedCols.map((raw) => {
+      const level = columnLevels[raw] ?? 'scale'
+      return [raw, isPath && level === 'ordinal' && !isEndogenous(raw) ? 'scale' : level]
+    }),
   )
+  const exogenousOrdinals = isPath
+    ? usedCols.filter((raw) => (columnLevels[raw] ?? 'scale') === 'ordinal' && !isEndogenous(raw))
+    : []
   const fitArgs = semFitArgs({
     estimator: String(setup.options['estimator'] ?? 'ML'),
     missing: missingSetting,
@@ -788,6 +828,7 @@ export async function runCbSem(
     figModSlopesPng,
     estimator: fitArgs.estimator,
     orderedItems: fitArgs.orderedRaw,
+    exogenousOrdinals: exogenousOrdinals.length ? exogenousOrdinals : undefined,
     ciMethod: fitArgs.ciMethod,
   }
 }

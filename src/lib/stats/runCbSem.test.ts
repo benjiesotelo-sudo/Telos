@@ -600,6 +600,23 @@ describe('runCbSem - semFitArgs wiring (mocked engine, no WebR)', () => {
     expect(result.orderedItems).toEqual(['a1', 'a2'])
   })
 
+  // Amendment B (path-mode ordered= follows endogeneity, docs/superpowers/specs/2026-07-11-path-mode-
+  // wlsmv-design.md): the endogeneity filtering added to indicatorLevels/itemNameOf is gated on isPath
+  // throughout runCbSem.ts -- this pins that latent mode's WLSMV ordered= (every ordinal ITEM declared
+  // regardless of its role in the structural model) is untouched by that path-mode-only change, and that
+  // exogenousOrdinals stays absent (latent mode never populates it).
+  it('latent mode is unaffected by the path-mode endogeneity fix (same ordered= as before, exogenousOrdinals absent)', async () => {
+    const wlsmvSetup: TestSetup = { ...baseSetup, options: { ...baseSetup.options, estimator: 'WLSMV', missing: 'pairwise' } }
+    const { engine, runJson } = fakeEngine(baseRaw2, cfaResult2)
+    const result = await runCbSem(engine, data, wlsmvSetup, undefined, { a1: 'ordinal', a2: 'ordinal', c1: 'ordinal' })
+    const [source] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(source).toContain(
+      'fit <- lavaan::sem(model_str, data = d, estimator = "WLSMV", missing = "pairwise", ordered = c("a1", "a2"))',
+    )
+    expect(result.orderedItems).toEqual(['a1', 'a2'])
+    expect(result.exogenousOrdinals).toBeUndefined()
+  })
+
   it('fiml full-rows path: env carries ALL rows (not listwise-deleted) with NaN marshaled for missing cells', async () => {
     const holeyData: Dataset = {
       columns: data.columns,
@@ -717,6 +734,125 @@ describe('runCbSem - semFitArgs wiring (mocked engine, no WebR)', () => {
     // (c) the CI-honesty disclosure fields
     expect(result.ciMethod).toBe('delta')
     expect(result.estimator).toBe('MLR')
+  })
+})
+
+// Task 5 (Amendment B, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md + plan's Amendment B
+// section): in path mode, `ordered=` must declare only PLACED ordinal columns that are ENDOGENOUS in the
+// drawn paths (some path's `to` is that column's construct id) -- lavaan's threshold semantics only apply
+// to endogenous ordered variables; an exogenous one just warns ("no thresholds") and fits numerically
+// regardless (T1 spike evidence). Exogenous ordinal columns are instead surfaced via CbSemResult's new
+// exogenousOrdinals field. All mocked (no WebR) -- follows the fakeEngine pattern used throughout this file.
+describe('runCbSem - path mode ordered= follows endogeneity (mocked engine, no WebR; Amendment B)', () => {
+  const pathData = (cols: string[]): Dataset => ({
+    columns: cols,
+    rows: Array.from({ length: 10 }, (_, i) => Object.fromEntries(cols.map((c, j) => [c, ((i + j) % 5) + 1]))),
+  })
+
+  function fakeEngine(mainStats: Record<string, unknown>) {
+    const runJson = vi.fn().mockResolvedValueOnce(mainStats)
+    const engine = { runJson } as unknown as Engine
+    return { engine, runJson }
+  }
+
+  // Path mode never calls runCfaReliability (isPath skips that block entirely) and never calls
+  // capturePlot (no moderation, so renderSimpleSlopesFigure short-circuits before touching the engine) --
+  // exactly ONE engine.runJson call per run, unlike the latent-mode fakeEngine helpers above.
+  const baseRawPath = {
+    fit: {}, df: 0, cfaLoadings: [], structural: [], rsquareIds: {}, indirect: [],
+    estLoadings: {}, estPaths: [], moderationRows: [], slopeRows: [],
+  }
+
+  it('WLSMV: ordered= declares the endogenous ordinal token only; the exogenous ordinal is excluded and disclosed', async () => {
+    // a1 (ordinal) is exogenous: no path points into it. b1 (ordinal) is endogenous (a1 -> b1).
+    // cont2 (scale) is also endogenous (a1 -> cont2) -- the "+ scale columns" leg of the brief.
+    const setup: TestSetup = {
+      roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 1, name: 'a1', items: ['a1'] },
+        { id: 2, name: 'b1', items: ['b1'] },
+        { id: 3, name: 'cont2', items: ['cont2'] },
+      ],
+      paths: [{ from: 1, to: 2 }, { from: 1, to: 3 }],
+    }
+    const { engine, runJson } = fakeEngine(baseRawPath)
+    const result = await runCbSem(
+      engine, pathData(['a1', 'b1', 'cont2']), setup, undefined,
+      { a1: 'ordinal', b1: 'ordinal', cont2: 'scale' },
+    )
+    const [source, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(source).toContain('fit <- lavaan::sem(model_str, data = d, estimator = "WLSMV", ordered = c("b1"))')
+    expect(env.all_cols).toEqual(['a1', 'b1', 'cont2'])
+    expect(result.orderedItems).toEqual(['b1'])
+    expect(result.exogenousOrdinals).toEqual(['a1'])
+  })
+
+  it('WLSMV: a spaced/special-char endogenous ordinal column sanitizes to match the fitted data frame token exactly', async () => {
+    // The H1-ledgered edge: a raw column name that is NOT already a valid R identifier. orderedR must
+    // carry the SAME sanitized token rCols/env.all_cols uses for this column, not the raw name.
+    const setup: TestSetup = {
+      roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 1, name: 'a1', items: ['a1'] },
+        { id: 2, name: 'b 1!', items: ['b 1!'] },
+        { id: 3, name: 'cont2', items: ['cont2'] },
+      ],
+      paths: [{ from: 1, to: 2 }, { from: 1, to: 3 }],
+    }
+    const { engine, runJson } = fakeEngine(baseRawPath)
+    const result = await runCbSem(
+      engine, pathData(['a1', 'b 1!', 'cont2']), setup, undefined,
+      { a1: 'ordinal', 'b 1!': 'ordinal', cont2: 'scale' },
+    )
+    const [source, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(env.all_cols).toEqual(['a1', 'b_1', 'cont2']) // lvName('b 1!') -> 'b_1'
+    expect(source).toContain('fit <- lavaan::sem(model_str, data = d, estimator = "WLSMV", ordered = c("b_1"))')
+    expect(result.orderedItems).toEqual(['b 1!']) // disclosure stays the RAW display name
+    expect(result.exogenousOrdinals).toEqual(['a1'])
+  })
+
+  it('ML path-mode default: the generated R source and all_cols are unaffected by the endogeneity-filtering refactor', async () => {
+    const setup: TestSetup = {
+      roles: {}, options: { estimator: 'ML', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 1, name: 'a1', items: ['a1'] },
+        { id: 2, name: 'b1', items: ['b1'] },
+        { id: 3, name: 'cont2', items: ['cont2'] },
+      ],
+      paths: [{ from: 1, to: 2 }, { from: 1, to: 3 }],
+    }
+    const { engine, runJson } = fakeEngine(baseRawPath)
+    const result = await runCbSem(engine, pathData(['a1', 'b1', 'cont2']), setup)
+    const [source, env] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(source).toContain('fit <- lavaan::sem(model_str, data = d)')
+    expect(source).not.toContain('ordered')
+    expect(source).not.toContain('estimator =')
+    expect(env.all_cols).toEqual(['a1', 'b1', 'cont2'])
+    expect(result.orderedItems).toEqual([])
+    expect(result.exogenousOrdinals).toBeUndefined()
+  })
+
+  // Sanity guard (brief item 5): a stale/manually-forced WLSMV option with NO endogenous ordinal column
+  // placed must still hit semFitArgs' existing "at least one ordinal indicator" guard -- the endogeneity
+  // filter downgrades every such column's level to 'scale' before it ever reaches semFitArgs, so this is
+  // the SAME guard latent mode already relies on, not a new one.
+  it('WLSMV with zero endogenous ordinals (all placed ordinal columns are exogenous) throws the existing ordinal guard', async () => {
+    const setup: TestSetup = {
+      roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 1, name: 'a1', items: ['a1'] },
+        { id: 2, name: 'cont2', items: ['cont2'] },
+      ],
+      paths: [{ from: 1, to: 2 }], // a1 is exogenous; cont2 (scale) is the only endogenous column
+    }
+    const engine = {} as unknown as Engine // never reached -- semFitArgs throws before any engine call
+    await expect(
+      runCbSem(engine, pathData(['a1', 'cont2']), setup, undefined, { a1: 'ordinal', cont2: 'scale' }),
+    ).rejects.toThrow(/WLSMV requires at least one ordinal indicator/)
   })
 })
 

@@ -803,6 +803,63 @@ describe('buildCbSem - "Estimation" labelled note (H1 wiring, change 3, always p
   })
 })
 
+// Task 5 (Amendment B, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md): a separate
+// "Ordinal predictors" labelled note discloses PLACED ordinal columns that entered the path-mode fit
+// numerically because they are exogenous (lavaan's ordered-threshold modeling only applies to
+// endogenous ordered variables). Distinct from the "Treated as ordinal" clause inside the "Estimation"
+// note above, which now lists ENDOGENOUS ordinal columns only (orderedItems, in path mode).
+describe('buildCbSem - "Ordinal predictors" labelled note (Amendment B, path-mode exogenous-ordinal disclosure)', () => {
+  const path: CbSemResult = {
+    ...base, mode: 'path', cfaLoadings: [], reliability: [], estimator: 'WLSMV',
+    moderation: undefined, orderedItems: ['b1'],
+  }
+
+  it('is absent when exogenousOrdinals is absent (latent mode, every existing fixture)', () => {
+    const c = buildCbSem(SPEC, base)
+    expect(c.notes!.find((n) => n.label === 'Ordinal predictors')).toBeUndefined()
+  })
+
+  it('is absent when exogenousOrdinals is an empty array (every placed ordinal column is endogenous)', () => {
+    const c = buildCbSem(PATH_ANALYSIS, { ...path, exogenousOrdinals: [] })
+    expect(c.notes!.find((n) => n.label === 'Ordinal predictors')).toBeUndefined()
+  })
+
+  it('singular: one exogenous ordinal predictor', () => {
+    const c = buildCbSem(PATH_ANALYSIS, { ...path, exogenousOrdinals: ['a1'] })
+    const note = c.notes!.find((n) => n.label === 'Ordinal predictors')!
+    expect(note.text).toBe(
+      'Ordinal predictor a1 enters the model numerically, standard practice; ordered-threshold modeling applies to endogenous variables.',
+    )
+  })
+
+  it('plural: multiple exogenous ordinal predictors, joined in order', () => {
+    const c = buildCbSem(PATH_ANALYSIS, { ...path, exogenousOrdinals: ['a1', 'c1'] })
+    const note = c.notes!.find((n) => n.label === 'Ordinal predictors')!
+    expect(note.text).toBe(
+      'Ordinal predictors a1, c1 enter the model numerically, standard practice; ordered-threshold modeling applies to endogenous variables.',
+    )
+  })
+
+  it('coexists with the "Treated as ordinal" (endogenous) clause inside the Estimation note', () => {
+    const c = buildCbSem(PATH_ANALYSIS, { ...path, exogenousOrdinals: ['a1'] })
+    const estimation = c.notes!.find((n) => n.label === 'Estimation')!
+    expect(estimation.text).toContain('Treated as ordinal: b1.')
+    expect(c.notes!.find((n) => n.label === 'Ordinal predictors')!.text).toContain('Ordinal predictor a1')
+  })
+
+  it('is suppressed under saturation, same as every other dynamic note', () => {
+    const sat: CbSemResult = { ...path, exogenousOrdinals: ['a1'], saturated: true, fit: { ...base.fit!, df: 0 } }
+    const c = buildCbSem(PATH_ANALYSIS, sat)
+    expect(c.notes!.find((n) => n.label === 'Ordinal predictors')).toBeUndefined()
+  })
+
+  it('merged (latent-mode) branch also renders it when exogenousOrdinals happens to be populated (defensive; latent mode never populates it in practice)', () => {
+    const c = buildCbSem(SPEC, { ...base, exogenousOrdinals: ['z1'] })
+    const note = c.notes!.find((n) => n.label === 'Ordinal predictors')!
+    expect(note.text).toContain('Ordinal predictor z1')
+  })
+})
+
 const RELIABILITY_BASIS_TEXT =
   'Reliability coefficients (omega, alpha, CR, AVE) are computed from a separate confirmatory factor analysis treating indicators as continuous under maximum likelihood, per convention - independent of the estimator selected for the structural model.'
 
