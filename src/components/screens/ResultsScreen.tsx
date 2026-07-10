@@ -60,11 +60,11 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
   // and skips non-fresh ids itself, so its \includegraphics NN matches the figure PNG keys written above.
   if (formats.latex) files['report.tex'] = enc(emitLatex(s.selection, s.setups, SPECS, s.runs))
   if (formats.r) {
-    // Path-mode setups store EMPTY constructs (the canvas drew paths against the USED columns by index);
-    // seed them through the SAME helper runAll uses so analysis.R reproduces the on-screen run (export ≡ app).
-    // Non-path setups pass through unchanged → the other 47 tests' exports are byte-identical. Don't mutate s.setups.
-    const usedCols = s.columns.filter((c) => c.used).map((c) => c.name)
-    const exportSetups = Object.fromEntries(Object.entries(s.setups).map(([id, st]) => [id, withPathModeConstructs(st, usedCols)]))
+    // Path-mode setups store EMPTY constructs (the canvas draws paths against setup.placed BY INDEX,
+    // P2 shelf model); seed them through the SAME helper runAll uses so analysis.R reproduces the
+    // on-screen run (export = app). Non-path setups pass through unchanged, so the other 47 tests'
+    // exports are byte-identical. Don't mutate s.setups.
+    const exportSetups = Object.fromEntries(Object.entries(s.setups).map(([id, st]) => [id, withPathModeConstructs(st)]))
     // H1 wiring (Task 7, mirrors session.ts's runAll -> Task 3): Configure-data measurement levels flow
     // to the export emitters the SAME way they flow to the app runners, so a WLSMV cb-sem/path-analysis
     // export declares the identical `ordered = c(...)` set the on-screen run used (export ≡ app).

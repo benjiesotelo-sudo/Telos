@@ -16,7 +16,17 @@ export interface Construct { id: number; name: string; items: string[]; mode?: '
 export interface StructuralPath { from: number; to: number }
 // moderatorId: construct id of the moderator · pathIndex: index into `paths` of the edge being moderated
 export interface Moderation { id: number; moderatorId: number; pathIndex: number }
-export interface TestSetup { roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>; blocked: string | null; constructs?: Construct[]; paths?: StructuralPath[]; modelKind?: 'latent' | 'path'; moderations?: Moderation[] }
+export interface NodePosition { x: number; y: number }
+export interface TestSetup {
+  roles: Record<string, string[]>; options: Record<string, boolean | number | string>; props: Record<string, number>; blocked: string | null
+  constructs?: Construct[]; paths?: StructuralPath[]; modelKind?: 'latent' | 'path'; moderations?: Moderation[]
+  // P2 shelf model (path mode only): `placed` is the ordered list of column names the user has clicked
+  // onto the canvas - the ONLY source of path-mode nodes (latent mode keeps using `constructs`, untouched).
+  // A node's id (as referenced by StructuralPath.from/to) is its POSITION in this array - see
+  // withPathModeConstructs. `nodePositions` holds drag-moved positions keyed by column NAME (not index,
+  // which shifts on removal) - the path-mode analogue of latent's Construct.x/y.
+  placed?: string[]; nodePositions?: Record<string, NodePosition>
+}
 export interface TestRun { result: unknown; stale: boolean }
 
 export interface SessionState {
@@ -56,6 +66,8 @@ export interface SessionState {
   removeModeration: (testId: string, id: number) => void
   moveNode: (testId: string, id: number, x: number, y: number) => void
   setConstructMode: (testId: string, id: number, mode: 'reflective' | 'formative') => void
+  placeColumn: (testId: string, column: string) => void
+  removeColumn: (testId: string, column: string) => void
   goTo: (step: StepId) => void
   runAll: () => Promise<void>
   reset: () => void
@@ -98,11 +110,11 @@ export const gateOk = (s: SessionState, step: StepId): boolean => {
       if (cs.length === 0 || cs.some((c) => c.items.length < 2)) return false
     }
     // sem-canvas (CB-SEM/PLS-SEM): need a measurement model AND ≥1 structural path.
-    // Path mode (each node = 1 observed column, drawn from the USED columns by index — the
-    // construct-slots form is hidden) gates on ≥2 used columns instead of constructs.
+    // Path mode (each node = 1 observed column, drawn from PLACED columns by index - P2 shelf model;
+    // the construct-slots form is hidden) gates on ≥2 placed columns instead of constructs.
     if (spec.inputKind === 'sem-canvas') {
       if (t.modelKind === 'path') {
-        if (s.columns.filter((c) => c.used).length < 2) return false   // need ≥2 observed columns to connect
+        if ((t.placed?.length ?? 0) < 2) return false   // need ≥2 placed columns to connect
       } else {
         const cs = t.constructs ?? []
         if (cs.length === 0 || cs.some((c) => c.items.length < 2)) return false
@@ -128,14 +140,42 @@ export const canEnter = (s: SessionState, target: StepId): boolean => {
 export const firstUnblockedSelection = (s: Pick<SessionState, 'selection' | 'setups'>): string | undefined =>
   s.selection.find((id) => !s.setups[id]?.blocked) ?? s.selection[0]
 
-/** Path-mode bridge: the canvas drew nodes/paths against the USED columns BY INDEX, but the
- *  construct-slots form is hidden so setup.constructs is empty. Seed a LOCAL setup whose constructs
- *  mirror the used-columns list (id = index, name = column, items = [column]) so path.from/to resolve
- *  to column names. No-op for latent/non-path setups → the 47 other tests pass through unchanged.
- *  Shared by both seams (runAll runner + the export emitRScript) so export ≡ app. */
-export function withPathModeConstructs(setup: TestSetup, usedColumnNames: string[]): TestSetup {
+/** Path-mode bridge (P2 shelf model): the canvas draws nodes/paths against `setup.placed` BY INDEX
+ *  (a node's id = its position in `placed`), but the construct-slots form is hidden so setup.constructs
+ *  stays empty in storage. Seed a LOCAL setup whose constructs mirror the placed-columns list, in placed
+ *  order (id = index, name = column, items = [column], x/y from nodePositions when the node was moved),
+ *  so path.from/to resolve to column names. No-op for latent/non-path setups → the 47 other tests pass
+ *  through unchanged. Shared by both seams (runAll runner + the export emitRScript) so export ≡ app. */
+export function withPathModeConstructs(setup: TestSetup): TestSetup {
   if (setup.modelKind !== 'path') return setup
-  return { ...setup, constructs: usedColumnNames.map((name, i) => ({ id: i, name, items: [name] })) }
+  const positions = setup.nodePositions ?? {}
+  const constructs = (setup.placed ?? []).map((name, i) => {
+    const pos = positions[name]
+    return { id: i, name, items: [name], ...(pos ? { x: pos.x, y: pos.y } : {}) }
+  })
+  return { ...setup, constructs }
+}
+
+/** Path mode: node identity is POSITION in `placed` (see withPathModeConstructs above), so dropping one
+ *  or more placed columns must remap surviving paths' from/to indices, not just splice `placed` and hope
+ *  the numbers still line up - the exact silent-rebinding failure mode the canvas→runner bridge exists
+ *  to avoid. Shared by removeColumn (single node, user-driven), setColumnUsed (un-using a placed column),
+ *  and revalidated() (a dataset reload can drop a placed column) so there is exactly ONE place this
+ *  remap can go wrong. `dropIdx` indices are into the CURRENT `placed` array. */
+function dropPlacedIndices(setup: TestSetup, dropIdx: ReadonlySet<number>): TestSetup {
+  const placed = setup.placed ?? []
+  if (dropIdx.size === 0) return setup
+  const oldToNew = new Map<number, number>()
+  const nextPlaced: string[] = []
+  placed.forEach((name, i) => { if (!dropIdx.has(i)) { oldToNew.set(i, nextPlaced.length); nextPlaced.push(name) } })
+  const paths = (setup.paths ?? [])
+    .filter((p) => oldToNew.has(p.from) && oldToNew.has(p.to))
+    .map((p) => ({ from: oldToNew.get(p.from)!, to: oldToNew.get(p.to)! }))
+  const droppedNames = new Set(placed.filter((_, i) => dropIdx.has(i)))
+  const nodePositions = setup.nodePositions
+    ? Object.fromEntries(Object.entries(setup.nodePositions).filter(([name]) => !droppedNames.has(name)))
+    : setup.nodePositions
+  return { ...setup, placed: nextPlaced, paths, nodePositions }
 }
 
 /** Legacy setups stored constructs without an id (pre-Sub-slice-B). Back-fill ids by array index so
@@ -184,6 +224,7 @@ const syncLevelSelect = (s: SessionState, testId: string, roleId: string, setup:
  *  with the reason, mark rendered results stale (the spec's navcap rules, in one place). */
 const revalidated = (s: SessionState): Pick<SessionState, 'setups' | 'runs'> => {
   const working = workingDataset(s)
+  const existingNames = new Set(s.columns.map((c) => c.name))
   const setups: Record<string, TestSetup> = {}
   for (const id of s.selection) {
     const spec = SPECS[id]; const prev = s.setups[id] ?? freshSetup(id)
@@ -194,7 +235,15 @@ const revalidated = (s: SessionState): Pick<SessionState, 'setups' | 'runs'> => 
         if (!verdict.ok) { blocked = `${spec.roles.find((r) => r.id === role.roleId)?.label ?? role.roleId}: ${verdict.reason}`; break outer }
       }
     }
-    setups[id] = { ...prev, blocked }
+    let next: TestSetup = { ...prev, blocked }
+    // P2 shelf model: a re-upload (loadDataset) can drop a column that was placed on a path-mode
+    // canvas. Same discipline as removeColumn - remap surviving paths' indices rather than nuking the
+    // whole canvas (revalidated()'s philosophy: keep what's still valid, drop only what broke).
+    if (next.modelKind === 'path' && next.placed?.length) {
+      const dropIdx = new Set(next.placed.reduce<number[]>((acc, name, i) => (existingNames.has(name) ? acc : [...acc, i]), []))
+      if (dropIdx.size) next = dropPlacedIndices(next, dropIdx)
+    }
+    setups[id] = next
   }
   const runs = Object.fromEntries(Object.entries(s.runs)
     .filter(([id]) => s.selection.includes(id))
@@ -223,15 +272,17 @@ export const useSession = create<SessionState>((set, get) => {
     setColumnLevel: (name, level) => edit((s) => ({ columns: s.columns.map((c) => (c.name === name ? { ...c, level } : c)) })),
     setColumnUsed: (name, used) => edit((s) => {
       const columns = s.columns.map((c) => (c.name === name ? { ...c, used } : c))
-      // Path-mode canvas node ids are positional indices into the USED columns. Toggling a column's
-      // `used` flag AFTER paths are drawn shifts those indices → drawn paths would silently rebind to
-      // different columns (or go out-of-range → NA in lavaan). When the used-set actually changes,
-      // clear the drawn paths of any PATH-mode setup so the user redraws against the new columns.
-      // Strictly gated to modelKind==='path': latent setups + the 45 other tests are untouched.
+      // P2 shelf model: path-mode node identity is POSITION IN `placed`, independent of the used-columns
+      // list order - toggling `used` no longer shifts any node's index. It only matters when the toggled
+      // column is itself ON the canvas: un-using a placed column removes that node (paths remapped, same
+      // discipline as a manual removeColumn); an unplaced column's toggle never touches any setup.
       const wasUsed = s.columns.find((c) => c.name === name)?.used
-      if (wasUsed === used) return { columns } // no-op toggle → don't disturb paths
-      const setups = Object.fromEntries(Object.entries(s.setups).map(([id, t]) =>
-        t.modelKind === 'path' && (t.paths?.length ?? 0) > 0 ? [id, { ...t, paths: [] }] : [id, t]))
+      if (wasUsed === used) return { columns } // no-op toggle → don't disturb anything
+      const setups = Object.fromEntries(Object.entries(s.setups).map(([id, t]) => {
+        if (t.modelKind !== 'path') return [id, t]
+        const idx = (t.placed ?? []).indexOf(name)
+        return idx === -1 ? [id, t] : [id, dropPlacedIndices(t, new Set([idx]))]
+      }))
       return { columns, setups }
     }),
     renameColumn: (name, next) => edit((s) => {
@@ -335,6 +386,12 @@ export const useSession = create<SessionState>((set, get) => {
     }),
     moveNode: (testId, id, x, y) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
+      // Path mode: node id is a POSITION in `placed` (shifts on removal), so positions are keyed by the
+      // column NAME instead - resolve id → name via the CURRENT placed array at move time.
+      if (prev.modelKind === 'path') {
+        const name = (prev.placed ?? [])[id]; if (name === undefined) return {}
+        return { setups: { ...s.setups, [testId]: { ...prev, nodePositions: { ...prev.nodePositions, [name]: { x, y } } } } }
+      }
       const constructs = backfillConstructIds(prev.constructs ?? []).map((c) => c.id === id ? { ...c, x, y } : c)
       return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
     }),
@@ -342,6 +399,24 @@ export const useSession = create<SessionState>((set, get) => {
       const prev = s.setups[testId]; if (!prev) return {}
       const constructs = backfillConstructIds(prev.constructs ?? []).map((c) => c.id === id ? { ...c, mode } : c)
       return { setups: { ...s.setups, [testId]: { ...prev, constructs } } }
+    }),
+    // P2 shelf model: clicking a shelf chip places its column onto the path-mode canvas. Auto-position
+    // is derived at render time from the node's index in `placed` (the SAME undefined-x/y-means-default
+    // convention latent mode already uses for a freshly-added construct) - no pixel position is written
+    // here. Appends to the end (next free spot); a column already placed is a no-op (idempotent).
+    placeColumn: (testId, column) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      const placed = prev.placed ?? []
+      if (placed.includes(column)) return {}
+      return { setups: { ...s.setups, [testId]: { ...prev, placed: [...placed, column] } } }
+    }),
+    // P2 shelf model: "delete = back to the shelf" - drop the node AND every path touching it, remapping
+    // survivors so they keep pointing at the same columns (see dropPlacedIndices). Not found → no-op.
+    removeColumn: (testId, column) => edit((s) => {
+      const prev = s.setups[testId]; if (!prev) return {}
+      const idx = (prev.placed ?? []).indexOf(column)
+      if (idx === -1) return {}
+      return { setups: { ...s.setups, [testId]: dropPlacedIndices(prev, new Set([idx])) } }
     }),
     goTo: (step) => { if (canEnter(get(), step)) set({ step }) },
     runAll: async () => {
@@ -367,12 +442,12 @@ export const useSession = create<SessionState>((set, get) => {
           const onProgress = (p: { message: string; elapsedMs?: number; estMs?: number }) =>
             set({ runProgress: p })
           try {
-            // Path mode: the canvas drew nodes/paths against s.columns.filter(used) BY INDEX, but the
-            // construct-slots form is hidden so setup.constructs is empty. Seed the runner with the SAME
-            // used-columns list + index so path.from/to resolve to column names. Derive a LOCAL runSetup
-            // (don't mutate the stored setup — keeps the canvas/state clean if columns are later toggled).
-            const used = s.columns.filter((c) => c.used).map((c) => c.name)
-            const runSetup = withPathModeConstructs(setup, used)
+            // Path mode (P2 shelf model): the canvas draws nodes/paths against setup.placed BY INDEX, but
+            // the construct-slots form is hidden so setup.constructs is empty. Seed the runner with
+            // constructs synthesized from the placed-columns list so path.from/to resolve to column
+            // names. Derive a LOCAL runSetup (don't mutate the stored setup - keeps the canvas/state
+            // clean; withPathModeConstructs is a no-op for non-path setups).
+            const runSetup = withPathModeConstructs(setup)
             const result = await runner(engine, ds, runSetup, onProgress, columnLevels)
             const rest = { ...get().errors }; delete rest[id]
             set({ runs: { ...get().runs, [id]: { result, stale: false } }, errors: rest })

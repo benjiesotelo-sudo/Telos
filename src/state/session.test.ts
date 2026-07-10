@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { useSession, stepsOf, canEnter, workingDataset, gateOk, serializeSetups, hydrateSetups, firstUnblockedSelection } from './session'
+import { useSession, stepsOf, canEnter, workingDataset, gateOk, serializeSetups, hydrateSetups, firstUnblockedSelection, withPathModeConstructs } from './session'
 import type { Dataset, TTestResult } from '../lib/stats/types'
 import { SPECS } from '../lib/registry/catalog'
 import { RUNNERS } from '../lib/results/builders'
@@ -348,16 +348,22 @@ describe('inputKind gate guard', () => {
     useSession.setState((s) => ({ setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3', 'q4'] }], paths: [{ from: 1, to: 2 }] } } }))
     expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(true)
   })
-  // Path mode gates on USED COLUMNS (nodes come from columns by index, not the hidden construct form).
+  // Path mode gates on PLACED COLUMNS (P2 shelf model - nodes come from setup.placed by index, not the
+  // used-columns set and not the hidden construct form).
   const pcol = (name: string) => ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used: true })
-  it('sem-canvas (path): gates on used columns not constructs - ≥2 used cols + ≥1 path', () => {
+  it('sem-canvas (path): gates on placed columns not constructs - >=2 placed cols + >=1 path', () => {
     useSession.setState((s) => ({ columns: [pcol('x'), pcol('y')],
-      setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }] } } }))
+      setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [], placed: ['x', 'y'], paths: [{ from: 0, to: 1 }] } } }))
     expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(true)
   })
   it('sem-canvas (path): gateOk false with no path even when nodes exist', () => {
     useSession.setState((s) => ({ columns: [pcol('x'), pcol('y')],
-      setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [], paths: [] } } }))
+      setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [], placed: ['x', 'y'], paths: [] } } }))
+    expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(false)
+  })
+  it('sem-canvas (path): gateOk false with a path but fewer than 2 placed columns (used columns no longer count)', () => {
+    useSession.setState((s) => ({ columns: [pcol('x'), pcol('y'), pcol('z')],
+      setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [], placed: ['x'], paths: [{ from: 0, to: 0 }] } } }))
     expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(false)
   })
 })
@@ -536,7 +542,7 @@ describe('path-mode canvas→runner bridge (path-analysis)', () => {
     expect(useSession.getState().setups['cb-sem'].modelKind).toBeUndefined()
   })
 
-  it('gateOk path-mode passes with >=2 used columns + >=1 path (no constructs needed)', () => {
+  it('gateOk path-mode passes with >=2 PLACED columns + >=1 path (no constructs needed)', () => {
     const col = (name: string, used = true) =>
       ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
     useSession.setState({
@@ -544,18 +550,32 @@ describe('path-mode canvas→runner bridge (path-analysis)', () => {
       columns: [col('x1'), col('x4'), col('x7')],
       setups: { 'path-analysis': {
         roles: {}, options: {}, props: {}, blocked: null,
-        modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }],
+        modelKind: 'path', constructs: [], placed: ['x1', 'x4'], paths: [{ from: 0, to: 1 }],
       } },
     })
     expect(gateOk(useSession.getState(), 'test:path-analysis')).toBe(true)
-    // drop a path → gate closes
+    // drop a path -> gate closes
     useSession.getState().removePath('path-analysis', 0)
     expect(gateOk(useSession.getState(), 'test:path-analysis')).toBe(false)
   })
 
-  it('runAll derives path-mode constructs from the used columns (by index) for the runner', async () => {
-    // The canvas drew paths against s.columns.filter(used) BY INDEX; runAll must seed the runner with
-    // the SAME list + index so path.from/to (column indices) resolve to column names.
+  it('gateOk path-mode stays false with a path but only 1 placed column, even with 3 used columns available', () => {
+    const col = (name: string, used = true) =>
+      ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
+    useSession.setState({
+      selection: ['path-analysis'],
+      columns: [col('x1'), col('x4'), col('x7')],
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path', constructs: [], placed: ['x1'], paths: [],
+      } },
+    })
+    expect(gateOk(useSession.getState(), 'test:path-analysis')).toBe(false)
+  })
+
+  it('runAll derives path-mode constructs from PLACED columns (by index) for the runner', async () => {
+    // P2 shelf model: the canvas draws paths against setup.placed BY INDEX; runAll must seed the runner
+    // with constructs synthesized from that SAME placed-order list so path.from/to resolve to columns.
     const col = (name: string, used = true) =>
       ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
     const pds: Dataset = { columns: ['x1', 'x4', 'x7'], rows: [
@@ -568,6 +588,7 @@ describe('path-mode canvas→runner bridge (path-analysis)', () => {
       setups: { 'path-analysis': {
         roles: {}, options: {}, props: {}, blocked: null,
         modelKind: 'path', constructs: [],
+        placed: ['x1', 'x4', 'x7'],
         paths: [{ from: 0, to: 1 }, { from: 1, to: 2 }],
       } },
     })
@@ -586,38 +607,298 @@ describe('path-mode canvas→runner bridge (path-analysis)', () => {
     expect(useSession.getState().runs['path-analysis'].result).toEqual({ ok: true })
     spy.mockRestore()
   })
+
+  it('runAll derives constructs in PLACEMENT order, not column-array order (placed governs)', async () => {
+    const col = (name: string) => ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used: true })
+    const pds: Dataset = { columns: ['x1', 'x4', 'x7'], rows: [{ x1: 1, x4: 2, x7: 3 }] }
+    useSession.setState({
+      raw: pds,
+      columns: [col('x1'), col('x4'), col('x7')],
+      selection: ['path-analysis'],
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path', constructs: [],
+        placed: ['x7', 'x1'], // placed out of column-array order
+        paths: [{ from: 0, to: 1 }],
+      } },
+    })
+    const spy = vi.spyOn(RUNNERS, 'path-analysis').mockResolvedValue({ ok: true } as never)
+    await useSession.getState().runAll()
+    const runSetup = spy.mock.calls[0][2]
+    expect(runSetup.constructs).toEqual([
+      { id: 0, name: 'x7', items: ['x7'] },
+      { id: 1, name: 'x1', items: ['x1'] },
+    ])
+    spy.mockRestore()
+  })
 })
 
-describe('setColumnUsed - path-mode column re-toggle clears drawn paths', () => {
+describe('withPathModeConstructs (P2 shelf model - direct unit tests)', () => {
+  it('is a no-op for latent (or undefined) modelKind setups', () => {
+    const latent = { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent' as const,
+      constructs: [{ id: 1, name: 'A', items: ['q1'] }] }
+    expect(withPathModeConstructs(latent)).toBe(latent) // identity, not just deep-equal
+    const noKind = { roles: {}, options: {}, props: {}, blocked: null }
+    expect(withPathModeConstructs(noKind)).toBe(noKind)
+  })
+
+  it('synthesizes constructs from `placed`, in placed order, id = index', () => {
+    const setup = { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'path' as const,
+      constructs: [], placed: ['b', 'a'] }
+    expect(withPathModeConstructs(setup).constructs).toEqual([
+      { id: 0, name: 'b', items: ['b'] },
+      { id: 1, name: 'a', items: ['a'] },
+    ])
+  })
+
+  it('empty/undefined `placed` synthesizes zero constructs (not a crash)', () => {
+    const setup = { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'path' as const, constructs: [] }
+    expect(withPathModeConstructs(setup).constructs).toEqual([])
+  })
+
+  it('folds a moved node\'s persisted position into its synthesized construct', () => {
+    const setup = { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'path' as const,
+      constructs: [], placed: ['a', 'b'], nodePositions: { b: { x: 140, y: 55 } } }
+    expect(withPathModeConstructs(setup).constructs).toEqual([
+      { id: 0, name: 'a', items: ['a'] },
+      { id: 1, name: 'b', items: ['b'], x: 140, y: 55 },
+    ])
+  })
+})
+
+describe('placeColumn / removeColumn (P2 shelf model)', () => {
+  const TEST_ID = 'path-analysis'
+  beforeEach(() => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: [TEST_ID],
+      columns: [
+        { name: 'x1', detected: 'float64', tags: [], level: 'ratio', used: true },
+        { name: 'x2', detected: 'float64', tags: [], level: 'ratio', used: true },
+        { name: 'x3', detected: 'float64', tags: [], level: 'ratio', used: true },
+      ],
+      setups: { [TEST_ID]: { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'path', constructs: [] } },
+    })
+  })
+  const placed = () => useSession.getState().setups[TEST_ID].placed ?? []
+  const paths = () => useSession.getState().setups[TEST_ID].paths ?? []
+
+  it('placeColumn appends to `placed` (auto-position = next free spot, derived by index at render time)', () => {
+    useSession.getState().placeColumn(TEST_ID, 'x1')
+    useSession.getState().placeColumn(TEST_ID, 'x2')
+    expect(placed()).toEqual(['x1', 'x2'])
+  })
+
+  it('placeColumn is idempotent - placing an already-placed column is a no-op', () => {
+    useSession.getState().placeColumn(TEST_ID, 'x1')
+    useSession.getState().placeColumn(TEST_ID, 'x1')
+    expect(placed()).toEqual(['x1'])
+  })
+
+  it('placeColumn marks a rendered run stale (routed through revalidated, like every other canvas action)', () => {
+    useSession.setState((s) => ({ runs: { ...s.runs, [TEST_ID]: { result: {}, stale: false } } }))
+    useSession.getState().placeColumn(TEST_ID, 'x1')
+    expect(useSession.getState().runs[TEST_ID].stale).toBe(true)
+  })
+
+  it('removeColumn drops the node AND every path touching it', () => {
+    const s = useSession.getState()
+    s.placeColumn(TEST_ID, 'x1'); s.placeColumn(TEST_ID, 'x2'); s.placeColumn(TEST_ID, 'x3')
+    s.addPath(TEST_ID, 0, 1) // x1 -> x2
+    s.addPath(TEST_ID, 1, 2) // x2 -> x3
+    useSession.getState().removeColumn(TEST_ID, 'x2')
+    expect(placed()).toEqual(['x1', 'x3'])
+    expect(paths()).toEqual([]) // both paths touched the removed node (x2 was both endpoints across the two edges)
+  })
+
+  it('removing a MIDDLE node remaps surviving paths so they still reference the same COLUMNS (the hard case)', () => {
+    const s = useSession.getState()
+    s.placeColumn(TEST_ID, 'x1'); s.placeColumn(TEST_ID, 'x2'); s.placeColumn(TEST_ID, 'x3')
+    // placed = [x1(0), x2(1), x3(2)]; draw x1 -> x3 (an edge that does NOT touch the middle node)
+    s.addPath(TEST_ID, 0, 2)
+    useSession.getState().removeColumn(TEST_ID, 'x2') // remove the middle node
+    expect(placed()).toEqual(['x1', 'x3'])
+    // x3 shifts from index 2 -> 1; the surviving path must be remapped to keep pointing at x1 -> x3
+    expect(paths()).toEqual([{ from: 0, to: 1 }])
+    const synth = withPathModeConstructs(useSession.getState().setups[TEST_ID])
+    expect(synth.constructs!.find((c) => c.id === paths()[0].from)!.name).toBe('x1')
+    expect(synth.constructs!.find((c) => c.id === paths()[0].to)!.name).toBe('x3')
+  })
+
+  it('removeColumn also clears that column\'s persisted position', () => {
+    const s = useSession.getState()
+    s.placeColumn(TEST_ID, 'x1'); s.placeColumn(TEST_ID, 'x2')
+    s.moveNode(TEST_ID, 1, 200, 90) // move x2 (index 1)
+    expect(useSession.getState().setups[TEST_ID].nodePositions).toEqual({ x2: { x: 200, y: 90 } })
+    s.removeColumn(TEST_ID, 'x2')
+    expect(useSession.getState().setups[TEST_ID].nodePositions).toEqual({})
+  })
+
+  it('removeColumn on a column that is not placed is a no-op', () => {
+    useSession.getState().placeColumn(TEST_ID, 'x1')
+    useSession.getState().removeColumn(TEST_ID, 'x9')
+    expect(placed()).toEqual(['x1'])
+  })
+})
+
+describe('moveNode (path mode) - positions keyed by column name, not shifting index', () => {
+  const TEST_ID = 'path-analysis'
+  beforeEach(() => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: [TEST_ID],
+      columns: [
+        { name: 'x1', detected: 'float64', tags: [], level: 'ratio', used: true },
+        { name: 'x2', detected: 'float64', tags: [], level: 'ratio', used: true },
+      ],
+      setups: { [TEST_ID]: { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'path', constructs: [],
+        placed: ['x1', 'x2'] } },
+    })
+  })
+
+  it('moveNode stores the position keyed by the addressed node\'s CURRENT column name', () => {
+    useSession.getState().moveNode(TEST_ID, 1, 140, 55)
+    expect(useSession.getState().setups[TEST_ID].nodePositions).toEqual({ x2: { x: 140, y: 55 } })
+  })
+
+  it('moveNode on an out-of-range id (nothing placed there) is a no-op', () => {
+    useSession.getState().moveNode(TEST_ID, 9, 140, 55)
+    expect(useSession.getState().setups[TEST_ID].nodePositions).toBeUndefined()
+  })
+
+  it('LATENT moveNode is byte-unchanged: still writes x/y onto the addressed construct by id', () => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: ['cb-sem'],
+      setups: { 'cb-sem': { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent',
+        constructs: [{ id: 1, name: 'A', items: ['q1', 'q2'] }, { id: 2, name: 'B', items: ['q3', 'q4'] }] } },
+    })
+    useSession.getState().moveNode('cb-sem', 2, 140, 55)
+    const cs = useSession.getState().setups['cb-sem'].constructs!
+    expect(cs.find((c) => c.id === 2)).toMatchObject({ x: 140, y: 55 })
+    expect(cs.find((c) => c.id === 1)!.x).toBeUndefined()
+    expect(useSession.getState().setups['cb-sem'].nodePositions).toBeUndefined()
+  })
+})
+
+describe('revalidation drops placed columns that no longer exist after a dataset reload (P2 shelf model)', () => {
+  const TEST_ID = 'path-analysis'
+  const col = (name: string) => ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used: true })
+  const oldDs: Dataset = { columns: ['x1', 'x2', 'x3'], rows: [{ x1: 1, x2: 2, x3: 3 }] }
+  const oldInfo = { name: 'old.csv', rows: 1, cols: 3, encoding: 'UTF-8' }
+
+  beforeEach(() => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: [TEST_ID],
+      columns: [col('x1'), col('x2'), col('x3')],
+      setups: { [TEST_ID]: { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'path', constructs: [],
+        placed: ['x1', 'x2', 'x3'], paths: [{ from: 0, to: 2 }] } }, // x1 -> x3, does not touch x2
+    })
+  })
+
+  it('a re-upload that drops a placed column removes its node and remaps surviving paths', () => {
+    const newDs: Dataset = { columns: ['x1', 'x3'], rows: [{ x1: 1, x3: 3 }] } // x2 is gone
+    useSession.getState().loadDataset(newDs, { name: 'new.csv', rows: 1, cols: 2, encoding: 'UTF-8' })
+    const setup = useSession.getState().setups[TEST_ID]
+    expect(setup.placed).toEqual(['x1', 'x3'])
+    expect(setup.paths).toEqual([{ from: 0, to: 1 }]) // x1(0) -> x3(1 after the shift), same columns
+  })
+
+  it('a re-upload that drops a placed column ALSO drops paths that touched it', () => {
+    useSession.setState((s) => ({ setups: { ...s.setups, [TEST_ID]: { ...s.setups[TEST_ID], paths: [{ from: 0, to: 1 }, { from: 1, to: 2 }] } } }))
+    const newDs: Dataset = { columns: ['x1', 'x3'], rows: [{ x1: 1, x3: 3 }] } // x2 (index 1) is gone
+    useSession.getState().loadDataset(newDs, { name: 'new.csv', rows: 1, cols: 2, encoding: 'UTF-8' })
+    const setup = useSession.getState().setups[TEST_ID]
+    expect(setup.placed).toEqual(['x1', 'x3'])
+    expect(setup.paths).toEqual([]) // both edges touched x2 - both dropped
+  })
+
+  it('a re-upload that keeps every placed column untouched leaves placed/paths byte-identical', () => {
+    useSession.getState().loadDataset(oldDs, oldInfo) // same columns, re-uploaded
+    const setup = useSession.getState().setups[TEST_ID]
+    expect(setup.placed).toEqual(['x1', 'x2', 'x3'])
+    expect(setup.paths).toEqual([{ from: 0, to: 2 }])
+  })
+
+  it('LATENT setups are untouched by this revalidation path (no `placed` field, nothing to drop)', () => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: ['cb-sem'],
+      columns: [col('q1'), col('q2')],
+      setups: { 'cb-sem': { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent',
+        constructs: [{ id: 1, name: 'A', items: ['q1'] }, { id: 2, name: 'B', items: ['q2'] }], paths: [{ from: 1, to: 2 }] } },
+    })
+    useSession.getState().loadDataset({ columns: ['q1'], rows: [{ q1: 1 }] }, { name: 'x.csv', rows: 1, cols: 1, encoding: 'UTF-8' })
+    const setup = useSession.getState().setups['cb-sem']
+    expect(setup.paths).toEqual([{ from: 1, to: 2 }])
+    expect(setup.constructs).toHaveLength(2)
+  })
+})
+
+describe('setColumnUsed - path-mode (P2 shelf model: node identity is placement, not used-ness)', () => {
   const col = (name: string, used = true) =>
     ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
   beforeEach(() => useSession.getState().reset())
 
-  it('toggling a USED column off clears a path-mode setup\'s drawn paths (avoids index-shift mis-binding)', () => {
+  it('un-using a PLACED column removes just that node, remapping surviving paths (not a blanket clear)', () => {
     useSession.setState({
       columns: [col('x1'), col('x2'), col('x3')],
       selection: ['path-analysis'],
       setups: { 'path-analysis': {
         roles: {}, options: {}, props: {}, blocked: null,
-        modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }, { from: 1, to: 2 }],
+        modelKind: 'path', constructs: [], placed: ['x1', 'x2', 'x3'], paths: [{ from: 0, to: 2 }], // x1 -> x3, x2 untouched
       } },
     })
-    useSession.getState().setColumnUsed('x2', false) // changes the used-set → paths must clear
-    expect(useSession.getState().setups['path-analysis'].paths).toEqual([])
+    useSession.getState().setColumnUsed('x2', false) // x2 is placed but not an endpoint of the surviving path
+    const setup = useSession.getState().setups['path-analysis']
+    expect(setup.placed).toEqual(['x1', 'x3'])
+    expect(setup.paths).toEqual([{ from: 0, to: 1 }]) // x3 shifted 2 -> 1, path remapped to keep pointing at x1 -> x3
     expect(useSession.getState().columns.find((c) => c.name === 'x2')!.used).toBe(false)
   })
 
-  it('a no-op toggle (same value) does NOT clear path-mode paths', () => {
+  it('un-using a PLACED column that IS a path endpoint drops that path too', () => {
     useSession.setState({
       columns: [col('x1'), col('x2')],
       selection: ['path-analysis'],
       setups: { 'path-analysis': {
         roles: {}, options: {}, props: {}, blocked: null,
-        modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }],
+        modelKind: 'path', constructs: [], placed: ['x1', 'x2'], paths: [{ from: 0, to: 1 }],
       } },
     })
-    useSession.getState().setColumnUsed('x1', true) // already used → no set change → keep paths
+    useSession.getState().setColumnUsed('x2', false)
+    const setup = useSession.getState().setups['path-analysis']
+    expect(setup.placed).toEqual(['x1'])
+    expect(setup.paths).toEqual([])
+  })
+
+  it('un-using a column that is NOT placed leaves the canvas untouched (P2: used-set no longer drives node identity)', () => {
+    useSession.setState({
+      columns: [col('x1'), col('x2'), col('x3')],
+      selection: ['path-analysis'],
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path', constructs: [], placed: ['x1', 'x2'], paths: [{ from: 0, to: 1 }],
+      } },
+    })
+    useSession.getState().setColumnUsed('x3', false) // x3 was never placed
+    const setup = useSession.getState().setups['path-analysis']
+    expect(setup.placed).toEqual(['x1', 'x2'])
+    expect(setup.paths).toEqual([{ from: 0, to: 1 }])
+  })
+
+  it('a no-op toggle (same value) does NOT touch path-mode placed/paths', () => {
+    useSession.setState({
+      columns: [col('x1'), col('x2')],
+      selection: ['path-analysis'],
+      setups: { 'path-analysis': {
+        roles: {}, options: {}, props: {}, blocked: null,
+        modelKind: 'path', constructs: [], placed: ['x1', 'x2'], paths: [{ from: 0, to: 1 }],
+      } },
+    })
+    useSession.getState().setColumnUsed('x1', true) // already used -> no set change -> keep everything
     expect(useSession.getState().setups['path-analysis'].paths).toEqual([{ from: 0, to: 1 }])
+    expect(useSession.getState().setups['path-analysis'].placed).toEqual(['x1', 'x2'])
   })
 
   it('LATENT setups: toggling a column does NOT touch constructs or paths', () => {
