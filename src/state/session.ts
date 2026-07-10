@@ -119,6 +119,13 @@ export const canEnter = (s: SessionState, target: StepId): boolean => {
   return i >= 0 && steps.slice(0, i).every((st) => gateOk(s, st))
 }
 
+/** Confirm-selection target (launch-day fix): a re-upload can leave an EARLIER-selected test blocked
+ *  (its assigned columns vanished) while a LATER pick is perfectly fine. Land on the first selection
+ *  entry that isn't blocked, so Confirm never drops the user onto a dead 'column not found' config.
+ *  Falls back to selection[0] (unchanged legacy target) when every pick is blocked. */
+export const firstUnblockedSelection = (s: Pick<SessionState, 'selection' | 'setups'>): string =>
+  s.selection.find((id) => !s.setups[id]?.blocked) ?? s.selection[0]
+
 /** Path-mode bridge: the canvas drew nodes/paths against the USED columns BY INDEX, but the
  *  construct-slots form is hidden so setup.constructs is empty. Seed a LOCAL setup whose constructs
  *  mirror the used-columns list (id = index, name = column, items = [column]) so path.from/to resolve

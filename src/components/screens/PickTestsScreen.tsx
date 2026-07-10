@@ -1,4 +1,4 @@
-import { useSession, workingDataset } from '../../state/session'
+import { useSession, workingDataset, firstUnblockedSelection } from '../../state/session'
 import { CATALOG, SPECS } from '../../lib/registry/catalog'
 import { testEligibility } from '../../lib/eligibility/eligibility'
 
@@ -27,10 +27,13 @@ export function PickTestsScreen() {
                 {sub && <div className="eyebrow" style={{ marginTop: 6 }}>{sub}</div>}
                 {CATALOG.filter((c) => c.family === fam && c.subfamily === sub).map((c) => {
                   const v = verdicts.get(c.id)!
+                  const isSelected = s.selection.includes(c.id)
                   return (
                     <div key={c.id} style={{ margin: '4px 0', ...(v.ok ? {} : { opacity: 0.5 }) }}>
                       <label>
-                        <input type="checkbox" disabled={!v.ok} checked={s.selection.includes(c.id)}
+                        {/* A selected test is ALWAYS unselectable, even if its columns no longer fit
+                            (re-upload trap): !v.ok only blocks a NEW selection, never an unselect. */}
+                        <input type="checkbox" disabled={!v.ok && !isSelected} checked={isSelected}
                           onChange={() => s.toggleSelection(c.id)} style={{ marginRight: 8 }} />
                         {c.name}
                       </label>
@@ -47,7 +50,7 @@ export function PickTestsScreen() {
       </div>
       <div className="btn-row">
         <span className="hint">→ the stepper grows one step per selected test</span>
-        <button className="btn" disabled={!s.selection.length} onClick={() => s.goTo(`test:${s.selection[0]}`)}>Confirm selection</button>
+        <button className="btn" disabled={!s.selection.length} onClick={() => s.goTo(`test:${firstUnblockedSelection(s)}`)}>Confirm selection</button>
       </div>
     </section>
   )
