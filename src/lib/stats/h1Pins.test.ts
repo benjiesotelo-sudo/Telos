@@ -7,6 +7,8 @@ import {
   CELL_5_MLR_FIML,
   CELL_6_WLSMV_LISTWISE,
   CELL_7_WLSMV_PAIRWISE,
+  PATH_WLSMV_SAT,
+  PATH_WLSMV_STRUCT,
   type H1PinCell,
 } from './h1Pins'
 
@@ -74,5 +76,39 @@ describe('h1Pins - 7-cell estimator/missing matrix (native-R pins)', () => {
     // MLR/fiml vs ML/fiml
     expect(CELL_5_MLR_FIML.fit['chisq.scaled']).not.toBeCloseTo(CELL_2_ML_FIML.fit.chisq, 7)
     expect(CELL_5_MLR_FIML.structural[0].se).not.toBeCloseTo(CELL_2_ML_FIML.structural[0].se, 7)
+  })
+})
+
+// Path-mode WLSMV pins (path-mode WLSMV slice, Task 1): same shape-integrity discipline as the
+// 7-cell matrix above, extended minimally to the two new exports. These are a plain
+// structural-regression fit (no latent constructs), a genuinely different model shape from
+// cells 1-7, so they get their own small describe block rather than being folded into ALL_CELLS.
+describe('h1Pins - path-mode WLSMV pins (native-R pins, Task 1 of the path-mode WLSMV slice)', () => {
+  const PATH_CELLS: Record<string, H1PinCell> = { PATH_WLSMV_SAT, PATH_WLSMV_STRUCT }
+
+  it('both exports are present and tagged WLSMV / listwise', () => {
+    expect(PATH_WLSMV_SAT).toMatchObject({ estimator: 'WLSMV', missing: 'listwise' })
+    expect(PATH_WLSMV_STRUCT).toMatchObject({ estimator: 'WLSMV', missing: 'listwise' })
+  })
+
+  it('every numeric value in every cell parses as a finite number', () => {
+    for (const [name, cell] of Object.entries(PATH_CELLS)) {
+      const numbers = allNumbers(cell)
+      expect(numbers.length, `${name} has no pinned numbers`).toBeGreaterThan(0)
+      for (const n of numbers) {
+        expect(Number.isFinite(n), `${name} has a non-finite pinned value: ${n}`).toBe(true)
+      }
+    }
+  })
+
+  it('PATH_WLSMV_SAT carries exactly its 2 structural paths (cont2 ~ a1, cont2 ~ b1); PATH_WLSMV_STRUCT adds cont1 ~ cont2 on top', () => {
+    expect(PATH_WLSMV_SAT.structural.map((row) => row.param)).toEqual(['cont2 ~ a1', 'cont2 ~ b1'])
+    expect(PATH_WLSMV_STRUCT.structural.map((row) => row.param)).toEqual(['cont2 ~ a1', 'cont2 ~ b1', 'cont1 ~ cont2'])
+  })
+
+  it('the two cells are genuinely different fits, not copies (saturated df=0 vs non-saturated df=2)', () => {
+    expect(PATH_WLSMV_SAT.fit.df).toBe(0)
+    expect(PATH_WLSMV_STRUCT.fit.df).toBe(2)
+    expect(PATH_WLSMV_SAT.structural[0].est).not.toBeCloseTo(PATH_WLSMV_STRUCT.structural[0].est, 7)
   })
 })

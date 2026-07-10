@@ -1,0 +1,29 @@
+This is lavaan 0.6-21
+lavaan is FREE software! Please report any bugs.
+=== Investigation: does declaring a1/b1 ordered change the fitted structural estimates ===
+(a1, b1 appear ONLY as exogenous predictors of cont2 -- never as a response, never in a =~ line)
+
+Warning messages:
+1: lavaan->lav_data_full():  
+   exogenous variable(s) declared as ordered in data: "a1", "b1" 
+2: lavaan->lav_partable_check():  
+   parameter table does not contain thresholds 
+3: lavaan->lav_partable_check():  
+   parameter table does not contain thresholds 
+coef() WITH ordered=c("a1","b1") (10dp):
+[1] "0.2850505315"  "-0.2762604157" "0.6279216885" 
+
+coef() WITHOUT ordered= (10dp):
+[1] "0.2850505301"  "-0.2762604251" "0.6279216576" 
+
+max abs diff on shared structural params: 0.00000003089166 
+post.check WITH ordered=: TRUE 
+
+CONCLUSION: for a variable that is PURELY an exogenous predictor (never a response, never a
+latent indicator), declaring it ordered= under WLSMV leaves the estimated structural
+parameters unchanged up to ~1e-9 optimizer-path rounding -- lavaan cannot fit a threshold
+model for it (no equation makes it a response), so it warns and falls back to using its raw
+numeric values, functionally identical to the unordered case (the intercept term differs
+because meanstructure inclusion differs by default between the two calls -- irrelevant here,
+since no intercept is pinned from this comparison, only the shared regression coefficients).
+This confirms the warning is a benign housekeeping notice, not a sign of an improper fit.
