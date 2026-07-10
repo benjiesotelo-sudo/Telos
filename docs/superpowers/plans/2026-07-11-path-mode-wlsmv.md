@@ -63,3 +63,52 @@ Visual baselines: if any captured screen includes the path canvas, diffs are OWN
 Amendment A ALSO supersedes two Global Constraints above: (1) canvas interaction code is now IN scope per the P2 rulings (path mode only; latent-mode canvas behavior stays byte-green); (2) the LOCKED-FILE GATE becomes the PRE-APPROVED-class rule - spec-HTML path-analysis/canvas wording may be amended, with exact before/after recorded for the owner's morning wording review, consistency tests green both sides, MI-amendment pattern.
 
 Amendment B (controller ruling from T1 evidence, morning-ratify flagged): lavaan warns on EXOGENOUS ordered variables ("no thresholds") and treats them effectively numerically (T1 proof: coefficients identical to ~9 sig figs with/without ordered=). Therefore: (1) ordered= declares only placed ordinal columns that are ENDOGENOUS in the drawn paths (a path points into them) - matches lavaan's threshold semantics, no warning; (2) exogenous ordinal predictors enter numerically, DISCLOSED on the card ("Ordinal predictors X, Y enter the model numerically, standard practice; ordered-threshold modeling applies to endogenous variables"); (3) WLSMV enablement rule tightens to: at least one placed ordinal column is endogenous in the current drawn paths (dynamic with drawing; hint text explains). T4/T5/T6 implement this rule; T1's pins remain valid (its models' declarations re-checked against this rule at T6 - the SAT/STRUCT models' a1/b1 are exogenous, so re-pin WITHOUT ordered= for them OR pin a model with an ordinal endogenous variable; T6's implementer verifies and re-pins as needed with the same provenance discipline).
+
+## HELD WORDING - morning review (Task 6 Part 2, 2026-07-11)
+
+This section records the exact registry/spec-HTML deltas from Task 6 Part 2 (registry truth + pre-approved spec amendments) for Benjie's morning wording pass.
+Per Amendment A item 5, this class of edit is pre-approved; only the wording itself is open for review.
+
+### 1. Registry truth (`src/lib/registry/pathAnalysis.ts`) - no spec-HTML twin found, so no HELD item here
+
+Re-verified which consistency tests read `src/lib/registry/pathAnalysis.ts`.
+Only `pathAnalysis.consistency.test.ts` imports `PATH_ANALYSIS`, and none of its assertions touch `options` or `rMap` against any spec-HTML text.
+`cbSem.consistency.test.ts` and `registry.consistency.test.ts` each pin a spec's `options`/`rMap` against a spec-HTML card, but both are scoped to the `CB_SEM` (or `INDEPENDENT_T_TEST`) spec only - `PATH_ANALYSIS` is never compared against `telos_test_inputs.html`/`telos_test_outputs.html`/`telos_ui_spec.html` in any test.
+Separately confirmed by direct search: neither `telos_test_inputs.html` nor `telos_test_outputs.html` contains a "Path analysis" card at all (grep for `Path analysis` / `path-analysis` returns zero hits in both files) - the card's own header comment already documents why ("Path analysis has NO drawn output card of its own - it reuses the CB-SEM card with the measurement tables absent"), and per Amendment A there is a separate, distinct picker leaf in `telos_ui_spec.html` (line 279) that does not mention the estimator/missing options.
+Because no spec-HTML text is pinned to `PATH_ANALYSIS.options`/`rMap`, this edit needed NO held wording - it was made directly, verified via the SemControls container (`isPath` routes `track = 'cb-sem'` so `isCb` is true and the path-analysis card genuinely renders both the estimator and missing dropdowns, confirming the registry values are not decorative).
+
+Before:
+```
+options: [
+  { id: 'estimator', label: 'estimator', value: 'ML', kind: 'display' },
+  { id: 'bootstrap', label: 'bootstrap resamples', value: '5000', kind: 'display' },
+],
+...
+rMap: 'lavaan::sem() on observed variables (regressions only; no =~) → fit · ...'
+```
+
+After:
+```
+options: [
+  { id: 'estimator', label: 'estimator', value: 'WLSMV (ordinal) / ML / MLR', kind: 'display' },
+  { id: 'missing', label: 'missing', value: 'listwise (default) / FIML / pairwise', kind: 'display' },
+  { id: 'bootstrap', label: 'bootstrap resamples', value: '5000', kind: 'display' },
+],
+...
+rMap: 'lavaan::sem(estimator=, missing=, ordered=) on observed variables (regressions only; no =~) → fit · ...'
+```
+
+### 2. P2 shelf-paradigm spec-HTML wording - NOTHING FOUND to amend
+
+Searched all three locked files (`telos_test_inputs.html`, `telos_test_outputs.html`, `telos_ui_spec.html`) for any text claiming path-mode's canvas seeds/shows every variable.
+None exists: path-analysis has no dedicated card in either doc-mockup file (confirmed above), and its only spec-HTML presence is the `telos_ui_spec.html` picker-tree leaf at line 279, whose text is purely about the statistical scope ("directed relationships among OBSERVED variables ... saturated (df = 0) models report no fit indices") and makes no claim about canvas seeding.
+The nearby `telos_ui_spec.html` line 299 ("the SEM-family tests (CB-SEM, PLS-SEM, AVE, CR) use a model-building canvas") also makes no seeding claim - it only lists which tests use the canvas input, and it predates path-analysis's split into its own picker entry (path-analysis is omitted from that list, which is a separate, pre-existing gap unrelated to the P2 wording task).
+The CB-SEM/PLS-SEM cards' own canvas hints (`telos_test_inputs.html` "the ovals on the canvas appear as you define them", the Family-7 legend's "then draw the structural paths on the canvas") describe LATENT mode only, which Amendment A ruling 6 explicitly keeps unchanged.
+Conclusion: no spec-HTML edit was made for item 2 - there was nothing to amend under the "update ONLY what consistency forces" instruction.
+The live app text (already shipped in the P2/Amendment B commits, `SemControls.tsx` and `SemCanvas.tsx`) already carries the shelf-paradigm wording; this section exists only to record that the spec-HTML docs were checked and found to need no change.
+
+### 3. Consistency suite count (all six SEM-relevant files)
+
+Before this task's edits: `pathAnalysis.consistency.test.ts`, `cbSem.consistency.test.ts`, `catalog.consistency.test.ts`, `registry.consistency.test.ts`, `outputCards.semB.consistency.test.ts`, `inputCards.semB.consistency.test.ts` - 6 files, 51 tests, all green.
+After this task's registry edit: same 6 files, 51 tests, all still green (no test needed updating because none of them asserted the old `PATH_ANALYSIS.options`/`rMap` values).
+Full `npm run test:fast`: 162 files / 1662 tests green before and after (unchanged count - this task only edited existing registry fields, it did not add or remove any test).

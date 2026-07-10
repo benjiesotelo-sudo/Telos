@@ -19,7 +19,8 @@ export const PATH_ANALYSIS: TestSpec = {
   modelKind: 'path',
   roles: [],
   options: [
-    { id: 'estimator', label: 'estimator', value: 'ML', kind: 'display' },
+    { id: 'estimator', label: 'estimator', value: 'WLSMV (ordinal) / ML / MLR', kind: 'display' },
+    { id: 'missing', label: 'missing', value: 'listwise (default) / FIML / pairwise', kind: 'display' },
     { id: 'bootstrap', label: 'bootstrap resamples', value: '5000', kind: 'display' },
   ],
   constraints: {
@@ -83,6 +84,6 @@ export const PATH_ANALYSIS: TestSpec = {
   howToRead:
     'Path analysis estimates a system of regressions among observed variables at once, letting one variable be both an outcome and a predictor (mediation). Structural paths: each B is the unstandardized effect, Std. β the standardized effect, with z, p, and a 95% CI; R² is the variance explained in each endogenous variable. Indirect effects: the product of the paths through a mediator (e.g. X → M → Y), judged by its bootstrap 95% CI - an interval excluding 0 indicates mediation. When df = 0 the model is saturated (it reproduces the data exactly), so fit indices are not informative and are omitted; only with extra constraints (df > 0) do global fit indices apply, and even then read RMSEA cautiously at small df / small N. All thresholds are heuristics, not pass/fail gates.',
   apaTemplate: 'A path model fit to the observed variables; the indirect effect of X on Y through M was {verdict}, bootstrap 95% CI {ci}.',
-  rMap: 'lavaan::sem() on observed variables (regressions only; no =~) → fit · lavaan::fitMeasures() → Table 1 (fit indices, df > 0 only; suppressed when fitMeasures(fit,"df") == 0, saturated) · standardizedSolution() + lavInspect(fit,"rsquare") → Table 2 (structural paths + R²) · auto := indirect-effect definitions + bootstrap (boot.ci.type="perc", R = 5000) → Table 3 (indirect effects) · semPlot::semPaths() → figure (rectangles = observed)',
+  rMap: 'lavaan::sem(estimator=, missing=, ordered=) on observed variables (regressions only; no =~) → fit · lavaan::fitMeasures() → Table 1 (fit indices, df > 0 only; suppressed when fitMeasures(fit,"df") == 0, saturated) · standardizedSolution() + lavInspect(fit,"rsquare") → Table 2 (structural paths + R²) · auto := indirect-effect definitions + bootstrap (boot.ci.type="perc", R = 5000) → Table 3 (indirect effects) · semPlot::semPaths() → figure (rectangles = observed)',
   bundleFiles: ['table_fit-indices.png (when df > 0)', 'table_structural-paths.png', 'table_indirect-effects.png', 'figure_path-diagram.png'],
 }
