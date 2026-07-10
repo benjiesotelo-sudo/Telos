@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useSession } from '../state/session'
-import type { Construct, StructuralPath, Moderation } from '../state/session'
+import type { Construct, StructuralPath, Moderation, NodePosition } from '../state/session'
 import type { CbSemResult } from '../lib/stats/cbSem'
 
 const BLUE = 'var(--info)'
@@ -89,12 +89,37 @@ export interface SemCanvasUIProps {
   moderations: Moderation[]
   /** Model estimator (e.g. 'ML', 'WLSMV'); moderation is blocked under WLSMV/ordinal. Defaults to 'ML'. */
   estimator?: string
+  /** P2 shelf model (path mode only, spec Amendment A - 2026-07-11): drag-moved node positions keyed
+   *  by column NAME (T2, session.ts `TestSetup.nodePositions`). A column absent from this map has
+   *  never been dragged - it falls back to the existing auto-grid slot (pathNodeCenter) for its
+   *  placed-index, same "undefined means default" convention latent already uses for Construct.x/y. */
+  nodePositions?: Record<string, NodePosition>
+  /** P2 shelf model (path mode only): used-eligible columns NOT currently placed on the canvas -
+   *  rendered as add-chips in a shelf strip below the svg. Undefined/omitted → no shelf renders
+   *  (latent mode, or any caller that hasn't wired the shelf). */
+  shelfColumns?: string[]
   onAddPath(from: number, to: number): void
   onRemovePath(index: number): void
   onMoveNode(id: number, x: number, y: number): void
   onSetMode(m: 'draw' | 'move' | 'delete'): void
   onAddModeration(moderatorId: number, pathIndex: number): void
   onRemoveModeration(id: number): void
+  /** P2 shelf model (path mode only): click a shelf chip to place its column onto the canvas
+   *  (spec Amendment A item 1). */
+  onPlaceColumn?(name: string): void
+  /** P2 shelf model (path mode only): delete-mode click on a placed node - "delete = back to the
+   *  shelf" (spec Amendment A item 2; its touching paths go with it, per the store's removeColumn).
+   *  Latent mode's node-delete stays a no-op here (paths-only rule - untouched, its own open
+   *  question, not this slice's scope). */
+  onRemoveNode?(id: number): void
+}
+
+/** Whether a delete-mode node click removes the node, by model kind (P2 shelf model, spec
+ *  Amendment A item 2 - path mode only; latent stays a no-op, the paths-only rule, untouched this
+ *  slice). Extracted as a pure predicate (mirrors moderationGuardReason) so the decision is
+ *  unit-testable without simulating a click. */
+export function nodeDeleteAction(modelKind: 'latent' | 'path'): boolean {
+  return modelKind === 'path'
 }
 
 export interface ModerationGuardArgs {
@@ -125,10 +150,17 @@ export function moderationGuardReason(a: ModerationGuardArgs): string | null {
 /** A canvas node: latent constructs are id-addressed; path-mode columns use their array index as id. */
 interface Node { id: number; name: string; items: string[]; x?: number; y?: number }
 
-/** Single source of truth for "what nodes does this model draw, and at what ids". */
-export function nodesOf(p: Pick<SemCanvasUIProps, 'constructs' | 'columns' | 'modelKind'>): Node[] {
+/** Single source of truth for "what nodes does this model draw, and at what ids". Path mode: a
+ *  node's id is its POSITION in `columns` (the PLACED-columns list, P2 shelf model - T2, session.ts
+ *  `withPathModeConstructs`/`moveNode` share this same indexing). x/y come from `nodePositions` when
+ *  the node has been dragged; undefined otherwise (falls back to the auto-grid slot at render time -
+ *  see SemCanvasUI's center resolution). */
+export function nodesOf(p: Pick<SemCanvasUIProps, 'constructs' | 'columns' | 'modelKind' | 'nodePositions'>): Node[] {
   if (p.modelKind === 'path') {
-    return p.columns.map((name, i) => ({ id: i, name, items: [], x: undefined, y: undefined }))
+    return p.columns.map((name, i) => {
+      const pos = p.nodePositions?.[name]
+      return { id: i, name, items: [], x: pos?.x, y: pos?.y }
+    })
   }
   return p.constructs
 }
@@ -161,6 +193,14 @@ export function latentBounds(constructs: Construct[]): ViewBox {
   return { x: minX - PAD, y: minY - PAD, w: (maxX - minX) + 2 * PAD, h: (maxY - minY) + 2 * PAD }
 }
 
+/** Cursor affordance for a canvas node, by tool mode - same rule for BOTH node kinds since the P2
+ *  shelf model (spec Amendment A item 3): path-mode nodes now drag through the identical pointer
+ *  mechanism as latent, so grab is no longer latent-only. Default while running (no gesture is
+ *  live); pointer otherwise (draw/delete click gestures). */
+function nodeCursor(running: boolean, mode: 'draw' | 'move' | 'delete'): string {
+  return running ? 'default' : mode === 'move' ? 'grab' : 'pointer'
+}
+
 /** Center of a latent node given its (top-left) x/y, with a left-to-right default for unplaced nodes. */
 function nodeCenter(n: Node, fallbackIdx: number) {
   const x = (n.x ?? DEFAULT_X + fallbackIdx * (NODE_W + 120)) + NODE_W / 2
@@ -188,9 +228,9 @@ export function pathNodeCenter(idx: number, count: number, W: number, H: number)
 /** Pure presentational canvas — testable with renderToStaticMarkup. */
 export function SemCanvasUI({
   testId, constructs, columns, paths, modelKind, mode, estimates, running,
-  viewBox: vbProp, moderations, estimator = 'ML',
+  viewBox: vbProp, moderations, estimator = 'ML', nodePositions, shelfColumns,
   onAddPath, onRemovePath, onMoveNode: _onMoveNode, onSetMode,
-  onAddModeration, onRemoveModeration,
+  onAddModeration, onRemoveModeration, onPlaceColumn, onRemoveNode,
 }: SemCanvasUIProps) {
   // pending draw source (click source → target); cancel when same node re-clicked
   const [pending, setPending] = useState<number | null>(null)
@@ -198,16 +238,19 @@ export function SemCanvasUI({
   const [modGuard, setModGuard] = useState<string | null>(null)
 
   const isPath = modelKind === 'path'
-  const nodes = nodesOf({ constructs, columns, modelKind })
+  const nodes = nodesOf({ constructs, columns, modelKind, nodePositions })
 
   const empty = nodes.length === 0
   // id → center, for resolving path endpoints by node id (Map uses strict-equality; id 0 is safe).
-  // Path mode auto-grids its column rectangles into the viewBox; latent keeps its approved layout.
+  // Path mode: a MOVED node (both x/y set, via nodePositions) resolves like a latent node; an
+  // unmoved one auto-grids into the viewBox (P2 shelf model, spec Amendment A item 3 - this slice).
   const vbW = vbProp ? vbProp.w : 760
   const vbH = vbProp ? vbProp.h : 360
   const centers = new Map<number, ReturnType<typeof nodeCenter>>()
   nodes.forEach((n, i) =>
-    centers.set(n.id, isPath ? pathNodeCenter(i, nodes.length, vbW, vbH) : nodeCenter(n, i)))
+    centers.set(n.id, isPath
+      ? (n.x !== undefined && n.y !== undefined ? nodeCenter(n, i) : pathNodeCenter(i, nodes.length, vbW, vbH))
+      : nodeCenter(n, i)))
   // Span of construct centers → viewBox-independent item-side selection (latent only).
   const latentCxs = isPath ? [] : nodes.map((n) => centers.get(n.id)!.cx)
   const minCx = latentCxs.length ? Math.min(...latentCxs) : 0
@@ -215,7 +258,13 @@ export function SemCanvasUI({
 
   function clickNode(id: number) {
     if (running) return
-    if (mode === 'delete') return  // node delete handled by connected wrapper
+    if (mode === 'delete') {
+      // P2 shelf model (spec Amendment A item 2): path-mode delete removes the node (paths go with
+      // it, chip returns to the shelf) via the connected wrapper's onRemoveNode. Latent stays a
+      // no-op here - the paths-only rule, untouched this slice, its own open question.
+      if (nodeDeleteAction(modelKind)) onRemoveNode?.(id)
+      return
+    }
     if (mode !== 'draw') return
     if (pending === null) { setPending(id); return }
     if (pending === id) { setPending(null); return }   // cancel on same node
@@ -261,8 +310,11 @@ export function SemCanvasUI({
         <p className="hint" role="alert" style={{ color: 'var(--error-tx)', marginTop: 4 }}>{modGuard}</p>
       )}
       {empty && (
+        // DRAFT copy - owner render review pending (spec Amendment A item 7, P2 shelf model)
         <p className="hint" role="status" style={{ padding: 12 }}>
-          {isPath ? 'Assign columns to draw paths.' : 'Add a construct to start the diagram.'}
+          {isPath
+            ? 'Your canvas is empty. Add variables from the shelf below, then draw paths between them.'
+            : 'Add a construct to start the diagram.'}
         </p>
       )}
       <svg
@@ -360,9 +412,10 @@ export function SemCanvasUI({
                   data-node-id={n.id}
                   x={c.left} y={c.top} width={NODE_W} height={NODE_H} rx={4}
                   fill="var(--card)" stroke={BLUE} strokeWidth={2}
-                  // Path-mode nodes are fixed-laid-out and never drag (node-drag is gated to
-                  // modelKind==='latent'); Move mode over a node PANS - no grab false affordance.
-                  style={{ cursor: running ? 'default' : mode === 'move' ? 'default' : 'pointer' }}
+                  // P2 shelf model (spec Amendment A item 3): path-mode nodes drag now too (the
+                  // connected wrapper's onPointerDown gate was relaxed from latent-only), so the
+                  // cursor rule is identical to a latent oval's - see nodeCursor.
+                  style={{ cursor: nodeCursor(running, mode) }}
                   onClick={() => clickNode(n.id)}
                 />
                 <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)" pointerEvents="none">{n.name}</text>
@@ -425,7 +478,7 @@ export function SemCanvasUI({
                 fill="var(--card)" stroke={BLUE} strokeWidth={2}
                 strokeDasharray={tooFew ? '5 4' : undefined}
                 opacity={tooFew ? 0.6 : undefined}
-                style={{ cursor: running ? 'default' : mode === 'move' ? 'grab' : 'pointer' }}
+                style={{ cursor: nodeCursor(running, mode) }}
                 onClick={() => clickNode(n.id)}
               />
               <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)" pointerEvents="none">{n.name}</text>
@@ -489,6 +542,28 @@ export function SemCanvasUI({
           )
         })}
       </svg>
+      {/* P2 shelf model (path mode only, spec Amendment A item 1): every used-eligible column NOT
+       *  yet placed waits here as an add-chip; one click places it on the canvas (auto-position at
+       *  the next free grid slot - see nodesOf/pathNodeCenter). Reuses the app's .chip idiom
+       *  (DragSlots.tsx) with a "+ name" affordance, styled as a plain button so no drag machinery
+       *  is needed for a single-target placement. */}
+      {isPath && shelfColumns && onPlaceColumn && (
+        <div className="sem-shelf" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+          {shelfColumns.map((name) => (
+            <button
+              key={name}
+              type="button"
+              className="chip"
+              aria-label={`Add ${name} to the canvas`}
+              disabled={running}
+              onClick={() => onPlaceColumn(name)}
+              style={{ border: '1px solid var(--line)', font: 'inherit', cursor: running ? 'not-allowed' : 'pointer' }}
+            >
+              {`+ ${name}`}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -523,7 +598,13 @@ export function SemCanvas({ testId }: { testId: string }) {
   if (!setup) return null
   const running = s.runStatus === 'running'
   const modelKind = setup.modelKind ?? 'latent'
-  const columns = s.columns.filter((c) => c.used).map((c) => c.name)
+  const usedColumns = s.columns.filter((c) => c.used).map((c) => c.name)
+  // P2 shelf model (spec Amendment A item 1, this slice): the canvas's node source is the setup's
+  // PLACED columns (T2, session.ts), not every used column - "the model you see is the model that
+  // runs". The shelf below the canvas offers every used-eligible column NOT yet placed.
+  const placed = setup.placed ?? []
+  const columns = modelKind === 'path' ? placed : usedColumns
+  const shelfColumns = modelKind === 'path' ? usedColumns.filter((name) => !placed.includes(name)) : undefined
 
   const svgRect = () => {
     const svg = wrapRef.current?.querySelector('svg')
@@ -535,8 +616,11 @@ export function SemCanvas({ testId }: { testId: string }) {
     if (running) return
     const target = (e.target as Element).closest('[data-node-id]')
     const nodeId = target ? Number(target.getAttribute('data-node-id')) : null
+    // P2 shelf model (spec Amendment A item 3): the modelKind==='latent' gate is relaxed to include
+    // 'path' too - path-mode nodes now drag through this SAME mechanism (moveNode's path branch,
+    // T2, persists the result keyed by column name).
     if (mode === 'move' && nodeId !== null && modelKind === 'latent') {
-      // dragging a latent node (path-mode columns are fixed-laid-out, not movable)
+      // dragging a latent node
       const idx = setup.constructs?.findIndex((x) => x.id === nodeId) ?? -1
       const c = idx >= 0 ? setup.constructs![idx] : undefined
       // Guard: abort if the node id does not match any current construct (stale data-node-id)
@@ -547,6 +631,19 @@ export function SemCanvas({ testId }: { testId: string }) {
       const cy = c.y ?? DEFAULT_Y
       const p = screenToViewBox(e.clientX, e.clientY, svgRect(), vb)
       drag.current = { kind: 'node', id: nodeId, offX: p.x - cx, offY: p.y - cy }
+    } else if (mode === 'move' && nodeId !== null && modelKind === 'path') {
+      // dragging a path-mode node: start from wherever it is ACTUALLY drawn right now - a moved
+      // node's nodePositions entry (top-left, same convention as latent's Construct.x/y), or its
+      // auto-grid slot (pathNodeCenter) for a node that has never been dragged - the exact
+      // resolution SemCanvasUI's own centers use, so the first drag never jumps.
+      const name = placed[nodeId]
+      if (name === undefined) { drag.current = null; return }
+      const pos = setup.nodePositions?.[name]
+      const slot = pathNodeCenter(nodeId, placed.length, vb.w, vb.h)
+      const x0 = pos?.x ?? slot.left
+      const y0 = pos?.y ?? slot.top
+      const p = screenToViewBox(e.clientX, e.clientY, svgRect(), vb)
+      drag.current = { kind: 'node', id: nodeId, offX: p.x - x0, offY: p.y - y0 }
     } else {
       drag.current = { kind: 'pan', startX: e.clientX, startY: e.clientY, vb0: vb }
     }
@@ -611,12 +708,16 @@ export function SemCanvas({ testId }: { testId: string }) {
           viewBox={vb}
           moderations={setup.moderations ?? []}
           estimator={String(setup.options['estimator'] ?? 'ML')}
+          nodePositions={setup.nodePositions}
+          shelfColumns={shelfColumns}
           onAddPath={(from, to) => s.addPath(testId, from, to)}
           onRemovePath={(i) => s.removePath(testId, i)}
           onMoveNode={(id, x, y) => s.moveNode(testId, id, x, y)}
           onSetMode={setMode}
           onAddModeration={(moderatorId, pathIndex) => s.addModeration(testId, moderatorId, pathIndex)}
           onRemoveModeration={(id) => s.removeModeration(testId, id)}
+          onPlaceColumn={(name) => s.placeColumn(testId, name)}
+          onRemoveNode={(id) => { const name = placed[id]; if (name !== undefined) s.removeColumn(testId, name) }}
         />
         <div
           aria-label="Resize canvas"

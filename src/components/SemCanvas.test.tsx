@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { SemCanvasUI, moderationGuardReason, pathNodeCenter, latentBounds, NODE_W, NODE_H, ITEM_W, ITEM_H } from './SemCanvas'
+import { SemCanvasUI, moderationGuardReason, nodeDeleteAction, pathNodeCenter, latentBounds, NODE_W, NODE_H, ITEM_W, ITEM_H } from './SemCanvas'
 import type { Construct, StructuralPath, Moderation } from '../state/session'
 import type { PlsSemResult } from '../lib/stats/plsSem'
 
@@ -296,11 +296,13 @@ describe('SemCanvasUI - path-mode grid layout fits the viewBox', () => {
   })
 })
 
-// ── cursor affordance: grab only where node-drag actually works ─────────────
-// Node-drag is gated to mode==='move' AND modelKind==='latent' (SemConfig's onPointerDown -
-// path-mode columns are fixed-laid-out, not movable; a Move-mode drag there PANS). The grab
-// cursor must therefore only appear on latent nodes in Move mode; a path-mode rect in Move
-// mode shows the default cursor - promising a node-drag that pans instead is a false affordance.
+// ── cursor affordance: grab wherever node-drag actually works ───────────────
+// P2 shelf model (spec Amendment A item 3, this slice - 2026-07-11): path-mode nodes are now
+// draggable through the SAME pointer mechanism as latent (SemCanvas's onPointerDown gate relaxed
+// from modelKind==='latent' to include 'path' too), so the OLD H1-era rule ("path rects never
+// drag, Move-mode there just pans, so no grab cursor") is INVERTED - grab now shows for path nodes
+// in Move mode exactly like latent ovals. This replaces the pre-P2 test that asserted the old
+// (now-false) reality.
 describe('SemCanvasUI - node cursor per mode+modelKind', () => {
   const pathOver = { modelKind: 'path' as const, constructs: [], columns: ['educ', 'score'], paths: [] }
   const nodeStyle = (html: string, cls: 'sem-node-rect' | 'sem-oval') => {
@@ -311,10 +313,9 @@ describe('SemCanvasUI - node cursor per mode+modelKind', () => {
   it('latent Move mode: ovals show the grab cursor (drag really moves the node)', () => {
     expect(nodeStyle(renderLatent({ mode: 'move' }), 'sem-oval')).toContain('cursor:grab')
   })
-  it('path Move mode: rects show the default cursor, NOT grab (drag pans; nodes are fixed)', () => {
+  it('path Move mode: rects ALSO show the grab cursor (P2 shelf model - path nodes drag now too)', () => {
     const style = nodeStyle(renderLatent({ ...pathOver, mode: 'move' }), 'sem-node-rect')
-    expect(style).not.toContain('grab')
-    expect(style).toContain('cursor:default')
+    expect(style).toContain('cursor:grab')
   })
   it('draw mode keeps the pointer cursor in both model kinds (click draws a path)', () => {
     expect(nodeStyle(renderLatent({ mode: 'draw' }), 'sem-oval')).toContain('cursor:pointer')
@@ -323,6 +324,83 @@ describe('SemCanvasUI - node cursor per mode+modelKind', () => {
   it('while running, both model kinds fall back to the default cursor', () => {
     expect(nodeStyle(renderLatent({ mode: 'move', running: true }), 'sem-oval')).toContain('cursor:default')
     expect(nodeStyle(renderLatent({ ...pathOver, mode: 'move', running: true }), 'sem-node-rect')).toContain('cursor:default')
+  })
+})
+
+// ── P2 shelf model: placed-node positions, shelf chips, delete-to-shelf ─────
+// Spec Amendment A (docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md): the path-mode
+// canvas opens blank; nodes are drawn from the setup's PLACED columns (T2, session.ts), not
+// s.columns.filter(used) directly; a drag-moved node's position is keyed by column name
+// (nodePositions), else it falls back to the existing auto-grid slot for its placed-index.
+describe('SemCanvasUI - path mode P2 shelf model (placed positions + shelf + delete-to-shelf)', () => {
+  const VB = { x: 0, y: 0, w: 720, h: 320 }
+
+  it('a placed node WITHOUT a nodePositions entry still draws at its auto-grid slot (regression: unmoved nodes unaffected)', () => {
+    const html = renderLatent({
+      modelKind: 'path', constructs: [], columns: ['educ'], paths: [], viewBox: VB,
+    })
+    // pathNodeCenter(0, 1, 720, 320): cols=1,rows=1 -> cx=360,cy=160 -> left=294,top=128
+    const grid = pathNodeCenter(0, 1, VB.w, VB.h)
+    expect(html).toContain(`x="${grid.left}" y="${grid.top}"`)
+  })
+
+  it('a placed node WITH a nodePositions entry draws at the moved position, not the grid slot', () => {
+    const html = renderLatent({
+      modelKind: 'path', constructs: [], columns: ['educ'], paths: [], viewBox: VB,
+      nodePositions: { educ: { x: 10, y: 20 } },
+    })
+    expect(html).toContain('x="10" y="20"')
+    const grid = pathNodeCenter(0, 1, VB.w, VB.h)
+    expect(html).not.toContain(`x="${grid.left}" y="${grid.top}"`)
+  })
+
+  it('only the moved node is repositioned - an unmoved sibling keeps its grid slot', () => {
+    const html = renderLatent({
+      modelKind: 'path', constructs: [], columns: ['a', 'b'], paths: [], viewBox: VB,
+      nodePositions: { a: { x: 5, y: 5 } },
+    })
+    const gridB = pathNodeCenter(1, 2, VB.w, VB.h)
+    expect(html).toContain('x="5" y="5"')
+    expect(html).toContain(`x="${gridB.left}" y="${gridB.top}"`)
+  })
+
+  it('renders one add-chip per shelfColumns entry, each a clickable button with a + affordance', () => {
+    const html = renderLatent({
+      modelKind: 'path', constructs: [], columns: ['educ'], paths: [], viewBox: VB,
+      shelfColumns: ['exper', 'wage'], onPlaceColumn: () => {},
+    })
+    expect((html.match(/class="chip"/g) ?? []).length).toBe(2)
+    expect(html).toContain('+ exper')
+    expect(html).toContain('+ wage')
+    expect(html).toContain('<button')
+  })
+
+  it('renders no shelf chips when shelfColumns is empty (every eligible column already placed)', () => {
+    const html = renderLatent({
+      modelKind: 'path', constructs: [], columns: ['educ'], paths: [], viewBox: VB,
+      shelfColumns: [], onPlaceColumn: () => {},
+    })
+    expect(html).not.toContain('class="chip"')
+  })
+
+  it('renders no shelf at all in latent mode even if shelfColumns/onPlaceColumn are supplied (defensive)', () => {
+    const html = renderLatent({ shelfColumns: ['stray'], onPlaceColumn: () => {} })
+    expect(html).not.toContain('class="chip"')
+  })
+
+  it('path-mode empty-canvas hint shows the P2 shelf DRAFT copy', () => {
+    const html = renderLatent({ modelKind: 'path', constructs: [], columns: [], paths: [] })
+    expect(html).toContain('Your canvas is empty. Add variables from the shelf below, then draw paths between them.')
+  })
+})
+
+// ── nodeDeleteAction: pure delete-mode-click decision (used by clickNode) ───
+describe('nodeDeleteAction - pure delete-mode node-click decision', () => {
+  it('path mode: delete-mode node click removes the node (P2 shelf model - chip returns to the shelf)', () => {
+    expect(nodeDeleteAction('path')).toBe(true)
+  })
+  it('latent mode: delete-mode node click is a no-op (paths-only rule, untouched - its own open question)', () => {
+    expect(nodeDeleteAction('latent')).toBe(false)
   })
 })
 
