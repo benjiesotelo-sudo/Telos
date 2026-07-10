@@ -34,3 +34,14 @@ Also in scope: `src/lib/registry/pathAnalysis.ts` still advertises `{ id: 'estim
 - All H1 cells (7) and their runs-in-r REPs stay green untouched.
 - Path-mode ML default output byte-identical (existing snapshots).
 - The two spec HTML files untouched EXCEPT via the held gate in scope item 4.
+
+## Amendment A (2026-07-11 ~3am, Benjie's rulings): the P2 canvas paradigm joins this slice
+
+Owner rulings via the canvas-paradigm board (artifact 9a778e65):
+1. **P2 - start empty, add from shelf.** The path-mode canvas opens BLANK; every used-eligible column waits as a chip on a shelf; clicking a chip places it on the canvas (auto-position at the next free spot). Only placed columns exist as nodes.
+2. **Delete = back to the shelf** (node's drawn paths removed with it; chip reappears, one click to re-place). Nothing destructive.
+3. **Move = full drag** in Move mode for path-mode nodes (reuse the latent-mode mechanism; positions persisted in state). The H1 cursor rule inverts naturally (grab shows because drag now works).
+4. **WLSMV detection rule = any ON-CANVAS (placed) column whose level is ordinal.** Model synthesis (withPathModeConstructs) switches from used-columns to PLACED columns - the model you see is the model that runs.
+5. **Locked-spec amendments PRE-APPROVED as a class** (path-analysis card depiction + ui-spec canvas description updated to the shelf paradigm); exact before/after wording lands on the morning ratify list, consistency green both sides - the MI-amendment pattern.
+6. Latent mode is UNCHANGED (its constructs are already opt-in via the form - effectively P2 already).
+7. Empty-state hint copy is DRAFT pending Benjie's render review at slice end.

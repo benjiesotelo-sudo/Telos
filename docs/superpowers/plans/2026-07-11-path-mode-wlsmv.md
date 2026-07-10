@@ -54,3 +54,8 @@ tsc -b --force; test:fast; FULL npm test once (accept the known tectonic-timeout
 
 ## Self-review
 Spec coverage: scope 1->T2, 2->T3, 3->T5, 4->T6, 5->T1/T4/T5/T7, 6->T8; non-goals respected (no canvas interaction files); locked-file gate encoded in T6 + global constraints; H1 pins protected by full-suite gate.
+
+## Amendment A - revised task list (P2 + WLSMV combined; supersedes the list above where they conflict)
+
+Order: T1 pins (unchanged, running) -> T2 P2 state model (session: placedColumns + positions for path mode; place/remove/move actions; withPathModeConstructs reads PLACED not used; store tests incl. remove-clears-paths) -> T3 P2 canvas UI (SemCanvas path mode: empty start, shelf chips, click-to-place, delete-to-shelf, drag via the latent mechanism, cursor rule inverts, empty-state DRAFT hint; component tests; the run gate requires >=1 path as before) -> T4 WLSMV UI detection (on-canvas ordinal rule; hint semantics per spec Amendment A) -> T5 runner sanitized ordered= (as original T3, but placed-columns basis) -> T6 real-WebR cells (original T4) -> T7 emitter parity + REP (original T5) -> T8 registry + PRE-APPROVED spec amendments (original T6 minus the hold: record exact before/after for morning ratify) -> T9 e2e journey under P2 (shelf place, draw, WLSMV, run, export; replaces original T7; also UPDATE existing path-mode e2e journeys/docs-capture flows that assumed seeded-full canvas - inventory them first: sem specs + picker-reupload-trap.spec.ts draw steps + tests/docs capture for 48) -> T10 gate + docs 48 regen + ratify addendum (original T8 + P2 wording items).
+Visual baselines: if any captured screen includes the path canvas, diffs are OWNER-GATED as always.
