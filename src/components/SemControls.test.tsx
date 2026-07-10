@@ -206,6 +206,25 @@ describe('WLSMV requires at least one ordinal indicator (Task 2 behavior 3)', ()
     expect(html).toContain('value="WLSMV" disabled=""')
     expect(html).toMatch(/WLSMV needs at least one ordinal indicator/)
   })
+
+  // FIX 4 (final-review wave): path mode's hasOrdinalIndicator is always false (setup.constructs is
+  // empty in path mode until run-time synthesis - SemControls.tsx wrapper), so the ordinal-scale-level
+  // claim is false in that mode. The note text must differ per modelKind, never claiming a fact about
+  // indicator levels path mode cannot know yet.
+  it('in path mode, the WLSMV note reads "not yet available for path analysis" - never the false scale-level claim', () => {
+    const html = renderUI({ track: 'cb-sem', modelKind: 'path', estimator: 'ML', hasOrdinalIndicator: false })
+    expect(html).toContain('value="WLSMV" disabled=""')
+    expect(html).toContain('WLSMV is not yet available for path analysis; use ML or MLR.')
+    expect(html).not.toMatch(/all your indicators are scale-level/)
+  })
+
+  it('in latent mode, the WLSMV note keeps the original scale-level wording - never the path-mode text', () => {
+    const html = renderUI({ track: 'cb-sem', modelKind: 'latent', estimator: 'ML', hasOrdinalIndicator: false })
+    expect(html).toContain(
+      'WLSMV needs at least one ordinal indicator; all your indicators are scale-level - use ML or MLR.'
+    )
+    expect(html).not.toMatch(/not yet available for path analysis/)
+  })
 })
 
 describe('Step-4a missing-policy mismatch note (Task 2 behavior 4)', () => {

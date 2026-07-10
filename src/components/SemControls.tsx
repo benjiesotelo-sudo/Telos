@@ -149,7 +149,9 @@ export function SemControlsUI({
           )}
           {!hasOrdinalIndicator && (
             <p className="hint" role="note" style={{ marginTop: 4 }}>
-              WLSMV needs at least one ordinal indicator; all your indicators are scale-level - use ML or MLR.
+              {modelKind === 'path'
+                ? 'WLSMV is not yet available for path analysis; use ML or MLR.'
+                : 'WLSMV needs at least one ordinal indicator; all your indicators are scale-level - use ML or MLR.'}
             </p>
           )}
           {showStep4aMismatch && (
