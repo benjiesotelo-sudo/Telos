@@ -50,10 +50,19 @@ export interface SemControlsUIProps {
    *  WLSMV reaches the runner with moderations present; this closes the UI-side seam so the
    *  estimator dropdown never lets the user reach that thrown error in the first place. */
   hasModeration?: boolean
-  /** Any construct item's column level is 'ordinal' (Configure-data). WLSMV needs at least one
-   *  ordinal indicator (semFitArgs.ts's own guard) - mirrored here so the WLSMV option greys out
-   *  in the UI before the user can reach that thrown error. */
+  /** Latent mode: any construct item's column level is 'ordinal' (Configure-data). Path mode
+   *  (Amendment B, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md): at least one
+   *  PLACED column is ordinal AND is ENDOGENOUS in the drawn paths (some path's `to` points at
+   *  it) - matches lavaan's ordered-threshold semantics; exogenous ordinal predictors enter the
+   *  model numerically and never carry thresholds. WLSMV needs at least one ordinal indicator
+   *  (semFitArgs.ts's own guard) - mirrored here so the WLSMV option greys out in the UI before
+   *  the user can reach that thrown error. */
   hasOrdinalIndicator: boolean
+  /** Path mode only: true when at least one PLACED column (on the canvas) is ordinal-level,
+   *  regardless of whether it is endogenous yet. Distinguishes the two path-mode WLSMV hints:
+   *  "nothing ordinal on the canvas at all" vs "an ordinal variable is placed but none is
+   *  endogenous yet" (Amendment B). Unused outside path mode. */
+  hasPlacedOrdinal?: boolean
   /** Session-level Configure-data missing policy ('leave' | 'drop' | 'impute') - compared against
    *  the SEM-local missing choice for the step-4a mismatch note. */
   globalMissingPolicy: string
@@ -67,7 +76,7 @@ export interface SemControlsUIProps {
 /** Pure presentational bespoke controls — NOT generic option pills (locked stages, conditional greying, computed estimate). */
 export function SemControlsUI({
   track, modelKind, pipeline, efa, estimator, missing, nboot, running, hasModeration = false,
-  hasOrdinalIndicator, globalMissingPolicy,
+  hasOrdinalIndicator, hasPlacedOrdinal = false, globalMissingPolicy,
   onSetPipeline, onSetEfa, onSetEstimator, onSetMissing, onSetNboot,
 }: SemControlsUIProps) {
   const isCb = track === 'cb-sem'
@@ -148,9 +157,13 @@ export function SemControlsUI({
             </p>
           )}
           {!hasOrdinalIndicator && (
+            // DRAFT copy - owner render review pending (spec 2026-07-11-path-mode-wlsmv-design.md
+            // Amendment B); path-mode wording branches on whether an ordinal column is placed at all.
             <p className="hint" role="note" style={{ marginTop: 4 }}>
               {modelKind === 'path'
-                ? 'WLSMV is not yet available for path analysis; use ML or MLR.'
+                ? hasPlacedOrdinal
+                  ? 'WLSMV applies ordered-threshold modeling to ordinal outcome variables; draw a path into an ordinal variable to enable it.'
+                  : 'WLSMV needs at least one ordinal variable on the canvas; all your placed variables are scale-level - use ML or MLR.'
                 : 'WLSMV needs at least one ordinal indicator; all your indicators are scale-level - use ML or MLR.'}
             </p>
           )}
@@ -213,8 +226,21 @@ export function SemControls({ testId }: { testId: string }) {
   const track = testId === 'pls-sem' ? 'pls-sem' : 'cb-sem'
   const o = setup.options
   const columnLevel = new Map(s.columns.map((c) => [c.name, c.level]))
-  const hasOrdinalIndicator = (setup.constructs ?? []).some((c) =>
-    c.items.some((item) => columnLevel.get(item) === 'ordinal'))
+  const isPath = setup.modelKind === 'path'
+  const placed = setup.placed ?? []
+  const paths = setup.paths ?? []
+  // Amendment B (docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md): path-mode WLSMV
+  // enablement requires a PLACED ordinal column that is ENDOGENOUS in the drawn paths (some
+  // path's `to` is that column's placed-index) - lavaan only assigns thresholds to endogenous
+  // ordered variables; exogenous ordinal predictors enter numerically with no warning. This is
+  // dynamic with drawing: it re-derives from the live setup on every render. Latent mode's rule
+  // (any ordinal item among construct indicators) is unchanged.
+  const hasPlacedOrdinal = isPath && placed.some((name) => columnLevel.get(name) === 'ordinal')
+  const hasEndogenousOrdinal = isPath && placed.some((name, i) =>
+    columnLevel.get(name) === 'ordinal' && paths.some((p) => p.to === i))
+  const hasOrdinalIndicator = isPath
+    ? hasEndogenousOrdinal
+    : (setup.constructs ?? []).some((c) => c.items.some((item) => columnLevel.get(item) === 'ordinal'))
   return (
     <SemControlsUI
       track={track}
@@ -227,6 +253,7 @@ export function SemControls({ testId }: { testId: string }) {
       running={s.runStatus === 'running'}
       hasModeration={(setup.moderations ?? []).length > 0}
       hasOrdinalIndicator={hasOrdinalIndicator}
+      hasPlacedOrdinal={hasPlacedOrdinal}
       globalMissingPolicy={s.missingPolicy}
       onSetPipeline={(p) => s.setOption(testId, 'pipeline', p)}
       onSetEfa={(on) => s.setOption(testId, 'efa', on)}

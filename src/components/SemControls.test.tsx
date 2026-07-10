@@ -207,23 +207,62 @@ describe('WLSMV requires at least one ordinal indicator (Task 2 behavior 3)', ()
     expect(html).toMatch(/WLSMV needs at least one ordinal indicator/)
   })
 
-  // FIX 4 (final-review wave): path mode's hasOrdinalIndicator is always false (setup.constructs is
-  // empty in path mode until run-time synthesis - SemControls.tsx wrapper), so the ordinal-scale-level
-  // claim is false in that mode. The note text must differ per modelKind, never claiming a fact about
-  // indicator levels path mode cannot know yet.
-  it('in path mode, the WLSMV note reads "not yet available for path analysis" - never the false scale-level claim', () => {
-    const html = renderUI({ track: 'cb-sem', modelKind: 'path', estimator: 'ML', hasOrdinalIndicator: false })
-    expect(html).toContain('value="WLSMV" disabled=""')
-    expect(html).toContain('WLSMV is not yet available for path analysis; use ML or MLR.')
-    expect(html).not.toMatch(/all your indicators are scale-level/)
-  })
-
   it('in latent mode, the WLSMV note keeps the original scale-level wording - never the path-mode text', () => {
     const html = renderUI({ track: 'cb-sem', modelKind: 'latent', estimator: 'ML', hasOrdinalIndicator: false })
     expect(html).toContain(
       'WLSMV needs at least one ordinal indicator; all your indicators are scale-level - use ML or MLR.'
     )
     expect(html).not.toMatch(/not yet available for path analysis/)
+    expect(html).not.toMatch(/on the canvas/)
+  })
+})
+
+// Path-mode WLSMV enablement follows endogeneity (Amendment B, spec 2026-07-11-path-mode-wlsmv-design.md).
+// SemControlsUI itself is pure/presentational - it just picks between the two path-mode hints off the
+// `hasOrdinalIndicator`/`hasPlacedOrdinal` props; the CONTAINER's derivation of those two booleans from
+// setup.placed/paths/columns (including the "flips as paths are drawn/removed" dynamism) is covered by
+// SemControls.pathmode.test.tsx, which renders the store-connected <SemControls>.
+describe('SemControlsUI - path-mode WLSMV hints (Amendment B: enablement follows endogeneity)', () => {
+  it('ordinal placed AND endogenous: WLSMV selectable, no hint shown', () => {
+    const html = renderUI({
+      track: 'cb-sem', modelKind: 'path', estimator: 'ML', hasOrdinalIndicator: true, hasPlacedOrdinal: true,
+    })
+    expect(html).not.toContain('value="WLSMV" disabled=""')
+    expect(html).not.toMatch(/WLSMV applies ordered-threshold modeling/)
+    expect(html).not.toMatch(/WLSMV needs at least one ordinal variable on the canvas/)
+  })
+
+  it('ordinal placed but only exogenous (no path points into it): WLSMV disabled, endogeneity hint shown', () => {
+    const html = renderUI({
+      track: 'cb-sem', modelKind: 'path', estimator: 'ML', hasOrdinalIndicator: false, hasPlacedOrdinal: true,
+    })
+    expect(html).toContain('value="WLSMV" disabled=""')
+    expect(html).toContain(
+      'WLSMV applies ordered-threshold modeling to ordinal outcome variables; draw a path into an ordinal variable to enable it.'
+    )
+    expect(html).not.toMatch(/all your placed variables are scale-level/)
+    expect(html).not.toMatch(/not yet available for path analysis/)
+  })
+
+  it('no ordinal column placed at all: WLSMV disabled, adapted all-scale hint shown', () => {
+    const html = renderUI({
+      track: 'cb-sem', modelKind: 'path', estimator: 'ML', hasOrdinalIndicator: false, hasPlacedOrdinal: false,
+    })
+    expect(html).toContain('value="WLSMV" disabled=""')
+    expect(html).toContain(
+      'WLSMV needs at least one ordinal variable on the canvas; all your placed variables are scale-level - use ML or MLR.'
+    )
+    expect(html).not.toMatch(/WLSMV applies ordered-threshold modeling/)
+    expect(html).not.toMatch(/not yet available for path analysis/)
+  })
+
+  it('hasPlacedOrdinal defaults to false when omitted (latent callers never pass it)', () => {
+    const html = renderUI({
+      track: 'cb-sem', modelKind: 'path', estimator: 'ML', hasOrdinalIndicator: false,
+    })
+    expect(html).toContain(
+      'WLSMV needs at least one ordinal variable on the canvas; all your placed variables are scale-level - use ML or MLR.'
+    )
   })
 })
 
