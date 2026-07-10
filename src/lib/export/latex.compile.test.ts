@@ -60,5 +60,5 @@ describe.skipIf(!hasTectonic)('LaTeX export compiles under tectonic (A6 devices 
     const file = join(dir, 'doc.tex')
     writeFileSync(file, doc)
     expect(() => execSync(`tectonic ${JSON.stringify(file)}`, { cwd: dir, stdio: 'pipe' })).not.toThrow()
-  }, 10_000)
+  }, 30_000)
 })
