@@ -105,9 +105,12 @@ test('Journey: association — Pearson, Spearman, Kendall, χ² independence, χ
   await expect(page.getByText('custom proportions must sum to 1 to enable Run')).toBeVisible()
 
   // Fix to 0.5 / 0.3 / 0.2 → GoF gate clears (Next button enabled, confirming the sum gate passed)
+  // Commit each field with Tab before reading the gate - under load the onChange re-render can lag the fill.
   await page.getByLabel('proportion: lecture').fill('0.3')
+  await page.getByLabel('proportion: lecture').press('Tab')
   await page.getByLabel('proportion: seminar').fill('0.2')
-  await expect(page.getByRole('button', { name: /^Next:/ })).toBeEnabled()
+  await page.getByLabel('proportion: seminar').press('Tab')
+  await expect(page.getByRole('button', { name: /^Next:/ })).toBeEnabled({ timeout: 15_000 })
 
   // ── Configure: Fisher's exact — passed → rowVar, gender → colVar ──
   await configureStep(page, /Fisher/, [

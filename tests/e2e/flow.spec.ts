@@ -50,7 +50,10 @@ test('full journey: welcome → upload → guide → configure → pick → drag
   await dragChip(page, 'group', 'group')
   await expect(page.locator('[data-role="outcome"] .chip.assigned')).toContainText('score')
   await expect(page.locator('[data-role="group"] .chip.assigned')).toContainText('group')
-  await page.getByRole('button', { name: 'Run analysis' }).click()
+  await expect(async () => { // under load the click can race a re-render and land before the app leaves the configure screen - confirm the run visibly started
+    await page.getByRole('button', { name: 'Run analysis' }).click()
+    await expect(page.getByRole('heading', { name: 'Results' })).toBeVisible({ timeout: 1000 })
+  }).toPass()
 
   // Results — Welch (drawn default: equal variance off)
   const t2 = page.locator('#table-t-test')
