@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useSession } from '../state/session'
-import type { Construct, StructuralPath, Moderation, NodePosition } from '../state/session'
+import type { Construct, StructuralPath, Moderation, NodePosition, TestRun } from '../state/session'
 import type { CbSemResult } from '../lib/stats/cbSem'
 
 const BLUE = 'var(--info)'
@@ -608,6 +608,15 @@ export function pendingResetKey(modelKind: 'latent' | 'path', mode: 'draw' | 'mo
   return `${modelKind}:${mode}:${placed.join(',')}`
 }
 
+/** The post-run canvas overlay must never show betas/loadings/R² for a run whose upstream inputs
+ *  changed since it ran (TestRun.stale, set by revalidated() on any earlier-step edit) - e.g. after a
+ *  path-mode removal remap, a stale run's estimates would otherwise label the WRONG arrows/nodes until
+ *  re-run. Extracted as a pure decision for direct testability (FIX 3, final-review fix wave). */
+export function resolveEstimates(run: TestRun | undefined): CbSemResult['estimates'] | null {
+  if (!run || run.stale) return null
+  return (run.result as { estimates?: CbSemResult['estimates'] } | undefined)?.estimates ?? null
+}
+
 /** Store-connected canvas: useSession wiring + pointer-drag move + viewBox zoom/pan + resize grip.
  *  Items "keep their side" for free — SemCanvasUI draws item boxes relative to the (moved) node centre. */
 export function SemCanvas({ testId }: { testId: string }) {
@@ -734,7 +743,7 @@ export function SemCanvas({ testId }: { testId: string }) {
           paths={setup.paths ?? []}
           modelKind={modelKind}
           mode={mode}
-          estimates={(s.runs[testId]?.result as { estimates?: CbSemResult['estimates'] } | undefined)?.estimates ?? null}
+          estimates={resolveEstimates(s.runs[testId])}
           running={running}
           viewBox={vb}
           moderations={setup.moderations ?? []}

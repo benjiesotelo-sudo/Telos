@@ -1,8 +1,8 @@
 // src/components/SemCanvas.estimates.test.tsx
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { SemCanvasUI, type SemCanvasUIProps } from './SemCanvas'
-import type { Construct, StructuralPath } from '../state/session'
+import { SemCanvasUI, resolveEstimates, type SemCanvasUIProps } from './SemCanvas'
+import type { Construct, StructuralPath, TestRun } from '../state/session'
 import type { CbSemResult } from '../lib/stats/cbSem'
 
 const constructs: Construct[] = [
@@ -57,5 +57,27 @@ describe('SemCanvasUI - post-run estimates overlay', () => {
   it('keys the exported diagram svg by testId-free figure id and stays renderToStaticMarkup-pure', () => {
     const html = renderToStaticMarkup(<SemCanvasUI {...base} estimates={estimates} />)
     expect(html).toContain('id="figure-path-diagram-')
+  })
+})
+
+// FIX 3 (final-review fix wave): the connected canvas read s.runs[testId]?.result estimates without
+// checking .stale - after a path-mode removal remap, a stale run's betas/R2 would label the WRONG
+// arrows/nodes until re-run. resolveEstimates is the pure decision the connected wrapper defers to,
+// extracted for direct testability (no store/DOM needed).
+describe('resolveEstimates - post-run canvas overlay must never show a STALE run\'s numbers', () => {
+  it('a stale run resolves to null estimates (no overlay)', () => {
+    const run: TestRun = { result: { estimates }, stale: true }
+    expect(resolveEstimates(run)).toBeNull()
+  })
+  it('a fresh (non-stale) run resolves to its estimates (overlay renders)', () => {
+    const run: TestRun = { result: { estimates }, stale: false }
+    expect(resolveEstimates(run)).toEqual(estimates)
+  })
+  it('no run at all resolves to null', () => {
+    expect(resolveEstimates(undefined)).toBeNull()
+  })
+  it('a fresh run whose result carries no estimates key resolves to null (defensive, unchanged behavior)', () => {
+    const run: TestRun = { result: {}, stale: false }
+    expect(resolveEstimates(run)).toBeNull()
   })
 })
