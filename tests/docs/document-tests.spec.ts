@@ -83,9 +83,17 @@ async function documentTest(page: Page, c: Case) {
   // (No scroll workaround needed: the app scrolls to top on every step change - ratify N2.)
 
   // configure-test: path-analysis (observed-only path mode) — no construct-slots form, no drag roles.
-  // The canvas shows one RECTANGLE per used column (data-node-id = index into the used-columns list);
-  // Draw is the default tool → click source rect then target rect to draw each structural path.
+  // P2 shelf model (spec Amendment A, 2026-07-11): the canvas opens BLANK; every used-eligible
+  // column waits as a "+ name" chip on a shelf below the svg, in used-column order (SemCanvas.tsx's
+  // `usedColumns` preserves the CSV's own column order). Repeatedly clicking the FIRST shelf chip
+  // places columns in that same order without needing to re-derive which columns ended up used
+  // (case 48's dataConfig only lists 'unuse' actions - the used set is whatever's left by default,
+  // not computable from a 'use' filter) - data-node-id = index into the PLACED order, so this keeps
+  // nodePaths' node ids meaning what they always meant: index into the used-columns list. Draw is
+  // the default tool → click source rect then target rect to draw each structural path.
   if (c.nodePaths) {
+    const shelfChip = page.locator('.sem-shelf button.chip')
+    while (await shelfChip.count() > 0) await shelfChip.first().click()
     const rect = (id: number) => page.locator(`rect.sem-node-rect[data-node-id="${id}"]`)
     await expect(rect(0)).toBeVisible()
     for (const [from, to] of c.nodePaths) {

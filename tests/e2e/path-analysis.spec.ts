@@ -1,16 +1,20 @@
 import { test, expect } from '@playwright/test'
+import { placeColumns } from './fixtures/helpers'
 
-// Path-analysis end-to-end: the canvas→runner bridge. Path mode derives its nodes from the USED
-// columns (drawn as RECTANGLES, not ovals — no measurement model), so there is no construct-slots
-// form to fill: goto the card → the canvas already shows a rectangle per used column → draw a chain
-// of paths (x1 → x4 → x7, an indirect/mediation triple) → Run → lavaan::sem fits the observed
-// variables and a Structural paths table appears. The assertion that matters: the run PRODUCES A
-// RESULT (no per-test error card), proving the bridge wires UI → state → runner.
+// Path-analysis end-to-end: the canvas→runner bridge. Path mode derives its nodes from the PLACED
+// columns (drawn as RECTANGLES, not ovals - no measurement model). Since the P2 shelf model (spec
+// Amendment A, 2026-07-11) the canvas opens BLANK - every used-eligible column waits as a chip on
+// a shelf below the svg - so the journey now: goto the card → assert the empty-start state (no
+// nodes, full shelf) → place the four used columns from the shelf (in x1..x4 order, fixing node ids
+// 0..3) → draw a chain of paths (x1 → x4 → x7 through those ids, an indirect/mediation triple) →
+// Run → lavaan::sem fits the observed variables and a Structural paths table appears. The assertion
+// that matters: the run PRODUCES A RESULT (no per-test error card), proving the bridge wires
+// UI → state → runner.
 //
 // gotoCard builds /<cardId>/i for the pick-test checkbox; the path-analysis label is "Path analysis",
 // so we inline the flow here with a name-matching regex instead of using the shared helper.
 
-test('path-analysis: column nodes → draw chain → run → structural-paths result', async ({ page }) => {
+test('path-analysis: shelf placement → column nodes → draw chain → run → structural-paths result', async ({ page }) => {
   test.setTimeout(900_000) // cold WebR boot + lavaan/semTools download + 5k-resample mediation bootstrap
   await page.goto('/')
   await page.getByRole('button', { name: 'Get started' }).click()
@@ -24,13 +28,21 @@ test('path-analysis: column nodes → draw chain → run → structural-paths re
   await page.getByRole('checkbox', { name: /path analysis/i }).check()
   await page.getByRole('button', { name: 'Confirm selection' }).click()
 
-  // 1. Path mode renders one observed-column RECTANGLE per used column (NOT latent ovals).
-  await expect(page.locator('rect.sem-node-rect[data-node-id]')).toHaveCount(4)
+  // 1. P2 shelf model: the canvas opens BLANK - no nodes, only latent mode draws ovals - and every
+  //    used column (x1..x4) waits as an add-chip on the shelf below the svg.
+  await expect(page.locator('rect.sem-node-rect[data-node-id]')).toHaveCount(0)
   await expect(page.locator('ellipse[data-node-id]')).toHaveCount(0)
+  await expect(page.locator('button.chip')).toHaveCount(4)
+  for (const c of ['x1', 'x2', 'x3', 'x4']) await expect(page.getByRole('button', { name: `Add ${c} to the canvas` })).toBeVisible()
 
-  // 2. Draw is the default tool. The canvas node id = index into the used-columns list (x1..x4),
-  //    so data-node-id 0 = x1, 1 = x2, 2 = x3, 3 = x4. Draw a chain x1 → x2 → x3 (indirect effect)
-  //    PLUS an edge x2 → x4: node index 3 must be clickable (regression: it used to be off-canvas).
+  // 2. Place the four columns from the shelf, in x1..x4 order, so node ids land 0=x1, 1=x2, 2=x3, 3=x4
+  //    (the same ids the rest of this test relies on).
+  await placeColumns(page, ['x1', 'x2', 'x3', 'x4'])
+  await expect(page.locator('rect.sem-node-rect[data-node-id]')).toHaveCount(4)
+  await expect(page.locator('button.chip')).toHaveCount(0)
+
+  // 3. Draw is the default tool. Draw a chain x1 → x2 → x3 (indirect effect) PLUS an edge x2 → x4:
+  //    node index 3 must be clickable (regression: it used to be off-canvas).
   const rect = (id: number) => page.locator(`rect.sem-node-rect[data-node-id="${id}"]`)
 
   // node index 3 must be in-bounds / clickable (the layout-fix assertion)
@@ -49,10 +61,10 @@ test('path-analysis: column nodes → draw chain → run → structural-paths re
   // three directed structural arrows now exist
   await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(3)
 
-  // 3. RUN — real lavaan::sem on observed variables (cold WebR boot + bootstrap → generous timeout).
+  // 4. RUN - real lavaan::sem on observed variables (cold WebR boot + bootstrap → generous timeout).
   await page.getByRole('button', { name: 'Run analysis' }).click()
 
-  // 4. A RESULT, not an error card: the Structural paths table renders. (Bridge proven.)
+  // 5. A RESULT, not an error card: the Structural paths table renders. (Bridge proven.)
   //    The mediation chain triggers a 5k-resample bootstrap, so allow a generous wait on a cold run.
   await expect(page.locator('#table-path-analysis-structural-paths')).toBeVisible({ timeout: 600_000 })
   await expect(page.locator('#table-path-analysis-structural-paths').getByRole('row')).not.toHaveCount(0)

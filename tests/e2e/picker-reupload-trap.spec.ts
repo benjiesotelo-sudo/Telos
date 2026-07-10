@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { placeColumns } from './fixtures/helpers'
 
 // Launch-day hotfix regression: replays the OWNER'S EXACT bug journey.
 //   upload campus-study.csv -> select+configure+run independent t-test -> back to Upload ->
@@ -81,7 +82,11 @@ test('picker re-upload trap: a blocked selected test stays unselectable-free, an
   await expect(page.locator('.eyebrow').first()).toContainText('Path analysis')
   await expect(page.getByText(/^Blocked:/)).toHaveCount(0)
 
-  // ── 5. Draw educ → score on the path canvas (2 used columns → node 0 = educ, node 1 = score) ──
+  // ── 5. P2 shelf model: the path canvas opens BLANK (2 used columns → 2 shelf chips, no nodes) -
+  // place educ then score so node ids land 0 = educ, 1 = score, then draw educ → score. ──
+  await expect(page.locator('rect.sem-node-rect[data-node-id]')).toHaveCount(0)
+  await expect(page.locator('button.chip')).toHaveCount(2)
+  await placeColumns(page, ['educ', 'score'])
   await expect(page.locator('rect.sem-node-rect[data-node-id]')).toHaveCount(2)
   const rect = (id: number) => page.locator(`rect.sem-node-rect[data-node-id="${id}"]`)
   await rect(0).click()
