@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { useSession, stepsOf, canEnter, workingDataset, gateOk, serializeSetups, hydrateSetups } from './session'
+import { useSession, stepsOf, canEnter, workingDataset, gateOk, serializeSetups, hydrateSetups, firstUnblockedSelection } from './session'
 import type { Dataset, TTestResult } from '../lib/stats/types'
 import { SPECS } from '../lib/registry/catalog'
 import { RUNNERS } from '../lib/results/builders'
@@ -85,6 +85,21 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     useSession.getState().loadDataset({ columns: ['a'], rows: [{ a: 1 }] }, { name: 'other.csv', rows: 1, cols: 1, encoding: 'UTF-8' })
     expect(useSession.getState().setups['independent-t-test'].blocked).toBe('Outcome (DV): column not found')
   })
+  // launch-day trap: a re-upload with entirely different columns blocks the STALE selected test
+  // (columns vanished, blocked !== null) without ever removing it from selection. Unselecting a
+  // blocked-but-selected test must still work — it is the SAME deselection path an eligible test
+  // uses (removes the setup/run/error, drops the id from selection). This already holds true in the
+  // store today (toggleSelection never reads eligibility); this test locks it in as a regression
+  // guard for the picker-screen fix, which relaxes the checkbox's disabled condition to rely on it.
+  it('toggleSelection still deselects a blocked (columns-vanished) test the same as an eligible one', () => {
+    assign(); fakeRun()
+    useSession.getState().loadDataset({ columns: ['a'], rows: [{ a: 1 }] }, { name: 'other.csv', rows: 1, cols: 1, encoding: 'UTF-8' })
+    expect(useSession.getState().setups['independent-t-test'].blocked).not.toBeNull()
+    useSession.getState().toggleSelection('independent-t-test')
+    expect(useSession.getState().selection).toEqual([])
+    expect(useSession.getState().setups['independent-t-test']).toBeUndefined()
+    expect(useSession.getState().runs['independent-t-test']).toBeUndefined()
+  })
   it('results stay locked until every selected test has all role slots filled', () => {
     expect(canEnter(useSession.getState(), 'results')).toBe(false)
     assign()
@@ -109,6 +124,35 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     useSession.getState().removeRole('independent-t-test', 'outcome', 'score')
     useSession.getState().addRole('independent-t-test', 'group', 'score')
     expect(useSession.getState().setups['independent-t-test'].roles['group']).toEqual(['score'])
+  })
+})
+
+describe('firstUnblockedSelection (launch-day fix: Confirm must not land on a blocked test)', () => {
+  it('returns the first selection entry whose setup is not blocked, even if an earlier entry is blocked', () => {
+    const s = { selection: ['a', 'b', 'c'], setups: {
+      a: { roles: {}, options: {}, props: {}, blocked: 'Outcome (DV): column not found' },
+      b: { roles: {}, options: {}, props: {}, blocked: null },
+      c: { roles: {}, options: {}, props: {}, blocked: null },
+    } }
+    expect(firstUnblockedSelection(s)).toBe('b')
+  })
+  it('returns selection[0] when nothing is blocked (unchanged legacy behaviour)', () => {
+    const s = { selection: ['a', 'b'], setups: {
+      a: { roles: {}, options: {}, props: {}, blocked: null },
+      b: { roles: {}, options: {}, props: {}, blocked: null },
+    } }
+    expect(firstUnblockedSelection(s)).toBe('a')
+  })
+  it('falls back to selection[0] when every selected test is blocked', () => {
+    const s = { selection: ['a', 'b'], setups: {
+      a: { roles: {}, options: {}, props: {}, blocked: 'x' },
+      b: { roles: {}, options: {}, props: {}, blocked: 'y' },
+    } }
+    expect(firstUnblockedSelection(s)).toBe('a')
+  })
+  it('does not throw on a missing setup entry (unreachable in practice - revalidated() always populates every selected id)', () => {
+    const s = { selection: ['a', 'b'], setups: { b: { roles: {}, options: {}, props: {}, blocked: null } } }
+    expect(() => firstUnblockedSelection(s)).not.toThrow()
   })
 })
 
