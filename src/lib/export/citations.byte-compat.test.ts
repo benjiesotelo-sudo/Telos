@@ -8,6 +8,7 @@ import { citationsText } from './citations'
 import { CITE_APP_TEXT } from './citeApp'
 import { CATALOG } from '../registry/catalog'
 import { CITATIONS } from '../registry/citations'
+import type { TestSetup } from '../../state/session'
 
 const nameOf = (id: string) => CATALOG.find((c) => c.id === id)!.name
 
@@ -88,5 +89,56 @@ describe('citationsText — tiered reference kit (direction B)', () => {
     expect(t.indexOf('4. APPENDIX: R PACKAGE CITATIONS')).toBeGreaterThan(t.indexOf('3. METHODS PARAGRAPH'))
     expect(t).toContain('R 4.6.0')
     expect(t.lastIndexOf('R 4.6.0')).toBeGreaterThan(t.indexOf('4. APPENDIX: R PACKAGE CITATIONS'))
+  })
+})
+
+// Task 8: a default (untouched dropdowns) run's citation output is byte-unchanged - both when no
+// `setups` arg is passed at all (pre-Task-8 call shape, still legal) and when one is passed with
+// empty options (a fresh setup).
+describe('citationsText - default-run byte-pin (Task 8)', () => {
+  it('cb-sem with NO setups arg is byte-identical to cb-sem with an empty-options setup', () => {
+    const withoutSetups = citationsText(['cb-sem'], {})
+    const withDefaultSetup = citationsText(['cb-sem'], {}, { 'cb-sem': { roles: {}, options: {}, props: {}, blocked: null } })
+    expect(withDefaultSetup).toBe(withoutSetups)
+  })
+
+  it('cb-sem default run never mentions the conditional refs (Yuan/Muthen/Enders/Sobel)', () => {
+    const t = citationsText(['cb-sem'])
+    const sec2 = t.slice(t.indexOf('2. YOUR REFERENCE LIST'), t.indexOf('3. METHODS PARAGRAPH'))
+    expect(sec2).not.toContain('Yuan')
+    expect(sec2).not.toContain('Muth')
+    expect(sec2).not.toContain('Enders')
+    expect(sec2).not.toContain('Sobel')
+  })
+})
+
+describe('citationsText - conditional method refs earn their way into the reference list (Task 8)', () => {
+  it('cb-sem run under MLR: reference list includes Yuan-Bentler (2000)', () => {
+    const setups: Record<string, TestSetup> = { 'cb-sem': { roles: {}, options: { estimator: 'MLR' }, props: {}, blocked: null } }
+    const t = citationsText(['cb-sem'], {}, setups)
+    const sec2 = t.slice(t.indexOf('2. YOUR REFERENCE LIST'), t.indexOf('3. METHODS PARAGRAPH'))
+    expect(sec2).toContain('Yuan')
+    expect(t).toContain(nameOf('cb-sem')) // section 3's methods paragraph always names the test
+  })
+
+  it('path-analysis run under WLSMV + an indirect chain: reference list includes the WLSMV source AND Sobel (1982)', () => {
+    const setups: Record<string, TestSetup> = {
+      'path-analysis': {
+        roles: {}, options: { estimator: 'WLSMV' }, props: {}, blocked: null,
+        paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }],
+      },
+    }
+    const t = citationsText(['path-analysis'], {}, setups)
+    const sec2 = t.slice(t.indexOf('2. YOUR REFERENCE LIST'), t.indexOf('3. METHODS PARAGRAPH'))
+    expect(sec2).toContain('Muth')
+    expect(sec2).toContain('Sobel')
+    expect(sec2).not.toContain('Yuan')
+  })
+
+  it('the registry\'s own base cb-sem refs (e.g. Rosseel/lavaan) still appear alongside a conditional ref', () => {
+    const cohenRef = CITATIONS['cb-sem'].statisticalBasis.find((b) => b.ref.text.startsWith('Rosseel'))!.ref.text
+    const setups: Record<string, TestSetup> = { 'cb-sem': { roles: {}, options: { estimator: 'MLR' }, props: {}, blocked: null } }
+    const t = citationsText(['cb-sem'], {}, setups)
+    expect(t).toContain(cohenRef)
   })
 })

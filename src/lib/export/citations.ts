@@ -16,9 +16,10 @@
 //      of every emitter's `*Packages` record (rScript/emitters PACKAGES), so it stays reconciled
 //      automatically.
 import { PACKAGES } from './rScript/emitters'
-import { CITATIONS, type Ref } from '../registry/citations'
+import { CITATIONS, effectiveStatisticalBasis, type Ref } from '../registry/citations'
 import { CATALOG } from '../registry/catalog'
 import { CITE_APP_TEXT } from './citeApp'
+import type { TestSetup } from '../../state/session'
 
 const R_VERSION = 'R 4.6.0'
 
@@ -85,12 +86,15 @@ const testName = (id: string): string => CATALOG.find((c) => c.id === id)?.name 
 
 // Every whyThisTest + statisticalBasis ref cited by a test, de-duplicated once per test (so a ref
 // used twice WITHIN one test's own entry doesn't make that test appear twice in its "[used by:]").
-const refsOf = (id: string): Ref[] => {
+// `setup` (Task 8) threads the run's own options through effectiveStatisticalBasis so a
+// conditionally-earned ref (e.g. Yuan-Bentler under MLR) appears in the reference list too - omitted,
+// this resolves to the always-on statisticalBasis, matching pre-Task-8 output exactly.
+const refsOf = (id: string, setup?: TestSetup): Ref[] => {
   const c = CITATIONS[id]
   if (!c) return []
   const seen = new Set<string>()
   const out: Ref[] = []
-  for (const ref of [...c.whyThisTest.refs, ...c.statisticalBasis.map((b) => b.ref)]) {
+  for (const ref of [...c.whyThisTest.refs, ...effectiveStatisticalBasis(id, setup).map((b) => b.ref)]) {
     if (seen.has(ref.text)) continue
     seen.add(ref.text)
     out.push(ref)
@@ -105,11 +109,11 @@ const surnameOf = (ref: Ref): string => ref.authors.split(',')[0].trim().split(/
 // Section 2: dedup a selection's refs by exact text (the same Ref constant, wherever reused, is the
 // same reference), collecting which test(s) cite it, then sort alphabetically. Array#sort is stable
 // in every engine Telos targets, so equal surnames keep their first-encountered relative order.
-function referenceListLines(selection: string[]): string[] {
+function referenceListLines(selection: string[], setups: Record<string, TestSetup>): string[] {
   const byText = new Map<string, { ref: Ref; tests: string[] }>()
   for (const id of selection) {
     const name = testName(id)
-    for (const ref of refsOf(id)) {
+    for (const ref of refsOf(id, setups[id])) {
       const entry = byText.get(ref.text)
       if (entry) entry.tests.push(name)
       else byText.set(ref.text, { ref, tests: [name] })
@@ -142,7 +146,13 @@ function methodsParagraphLines(selection: string[], apaById: Record<string, stri
 // apaById: CardContent.apa per already-run test this export session (buildExportFiles threads this
 // through from the same loop that already builds each fresh test's content for its figures — see
 // that file's comment for why this doesn't need a deeper re-architecture).
-export function citationsText(selection: string[] = [], apaById: Record<string, string> = {}): string {
+export function citationsText(
+  selection: string[] = [],
+  apaById: Record<string, string> = {},
+  // Task 8: the run's own setups, so a conditionally-earned ref (estimator/missing-method) appears
+  // in section 2 - omitted, this resolves identically to pre-Task-8 output (the byte-pin).
+  setups: Record<string, TestSetup> = {},
+): string {
   const lines: string[] = []
   lines.push('Telos — Citations for the Exported Analysis')
   lines.push('===========================================')
@@ -158,7 +168,7 @@ export function citationsText(selection: string[] = [], apaById: Record<string, 
 
   lines.push('2. YOUR REFERENCE LIST')
   lines.push('=======================')
-  lines.push(...referenceListLines(selection))
+  lines.push(...referenceListLines(selection, setups))
   lines.push('')
 
   lines.push('3. METHODS PARAGRAPH')

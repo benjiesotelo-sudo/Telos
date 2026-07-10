@@ -9,7 +9,7 @@ import { emitLatex } from '../../lib/export/latex'
 import { licensesText } from '../../lib/export/licenses'
 import { citationsText } from '../../lib/export/citations'
 import { referencesBibText } from '../../lib/export/referencesBib'
-import { CITATIONS } from '../../lib/registry/citations'
+import { CITATIONS, effectiveStatisticalBasis } from '../../lib/registry/citations'
 import { FEEDBACK_URL } from '../../content/copy'
 import { ResultPreviewCard } from '../ResultPreviewCard'
 import { ResultBoundary } from '../ResultBoundary'
@@ -80,8 +80,8 @@ export function buildExportFiles(s: SessionState, formats: ExportFormats): Recor
   // Excluded only when PDF is the sole tick: that path never produces a zip (printReport() is the
   // only artifact), so adding these here would create a spurious download the user didn't ask for.
   if (formats.tables || formats.figures || formats.r || formats.latex) {
-    files['CITATIONS.txt'] = enc(citationsText(s.selection, apaById))
-    files['references.bib'] = enc(referencesBibText(s.selection))
+    files['CITATIONS.txt'] = enc(citationsText(s.selection, apaById, s.setups))
+    files['references.bib'] = enc(referencesBibText(s.selection, s.setups))
   }
   return files
 }
@@ -230,7 +230,13 @@ function BuiltCard({ id, index }: { id: string; index: number }) {
   // SemCanvas reads estimates from s.runs[id].result, exposes id `figure-path-diagram-<id>`, and is
   // the DOM node captureNode rasters for the figure_path-diagram.png export.
   const figureSlot = spec.inputKind === 'sem-canvas' ? <SemCanvas testId={id} /> : undefined
+  // Task 8 (H1 wiring): the footer's "Statistical basis" resolves through the run's own setup, so a
+  // conditionally-earned ref (e.g. Yuan-Bentler under MLR) shows only when this run actually used it.
+  const registryCitations = CITATIONS[id]
+  const citations = registryCitations
+    ? { ...registryCitations, statisticalBasis: effectiveStatisticalBasis(id, s.setups[id]) }
+    : undefined
   return <ResultPreviewCard index={index} name={spec.name} question={spec.question} content={content}
     stale={run.stale} running={s.runStatus === 'running'} onRerun={() => { void s.runAll() }} figureSlot={figureSlot}
-    citations={CITATIONS[id]} id={id} />
+    citations={citations} id={id} />
 }

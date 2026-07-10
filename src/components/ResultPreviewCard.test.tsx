@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { ResultPreviewCard } from './ResultPreviewCard'
 import type { CardContent } from '../lib/results/builders'
+import { CITATIONS, effectiveStatisticalBasis } from '../lib/registry/citations'
+import type { TestSetup } from '../state/session'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
 const base: CardContent = {
@@ -139,5 +141,62 @@ describe('chassis renders each card shape (design §5)', () => {
     expect(htmlWithValues).toContain('term-explainers')
     // The actual interpret output appears: "How many standard errors..."
     expect(htmlWithValues).toContain('standard errors')
+  })
+})
+
+// Task 8: the results-card "Statistical basis" footer, resolved the same way BuiltCard
+// (ResultsScreen.tsx) resolves it - CITATIONS[id] with statisticalBasis replaced by
+// effectiveStatisticalBasis(id, setup) - so a conditional ref (estimator/missing-earned) shows only
+// on a run that actually used that option.
+describe('results-card footer - conditional method refs (Task 8)', () => {
+  const setup = (overrides: Partial<TestSetup> = {}): TestSetup => ({
+    roles: {}, options: {}, props: {}, blocked: null, constructs: [], paths: [], moderations: [],
+    ...overrides,
+  })
+  const renderFooter = (id: string, s?: TestSetup) => {
+    const registryCitations = CITATIONS[id]
+    const citations = { ...registryCitations, statisticalBasis: effectiveStatisticalBasis(id, s) }
+    return renderToStaticMarkup(
+      <ResultPreviewCard index={1} name={registryCitations.whyThisTest.text} question="q?" content={base}
+        stale={false} running={false} onRerun={() => {}} citations={citations} id={id} />,
+    )
+  }
+
+  it('a default (untouched) cb-sem run shows the footer but no conditional refs', () => {
+    const html = renderFooter('cb-sem', setup())
+    expect(html).toContain('Statistical basis')
+    expect(html).not.toContain('Yuan')
+    expect(html).not.toContain('Muth')
+    expect(html).not.toContain('Enders')
+    expect(html).not.toContain('Sobel')
+  })
+
+  it('estimator MLR: footer shows Yuan-Bentler (2000) only, not the WLSMV source', () => {
+    const html = renderFooter('cb-sem', setup({ options: { estimator: 'MLR' } }))
+    expect(html).toContain('Yuan')
+    expect(html).not.toContain('Muth')
+  })
+
+  it('estimator WLSMV: footer shows the Muthen/du Toit/Spisic (1997) source only, not Yuan-Bentler', () => {
+    const html = renderFooter('cb-sem', setup({ options: { estimator: 'WLSMV' } }))
+    expect(html).toContain('Muth')
+    expect(html).not.toContain('Yuan')
+  })
+
+  it('missing=fiml: footer shows Enders-Bandalos (2001)', () => {
+    const html = renderFooter('cb-sem', setup({ options: { missing: 'fiml' } }))
+    expect(html).toContain('Enders')
+  })
+
+  it('MLR + an indirect chain: footer shows Sobel (1982); MLR alone (no chain, no moderation) does not', () => {
+    const withChain = renderFooter('cb-sem', setup({ options: { estimator: 'MLR' }, paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }] }))
+    expect(withChain).toContain('Sobel')
+    const withoutChain = renderFooter('cb-sem', setup({ options: { estimator: 'MLR' } }))
+    expect(withoutChain).not.toContain('Sobel')
+  })
+
+  it('path-analysis carries the same conditional refs as cb-sem', () => {
+    const html = renderFooter('path-analysis', setup({ options: { estimator: 'WLSMV' } }))
+    expect(html).toContain('Muth')
   })
 })

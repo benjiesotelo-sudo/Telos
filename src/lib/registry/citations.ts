@@ -7,6 +7,7 @@
 // convention.md and 2026-07-06-moderation-spike.md). No new claims are introduced.
 
 import { CATALOG } from './catalog'
+import type { TestSetup } from '../../state/session'
 
 export interface Ref {
   text: string
@@ -27,6 +28,17 @@ export interface Ref {
 export interface TestCitations {
   whyThisTest: { text: string; refs: Ref[] } // rendered verbatim as the config-screen "Why this test" line
   statisticalBasis: { claim: string; ref: Ref }[] // rendered as the results-card footer + LaTeX/PDF footer
+  // Task 8 (H1 wiring slice): refs that only apply once the RUN's own options earn them (e.g. an
+  // estimator-specific SE/CI method), so they must not appear on a run that never used that option.
+  // `options` is the run's setup.options (raw, unnormalized - the same object semFitArgs.ts reads);
+  // `setup` is the full TestSetup, for conditions that need more than the flat options bag (e.g.
+  // whether the drawn structural paths form an indirect chain). See effectiveStatisticalBasis below
+  // for the single place these are evaluated and merged into statisticalBasis.
+  conditionalBasis?: Array<{
+    when: (options: Record<string, unknown>, setup?: TestSetup) => boolean
+    claim: string
+    ref: Ref
+  }>
 }
 
 // ---------------------------------------------------------------------------
@@ -114,6 +126,60 @@ const HENSELER_CHIN_2010: Ref = { text: 'Henseler, J., Chin, W. W. (2010). "A co
 // Path-analysis specific (already inline in pathAnalysis.ts's own tableNote/howToRead).
 const KENNY_KANISKAN_MCCOACH_2015: Ref = { text: 'Kenny, D. A., Kaniskan, B., McCoach, D. B. (2015). "The performance of RMSEA in models with small degrees of freedom." Sociological Methods & Research, 44(3), 486-507.', authors: 'Kenny, D. A., Kaniskan, B., McCoach, D. B.', year: '2015', title: 'The performance of RMSEA in models with small degrees of freedom.', source: 'Sociological Methods & Research, 44(3), 486-507.' }
 const MACKINNON_2004: Ref = { text: 'MacKinnon, D. P., Lockwood, C. M., Williams, J. (2004). "Confidence limits for the indirect effect: Distribution of the product and resampling methods." Multivariate Behavioral Research, 39(1), 99-128.', authors: 'MacKinnon, D. P., Lockwood, C. M., Williams, J.', year: '2004', title: 'Confidence limits for the indirect effect: Distribution of the product and resampling methods.', source: 'Multivariate Behavioral Research, 39(1), 99-128.' }
+
+// Task 8 (H1 wiring slice): estimator/missing-method refs, wired conditionally via `conditionalBasis`
+// below - each fires only when the run's own options actually used that method. Every entry
+// web-verified against CrossRef/the publisher before transcription (task-8-report.md has the URLs
+// and what each confirmed).
+//   - Yuan & Bentler (2000): the MLR (robust ML) estimator's source. Verified via CrossRef DOI
+//     10.1111/0081-1750.00078 (Sociological Methodology 30(1), 165-200).
+//   - Muthen, du Toit & Spisic (1997): the WLSMV estimator's source - a genuinely unpublished
+//     technical report, not the distinct Muthen (1984) Psychometrika paper (a precursor, general
+//     categorical/continuous SEM framework, but not WLSMV itself). Confirmed unpublished/never
+//     resubmitted by Linda Muthen herself on the statmodel.com discussion board (message 2852);
+//     hosted verbatim at statmodel.com/download/Article_075.pdf (the original authors' own site).
+//   - Enders & Bandalos (2001): the FIML missing-data source. Verified via CrossRef DOI
+//     10.1207/S15328007SEM0803_5 (Structural Equation Modeling 8(3), 430-457).
+//   - Sobel (1982): the delta-method indirect-effect CI source, cited only when delta-method CIs
+//     actually apply to an indirect/moderated effect (estimator MLR or WLSMV, which cannot bootstrap,
+//     AND the model has an indirect chain or a moderation edge - mirrors semFitArgs.ts's own
+//     ciMethod:'delta' condition). Verified via CrossRef DOI 10.2307/270723 (Sociological
+//     Methodology 13, 290-312).
+const YUAN_BENTLER_2000: Ref = { text: 'Yuan, K.-H., Bentler, P. M. (2000). "Three likelihood-based methods for mean and covariance structure analysis with nonnormal missing data." Sociological Methodology, 30, 165-200.', url: 'https://doi.org/10.1111/0081-1750.00078', authors: 'Yuan, K.-H., Bentler, P. M.', year: '2000', title: 'Three likelihood-based methods for mean and covariance structure analysis with nonnormal missing data.', source: 'Sociological Methodology, 30, 165-200.', doi: '10.1111/0081-1750.00078' }
+const MUTHEN_DUTOIT_SPISIC_1997: Ref = { text: 'Muthén, B., du Toit, S. H. C., Spisic, D. (1997). "Robust inference using weighted least squares and quadratic estimating equations in latent variable modeling with categorical and continuous outcomes." Unpublished technical report.', url: 'https://www.statmodel.com/download/Article_075.pdf', authors: 'Muthén, B., du Toit, S. H. C., Spisic, D.', year: '1997', title: 'Robust inference using weighted least squares and quadratic estimating equations in latent variable modeling with categorical and continuous outcomes.', source: 'Unpublished technical report.' }
+const ENDERS_BANDALOS_2001: Ref = { text: 'Enders, C. K., Bandalos, D. L. (2001). "The relative performance of full information maximum likelihood estimation for missing data in structural equation models." Structural Equation Modeling, 8(3), 430-457.', url: 'https://doi.org/10.1207/S15328007SEM0803_5', authors: 'Enders, C. K., Bandalos, D. L.', year: '2001', title: 'The relative performance of full information maximum likelihood estimation for missing data in structural equation models.', source: 'Structural Equation Modeling, 8(3), 430-457.', doi: '10.1207/S15328007SEM0803_5' }
+const SOBEL_1982: Ref = { text: 'Sobel, M. E. (1982). "Asymptotic confidence intervals for indirect effects in structural equation models." Sociological Methodology, 13, 290-312.', url: 'https://doi.org/10.2307/270723', authors: 'Sobel, M. E.', year: '1982', title: 'Asymptotic confidence intervals for indirect effects in structural equation models.', source: 'Sociological Methodology, 13, 290-312.', doi: '10.2307/270723' }
+
+// Pure mirror of buildModel's (runCbSem.ts) own indirect-chain detection - a path's target is a
+// mediator iff it is itself some OTHER path's source. Deliberately re-derived here (not imported
+// from lib/stats/runCbSem.ts) so this citations registry - imported by every screen/export seam -
+// never pulls in the stats/runner module tree.
+const hasIndirectChain = (paths: Array<{ from: number; to: number }> = []): boolean => {
+  const sources = new Set(paths.map((p) => p.from))
+  return paths.some((p) => sources.has(p.to))
+}
+
+const estimatorOf = (options: Record<string, unknown>): string => String(options['estimator'] ?? 'ML')
+const missingOf = (options: Record<string, unknown>): string => String(options['missing'] ?? 'listwise')
+
+// The four estimator/missing-method conditionals, shared verbatim by cb-sem and path-analysis (both
+// carry the identical estimator/missing options via the same SemControls UI - see SemControls.tsx's
+// `isCb` gate, which is keyed off track, not modelKind).
+const SEM_CONDITIONAL_BASIS: NonNullable<TestCitations['conditionalBasis']> = [
+  { when: (o) => estimatorOf(o) === 'MLR', claim: 'MLR (robust maximum likelihood) estimator', ref: YUAN_BENTLER_2000 },
+  { when: (o) => estimatorOf(o) === 'WLSMV', claim: 'WLSMV (robust weighted least squares) estimator', ref: MUTHEN_DUTOIT_SPISIC_1997 },
+  { when: (o) => missingOf(o) === 'fiml', claim: 'FIML (full-information maximum likelihood) missing-data handling', ref: ENDERS_BANDALOS_2001 },
+  {
+    when: (o, setup) => {
+      const estimator = estimatorOf(o)
+      if (estimator !== 'MLR' && estimator !== 'WLSMV') return false // ML bootstraps instead (MacKinnon 2004, already cited)
+      const hasModeration = (setup?.moderations?.length ?? 0) > 0
+      return hasModeration || hasIndirectChain(setup?.paths)
+    },
+    claim: 'Delta-method confidence interval for the indirect/moderated effect (MLR or WLSMV cannot bootstrap)',
+    ref: SOBEL_1982,
+  },
+]
 
 // ---------------------------------------------------------------------------
 // R package references, transcribed verbatim from src/lib/export/citations.ts's REFS dict (CRAN
@@ -664,6 +730,7 @@ export const CITATIONS: Record<string, TestCitations> = {
       { claim: 'Mean-centering strategy for latent interactions (precursor)', ref: MARSH_WEN_HAU_2004 },
       { claim: 'Simple slopes at -1SD/mean/+1SD', ref: AIKEN_WEST_1991 },
     ],
+    conditionalBasis: SEM_CONDITIONAL_BASIS,
   },
   'pls-sem': {
     whyThisTest: {
@@ -689,6 +756,7 @@ export const CITATIONS: Record<string, TestCitations> = {
       { claim: 'RMSEA interpreted cautiously at small df / small N for over-identified models', ref: KENNY_KANISKAN_MCCOACH_2015 },
       { claim: 'Bootstrap percentile CIs for indirect (mediated) effects', ref: MACKINNON_2004 },
     ],
+    conditionalBasis: SEM_CONDITIONAL_BASIS,
   },
   pca: {
     whyThisTest: {
@@ -703,10 +771,30 @@ export const CITATIONS: Record<string, TestCitations> = {
   },
 }
 
+// Task 8: the SINGLE place a test's statisticalBasis claims are resolved for a given run - the
+// registry's own (always-on) claims plus any conditionalBasis entries this run's setup actually
+// earned. Every render seam (results-card footer, LaTeX/PDF footer, CITATIONS.txt, references.bib)
+// calls this instead of reading `CITATIONS[id].statisticalBasis` directly, so a conditional ref can
+// never appear on a run that didn't use the option that justifies it. No setup (or a setup with
+// empty/default options) resolves to the same list `CITATIONS[id].statisticalBasis` already was
+// before this task - a default run's citation output is byte-unchanged.
+export function effectiveStatisticalBasis(id: string, setup?: TestSetup): { claim: string; ref: Ref }[] {
+  const c = CITATIONS[id]
+  if (!c) return []
+  if (!c.conditionalBasis || c.conditionalBasis.length === 0) return c.statisticalBasis
+  const options = setup?.options ?? {}
+  const extra = c.conditionalBasis
+    .filter((cb) => cb.when(options, setup))
+    .map((cb) => ({ claim: cb.claim, ref: cb.ref }))
+  return extra.length ? [...c.statisticalBasis, ...extra] : c.statisticalBasis
+}
+
 // Renders the "why this test" + "statistical basis" section of the export bundle's CITATIONS.txt for
 // the given selection (catalog ids, in selection order). The existing package-references section
 // (src/lib/export/citations.ts's citationsText) is untouched and appends this output after its own.
-export function citationsTxt(selection: string[]): string {
+// `setups` (Task 8) lets conditional refs (estimator/missing-earned) appear here too; omitted (or an
+// id with no entry) resolves to the always-on statisticalBasis, matching pre-Task-8 output exactly.
+export function citationsTxt(selection: string[], setups: Record<string, TestSetup> = {}): string {
   const lines: string[] = []
   lines.push('Statistical basis (why each test was recommended, and its methodological references)')
   lines.push('='.repeat(88))
@@ -719,7 +807,7 @@ export function citationsTxt(selection: string[]): string {
     lines.push(`  Why this test: ${c.whyThisTest.text}`)
     for (const r of c.whyThisTest.refs) lines.push(`    ${r.text}${r.url ? ' ' + r.url : ''}`)
     lines.push('  Statistical basis:')
-    for (const b of c.statisticalBasis) {
+    for (const b of effectiveStatisticalBasis(id, setups[id])) {
       lines.push(`    ${b.claim}`)
       lines.push(`      ${b.ref.text}${b.ref.url ? ' ' + b.ref.url : ''}`)
     }

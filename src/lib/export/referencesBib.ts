@@ -4,8 +4,9 @@
 // fields — uniformly @misc (no attempt to distinguish @article/@book semantics; none of our source
 // text contains a literal brace or '@', so no escaping is needed).
 import { version } from '../../../package.json'
-import { CITATIONS, type Ref } from '../registry/citations'
+import { CITATIONS, effectiveStatisticalBasis, type Ref } from '../registry/citations'
 import { APP_YEAR, ZENODO_DOI } from './citeApp'
+import type { TestSetup } from '../../state/session'
 
 function firstAuthorWord(authors: string): string {
   return authors.split(',')[0].trim().split(/\s+/)[0]?.toLowerCase().replace(/[^a-z]/g, '') || 'ref'
@@ -30,19 +31,22 @@ function bibEntry(key: string, fields: Record<string, string | undefined>): stri
 
 // Every whyThisTest + statisticalBasis ref for the selection, de-duplicated by exact text (the same
 // Ref constant, reused across tests, collapses to one entry) — mirrors citationsText's section-2 dedup.
-function collectRefs(selection: string[]): Ref[] {
+// `setups` (Task 8) threads the run's own options through effectiveStatisticalBasis so a
+// conditionally-earned ref (e.g. Yuan-Bentler under MLR) is included - omitted, this resolves
+// identically to pre-Task-8 output.
+function collectRefs(selection: string[], setups: Record<string, TestSetup> = {}): Ref[] {
   const byText = new Map<string, Ref>()
   for (const id of selection) {
     const c = CITATIONS[id]
     if (!c) continue
-    for (const ref of [...c.whyThisTest.refs, ...c.statisticalBasis.map((b) => b.ref)]) {
+    for (const ref of [...c.whyThisTest.refs, ...effectiveStatisticalBasis(id, setups[id]).map((b) => b.ref)]) {
       if (!byText.has(ref.text)) byText.set(ref.text, ref)
     }
   }
   return [...byText.values()]
 }
 
-export function referencesBibText(selection: string[]): string {
+export function referencesBibText(selection: string[], setups: Record<string, TestSetup> = {}): string {
   const used = new Set<string>()
   const entries: string[] = []
 
@@ -53,7 +57,7 @@ export function referencesBibText(selection: string[]): string {
     doi: ZENODO_DOI,
   }))
 
-  for (const ref of collectRefs(selection)) {
+  for (const ref of collectRefs(selection, setups)) {
     entries.push(bibEntry(citeKey(ref.authors, ref.year, used), {
       author: ref.authors,
       title: ref.title || undefined,

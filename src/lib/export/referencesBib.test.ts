@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { referencesBibText } from './referencesBib'
+import type { TestSetup } from '../../state/session'
 
 // Tiny validity check per the brief: balanced braces + exactly one '@' per entry (not a full BibTeX
 // parser — the kit's bib is a best-effort mechanical export, not a hand-authored bibliography).
@@ -36,6 +37,36 @@ describe('referencesBibText', () => {
     // Marsh, Hau, Wen (2004) and Marsh, Wen, Hau (2004) are both real, distinct papers cited on cb-sem.
     const bib = referencesBibText(['cb-sem'])
     assertValidBib(bib)
+    const keys = [...bib.matchAll(/@misc\{([^,]+),/g)].map((m) => m[1])
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+
+  // Task 8: conditional method refs are picked up through the SAME dedup/bib-entry pipeline.
+  it('a default (untouched) cb-sem run has no setups arg needed and mentions no conditional refs', () => {
+    const bib = referencesBibText(['cb-sem'])
+    assertValidBib(bib)
+    expect(bib).not.toContain('Yuan')
+    expect(bib).not.toContain('Sobel')
+  })
+
+  it('cb-sem run under MLR + moderation: bib includes Yuan-Bentler (2000) AND Sobel (1982), stays valid', () => {
+    const setups: Record<string, TestSetup> = {
+      'cb-sem': {
+        roles: {}, options: { estimator: 'MLR' }, props: {}, blocked: null,
+        moderations: [{ id: 1, moderatorId: 3, pathIndex: 0 }],
+      },
+    }
+    const bib = referencesBibText(['cb-sem'], setups)
+    assertValidBib(bib)
+    expect(bib).toContain('Yuan')
+    expect(bib).toContain('Sobel')
+  })
+
+  it('cb-sem run under FIML: bib includes Enders-Bandalos (2001) as a distinct, uniquely-keyed entry', () => {
+    const setups: Record<string, TestSetup> = { 'cb-sem': { roles: {}, options: { missing: 'fiml' }, props: {}, blocked: null } }
+    const bib = referencesBibText(['cb-sem'], setups)
+    assertValidBib(bib)
+    expect(bib).toContain('Enders')
     const keys = [...bib.matchAll(/@misc\{([^,]+),/g)].map((m) => m[1])
     expect(new Set(keys).size).toBe(keys.length)
   })

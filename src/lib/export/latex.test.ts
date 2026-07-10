@@ -4,6 +4,7 @@ import type { TestSetup, TestRun } from '../../state/session'
 import type { SimpleLinearResult } from '../stats/simpleLinearRegression'
 import type { OneWayAnovaResult } from '../stats/oneWayAnova'
 import type { AveResult } from '../stats/runAve'
+import type { CbSemResult } from '../stats/runCbSem'
 import { emitLatex } from './latex'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]) as Uint8Array<ArrayBuffer>
@@ -96,6 +97,47 @@ const ave: AveResult = {
     corLvP: [[NaN, 0.001], [0.001, NaN]],
   },
 }
+
+// Task 8: conditional method refs in the LaTeX/PDF "Statistical basis" footer line. cb-sem needs no
+// result/table fixture beyond a run marker (fresh, not stale) - buildCbSem only reads what BUILDERS
+// produces, and this test only inspects the trailing "Statistical basis:" line emitLatex appends.
+describe('emitLatex - conditional method refs (Task 8)', () => {
+  const cbSemResult: CbSemResult = {
+    mode: 'full', saturated: false,
+    cfaLoadings: [], reliability: [],
+    fornellLarcker: [], htmt: [], corLvP: [], discriminantLabels: [],
+    estimates: { paths: [], loadings: {}, r2: {} },
+    itemStats: [],
+  }
+  const cbSemRun = { result: cbSemResult, stale: false }
+
+  it('estimator MLR: footer includes Yuan-Bentler (2000), not WLSMV/FIML/Sobel refs', () => {
+    const out = emitLatex(['cb-sem'], { 'cb-sem': { roles: {}, options: { estimator: 'MLR' }, props: {}, blocked: null, constructs: [], paths: [] } },
+      SPECS, { 'cb-sem': cbSemRun })
+    const footer = out.slice(out.indexOf('Statistical basis:'))
+    expect(footer).toContain('Yuan')
+    expect(footer).not.toContain('Muth')
+    expect(footer).not.toContain('Sobel')
+  })
+
+  it('estimator WLSMV: footer includes the Muthen/du Toit/Spisic (1997) source, not Yuan-Bentler', () => {
+    const out = emitLatex(['cb-sem'], { 'cb-sem': { roles: {}, options: { estimator: 'WLSMV' }, props: {}, blocked: null, constructs: [], paths: [] } },
+      SPECS, { 'cb-sem': cbSemRun })
+    const footer = out.slice(out.indexOf('Statistical basis:'))
+    expect(footer).toContain('Muth')
+    expect(footer).not.toContain('Yuan')
+  })
+
+  it('a default (untouched) cb-sem run: footer has no conditional refs at all', () => {
+    const out = emitLatex(['cb-sem'], { 'cb-sem': { roles: {}, options: {}, props: {}, blocked: null, constructs: [], paths: [] } },
+      SPECS, { 'cb-sem': cbSemRun })
+    const footer = out.slice(out.indexOf('Statistical basis:'))
+    expect(footer).not.toContain('Yuan')
+    expect(footer).not.toContain('Muth')
+    expect(footer).not.toContain('Enders')
+    expect(footer).not.toContain('Sobel')
+  })
+})
 
 describe('emitLatex - matrix tables (AVE Fornell-Larcker + HTMT)', () => {
   const out = emitLatex(['ave'], { ave: { roles: {}, options: {}, props: {}, blocked: null } }, SPECS, { ave: { result: ave, stale: false } })

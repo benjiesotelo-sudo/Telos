@@ -1,7 +1,7 @@
 import type { TestSpec } from '../registry/types'
 import type { TestSetup, TestRun } from '../../state/session'
 import { BUILDERS } from '../results/builders'
-import { CITATIONS } from '../registry/citations'
+import { effectiveStatisticalBasis } from '../registry/citations'
 import { coefToLatex, classicToLatex, matrixToLatex, escapeLatex } from './rTable'
 
 // LaTeX report export (design 2026-06-16, export-formats slice): the same report as the in-app results,
@@ -15,7 +15,7 @@ const PREAMBLE = ['\\documentclass{article}', '\\usepackage[T1]{fontenc}', '\\us
 
 export function emitLatex(
   selection: string[], // the FULL selection — figure-folder NN is the 1-based index here, matching the
-  _setups: Record<string, TestSetup>, // on-screen card numbering and the zip layout in ResultsScreen.
+  setups: Record<string, TestSetup>, // on-screen card numbering and the zip layout in ResultsScreen.
   specs: Record<string, TestSpec>,
   runs: Record<string, TestRun>,
 ): string {
@@ -33,8 +33,8 @@ export function emitLatex(
     for (const fig of content.figures) out.push(`\\includegraphics{${folder}/figure_${fig.file ?? fig.type}.png}`)
     out.push(escapeLatex(content.howToRead))
     out.push(escapeLatex(content.apa))
-    const c = CITATIONS[id]
-    if (c) out.push(escapeLatex(`Statistical basis: ${c.statisticalBasis.map((b) => `${b.claim} (${b.ref.text})`).join('; ')}.`))
+    const basis = effectiveStatisticalBasis(id, setups[id])
+    if (basis.length) out.push(escapeLatex(`Statistical basis: ${basis.map((b) => `${b.claim} (${b.ref.text})`).join('; ')}.`))
   })
   out.push('\\end{document}')
   return out.join('\n\n')
