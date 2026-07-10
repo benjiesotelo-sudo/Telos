@@ -56,7 +56,7 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     useSession.getState().setColumnLevel('score', 'nominal')
     const setup = useSession.getState().setups['independent-t-test']
     expect(setup.blocked).toBe('Outcome (DV): needs an interval / ratio column')
-    expect(setup.roles.outcome).toEqual(['score']) // assignment kept, marked blocked — spec: "blocked with the reason"
+    expect(setup.roles.outcome).toEqual(['score']) // assignment kept, marked blocked - spec: "blocked with the reason"
     expect(useSession.getState().runs['independent-t-test'].stale).toBe(true)
     useSession.getState().setColumnLevel('score', 'ratio')
     expect(useSession.getState().setups['independent-t-test'].blocked).toBeNull() // still-valid work kept
@@ -87,7 +87,7 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
   })
   // launch-day trap: a re-upload with entirely different columns blocks the STALE selected test
   // (columns vanished, blocked !== null) without ever removing it from selection. Unselecting a
-  // blocked-but-selected test must still work — it is the SAME deselection path an eligible test
+  // blocked-but-selected test must still work - it is the SAME deselection path an eligible test
   // uses (removes the setup/run/error, drops the id from selection). This already holds true in the
   // store today (toggleSelection never reads eligibility); this test locks it in as a regression
   // guard for the picker-screen fix, which relaxes the checkbox's disabled condition to rely on it.
@@ -111,7 +111,7 @@ describe('back-edit invalidation (the spec navcap rules)', () => {
     expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual([])
     expect(canEnter(useSession.getState(), 'results')).toBe(false)
   })
-  it('addRole enforces the arity maximum — a second column on an exactly-1 slot is refused', () => {
+  it('addRole enforces the arity maximum - a second column on an exactly-1 slot is refused', () => {
     useSession.getState().addRole('independent-t-test', 'outcome', 'score')
     useSession.getState().addRole('independent-t-test', 'outcome', 'group')
     expect(useSession.getState().setups['independent-t-test'].roles.outcome).toEqual(['score'])
@@ -193,7 +193,7 @@ it('setProp stales every run (any config edit stales ALL runs)', () => {
   expect(useSession.getState().setups['independent-t-test'].props).toEqual({ a: 0.4 })
 })
 
-describe('level-select option kind (B2 — needs the shipped logistic spec)', () => {
+describe('level-select option kind (B2 - needs the shipped logistic spec)', () => {
   const lds: Dataset = { columns: ['passed', 'pre'], rows: [
     { passed: 'no', pre: 10 }, { passed: 'yes', pre: 20 }, { passed: 'no', pre: 15 },
   ] }
@@ -229,7 +229,7 @@ describe('level-select option kind (B2 — needs the shipped logistic spec)', ()
   })
 })
 
-describe('poisson exposure run gate (B1/convention 11 — needs the shipped poisson spec)', () => {
+describe('poisson exposure run gate (B1/convention 11 - needs the shipped poisson spec)', () => {
   const pds: Dataset = { columns: ['complaints', 'age', 'months'], rows: [
     { complaints: 3, age: 20, months: 5 }, { complaints: 0, age: 30, months: 0 }, { complaints: 5, age: 40, months: 7 },
   ] }
@@ -274,7 +274,7 @@ describe('construct id migration (Sub-slice B)', () => {
     st.removeConstruct(FAKE_ID, mid)
     st.addConstruct(FAKE_ID)
     const ids = useSession.getState().setups[FAKE_ID].constructs!.map((c) => c.id)
-    expect(ids).toEqual([1, 3, 4]) // 2 removed, next id is 4 not 2 — no reuse
+    expect(ids).toEqual([1, 3, 4]) // 2 removed, next id is 4 not 2 - no reuse
   })
 
   it('setConstructName / toggleConstructItem are id-addressed, not index-addressed', () => {
@@ -350,7 +350,7 @@ describe('inputKind gate guard', () => {
   })
   // Path mode gates on USED COLUMNS (nodes come from columns by index, not the hidden construct form).
   const pcol = (name: string) => ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used: true })
-  it('sem-canvas (path): gates on used columns not constructs — ≥2 used cols + ≥1 path', () => {
+  it('sem-canvas (path): gates on used columns not constructs - ≥2 used cols + ≥1 path', () => {
     useSession.setState((s) => ({ columns: [pcol('x'), pcol('y')],
       setups: { ...s.setups, [CANVAS_ID]: { ...s.setups[CANVAS_ID], modelKind: 'path', constructs: [], paths: [{ from: 0, to: 1 }] } } }))
     expect(gateOk(useSession.getState(), `test:${CANVAS_ID}`)).toBe(true)
@@ -440,13 +440,13 @@ describe('moderations', () => {
   it('addModeration ids never reuse after a middle removal (mirrors nextConstructId)', () => {
     const s = useSession.getState()
     s.addModeration(TEST_ID, 2, 0)   // id 1
-    s.addModeration(TEST_ID, 1, 1)   // id 2 (SN moderates TA→TI — self-mod guard lives in the CANVAS, not the store)
+    s.addModeration(TEST_ID, 1, 1)   // id 2 (SN moderates TA→TI - self-mod guard lives in the CANVAS, not the store)
     s.removeModeration(TEST_ID, 1)
     s.addModeration(TEST_ID, 2, 1)
     expect(useSession.getState().setups[TEST_ID].moderations!.map((m) => m.id)).toEqual([2, 3])
   })
 
-  it('addModeration is a no-op on a duplicate (same moderatorId + pathIndex) — double-adding is impossible at the store level', () => {
+  it('addModeration is a no-op on a duplicate (same moderatorId + pathIndex) - double-adding is impossible at the store level', () => {
     const s = useSession.getState()
     s.addModeration(TEST_ID, 2, 0)
     s.addModeration(TEST_ID, 2, 0)
@@ -588,7 +588,7 @@ describe('path-mode canvas→runner bridge (path-analysis)', () => {
   })
 })
 
-describe('setColumnUsed — path-mode column re-toggle clears drawn paths', () => {
+describe('setColumnUsed - path-mode column re-toggle clears drawn paths', () => {
   const col = (name: string, used = true) =>
     ({ name, detected: 'float64' as const, tags: [] as never[], level: 'ratio' as const, used })
   beforeEach(() => useSession.getState().reset())

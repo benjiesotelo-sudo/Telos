@@ -10,7 +10,7 @@ import { test, expect, type Page } from '@playwright/test'
 //   (2) Confirm navigates to the first selected test that ISN'T blocked, not selection[0] blindly.
 
 async function dragChip(page: Page, chip: string, roleId: string) {
-  // same drag helper as flow.spec.ts — scoped drop-target confirmation + redrag-on-miss under load.
+  // same drag helper as flow.spec.ts - scoped drop-target confirmation + redrag-on-miss under load.
   await expect(async () => {
     const src = page.locator('.chip', { hasText: chip }).first()
     const dst = page.locator(`[data-role="${roleId}"]`)
@@ -50,14 +50,14 @@ test('picker re-upload trap: a blocked selected test stays unselectable-free, an
   }).toPass()
   await expect(page.locator('#table-t-test')).toBeVisible({ timeout: 240_000 })
 
-  // ── 2. Back to Upload, then upload causal.csv — an ENTIRELY DIFFERENT column set ──
+  // ── 2. Back to Upload, then upload causal.csv - an ENTIRELY DIFFERENT column set ──
   await page.getByRole('navigation', { name: 'Progress' }).getByRole('button', { name: 'Upload' }).click()
   await expect(page.getByRole('heading', { name: 'Upload data' })).toBeVisible()
   await page.setInputFiles('input[type=file]', 'tests/e2e/fixtures/causal.csv')
   await expect(page.getByRole('heading', { name: 'Terms guide' })).toBeVisible()
   await page.getByRole('button', { name: 'Continue' }).click()
 
-  // Configure data: keep only educ + score used (the path we'll draw) — everything else off.
+  // Configure data: keep only educ + score used (the path we'll draw) - everything else off.
   await expect(page.getByRole('heading', { name: 'Configure data' })).toBeVisible()
   for (const c of ['id', 'wage', 'educ_iv', 'running_var', 'health', 'enroll', 'exper', 'age', 'ability'])
     await page.getByLabel(`use ${c}`).uncheck()
@@ -77,7 +77,7 @@ test('picker re-upload trap: a blocked selected test stays unselectable-free, an
   await page.getByRole('checkbox', { name: 'Path analysis' }).check()
   await page.getByRole('button', { name: 'Confirm selection' }).click()
 
-  // ── 4. Confirm must land on path analysis — NOT the stale, now-deselected t-test ──
+  // ── 4. Confirm must land on path analysis - NOT the stale, now-deselected t-test ──
   await expect(page.locator('.eyebrow').first()).toContainText('Path analysis')
   await expect(page.getByText(/^Blocked:/)).toHaveCount(0)
 
