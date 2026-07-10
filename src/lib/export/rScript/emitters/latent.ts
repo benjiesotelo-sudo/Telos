@@ -73,8 +73,16 @@ export function buildItemMap(domain: string[], globalMap?: Map<string, string>):
 /** Student-readable one-line-per-non-default-choice comment block, emitted directly above the sem() fit
  *  call (H1 wiring, Task 7) - explains why the fragment departs from the ML+listwise default in plain
  *  language, for a reader following analysis.R without the app open. Empty array for every default
- *  choice (the byte-pin: a default setup's script is untouched by this feature). */
-function semChoiceCommentLines(fitArgs: SemFitArgs): string[] {
+ *  choice (the byte-pin: a default setup's script is untouched by this feature).
+ *
+ *  `exogenousOrdinalsR` (Amendment B, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md,
+ *  path mode only): sanitized tokens for placed ordinal columns that are EXOGENOUS in the drawn paths
+ *  (no path points into them) - these are NOT declared in `ordered=` (lavaan applies threshold
+ *  semantics only to endogenous ordered variables), so they enter the fit numerically. Wording mirrors
+ *  the results-card disclosure (buildCbSem.ts's ordinalPredictorsNoteText) - DRAFT copy, same
+ *  owner-delegated-overnight status as the rest of this slice's text. Empty for latent mode and for a
+ *  path-mode setup with no exogenous ordinal columns (the byte-pin: neither adds this line). */
+function semChoiceCommentLines(fitArgs: SemFitArgs, exogenousOrdinalsR: string[] = []): string[] {
   const lines: string[] = []
   if (fitArgs.estimator === 'MLR') {
     lines.push('# Estimator: MLR (robust maximum likelihood) - robust standard errors and scaled fit statistics.')
@@ -88,6 +96,14 @@ function semChoiceCommentLines(fitArgs: SemFitArgs): string[] {
   }
   if (fitArgs.orderedR.length > 0) {
     lines.push(`# Ordinal indicators (ordered =): ${fitArgs.orderedR.join(', ')} - declared from your Configure-data measurement levels.`)
+  }
+  if (exogenousOrdinalsR.length > 0) {
+    const word = exogenousOrdinalsR.length === 1 ? 'predictor' : 'predictors'
+    const verb = exogenousOrdinalsR.length === 1 ? 'enters' : 'enter'
+    lines.push(
+      `# Ordinal ${word} (not declared ordered =): ${exogenousOrdinalsR.join(', ')} - ${verb} the model numerically, ` +
+        'standard practice; ordered-threshold modeling applies to endogenous variables.',
+    )
   }
   return lines
 }
@@ -489,9 +505,25 @@ export const latentEmitters: Record<string, Emitter> = {
     // same way Task 3 threads it into the runner); defaults to {} so every column falls back to 'scale'.
     const indicatorDomain = isPath ? nameDomain : usedCols
     const indicatorNameOf = isPath ? nameOf : itemNameOf
+
+    // Amendment B (path mode only, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md):
+    // mirrors runCbSem.ts's isEndogenous/indicatorLevels downgrade EXACTLY - a placed ordinal column only
+    // declares `ordered=` when it is ENDOGENOUS in the drawn paths (some path's `to` is that column's
+    // construct id); an exogenous ordinal column is downgraded to 'scale' here (so semFitArgs never adds
+    // it to orderedRaw) and surfaced separately via exogenousOrdinals for the disclosure comment below.
+    // Latent mode is unaffected (endogenousIds stays null, isEndogenous is never called).
+    const constructByName = new Map(constructs.map((c) => [c.name, c]))
+    const endogenousIds = isPath ? new Set(paths.map((p) => p.to)) : null
+    const isEndogenous = (raw: string) => endogenousIds!.has(constructByName.get(raw)!.id)
     const indicatorLevels: Record<string, string> = Object.fromEntries(
-      indicatorDomain.map((raw) => [raw, columnLevels[raw] ?? 'scale']),
+      indicatorDomain.map((raw) => {
+        const level = columnLevels[raw] ?? 'scale'
+        return [raw, isPath && level === 'ordinal' && !isEndogenous(raw) ? 'scale' : level]
+      }),
     )
+    const exogenousOrdinals = isPath
+      ? indicatorDomain.filter((raw) => (columnLevels[raw] ?? 'scale') === 'ordinal' && !isEndogenous(raw))
+      : []
     const fitArgs = semFitArgs({
       estimator: String(setup.options['estimator'] ?? 'ML'),
       missing: String(setup.options['missing'] ?? CB_SEM_DEFAULT_MISSING),
@@ -505,7 +537,7 @@ export const latentEmitters: Record<string, Emitter> = {
     // estimator-gated (ML only) exactly like the app - MLR/WLSMV never silently fall into se="bootstrap".
     const needsBootstrap = fitArgs.needsBootstrap
     const semFrag = fitArgs.fragment ? `, ${fitArgs.fragment}` : ''
-    const choiceComments = semChoiceCommentLines(fitArgs)
+    const choiceComments = semChoiceCommentLines(fitArgs, exogenousOrdinals.map(indicatorNameOf))
 
     const out: string[] = [
       '# ---- CB-SEM via lavaan::sem (measurement + structural + indirect + moderation) ----',

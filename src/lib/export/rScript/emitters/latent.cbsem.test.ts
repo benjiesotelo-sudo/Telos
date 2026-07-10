@@ -1,7 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { latentEmitters, latentPackages } from './latent'
 import type { TestSetup } from '../../../../state/session'
+import { withPathModeConstructs } from '../../../../state/session'
 import { semFitArgs } from '../../../stats/semFitArgs'
+import { runCbSem } from '../../../stats/runCbSem'
+import type { Engine } from '../../../webr/engine'
+import type { Dataset } from '../../../stats/types'
 
 const SETUP: TestSetup = {
   roles: {},
@@ -290,6 +294,140 @@ describe("latentEmitters['cb-sem'] - H1 wiring: export emitter parity (Task 7)",
     expect(() =>
       latentEmitters['cb-sem']({ id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never),
     ).toThrow(/at least one ordinal indicator/)
+  })
+})
+
+// Task 8 (emitter parity + runs-in-r REP, Amendment B, docs/superpowers/specs/2026-07-11-path-mode-
+// wlsmv-design.md): the emitter's semFitArgs inputs (indicatorLevels endogeneity downgrade + itemNameOf
+// sanitizer) must mirror runCbSem.ts's Task 5 semantics EXACTLY -- same PRODUCTION-shaped setups as
+// runCbSem.test.ts's "Path-mode WLSMV cells" describe block (built via withPathModeConstructs, the SAME
+// bridge session.ts's runAll/buildExportFiles share), run through BOTH the runner (mocked engine,
+// capturing the R source string handed to runJson) and this emitter, asserting the emitted
+// `ordered = c(...)` fragment is byte-identical between the two -- the whole point of Task 8.
+describe("latentEmitters['cb-sem'] - path-mode WLSMV parity: runner vs emitter (Amendment B, Task 8)", () => {
+  const pathData = (cols: string[]): Dataset => ({
+    columns: cols,
+    rows: Array.from({ length: 10 }, (_, i) => Object.fromEntries(cols.map((c, j) => [c, ((i + j) % 5) + 1]))),
+  })
+
+  // Path mode never calls runCfaReliability/capturePlot (mirrors runCbSem.test.ts's fakeEngine) --
+  // exactly ONE engine.runJson call per run.
+  function fakeEngine() {
+    const mainStats = {
+      fit: {}, df: 0, cfaLoadings: [], structural: [], rsquareIds: {}, indirect: [],
+      estLoadings: {}, estPaths: [], moderationRows: [], slopeRows: [],
+    }
+    const runJson = vi.fn().mockResolvedValueOnce(mainStats)
+    const engine = { runJson } as unknown as Engine
+    return { engine, runJson }
+  }
+
+  const orderedFrag = (source: string) => source.match(/ordered = c\([^)]*\)/)?.[0]
+
+  it('PATH_WLSMV_SAT setup (b1 ~ a1 + cont1): runner and emitter emit the identical ordered=c("b1") fragment', async () => {
+    const setup = withPathModeConstructs({
+      roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      placed: ['a1', 'cont1', 'b1'],
+      paths: [{ from: 0, to: 2 }, { from: 1, to: 2 }],
+    })
+    const columnLevels = { a1: 'ordinal', b1: 'ordinal', cont1: 'scale' }
+
+    const { engine, runJson } = fakeEngine()
+    await runCbSem(engine, pathData(['a1', 'cont1', 'b1']), setup, undefined, columnLevels)
+    const [runnerSource] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+
+    const r = latentEmitters['cb-sem'](
+      { id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never, undefined, columnLevels,
+    )
+
+    expect(orderedFrag(runnerSource)).toBe('ordered = c("b1")')
+    expect(orderedFrag(r)).toBe('ordered = c("b1")')
+    expect(orderedFrag(r)).toBe(orderedFrag(runnerSource))
+    // The exogenous-ordinal disclosure comment (a1 is ordinal but purely exogenous here).
+    expect(r).toContain(
+      '# Ordinal predictor (not declared ordered =): a1 - enters the model numerically, standard practice; ordered-threshold modeling applies to endogenous variables.',
+    )
+  })
+
+  it('PATH_WLSMV_STRUCT setup (b1 ~ a1 + cont1; b2 ~ b1): runner and emitter emit the identical ordered=c("b1","b2") fragment', async () => {
+    const setup = withPathModeConstructs({
+      roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      placed: ['a1', 'cont1', 'b1', 'b2'],
+      paths: [{ from: 0, to: 2 }, { from: 1, to: 2 }, { from: 2, to: 3 }],
+    })
+    const columnLevels = { a1: 'ordinal', b1: 'ordinal', b2: 'ordinal', cont1: 'scale' }
+
+    const { engine, runJson } = fakeEngine()
+    await runCbSem(engine, pathData(['a1', 'cont1', 'b1', 'b2']), setup, undefined, columnLevels)
+    const [runnerSource] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+
+    const r = latentEmitters['cb-sem'](
+      { id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never, undefined, columnLevels,
+    )
+
+    expect(orderedFrag(runnerSource)).toBe('ordered = c("b1", "b2")')
+    expect(orderedFrag(r)).toBe('ordered = c("b1", "b2")')
+    expect(orderedFrag(r)).toBe(orderedFrag(runnerSource))
+    expect(r).toContain(
+      '# Ordinal predictor (not declared ordered =): a1 - enters the model numerically, standard practice; ordered-threshold modeling applies to endogenous variables.',
+    )
+  })
+
+  // The H1-ledgered edge (mirrors runCbSem.test.ts's spaced/special-char case): a raw column name that
+  // is not already a valid R identifier. Both runner and emitter must sanitize it to the SAME token.
+  it('a spaced/special-char endogenous ordinal column sanitizes identically in both runner and emitter', async () => {
+    const setup = withPathModeConstructs({
+      roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      placed: ['a1', 'cont1', 'b 1!'],
+      paths: [{ from: 0, to: 2 }, { from: 1, to: 2 }],
+    })
+    const columnLevels = { a1: 'ordinal', 'b 1!': 'ordinal', cont1: 'scale' }
+
+    const { engine, runJson } = fakeEngine()
+    await runCbSem(engine, pathData(['a1', 'cont1', 'b 1!']), setup, undefined, columnLevels)
+    const [runnerSource] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+
+    const r = latentEmitters['cb-sem'](
+      { id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never, undefined, columnLevels,
+    )
+
+    expect(orderedFrag(runnerSource)).toBe('ordered = c("b_1")')
+    expect(orderedFrag(r)).toBe('ordered = c("b_1")')
+    expect(orderedFrag(r)).toBe(orderedFrag(runnerSource))
+  })
+
+  // No exogenous ordinal columns placed -> the disclosure comment is absent (byte-pin: this class of
+  // setup emits no new line at all).
+  it('no exogenous ordinal columns: the disclosure comment is absent', () => {
+    const setup = withPathModeConstructs({
+      roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      placed: ['b1', 'cont1'],
+      paths: [{ from: 1, to: 0 }],
+    })
+    const columnLevels = { b1: 'ordinal', cont1: 'scale' }
+    const r = latentEmitters['cb-sem'](
+      { id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never, undefined, columnLevels,
+    )
+    expect(orderedFrag(r)).toBe('ordered = c("b1")')
+    expect(r).not.toContain('not declared ordered =')
+  })
+
+  // ML default path-mode emission is a byte-pin: the endogeneity-downgrade code added for Task 8 is
+  // gated on isPath + WLSMV-relevant ordinal levels; a plain default ML path-mode setup with no
+  // Configure-data levels supplied must emit an UNCHANGED script (regression guard).
+  it('ML path-mode default emission is unaffected (snapshot)', () => {
+    const setup = withPathModeConstructs({
+      roles: {}, options: { estimator: 'ML', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      placed: ['a1', 'cont1', 'b1'],
+      paths: [{ from: 0, to: 2 }, { from: 1, to: 2 }],
+    })
+    const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, setup, { columns: [], rows: [] } as never)
+    expect(r).toMatchSnapshot()
   })
 })
 

@@ -459,6 +459,37 @@ const REPS: Rep[] = [
     expect: ['-0.6615553'], // Same model as Cell 6 (declaration order only) - h1Pins CELL_6_WLSMV_LISTWISE "B ~ A" est = -0.66155525
   },
 
+  // path-analysis (Task 8, Amendment B, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md):
+  // the PATH_WLSMV_STRUCT cell (h1Pins.ts) as a PATH-MODE export - `b1 ~ a1 + cont1; b2 ~ b1`, non-
+  // saturated (df=2). a1 is ordinal but purely EXOGENOUS (no path points into it), so per Amendment B it
+  // stays numeric/undeclared (the disclosure case); b1 and b2 are ordinal AND endogenous, so
+  // `ordered = c("b1", "b2")` - this is the emitter-side endogeneity downgrade this task added (mirrors
+  // runCbSem.ts's Task 5 logic, verified byte-identical against the runner in latent.cbsem.test.ts).
+  // Needle = the `b2 ~ b1` row's `est`, printed unrounded by Table 6's plain `print(struct_tab)` (R's
+  // default print.data.frame digits=7, same convention as cells 6/7's `se` needles above) - this row is
+  // CELL-DISTINGUISHING: it exists only in the non-saturated STRUCT model, not in the saturated SAT
+  // model (which has no b2) or in cells 6/7 (a latent CFA model, not path mode). Live native-R run of
+  // this exact emitted script (2026-07-11) printed `est = 0.3947533`, matching h1Pins
+  // PATH_WLSMV_STRUCT.structural "b2 ~ b1" est = 0.39475332 to the printed precision - byte-for-byte
+  // reproduction of the runner's own known-answer cell (runCbSem.test.ts's path-mode WLSMV describe
+  // block), export ≡ app.
+  {
+    id: 'path-analysis', fixture: 'likert5-missing.csv',
+    setup: {
+      roles: {}, options: { estimator: 'WLSMV', missing: 'listwise', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 1, name: 'a1', items: ['a1'] },
+        { id: 2, name: 'cont1', items: ['cont1'] },
+        { id: 3, name: 'b1', items: ['b1'] },
+        { id: 4, name: 'b2', items: ['b2'] },
+      ],
+      paths: [{ from: 1, to: 3 }, { from: 2, to: 3 }, { from: 3, to: 4 }],
+    },
+    columnLevels: { a1: 'ordinal', b1: 'ordinal', b2: 'ordinal', cont1: 'scale' },
+    expect: ['0.3947533'],
+  },
+
   // cb-sem moderation: SN/TA/TI matched interaction (spike §2, docs/superpowers/reviews/2026-07-06-moderation-spike.md).
   // bootstrap reduced to 500 (spike's own count) for the native-R time budget - matches the spike's exact numbers.
   { id: 'cb-sem', fixture: 'sem-moderation.csv',
