@@ -122,6 +122,11 @@ Full RED/GREEN detail: `.superpowers/sdd/pw-final-fix-report.md`.
   `pendingResetKey(modelKind, mode, placed)`) whenever the path-mode node set changes (place/remove) or
   the tool mode switches, resetting the fully-internal `pending`/`modGuard` state.
   The pending-selection ring now renders for path-mode nodes too, same mechanism as latent's.
+  Deliberate LATENT behavior change (final-review disclosure): because the tool mode is part of the key,
+  switching tools now clears a live half-drawn selection in LATENT mode too, where it previously survived;
+  tested, low-risk (latent ids never remap, so no wrong-bind was possible), and arguably the less
+  surprising behavior - but it is a change, flagged here so the "latent byte-unchanged" claim in (a)1
+  reads with this one exception.
   A new `pendingOverride` prop (mirrors `DragSlots`' `echoRole`/`armedChip`) is a test seam only - this
   repo has no click/DOM-interaction test harness (no jsdom/testing-library), so the ring is proven via
   `renderToStaticMarkup` with the override, and the reset trigger is proven via the pure
