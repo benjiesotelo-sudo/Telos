@@ -595,7 +595,7 @@ export async function runCbSem(
       return typeof v === 'number' && Number.isFinite(v) ? v : NaN
     }),
   )
-  const itemStats = isPath ? [] : computeItemStats(data, constructs, listwiseRows, missingSetting)
+  const itemStats = isPath ? [] : computeItemStats(data, constructs, listwiseRows, fitArgs.missing)
 
   const nboot = Number(setup.options['nboot'] ?? 5000)
 
@@ -782,7 +782,7 @@ export async function runCbSem(
       moderation: estModeration,
     },
     itemStats,
-    missing: missingSetting,
+    missing: fitArgs.missing,
     nboot,
     bootstrapped: needsBootstrap,
     figModSlopesPng,
