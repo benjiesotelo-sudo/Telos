@@ -2592,7 +2592,7 @@
       <div class="pipe-cap">deselect <b>EFA</b> for a confirmatory-only run (a-priori model) &middot; deselect <b>structural</b> to stop at the measurement model (CFA only) &middot; the results page shows only the tables for the stages you run</div>
       <div class="optstrip" style="margin-top:13px;">
         <span class="optpill"><span class="k">estimator</span><span class="v">WLSMV (ordinal) / ML / MLR</span><span class="caret">&#9662;</span></span>
-        <span class="optpill"><span class="k">missing</span><span class="v">MI</span><span class="caret">&#9662;</span></span>
+        <span class="optpill"><span class="k">missing</span><span class="v">listwise</span><span class="caret">&#9662;</span></span>
         <span class="optpill"><span class="k">bootstrap</span><span class="v">5000</span><span class="caret">&#9662;</span></span>
       </div>
       <div class="ddcap">missing-data method &middot; FIML needs ML/MLR; pairwise is unavailable under MLR; under WLSMV use pairwise</div>
@@ -2611,7 +2611,7 @@
       <span class="tag"><b>figure:</b> path diagram</span>
       <span class="tag"><b>note:</b> tables shown follow the stages you run</span>
     </div>
-    <div class="note">runs the selected pipeline stages &middot; missing-data handling follows the estimator (FIML / MI) <span style="opacity:0.8;">(warns if it differs from your global step-4a setting &middot; EFA on the same sample is exploratory - treat it as a diagnostic, not confirmatory evidence)</span></div>
+    <div class="note">runs the selected pipeline stages &middot; missing-data handling: listwise default &middot; FIML needs ML/MLR &middot; pairwise under WLSMV <span style="opacity:0.8;">(warns if it differs from your global step-4a setting &middot; EFA on the same sample is exploratory - treat it as a diagnostic, not confirmatory evidence)</span></div>
   </div>
 
   <div class="config">
