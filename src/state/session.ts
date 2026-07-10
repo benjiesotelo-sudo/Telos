@@ -168,14 +168,21 @@ function dropPlacedIndices(setup: TestSetup, dropIdx: ReadonlySet<number>): Test
   const oldToNew = new Map<number, number>()
   const nextPlaced: string[] = []
   placed.forEach((name, i) => { if (!dropIdx.has(i)) { oldToNew.set(i, nextPlaced.length); nextPlaced.push(name) } })
-  const paths = (setup.paths ?? [])
-    .filter((p) => oldToNew.has(p.from) && oldToNew.has(p.to))
-    .map((p) => ({ from: oldToNew.get(p.from)!, to: oldToNew.get(p.to)! }))
+  const keptPaths = (setup.paths ?? []).map((p, i) => ({ p, i })).filter(({ p }) => oldToNew.has(p.from) && oldToNew.has(p.to))
+  const paths = keptPaths.map(({ p }) => ({ from: oldToNew.get(p.from)!, to: oldToNew.get(p.to)! }))
   const droppedNames = new Set(placed.filter((_, i) => dropIdx.has(i)))
   const nodePositions = setup.nodePositions
     ? Object.fromEntries(Object.entries(setup.nodePositions).filter(([name]) => !droppedNames.has(name)))
     : setup.nodePositions
-  return { ...setup, placed: nextPlaced, paths, nodePositions }
+  // Defensive: moderation is unreachable in path mode via the UI today (moderationGuardReason blocks the
+  // gesture entirely), but this is the one designated remap site for a placed-columns drop - keep any
+  // moderation that might exist consistent with the paths it references, same discipline as
+  // removePath/removeConstruct (drop a moderation whose path was dropped; remap one whose path shifted).
+  const pathOldToNew = new Map(keptPaths.map(({ i }, newI) => [i, newI]))
+  const moderations = setup.moderations
+    ? setup.moderations.filter((m) => pathOldToNew.has(m.pathIndex)).map((m) => ({ ...m, pathIndex: pathOldToNew.get(m.pathIndex)! }))
+    : setup.moderations
+  return { ...setup, placed: nextPlaced, paths, nodePositions, moderations }
 }
 
 /** Legacy setups stored constructs without an id (pre-Sub-slice-B). Back-fill ids by array index so
@@ -289,8 +296,20 @@ export const useSession = create<SessionState>((set, get) => {
       if (!next.trim() || s.columns.some((c) => c.name === next)) return {}
       const raw = s.raw && { columns: s.raw.columns.map((c) => (c === name ? next : c)),
         rows: s.raw.rows.map((r) => { const { [name]: v, ...rest } = r; return name in r ? { ...rest, [next]: v } : r }) }
-      const setups = Object.fromEntries(Object.entries(s.setups).map(([id, t]) => [id,
-        { ...t, roles: Object.fromEntries(Object.entries(t.roles).map(([k, v]) => [k, v.map((c) => (c === name ? next : c))])) }]))
+      // P2 shelf model: a path-mode node's identity is its POSITION in `placed` (see withPathModeConstructs),
+      // and its drag position is keyed by column NAME in `nodePositions` - both must be renamed in the SAME
+      // pass as `roles`, symmetrically, or revalidated() sees the old name vanish from s.columns and drops
+      // the node (and its paths) as "vanished" even though it just got renamed, not removed.
+      // (The analogous gap for latent `constructs[].items` is pre-existing and out of scope here.)
+      const setups = Object.fromEntries(Object.entries(s.setups).map(([id, t]) => {
+        const roles = Object.fromEntries(Object.entries(t.roles).map(([k, v]) => [k, v.map((c) => (c === name ? next : c))]))
+        if (t.modelKind !== 'path' || !(t.placed ?? []).includes(name)) return [id, { ...t, roles }]
+        const placed = t.placed!.map((c) => (c === name ? next : c))
+        const nodePositions = t.nodePositions && name in t.nodePositions
+          ? Object.fromEntries(Object.entries(t.nodePositions).map(([k, v]) => [k === name ? next : k, v]))
+          : t.nodePositions
+        return [id, { ...t, roles, placed, nodePositions }]
+      }))
       return { raw, setups, columns: s.columns.map((c) => (c.name === name ? { ...c, name: next } : c)) }
     }),
     applyFixType: (name) => edit((s) => {
@@ -407,7 +426,9 @@ export const useSession = create<SessionState>((set, get) => {
     placeColumn: (testId, column) => edit((s) => {
       const prev = s.setups[testId]; if (!prev) return {}
       const placed = prev.placed ?? []
-      if (placed.includes(column)) return {}
+      // Store-level last-line-of-defence guard (matches the discipline elsewhere in this file): a stale
+      // shelf chip for a column that vanished (re-upload) or is already on the canvas is a no-op.
+      if (placed.includes(column) || !s.columns.some((c) => c.name === column)) return {}
       return { setups: { ...s.setups, [testId]: { ...prev, placed: [...placed, column] } } }
     }),
     // P2 shelf model: "delete = back to the shelf" - drop the node AND every path touching it, remapping

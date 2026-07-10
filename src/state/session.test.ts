@@ -739,6 +739,67 @@ describe('placeColumn / removeColumn (P2 shelf model)', () => {
     useSession.getState().removeColumn(TEST_ID, 'x9')
     expect(placed()).toEqual(['x1'])
   })
+
+  it('placeColumn ignores a column not present in s.columns (store-level last-line-of-defence guard)', () => {
+    useSession.getState().placeColumn(TEST_ID, 'ghost-column')
+    expect(placed()).toEqual([])
+  })
+
+  // (b) ride-along: dropPlacedIndices defensively remaps/drops moderations by pathIndex. Moderation is
+  // unreachable in path mode via the UI (moderationGuardReason blocks the gesture entirely), but the
+  // store's addModeration doesn't itself gate on modelKind, so a direct store call exercises the guard.
+  it('(ride-along) removeColumn remaps a surviving moderation\'s pathIndex and drops one whose path was dropped', () => {
+    const s = useSession.getState()
+    s.placeColumn(TEST_ID, 'x1'); s.placeColumn(TEST_ID, 'x2'); s.placeColumn(TEST_ID, 'x3')
+    s.addPath(TEST_ID, 0, 1) // path 0: x1 -> x2 (dropped along with x1)
+    s.addPath(TEST_ID, 1, 2) // path 1: x2 -> x3 (survives, remaps to index 0)
+    s.addModeration(TEST_ID, 99, 0) // moderates the path that gets dropped
+    s.addModeration(TEST_ID, 99, 1) // moderates the path that survives
+    s.removeColumn(TEST_ID, 'x1')
+    const setup = useSession.getState().setups[TEST_ID]
+    expect(setup.paths).toEqual([{ from: 0, to: 1 }]) // x2 -> x3, remapped
+    expect(setup.moderations).toEqual([{ id: 2, moderatorId: 99, pathIndex: 0 }])
+  })
+})
+
+describe('renameColumn (path mode) - keeps a placed node under its canvas identity', () => {
+  const TEST_ID = 'path-analysis'
+  beforeEach(() => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: [TEST_ID],
+      columns: [
+        { name: 'x1', detected: 'float64', tags: [], level: 'ratio', used: true },
+        { name: 'x2', detected: 'float64', tags: [], level: 'ratio', used: true },
+        { name: 'x3', detected: 'float64', tags: [], level: 'ratio', used: true },
+      ],
+      setups: { [TEST_ID]: { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'path', constructs: [] } },
+    })
+  })
+
+  it('renaming a PLACED column renames it in `placed` and its `nodePositions` key - node survives with its paths and position intact', () => {
+    const s = useSession.getState()
+    s.placeColumn(TEST_ID, 'x1'); s.placeColumn(TEST_ID, 'x2')
+    s.addPath(TEST_ID, 0, 1)
+    s.moveNode(TEST_ID, 1, 200, 90) // move x2 (index 1)
+    s.renameColumn('x2', 'wage')
+    const setup = useSession.getState().setups[TEST_ID]
+    expect(setup.placed).toEqual(['x1', 'wage'])
+    expect(setup.paths).toEqual([{ from: 0, to: 1 }]) // node identity is POSITION - untouched by rename
+    expect(setup.nodePositions).toEqual({ wage: { x: 200, y: 90 } })
+    // revalidated() must not treat the renamed node as vanished (columns list is renamed in the same edit)
+    expect(useSession.getState().setups[TEST_ID].blocked).toBeNull()
+  })
+
+  it('renaming a column that is NOT placed leaves `placed`/`nodePositions` untouched', () => {
+    const s = useSession.getState()
+    s.placeColumn(TEST_ID, 'x1')
+    s.moveNode(TEST_ID, 0, 50, 60)
+    s.renameColumn('x3', 'other') // x3 was never placed
+    const setup = useSession.getState().setups[TEST_ID]
+    expect(setup.placed).toEqual(['x1'])
+    expect(setup.nodePositions).toEqual({ x1: { x: 50, y: 60 } })
+  })
 })
 
 describe('moveNode (path mode) - positions keyed by column name, not shifting index', () => {
