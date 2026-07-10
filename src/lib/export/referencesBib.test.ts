@@ -49,6 +49,16 @@ describe('referencesBibText', () => {
     expect(bib).not.toContain('Sobel')
   })
 
+  it.each(['cb-sem', 'path-analysis'])(
+    'default-run byte-pin (%s): bib with a default-filled (empty-options) setup is byte-identical to no setups arg',
+    (id) => {
+      // Literal full-string equality (amendment (e)): ANY future conditional-ref leak into a default
+      // run fails loudly, not only one that happens to contain one of the four author names.
+      const defaultSetup: Record<string, TestSetup> = { [id]: { roles: {}, options: {}, props: {}, blocked: null } }
+      expect(referencesBibText([id], defaultSetup)).toBe(referencesBibText([id]))
+    },
+  )
+
   it('cb-sem run under MLR + moderation: bib includes Yuan-Bentler (2000) AND Sobel (1982), stays valid', () => {
     const setups: Record<string, TestSetup> = {
       'cb-sem': {

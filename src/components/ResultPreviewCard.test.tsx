@@ -171,6 +171,15 @@ describe('results-card footer - conditional method refs (Task 8)', () => {
     expect(html).not.toContain('Sobel')
   })
 
+  it.each(['cb-sem', 'path-analysis'])(
+    'default-run byte-pin (%s): footer with a default-filled setup is byte-identical to no setup at all',
+    (id) => {
+      // Literal full-string equality (amendment (e)): ANY future conditional-ref leak into a default
+      // run fails loudly, not only one that happens to contain one of the four author names above.
+      expect(renderFooter(id, setup())).toBe(renderFooter(id, undefined))
+    },
+  )
+
   it('estimator MLR: footer shows Yuan-Bentler (2000) only, not the WLSMV source', () => {
     const html = renderFooter('cb-sem', setup({ options: { estimator: 'MLR' } }))
     expect(html).toContain('Yuan')
