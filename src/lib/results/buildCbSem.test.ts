@@ -803,6 +803,42 @@ describe('buildCbSem - "Estimation" labelled note (H1 wiring, change 3, always p
   })
 })
 
+const RELIABILITY_BASIS_TEXT =
+  'Reliability coefficients (omega, alpha, CR, AVE) are computed from a separate confirmatory factor analysis treating indicators as continuous under maximum likelihood, per convention - independent of the estimator selected for the structural model.'
+
+describe('buildCbSem - "Reliability basis" labelled note (owner ruling C8-a)', () => {
+  it('is present, with the exact disclosure text, whenever the reliability table renders (merged latent mode)', () => {
+    const c = buildCbSem(SPEC, base)
+    const note = c.notes!.find((n) => n.label === 'Reliability basis')!
+    expect(note.text).toBe(RELIABILITY_BASIS_TEXT)
+  })
+
+  it('is present under WLSMV too - reliability is computed independently of the selected estimator', () => {
+    const c = buildCbSem(SPEC, { ...base, estimator: 'WLSMV', moderation: undefined, orderedItems: ['a1', 'a2'] })
+    const note = c.notes!.find((n) => n.label === 'Reliability basis')!
+    expect(note.text).toBe(RELIABILITY_BASIS_TEXT)
+  })
+
+  it('is absent in PATH_ANALYSIS mode - path mode has no reliability table', () => {
+    const path: CbSemResult = { ...base, mode: 'path', cfaLoadings: [], reliability: [] }
+    const c = buildCbSem(PATH_ANALYSIS, path)
+    expect(c.notes!.find((n) => n.label === 'Reliability basis')).toBeUndefined()
+  })
+
+  it('is absent in merged mode when there are no CFA loadings - no reliability table to disclose', () => {
+    const clean: CbSemResult = { ...base, cfaLoadings: [], reliability: [] }
+    const c = buildCbSem(SPEC, clean)
+    expect(c.notes!.find((n) => n.label === 'Reliability basis')).toBeUndefined()
+  })
+
+  it('still appears under saturation when the reliability table itself still renders', () => {
+    const sat: CbSemResult = { ...base, saturated: true, fit: { ...base.fit!, df: 0 } }
+    const c = buildCbSem(SPEC, sat)
+    const note = c.notes!.find((n) => n.label === 'Reliability basis')!
+    expect(note.text).toBe(RELIABILITY_BASIS_TEXT)
+  })
+})
+
 // Change 4: Table 5 CI provenance under delta reuses the EXISTING bootstrapped:false rendering -- no
 // fabricated BC columns. This is a REGRESSION TEST pinning that contract for a REALISTIC MLR+mediation
 // result (estimator set, ciMethod 'delta', indirect rows present), mirroring runCbSem.ts:76-83's

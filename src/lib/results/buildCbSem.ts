@@ -335,11 +335,19 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   }
   const estimationNoteText = estimationSentences.join(' ')
 
+  // Owner ruling C8-a: reliability (omega/alpha/CR/AVE) is always fit via its own continuous ML CFA
+  // (cfaReliability.ts), independent of the estimator chosen for the structural model - disclose this
+  // whenever the reliability table (T1, cfa-loadings) actually renders, mirroring that table's own gate.
+  const hasReliabilityTable = !isPath && r.cfaLoadings.length > 0
+  const RELIABILITY_BASIS_TEXT =
+    'Reliability coefficients (omega, alpha, CR, AVE) are computed from a separate confirmatory factor analysis treating indicators as continuous under maximum likelihood, per convention - independent of the estimator selected for the structural model.'
+
   let note: CardContent['note'] = null
   let notes: CardContent['notes']
   if (isMerged) {
     if (saturated) {
       notes = [{ label: 'Saturation', text: SATURATION_NOTE }]
+      if (hasReliabilityTable) notes.push({ label: 'Reliability basis', text: RELIABILITY_BASIS_TEXT })
     } else {
       const r2Static = 'R² is filled once per endogenous (outcome) construct.'
       // Fix round (U3-T5 review findings, item 1): restore the dropped bootstrap-provenance clause
@@ -353,12 +361,15 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         { label: 'Scope', text: 'Tables shown follow the pipeline stages you ran (EFA → CFA → fit → structural); if EFA was deselected, the E1/E2 preamble is omitted; if the structural stage was deselected, Table 5 is omitted.' },
         { label: 'Cutoffs', text: 'Good-fit guidelines (Hu & Bentler, 1999; Marsh, Hau & Wen, 2004): CFI/TLI ≥ .95, RMSEA ≤ .06 [90% CI], SRMR ≤ .08 - guidelines, not pass/fail gates; RMSEA is unstable at small df / small N, so interpret it cautiously for compact models.' },
         { label: 'Estimator', text: 'Use WLSMV for ordinal indicators.' },
+      ]
+      if (hasReliabilityTable) notes.push({ label: 'Reliability basis', text: RELIABILITY_BASIS_TEXT })
+      notes.push(
         { label: 'Estimation', text: estimationNoteText },
         { label: 'R²', text: r2NoteText ? `${r2Static} ${r2NoteText}` : r2Static },
         { label: 'Caution', text: 'EFA on the same sample is exploratory - treat it as a diagnostic, not confirmatory evidence.' },
         // Cross-references buildAve.ts's dedicated card, verbatim clause lift from the pre-T5 tableNote.
         { label: 'Discriminant validity', text: 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.', afterTableId: 'htmt' },
-      ]
+      )
       if (itemSampleNote) notes.push({ label: 'Item sample', text: itemSampleNote, afterTableId: 'cfa-loadings' })
       notes.push({ label: 'Indirect effects', text: 'The indirect-effects section of Table 5 appears only when the drawn structural paths form a chain (X → M → Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI.', afterTableId: 'structural-paths' })
       if (ciNoteText) notes.push({ label: 'CIs', text: ciNoteText, afterTableId: 'structural-paths' })
