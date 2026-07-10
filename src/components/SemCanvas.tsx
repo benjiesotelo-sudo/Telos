@@ -360,7 +360,9 @@ export function SemCanvasUI({
                   data-node-id={n.id}
                   x={c.left} y={c.top} width={NODE_W} height={NODE_H} rx={4}
                   fill="var(--card)" stroke={BLUE} strokeWidth={2}
-                  style={{ cursor: running ? 'default' : mode === 'move' ? 'grab' : 'pointer' }}
+                  // Path-mode nodes are fixed-laid-out and never drag (node-drag is gated to
+                  // modelKind==='latent'); Move mode over a node PANS - no grab false affordance.
+                  style={{ cursor: running ? 'default' : mode === 'move' ? 'default' : 'pointer' }}
                   onClick={() => clickNode(n.id)}
                 />
                 <text x={c.cx} y={c.cy + 4} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--text)" pointerEvents="none">{n.name}</text>

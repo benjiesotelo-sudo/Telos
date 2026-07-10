@@ -296,6 +296,36 @@ describe('SemCanvasUI - path-mode grid layout fits the viewBox', () => {
   })
 })
 
+// ── cursor affordance: grab only where node-drag actually works ─────────────
+// Node-drag is gated to mode==='move' AND modelKind==='latent' (SemConfig's onPointerDown -
+// path-mode columns are fixed-laid-out, not movable; a Move-mode drag there PANS). The grab
+// cursor must therefore only appear on latent nodes in Move mode; a path-mode rect in Move
+// mode shows the default cursor - promising a node-drag that pans instead is a false affordance.
+describe('SemCanvasUI - node cursor per mode+modelKind', () => {
+  const pathOver = { modelKind: 'path' as const, constructs: [], columns: ['educ', 'score'], paths: [] }
+  const nodeStyle = (html: string, cls: 'sem-node-rect' | 'sem-oval') => {
+    const m = html.match(new RegExp(`class="${cls}[^"]*"[^>]*style="([^"]*)"`))
+    if (!m) throw new Error(`no styled ${cls} node in render`)
+    return m[1]
+  }
+  it('latent Move mode: ovals show the grab cursor (drag really moves the node)', () => {
+    expect(nodeStyle(renderLatent({ mode: 'move' }), 'sem-oval')).toContain('cursor:grab')
+  })
+  it('path Move mode: rects show the default cursor, NOT grab (drag pans; nodes are fixed)', () => {
+    const style = nodeStyle(renderLatent({ ...pathOver, mode: 'move' }), 'sem-node-rect')
+    expect(style).not.toContain('grab')
+    expect(style).toContain('cursor:default')
+  })
+  it('draw mode keeps the pointer cursor in both model kinds (click draws a path)', () => {
+    expect(nodeStyle(renderLatent({ mode: 'draw' }), 'sem-oval')).toContain('cursor:pointer')
+    expect(nodeStyle(renderLatent({ ...pathOver, mode: 'draw' }), 'sem-node-rect')).toContain('cursor:pointer')
+  })
+  it('while running, both model kinds fall back to the default cursor', () => {
+    expect(nodeStyle(renderLatent({ mode: 'move', running: true }), 'sem-oval')).toContain('cursor:default')
+    expect(nodeStyle(renderLatent({ ...pathOver, mode: 'move', running: true }), 'sem-node-rect')).toContain('cursor:default')
+  })
+})
+
 // ── post-run estimates overlay (static annotation) ─────────────────────────
 const estimates = {
   paths: [{ from: 1, to: 2, beta: 0.62 }, { from: 2, to: 3, beta: 0.48 }],
