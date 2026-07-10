@@ -1,41 +1,43 @@
 # scripts/spikes/pathwlsmv-pin-values.R
-# Path-mode WLSMV slice, Task 1: native-R pins for the path-analysis WLSMV cell (a plain
-# structural-regression fit, no latent constructs, distinct from H1's cells 6-7 which are
-# CB-SEM/CFA-style fits on the SAME fixture). Reuses tests/e2e/fixtures/likert5-missing.csv
-# (already committed by H1 Task 4 -- same file, no regeneration) unchanged.
+# Path-mode WLSMV slice, Task 6 RE-PIN (Amendment B): native-R pins for the path-analysis WLSMV
+# cells. SUPERSEDES the original Task 1 models (`cont2 ~ a1 + b1` [+ `cont1 ~ cont2`]), which the
+# controller found were NOT achievable app states: neither model has an ordinal ENDOGENOUS
+# variable, so under Amendment B (ordered= follows endogeneity - a placed ordinal column is
+# declared ordered only when a drawn path points INTO it) both would synthesize an EMPTY
+# ordered= at runtime and never actually exercise WLSMV's threshold machinery. See
+# docs/superpowers/plans/2026-07-11-path-mode-wlsmv.md, Amendment B, and
+# .superpowers/sdd/pw-task-1-report.md (the original pins + their now-superseded warning
+# investigation).
 #
-# Two models per the spec (docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md, scope
-# item 5) and the plan (.superpowers/sdd/task-1-brief.md):
-#   1. Saturated:      cont2 ~ a1 + b1                    (df=0; structural estimates still pin,
-#                       fit indices are saturation-suppressed -- printed anyway for completeness,
-#                       NA/degenerate ones omitted from the TS pins per the H1 convention)
-#   2. Non-saturated:  cont2 ~ a1 + b1 ; cont1 ~ cont2      (df>0; a genuine fit-indices-bearing pin)
-# Both: estimator = "WLSMV", ordered = c("a1","b1"), missing default (listwise).
+# Reuses tests/e2e/fixtures/likert5-missing.csv (H1 Task 4 fixture, unchanged; a1..a3/b1..b3
+# Likert-5-able, cont1/cont2 continuous, 1% seeded NA holes in a1..b3).
+#
+# Two models, both with an ordinal ENDOGENOUS variable (a path drawn INTO it), per the controller's
+# re-pin spec:
+#   SAT:    b1 ~ a1 + cont1                 (ordered = c("b1") only; a1 is ordinal but PURELY
+#                                             EXOGENOUS here - it never appears as a response - so
+#                                             per Amendment B it is NOT declared ordered and enters
+#                                             numerically. This is the disclosure case: "ordinal
+#                                             predictors enter the model numerically". df=0/saturated
+#                                             is fine per the plan - structural estimates still pin.)
+#   STRUCT: b1 ~ a1 + cont1 ; b2 ~ b1        (ordered = c("b1","b2") - b2 is now also ordinal
+#                                             ENDOGENOUS (b1 -> b2), a1 stays numeric/exogenous as
+#                                             above. Non-saturated (df=2), a genuine fit-indices-
+#                                             bearing pin.)
+#
+# WARNING CHECK: unlike the original (superseded) models, NEITHER model below declares an
+# exogenous variable as ordered (a1 is deliberately left out of ordered= in both), so the
+# "exogenous variable(s) declared as ordered" / "parameter table does not contain thresholds"
+# warning class from the original pins does NOT fire here (verified below - both PROPER: TRUE with
+# zero warnings). The old scripts/spikes/pathwlsmv-warning-check.txt investigation is now
+# historical only (it was scoped to the superseded models) and has been removed; if warnings
+# reappear on a future regeneration of THESE models, investigate before pinning, same discipline
+# as before.
 #
 # PROPER-SOLUTION GUARANTEE (same discipline as h1-likert-missing-pin-values.R): each fit is
-# verified to pass lavaan's post.check AND to raise no warning OTHER than one specific, benign,
-# EXPECTED class documented below. If either model prints PROPER: FALSE, do not pin from that
-# run -- adjust the model choice minimally (e.g. swap which columns are ordered) rather than
-# pinning a degenerate/improper fit.
-#
-# EXPECTED WARNING CLASS (verified benign, not a sign of a degenerate fit -- see
-# scripts/spikes/pathwlsmv-warning-check.txt for the full investigation): a1/b1 here are PURELY
-# exogenous predictors (they only ever appear on the RHS of `~`, never as a response and never as
-# an indicator of a latent factor via `=~`). This is new relative to H1's WLSMV cells 6-7, whose
-# ordinal items (a1..a3, b1..b3) were always endogenous measurement-model indicators (`A =~ a1 +
-# a2 + a3`) and so never hit this path. lavaan warns
-# "exogenous variable(s) declared as ordered in data" / "parameter table does not contain
-# thresholds" for such variables because it cannot estimate a threshold structure for a variable
-# that is never modeled as a response -- it simply uses a1/b1's raw values directly as regressors,
-# same as if `ordered=` had omitted them. CONFIRMED (see scripts/spikes/pathwlsmv-warning-check.txt):
-# the shared structural estimates (cont2~a1, cont2~b1, cont2~~cont2) agree to ~9 significant digits
-# whether or not a1/b1 are declared ordered in this exact model (the ~1e-9 residual is optimizer-path
-# rounding, not a real difference) -- the declaration is a documented no-op for a purely exogenous
-# ordinal predictor under WLSMV, not a sign of misspecification. lavInspect(fit,
-# "post.check") is TRUE for both models below. This is the intended production scenario (spec
-# item 5's own example: "ordinal used only as a predictor"), so the model is NOT swapped to dodge
-# the warning -- that would stop testing the feature being shipped. Any OTHER warning text below
-# fails the stopifnot() and must not be pinned.
+# verified to pass lavaan's post.check AND to raise NO warning at all (tighter than the original
+# script's allow-list, since these models are not expected to hit the benign exogenous-ordered
+# class). If either model prints PROPER: FALSE, do not pin from that run.
 #
 # Run: Rscript scripts/spikes/pathwlsmv-pin-values.R > scripts/spikes/pathwlsmv-pin-values.txt 2>&1
 library(lavaan)
@@ -46,13 +48,6 @@ data <- read.csv("tests/e2e/fixtures/likert5-missing.csv")
 
 fmt <- function(x) if (is.na(x)) "NA" else sprintf("%.8f", x)
 
-# Benign, expected warning fragments for a purely-exogenous ordinal predictor (see the header
-# note above) -- any warning NOT matching one of these substrings is treated as fatal.
-EXPECTED_WARNING_FRAGMENTS <- c(
-  "exogenous variable\\(s\\) declared as ordered",
-  "parameter table does not contain thresholds"
-)
-
 fit_and_report <- function(label, model, ordered_cols) {
   warns <- character(0)
   fit <- withCallingHandlers(
@@ -60,12 +55,10 @@ fit_and_report <- function(label, model, ordered_cols) {
     warning = function(w) { warns <<- c(warns, conditionMessage(w)); invokeRestart("muffleWarning") }
   )
   post_ok <- isTRUE(suppressWarnings(lavaan::lavInspect(fit, "post.check")))
-  unexpected <- warns[!vapply(warns, function(w) any(vapply(EXPECTED_WARNING_FRAGMENTS, grepl, logical(1), x = w)), logical(1))]
-  proper <- post_ok && length(unexpected) == 0
+  proper <- post_ok && length(warns) == 0
   cat("\n#### ", label, "\n")
   cat("PROPER:", proper, "\n")
   if (length(warns)) cat("WARNINGS (raw):", paste(unique(warns), collapse = " | "), "\n")
-  if (length(unexpected)) cat("UNEXPECTED WARNINGS:", paste(unique(unexpected), collapse = " | "), "\n")
   stopifnot(proper)
 
   fm <- lavaan::fitMeasures(fit)
@@ -85,5 +78,5 @@ fit_and_report <- function(label, model, ordered_cols) {
   invisible(fit)
 }
 
-fit_and_report("Saturated: cont2 ~ a1 + b1", "cont2 ~ a1 + b1", c("a1", "b1"))
-fit_and_report("Non-saturated: cont2 ~ a1 + b1 ; cont1 ~ cont2", "cont2 ~ a1 + b1\ncont1 ~ cont2", c("a1", "b1"))
+fit_and_report("Saturated: b1 ~ a1 + cont1 (ordered=c(\"b1\") only; a1 exogenous ordinal stays numeric)", "b1 ~ a1 + cont1", c("b1"))
+fit_and_report("Non-saturated: b1 ~ a1 + cont1 ; b2 ~ b1 (ordered=c(\"b1\",\"b2\"))", "b1 ~ a1 + cont1\nb2 ~ b1", c("b1", "b2"))

@@ -79,11 +79,14 @@ describe('h1Pins - 7-cell estimator/missing matrix (native-R pins)', () => {
   })
 })
 
-// Path-mode WLSMV pins (path-mode WLSMV slice, Task 1): same shape-integrity discipline as the
-// 7-cell matrix above, extended minimally to the two new exports. These are a plain
+// Path-mode WLSMV pins (path-mode WLSMV slice): same shape-integrity discipline as the 7-cell
+// matrix above, extended minimally to the two new exports. These are a plain
 // structural-regression fit (no latent constructs), a genuinely different model shape from
 // cells 1-7, so they get their own small describe block rather than being folded into ALL_CELLS.
-describe('h1Pins - path-mode WLSMV pins (native-R pins, Task 1 of the path-mode WLSMV slice)', () => {
+// RE-PINNED at Task 6 per Amendment B: the models now each carry an ordinal ENDOGENOUS variable
+// (b1, and b2 in STRUCT) so ordered= is non-empty at runtime; a1 stays ordinal-but-exogenous
+// (numeric, the disclosure case) in both.
+describe('h1Pins - path-mode WLSMV pins (native-R pins, re-pinned Task 6 of the path-mode WLSMV slice per Amendment B)', () => {
   const PATH_CELLS: Record<string, H1PinCell> = { PATH_WLSMV_SAT, PATH_WLSMV_STRUCT }
 
   it('both exports are present and tagged WLSMV / listwise', () => {
@@ -101,9 +104,9 @@ describe('h1Pins - path-mode WLSMV pins (native-R pins, Task 1 of the path-mode 
     }
   })
 
-  it('PATH_WLSMV_SAT carries exactly its 2 structural paths (cont2 ~ a1, cont2 ~ b1); PATH_WLSMV_STRUCT adds cont1 ~ cont2 on top', () => {
-    expect(PATH_WLSMV_SAT.structural.map((row) => row.param)).toEqual(['cont2 ~ a1', 'cont2 ~ b1'])
-    expect(PATH_WLSMV_STRUCT.structural.map((row) => row.param)).toEqual(['cont2 ~ a1', 'cont2 ~ b1', 'cont1 ~ cont2'])
+  it('PATH_WLSMV_SAT carries exactly its 2 structural paths (b1 ~ a1, b1 ~ cont1); PATH_WLSMV_STRUCT adds b2 ~ b1 on top', () => {
+    expect(PATH_WLSMV_SAT.structural.map((row) => row.param)).toEqual(['b1 ~ a1', 'b1 ~ cont1'])
+    expect(PATH_WLSMV_STRUCT.structural.map((row) => row.param)).toEqual(['b1 ~ a1', 'b1 ~ cont1', 'b2 ~ b1'])
   })
 
   it('the two cells are genuinely different fits, not copies (saturated df=0 vs non-saturated df=2)', () => {

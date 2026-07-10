@@ -2,51 +2,47 @@ This is lavaan 0.6-21
 lavaan is FREE software! Please report any bugs.
 lavaan 0.6.21  R R version 4.6.0 (2026-04-24) 
 
-####  Saturated: cont2 ~ a1 + b1 
+####  Saturated: b1 ~ a1 + cont1 (ordered=c("b1") only; a1 exogenous ordinal stays numeric) 
 PROPER: TRUE 
-WARNINGS (raw): lavaan->lav_data_full():  
-   exogenous variable(s) declared as ordered in data: "a1", "b1" | lavaan->lav_partable_check():  
-   parameter table does not contain thresholds 
 chisq            0.00000000
 df               0.00000000
 pvalue           NA
 cfi              1.00000000
 tli              1.00000000
 rmsea            0.00000000
-srmr             0.00000003
+srmr             0.00000000
+wrmr             0.00000001
 chisq.scaled     0.00000000
 df.scaled        0.00000000
 pvalue.scaled    NA
 cfi.scaled       1.00000000
 tli.scaled       1.00000000
 rmsea.scaled     0.00000000
-cfi.robust       1.00000000
-tli.robust       1.00000000
-rmsea.robust     0.00000000
-PE struct  cont2 ~ a1   est=0.28505053 se=0.03755062
-PE struct  cont2 ~ b1   est=-0.27626042 se=0.03851480
+cfi.robust       NA
+tli.robust       NA
+rmsea.robust     NA
+PE struct  b1 ~ a1   est=-0.13387765 se=0.05376146
+PE struct  b1 ~ cont1   est=-0.69720820 se=0.08627001
 
-####  Non-saturated: cont2 ~ a1 + b1 ; cont1 ~ cont2 
+####  Non-saturated: b1 ~ a1 + cont1 ; b2 ~ b1 (ordered=c("b1","b2")) 
 PROPER: TRUE 
-WARNINGS (raw): lavaan->lav_data_full():  
-   exogenous variable(s) declared as ordered in data: "a1", "b1" | lavaan->lav_partable_check():  
-   parameter table does not contain thresholds 
-chisq            10.92091172
+chisq            33.13714128
 df               2.00000000
 pvalue           NA
-cfi              0.87003652
-tli              0.93501826
-rmsea            0.12338314
-srmr             0.08929273
-chisq.scaled     24.93039547
+cfi              0.00000000
+tli              -1.15835635
+rmsea            0.23169965
+srmr             0.09032279
+wrmr             1.59656220
+chisq.scaled     34.32232565
 df.scaled        2.00000000
-pvalue.scaled    0.00000386
-cfi.scaled       0.66594066
-tli.scaled       0.83297033
-rmsea.scaled     0.19781397
-cfi.robust       0.85255559
-tli.robust       0.92627780
-rmsea.robust     0.13141935
-PE struct  cont2 ~ a1   est=0.32140174 se=0.03648851
-PE struct  cont2 ~ b1   est=-0.31662997 se=0.03782411
-PE struct  cont1 ~ cont2   est=0.82363855 se=0.04100614
+pvalue.scaled    0.00000004
+cfi.scaled       0.00000000
+tli.scaled       -1.24051066
+rmsea.scaled     0.23606810
+cfi.robust       NA
+tli.robust       NA
+rmsea.robust     NA
+PE struct  b1 ~ a1   est=-0.18403090 se=0.05650942
+PE struct  b1 ~ cont1   est=-0.83672956 se=0.08799997
+PE struct  b2 ~ b1   est=0.39475332 se=0.05335241

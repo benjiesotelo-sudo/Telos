@@ -1,9 +1,11 @@
 /**
  * H1 estimator/missing wiring - native-R pinned values for the 7-cell matrix.
  *
- * ADDENDUM (path-mode WLSMV slice, Task 1): this file also carries PATH_WLSMV_SAT and
- * PATH_WLSMV_STRUCT near the bottom - two path-mode (no latent constructs) WLSMV pins with their
- * own provenance section and doc comment. Same file, same conventions, distinct fixture usage.
+ * ADDENDUM (path-mode WLSMV slice): this file also carries PATH_WLSMV_SAT and PATH_WLSMV_STRUCT
+ * near the bottom - two path-mode (no latent constructs) WLSMV pins with their own provenance
+ * section and doc comment. Same file, same conventions, distinct fixture usage. RE-PINNED at
+ * Task 6 per Amendment B (ordered= follows endogeneity) - see that section's header for why the
+ * original Task 1 models were replaced.
  *
  * PROVENANCE + COMPARISON RULE (read before using these pins - do not skip this):
  * Every value below is a NATIVE R 4.6.0 / lavaan 0.6-21 result (never a WebR/browser value).
@@ -257,84 +259,84 @@ export const CELL_7_WLSMV_PAIRWISE: H1PinCell = {
 }
 
 // -------------------------------------------------------------------------------------------
-// Path-mode WLSMV pins (path-mode WLSMV slice, Task 1): a plain structural-regression fit with NO
-// latent constructs - distinct from cells 6-7 above, which are CFA/CB-SEM-style measurement models
-// on the same fixture. Model: cont2 ~ a1 + b1 (a1, b1 are PURELY exogenous ordinal predictors -
-// they never appear as a response and never as a =~ indicator). estimator = "WLSMV", ordered =
-// c("a1","b1"), missing = listwise (default). Source: scripts/spikes/pathwlsmv-pin-values.txt
-// (scripts/spikes/pathwlsmv-pin-values.R regenerates it; PROPER: TRUE for both cells below,
-// machine-checked by the script's own stopifnot()).
+// Path-mode WLSMV pins (path-mode WLSMV slice, Task 6 RE-PIN, Amendment B). SUPERSEDES the
+// original Task 1 models (`cont2 ~ a1 + b1` [+ `cont1 ~ cont2`]): those had NO ordinal ENDOGENOUS
+// variable (a1, b1 were purely exogenous predictors), so under Amendment B - ordered= follows
+// endogeneity, declaring only placed ordinal columns that a drawn path points INTO - neither
+// model is an achievable app state: the runner would synthesize an EMPTY ordered= and WLSMV's
+// threshold machinery would never actually engage. Re-pinned below with models that DO have an
+// ordinal endogenous variable, still on the same fixture, no latent constructs (distinct from
+// cells 6-7 above, which are CFA/CB-SEM-style measurement models).
 //
-// EXPECTED WARNING (verified benign, not a defect - see
-// scripts/spikes/pathwlsmv-warning-check.txt): lavaan warns "exogenous variable(s) declared as
-// ordered in data" / "parameter table does not contain thresholds" for a1/b1 because it cannot fit
-// a threshold model for a variable that is never a response. This is a documented no-op for a
-// purely exogenous ordinal predictor under WLSMV (confirmed: the shared structural coefficients
-// agree to ~9 significant digits with vs without the ordered= declaration, well inside this
-// module's WLSMV tolerance) - new relative to H1's WLSMV cells above, whose ordinal items were
-// always endogenous measurement-model indicators (a1..a3 loading on `A =~ a1 + a2 + a3`). Compare
-// downstream WebR results against these pins at the same WLSMV 5dp tolerance as cells 6-7 (see the
-// module doc comment at the top of this file).
+// Both models below intentionally ALSO include an exogenous ordinal variable (a1) that is NOT
+// declared in ordered= - this is the Amendment B disclosure case ("ordinal predictors enter the
+// model numerically" for purely-exogenous ordinal columns; only endogenous ordinal columns get a
+// threshold structure). estimator = "WLSMV", missing = listwise (default). Source:
+// scripts/spikes/pathwlsmv-pin-values.txt (scripts/spikes/pathwlsmv-pin-values.R regenerates it;
+// PROPER: TRUE for both cells below with ZERO warnings - unlike the superseded models, neither fit
+// here declares an exogenous variable as ordered, so the old "exogenous variable(s) declared as
+// ordered" warning class does not fire; the superseded investigation file
+// scripts/spikes/pathwlsmv-warning-check.txt has been removed). Compare downstream WebR results
+// against these pins at the same WLSMV 5dp tolerance as cells 6-7 (see the module doc comment at
+// the top of this file).
 //
-// PATH_WLSMV_SAT is the saturated (df=0) variant: fit indices are trivially perfect by saturation
-// (chisq=0, cfi=tli=1, rmsea=0) - pinned anyway per the plan's "structural estimates still pin"
-// note, but only chisq/df carry any real information (they evidence the saturation itself).
-// PATH_WLSMV_STRUCT adds `cont1 ~ cont2`, which is not saturated (df=2) and so gives a genuine,
+// PATH_WLSMV_SAT: `b1 ~ a1 + cont1`, ordered = c("b1") only (b1 is ordinal and ENDOGENOUS - a
+// path points into it; a1 is ordinal but exogenous, so it is NOT declared and enters numerically -
+// the disclosure case). Saturated (df=0) - pinned per the plan's "structural estimates still pin"
+// note; only chisq/df carry saturation-evidencing information.
+// PATH_WLSMV_STRUCT: `b1 ~ a1 + cont1` + `b2 ~ b1`, ordered = c("b1","b2") (b2 is now also ordinal
+// ENDOGENOUS via b1 -> b2; a1 stays numeric/exogenous as above). Non-saturated (df=2), a genuine,
 // non-trivial fit-indices-bearing pin.
 // -------------------------------------------------------------------------------------------
 
-/** Path-mode WLSMV, saturated: `cont2 ~ a1 + b1`. scripts/spikes/pathwlsmv-pin-values.txt
- *  lines 5-27 (PROPER: TRUE at line 6). */
+/** Path-mode WLSMV, saturated: `b1 ~ a1 + cont1` (ordered=c("b1") only; a1 exogenous ordinal
+ *  stays numeric - the Amendment B disclosure case). scripts/spikes/pathwlsmv-pin-values.txt
+ *  lines 5-25 (PROPER: TRUE at line 6). */
 export const PATH_WLSMV_SAT: H1PinCell = {
   estimator: 'WLSMV',
   missing: 'listwise',
   fit: {
-    chisq: 0.0, // line 10 (saturated: df=0, trivially perfect fit)
-    df: 0.0, // line 11
-    cfi: 1.0, // line 13
-    tli: 1.0, // line 14
-    rmsea: 0.0, // line 15
-    srmr: 0.00000003, // line 16
-    'chisq.scaled': 0.0, // line 17
-    'df.scaled': 0.0, // line 18
-    'cfi.scaled': 1.0, // line 20
-    'tli.scaled': 1.0, // line 21
-    'rmsea.scaled': 0.0, // line 22
-    'cfi.robust': 1.0, // line 23
-    'tli.robust': 1.0, // line 24
-    'rmsea.robust': 0.0, // line 25
+    chisq: 0.0, // line 7 (saturated: df=0, trivially perfect fit)
+    df: 0.0, // line 8
+    cfi: 1.0, // line 10
+    tli: 1.0, // line 11
+    rmsea: 0.0, // line 12
+    srmr: 0.0, // line 13
+    'chisq.scaled': 0.0, // line 15
+    'df.scaled': 0.0, // line 16
+    'cfi.scaled': 1.0, // line 18
+    'tli.scaled': 1.0, // line 19
+    'rmsea.scaled': 0.0, // line 20
   },
   structural: [
-    { param: 'cont2 ~ a1', est: 0.28505053, se: 0.03755062 }, // line 26
-    { param: 'cont2 ~ b1', est: -0.27626042, se: 0.0385148 }, // line 27
+    { param: 'b1 ~ a1', est: -0.13387765, se: 0.05376146 }, // line 24
+    { param: 'b1 ~ cont1', est: -0.6972082, se: 0.08627001 }, // line 25
   ],
 }
 
-/** Path-mode WLSMV, non-saturated: `cont2 ~ a1 + b1; cont1 ~ cont2`.
- *  scripts/spikes/pathwlsmv-pin-values.txt lines 29-52 (PROPER: TRUE at line 30). */
+/** Path-mode WLSMV, non-saturated: `b1 ~ a1 + cont1; b2 ~ b1` (ordered=c("b1","b2"); a1 stays
+ *  numeric/exogenous). scripts/spikes/pathwlsmv-pin-values.txt lines 27-48
+ *  (PROPER: TRUE at line 28). */
 export const PATH_WLSMV_STRUCT: H1PinCell = {
   estimator: 'WLSMV',
   missing: 'listwise',
   fit: {
-    chisq: 10.92091172, // line 34
-    df: 2.0, // line 35
-    cfi: 0.87003652, // line 37
-    tli: 0.93501826, // line 38
-    rmsea: 0.12338314, // line 39
-    srmr: 0.08929273, // line 40
-    'chisq.scaled': 24.93039547, // line 41
-    'df.scaled': 2.0, // line 42
-    'pvalue.scaled': 0.00000386, // line 43
-    'cfi.scaled': 0.66594066, // line 44
-    'tli.scaled': 0.83297033, // line 45
-    'rmsea.scaled': 0.19781397, // line 46
-    'cfi.robust': 0.85255559, // line 47
-    'tli.robust': 0.9262778, // line 48
-    'rmsea.robust': 0.13141935, // line 49
+    chisq: 33.13714128, // line 29
+    df: 2.0, // line 30
+    cfi: 0.0, // line 32
+    tli: -1.15835635, // line 33
+    rmsea: 0.23169965, // line 34
+    srmr: 0.09032279, // line 35
+    'chisq.scaled': 34.32232565, // line 37
+    'df.scaled': 2.0, // line 38
+    'pvalue.scaled': 0.00000004, // line 39
+    'cfi.scaled': 0.0, // line 40
+    'tli.scaled': -1.24051066, // line 41
+    'rmsea.scaled': 0.2360681, // line 42
   },
   structural: [
-    { param: 'cont2 ~ a1', est: 0.32140174, se: 0.03648851 }, // line 50
-    { param: 'cont2 ~ b1', est: -0.31662997, se: 0.03782411 }, // line 51
-    { param: 'cont1 ~ cont2', est: 0.82363855, se: 0.04100614 }, // line 52
+    { param: 'b1 ~ a1', est: -0.1840309, se: 0.05650942 }, // line 46
+    { param: 'b1 ~ cont1', est: -0.83672956, se: 0.08799997 }, // line 47
+    { param: 'b2 ~ b1', est: 0.39475332, se: 0.05335241 }, // line 48
   ],
 }
