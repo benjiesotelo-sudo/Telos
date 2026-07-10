@@ -202,7 +202,12 @@ describe("latentEmitters['cb-sem'] - H1 wiring: export emitter parity (Task 7)",
     paths: [{ from: 1, to: 2 }],
   }
 
-  it('default (ML + listwise) setup emits a script byte-identical to the pre-H1 snapshot (byte-pin)', () => {
+  // Byte-pin, deliberately UPDATED by the final-review fix wave (Critical C1 + Important I2): Table 4
+  // now fits its own separate continuous reliability CFA (mirrors cfaReliability.ts) instead of reusing
+  // the parameterized structural `fit` - this changes the emitted script for EVERY cb-sem export,
+  // including this default cell, and that change is accepted (correctness over byte-pin; see the
+  // fix-wave report). Every other line stays byte-identical to the pre-H1 snapshot this test used to pin.
+  it('default (ML + listwise) setup emits a script byte-identical to the fix-wave snapshot (byte-pin)', () => {
     const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, H1_SETUP, { columns: [], rows: [] } as never)
     expect(r).toMatchSnapshot()
   })

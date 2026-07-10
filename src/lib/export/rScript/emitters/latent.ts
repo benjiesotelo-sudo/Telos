@@ -8,7 +8,7 @@ import { buildModel, CB_SEM_DEFAULT_MISSING } from '../../../stats/runCbSem'
 import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE, moderatorMainEffectPaths } from '../../../stats/moderationModel'
 import { BC_CI_R } from '../../../stats/plsBcCi'
 import { SIMPLE_SLOPES_PLOT_R } from '../../../stats/simpleSlopesPlot'
-import { semFitArgs, type SemFitArgs } from '../../../stats/semFitArgs'
+import { semFitArgs, semFitMeasureNames, type SemFitArgs } from '../../../stats/semFitArgs'
 
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim - same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
@@ -570,6 +570,17 @@ export const latentEmitters: Record<string, Emitter> = {
     )
 
     if (!isPath) {
+      // Table 4 fits its OWN continuous CFA (measurement lines only, no estimator/missing/ordered=)
+      // rather than reusing the parameterized structural `fit` above - mirrors the app's reliability
+      // computation exactly (src/lib/stats/cfaReliability.ts: `lavaan::cfa(model_str, data = d_all,
+      // std.lv = FALSE)`, never given `ordered=`). Reusing `fit` here crashed native R
+      // (`object 'isShared' not found`, semTools::compRelSEM) whenever the first-declared composite
+      // was all-ordinal under WLSMV; fitting reliability as continuous - exactly like the card's own
+      // number - kills the crash AND keeps export ≡ app for reliability under every estimator.
+      const measurementModelR = constructs
+        .map((c) => `${rNameOf(c.id)} =~ ${c.items.map(itemNameOf).join(' + ')}`)
+        .join('\n')
+        .replace(/\n/g, '\\n')
       out.push(
         '# ---- Table 3: Measurement model (CFA) - B / SE / z / p / Std. loading ----',
         'cat("\\n--- Table 3: Measurement model (CFA) ---\\n")',
@@ -577,20 +588,37 @@ export const latentEmitters: Record<string, Emitter> = {
         '',
         '# ---- Table 4: Reliability & validity - CR / AVE / ω / α ----',
         '# Do NOT call semTools::reliability() - deprecated 2022.',
-        'cr_vec  <- unlist(semTools::compRelSEM(fit))',
-        'ave_vec <- semTools::AVE(fit)',
+        '# Fit a SEPARATE continuous CFA for reliability (matches the app card exactly) - the structural',
+        '# fit above may carry estimator = "WLSMV"/ordered =, which compRelSEM cannot safely reuse.',
+        `model_rel_str <- "${measurementModelR}"`,
+        'fit_rel <- lavaan::cfa(model_rel_str, data = d, std.lv = FALSE)',
+        'cr_vec  <- unlist(semTools::compRelSEM(fit_rel))',
+        'ave_vec <- semTools::AVE(fit_rel)',
         'cat("\\n--- Table 4: Reliability & validity ---\\n")',
         'print(round(rbind(CR = cr_vec, AVE = ave_vec[names(cr_vec)]), 3))',
         '',
       )
     }
 
+    // Fit-index names sourced from semFitArgs.ts's semFitMeasureNames - the SAME estimator-conditional
+    // list the app's runCbSem.ts (fitListBlock) consumes (H1 wiring final-review fix, Important I1), so
+    // the exported script requests the identical scaled/robust measures the results card shows, never
+    // the naive unscaled names under a robust estimator. lavaan's own returned vector is named with the
+    // requested strings (e.g. "chisq.scaled"), so the printed table is self-labeling.
+    const fitNames = semFitMeasureNames(fitArgs.estimator)
+    const [chisqN, dfN, pvalueN, cfiN, tliN, rmseaN, rmseaLowerN, rmseaUpperN, srmrN] = fitNames.request
     out.push(
       '# ---- Table 5: Fit indices (suppressed strictly when df == 0 - saturated) ----',
       '# Shared predicate: byte-identical to the app screen (src/lib/stats/semSaturation.ts R_SATURATED_PREDICATE).',
+      ...(fitNames.robust
+        ? [
+            '# Estimator-conditional measure names (semFitMeasureNames, shared with the app card and the',
+            '# runner\'s fitListBlock): chisq/df/pvalue are the scaled family; cfi/tli/rmsea are robust/scaled.',
+          ]
+        : []),
       `if (!(${R_SATURATED_PREDICATE})) {`,
-      '  fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",',
-      '                                   "rmsea.ci.lower","rmsea.ci.upper","srmr"))',
+      `  fm <- lavaan::fitMeasures(fit, c("${chisqN}","${dfN}","${pvalueN}","${cfiN}","${tliN}","${rmseaN}",`,
+      `                                   "${rmseaLowerN}","${rmseaUpperN}","${srmrN}"))`,
       '  cat("\\n--- Table 5: Fit indices ---\\n")',
       '  print(round(fm, 3))',
       '} else {',
