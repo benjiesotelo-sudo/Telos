@@ -121,7 +121,8 @@ Both WLSMV cells are machine-verified PROPER solutions (ruling B5).
 
 7. **Stale doc-capture artifacts noticed during the Task 12 docs regen (not corrected here).**
    `docs/test-documentation/46_cb-sem/` and `48_path-analysis/`'s screenshots and `export/` artifacts are dated 2026-07-08, predating this slice (started 2026-07-10 night, base `aa8f03a`).
-   For these two DEFAULT-config tests the numbers/export fragment are unaffected (byte-identical-defaults rule), but the on-screen "Estimation note" UI text (ruling B4) would not appear in the stale `2-app-output.png` screenshot.
+   For these two DEFAULT-config tests the numbers/export fragment are unaffected by the WIRING (byte-identical-defaults rule), but the on-screen "Estimation note" UI text (ruling B4) would not appear in the stale `2-app-output.png` screenshot.
+   Post-final-review update: the fix wave (`630e652`) deliberately changed the default export's Table 4 block (it now fits its own continuous reliability CFA, mirroring the app), so docs 46/48 were regenerated once more after the fix wave and their scripts re-ran clean under native R at HEAD.
    `docs/build-test-doc.mjs` only re-runs native R against the existing `export/` artifacts and rewraps the HTML - it does not recapture screenshots, which is a separate, larger capture-harness step outside this task's scope.
    Held for Benjie: recapture 46/48 (and audit the rest of the catalog for the same staleness) as a future doc-hygiene pass, not urgent since no numbers are wrong.
 
