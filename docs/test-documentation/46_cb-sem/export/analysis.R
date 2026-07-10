@@ -64,8 +64,12 @@ print(ss[ss$op == "=~", c("lhs","rhs","est.std")])
 
 # ---- Table 4: Reliability & validity - CR / AVE / ω / α ----
 # Do NOT call semTools::reliability() - deprecated 2022.
-cr_vec  <- unlist(semTools::compRelSEM(fit))
-ave_vec <- semTools::AVE(fit)
+# Fit a SEPARATE continuous CFA for reliability (matches the app card exactly) - the structural
+# fit above may carry estimator = "WLSMV"/ordered =, which compRelSEM cannot safely reuse.
+model_rel_str <- "esg =~ esg1 + esg2 + esg3 + esg4\nnorm =~ norm1 + norm2 + norm3 + norm4\nservice_quality =~ service_quality1 + service_quality2 + service_quality3 + service_quality4\nattitude =~ attitude1 + attitude2 + attitude3 + attitude4\nintent =~ intent1 + intent2 + intent3"
+fit_rel <- lavaan::cfa(model_rel_str, data = d, std.lv = FALSE)
+cr_vec  <- unlist(semTools::compRelSEM(fit_rel))
+ave_vec <- semTools::AVE(fit_rel)
 cat("\n--- Table 4: Reliability & validity ---\n")
 print(round(rbind(CR = cr_vec, AVE = ave_vec[names(cr_vec)]), 3))
 

@@ -6,8 +6,8 @@ methods-paragraph summary, and credit the R packages your analysis.R depends on.
 
 1. CITE THIS APP
 ================
-Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
-  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+Sotelo, B. (2026). Telos (v1.0.0) [Computer software]. https://doi.org/10.5281/zenodo.21281648
+  Source code: https://github.com/benjiesotelo-sudo/Telos
 
 2. YOUR REFERENCE LIST
 =======================
@@ -25,7 +25,7 @@ Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/z
 
 3. METHODS PARAGRAPH
 =====================
-  CB-SEM: The model fit well (CFI=1.00, RMSEA=.01, SRMR=.03); the path from esg to intent gave β=.43, p < .001. (Kline, 2023; Appelbaum, 2018)
+  CB-SEM: The model fit well (CFI=1.00, RMSEA=.01, SRMR=.03); the path from esg to intent gave β=.43, p < .001. Estimated with maximum likelihood. (Kline, 2023; Appelbaum, 2018)
 
 4. APPENDIX: R PACKAGE CITATIONS
 =================================
