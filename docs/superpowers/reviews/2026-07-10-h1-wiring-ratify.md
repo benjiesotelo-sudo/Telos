@@ -140,3 +140,17 @@ Both WLSMV cells are machine-verified PROPER solutions (ruling B5).
 
 runs-in-r: 38/38 native-R executions passed (run 2 verbose log), matching the expected 38/38 (31 pre-existing + 7 H1-matrix REPs).
 Full per-step logs: `.superpowers/sdd/task-12-report.md`.
+
+## E. Owner dispositions (Benjie, 2026-07-11)
+
+- B1-B8: ALL CONFIRMED ("this sounds good, we may proceed"), after plain-language walkthroughs of B1 (lavaan-limitation framing), B7 (export gate story), B8 (amendment recap).
+- C1: acknowledged.
+- C2: OPTION A WITH PRIORITY - his verdict: "path analysis is actually very important in our app". The honest note ships now; wiring path-mode WLSMV (ordinal detection from drawn columns + the raw-vs-sanitized ordered= naming fix + pathAnalysis registry text) is a NAMED FOLLOW-ON SLICE, slotted early after first deploy.
+- C3: accepted as ledgered.
+- C4: acknowledged (test baselines); his separate catch confirmed: public/favicon.svg is still the Vite template purple bolt - replaced by his new mark in the cleanup slice.
+- C5: HARDEN NOW (his lean) - executed, commit 9bde170, 3x isolation-green each spec.
+- C6: bump - executed, 5ea35a1 (30s).
+- C7: recapture now - executed, bc56eef (Estimation note visible on 46; 48 saturated-suppressed pre-existing).
+- C8: disclose (C8-a) - executed, ef60f4b (Reliability basis note); categorical/ordinal omega parked on the recommendations board with citations (Green and Yang 2009; Zumbo et al. 2007). His question answered: continuous-ML reliability is standard practice (JASP/SPSS convention); the note exists because Telos says what it computes.
+- Click-through: trust granted on the strength of the 48/48 documented tests.
+- PUSH: authorized 2026-07-11.
