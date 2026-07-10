@@ -81,7 +81,7 @@ test('path-analysis WLSMV: shelf placement → ordinal-endogenous gate → run �
   // ── 9. Ordinal disclosures: b1 (and b2) are declared ordered; a1 stays exogenous/numeric ──
   const estimationNote = page.locator('p', { hasText: 'Estimation:' })
   await expect(estimationNote).toBeVisible()
-  await expect(estimationNote).toContainText('Treated as ordinal: b1')
+  await expect(estimationNote).toContainText('Treated as ordinal: b1, b2')
   const ordinalPredictorsNote = page.locator('p', { hasText: 'Ordinal predictors:' })
   await expect(ordinalPredictorsNote).toBeVisible()
   await expect(ordinalPredictorsNote).toContainText('a1')
