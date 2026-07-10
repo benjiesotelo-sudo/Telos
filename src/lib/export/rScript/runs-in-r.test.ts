@@ -322,6 +322,8 @@ const REPS: Rep[] = [
   // estimator - only se/chisq.scaled do), so `se` is the number that actually distinguishes ML from MLR
   // at the same missing setting; `est` distinguishes across missing settings. Format verified against a
   // live native-R run of each cell's own emitted script (R's default print.data.frame digits=7).
+  // 8th REP (final-review fix, Critical C1): an ordinal-first-declaration regression case, directly below
+  // Cell 7 - covers the once-crashing all-ordinal-first construct order, not a new pinned matrix cell.
   {
     id: 'cb-sem', fixture: 'politicalDemocracy-missing.csv',
     setup: {
@@ -385,15 +387,25 @@ const REPS: Rep[] = [
       ],
       paths: [{ from: 1, to: 2 }],
     },
-    expect: ['0.3257477'], // Cell 5 MLR/fiml - h1Pins CELL_5_MLR_FIML structural se = 0.32574772
+    // Two needles: the structural se (distinguishes ML from MLR) AND the Table 5 scaled chi-square
+    // (final-review fix, Important I1 - the emitter's fit-indices block now requests the SAME
+    // estimator-conditional fitMeasures names the app card uses, via semFitArgs.ts's shared
+    // semFitMeasureNames(); previously it requested the naive unscaled "chisq" unconditionally, which
+    // under MLR would print the WRONG number here - h1Pins CELL_5_MLR_FIML.fit.chisq = 22.15981477,
+    // a different value from the scaled one below). Table 5 prints `round(fm, 3)`, not R's default
+    // digits=7 print - value verified against a live native-R run of this exact cell's emitted script.
+    expect: ['0.3257477', '20.754'], // Cell 5 MLR/fiml - h1Pins CELL_5_MLR_FIML se=0.32574772, chisq.scaled=20.7544659 (round 3dp)
   },
-  // Construct order deliberately puts the CONTINUOUS composite (C) first: semTools::compRelSEM (Table 4)
-  // processes composites in model-declaration order and initializes its internal `isShared` flag only on
-  // a continuous composite's iteration (an all-ordinal composite takes an early `next` before that
-  // assignment) - with an all-categorical composite processed first, compRelSEM throws
-  // `object 'isShared' not found` (verified against a live native-R run of this exact matrix cell). Paths
-  // stay [A->B, C->B] (independent of construct order) so the "B ~ A" / "B ~ C" row order still matches
-  // h1Pins.ts exactly.
+  // Construct order here puts the CONTINUOUS composite (C) first (A/B ordinal, declared second/third).
+  // HISTORICAL NOTE (final-review fix, Critical C1): this ordering used to be load-bearing - Table 4's
+  // semTools::compRelSEM(fit) ran on the parameterized WLSMV `fit` itself, and compRelSEM's internal
+  // `isShared` flag was only initialized on a continuous composite's iteration, so an all-categorical
+  // composite processed FIRST threw `object 'isShared' not found`. The fix makes Table 4 fit its OWN
+  // separate continuous CFA (mirrors cfaReliability.ts, never given `ordered=`), which sidesteps
+  // compRelSEM's ordered-composite path entirely - construct declaration order no longer matters for
+  // this crash (proved by the ordinal-first REP directly below, same fixture/model, A declared first).
+  // Kept C-first here anyway since the ordering is otherwise arbitrary and the h1Pins.ts "B ~ A" / "B ~ C"
+  // row order already matches it.
   {
     id: 'cb-sem', fixture: 'likert5-missing.csv',
     setup: {
@@ -423,6 +435,28 @@ const REPS: Rep[] = [
     },
     columnLevels: LIKERT_MISSING_LEVELS,
     expect: ['-0.5858436'], // Cell 7 WLSMV/pairwise - h1Pins CELL_7_WLSMV_PAIRWISE "B ~ A" est = -0.58584362
+  },
+  // Regression REP (final-review fix, Critical C1): the ORDINAL construct (A, all-ordinal) declared
+  // FIRST - the ordering the two cells above deliberately avoided pre-fix. Same fixture/estimator/
+  // missing as Cell 6 (WLSMV/listwise), same model up to construct declaration order, so the structural
+  // numbers are identical to CELL_6_WLSMV_LISTWISE (declaration order does not change what the model
+  // fits) - this REP exists to prove the ONCE-crashing ordering now runs clean, not to pin a new number.
+  // Reproduced pre-fix (native R, this exact script): `Error in semTools::compRelSEM(fit) : object
+  // 'isShared' not found`.
+  {
+    id: 'cb-sem', fixture: 'likert5-missing.csv',
+    setup: {
+      roles: {}, options: { estimator: 'WLSMV', missing: 'listwise' }, props: {}, blocked: null,
+      modelKind: 'latent',
+      constructs: [
+        { id: 1, name: 'A', items: ['a1', 'a2', 'a3'] },
+        { id: 2, name: 'B', items: ['b1', 'b2', 'b3'] },
+        { id: 3, name: 'C', items: ['cont1', 'cont2'] },
+      ],
+      paths: [{ from: 1, to: 2 }, { from: 3, to: 2 }],
+    },
+    columnLevels: LIKERT_MISSING_LEVELS,
+    expect: ['-0.6615553'], // Same model as Cell 6 (declaration order only) - h1Pins CELL_6_WLSMV_LISTWISE "B ~ A" est = -0.66155525
   },
 
   // cb-sem moderation: SN/TA/TI matched interaction (spike §2, docs/superpowers/reviews/2026-07-06-moderation-spike.md).
