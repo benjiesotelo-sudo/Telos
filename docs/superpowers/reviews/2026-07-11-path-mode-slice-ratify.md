@@ -9,7 +9,8 @@
 ## (a) What shipped
 
 1. **P2 shelf paradigm for the path-analysis canvas** (owner rulings via the canvas-paradigm board, ~3am).
-   The path-mode canvas opens BLANK; every used-eligible column waits as a chip on a shelf below the svg; clicking a chip places it (auto-position at the next free spot).
+   The path-mode canvas opens BLANK; every used-eligible column waits as a chip on a shelf below the svg; clicking a chip places it.
+   Auto-position is NOT a fixed "next open slot": it is a recomputed grid (`pathNodeCenter`) keyed by a node's index among `placed` and the current placed count, so adding or removing an unmoved node reflows every OTHER unmoved node's on-screen position too (a dragged/moved node's position is pinned in `nodePositions` and never reflows - review issue 6, final-review fix wave corrected the earlier "next free spot" wording here).
    Delete returns the node to the shelf (its drawn paths removed; nothing destructive).
    Move is full drag in Move mode, reusing the latent-mode mechanism; positions persist in state; the H1 grab-cursor rule inverts naturally because drag now works.
    Model synthesis (`withPathModeConstructs`) reads PLACED columns, not used columns - the model you see is the model that runs.
@@ -66,6 +67,12 @@ Both path-mode WebR cells matched the pins at 5dp on the FIRST run (T7, `26135ee
 3. **RENDER REVIEW - shelf chip visual + shelf-in-SemCanvas seam:** the shelf lives inside the SemCanvas component (adjudicated no-regression at T3 review, store stays in the connected wrapper), chip button chrome and shelf placement are morning render items, alongside the DRAFT hint copy in (c).
 4. **T9 saturation note re disclosures:** on a SATURATED path model the card suppresses the fit block and (by design, `buildCbSem.ts`) the "Ordinal predictors" note only renders when non-saturated in path mode; the e2e journey therefore asserts BOTH disclosures on the pinned non-saturated STRUCT model - a saturation-aware judgment call, reviewed sound. Benjie may want to rule whether the exogenous-ordinal disclosure should ALSO appear on saturated path models.
 5. Prior H1/SEM-A/econ ratify carry-overs unchanged (see `reviews/2026-07-10-h1-wiring-ratify.md` and the memory agenda).
+6. **TICKET - latent construct-items rename gap:** the final-review fix wave (section (f) below) fixed renameColumn for path-mode `placed[]`/`nodePositions`, but the analogous gap in latent mode - a rename can similarly orphan a construct's `items[]` reference, since `renameColumn` never touches `setups[id].constructs` - is PRE-EXISTING and NOT fixed here.
+   Ticketed for morning.
+7. **TICKET - WLSMV-stranding auto-fallback candidate:** `SemControls.tsx` greys out the WLSMV `<option>` once its enabling condition no longer holds (no placed ordinal-endogenous column in path mode; a moderation edge drawn in latent mode) but never resets the STORED `estimator` option itself.
+   A user who had WLSMV selected, then edits the canvas so the condition flips false, is left with a stale `estimator: 'WLSMV'` value pointing at a now-disabled option.
+   Candidate fix: auto-fallback the stored option to `'ML'` (mirroring `syncLevelSelect`'s discipline of resetting a dependent option when its upstream condition changes) the moment the enabling condition goes false.
+   Not fixed here - flagged as a ticket for Benjie's ruling, not in this wave's scope.
 
 ## (e) Gate evidence (T10, run 2026-07-11 morning; full log `.superpowers/sdd/pw-task-10-report.md`)
 
@@ -80,3 +87,60 @@ Both path-mode WebR cells matched the pins at 5dp on the FIRST run (T7, `26135ee
 
 Full command tails in `.superpowers/sdd/pw-task-10-report.md`.
 NEVER pushed; NEVER deployed; no visual baseline regenerated.
+
+## (f) Final-review fix wave (2026-07-11, overnight; owner asleep)
+
+A final whole-branch review of the path-mode WLSMV slice (T10 GATE at `74a2f65`) found three Important
+issues plus two cheap ride-alongs, all in the P2 shelf-model canvas/store code.
+One wave, TDD per fix, RED confirmed before each implementation.
+Full RED/GREEN detail: `.superpowers/sdd/pw-final-fix-report.md`.
+
+**What the review found:**
+
+1. `renameColumn` (`src/state/session.ts`) updated `roles` on rename but not a path-mode setup's
+   `placed[]` entries or `nodePositions` keys - `revalidated()` then saw the OLD name vanish from
+   `s.columns` and dropped the renamed node (and every path touching it) as "vanished", even though it
+   had only been renamed.
+2. `SemCanvasUI`'s draw-mode `pending` state (`src/components/SemCanvas.tsx`) holds a placed INDEX.
+   After a delete-to-shelf remap changed which column a given index refers to, a stale `pending` could
+   draw an edge from the WRONG column on the next click, or dangle on an out-of-range index.
+   Separately, the draw-pending highlight ring was latent-only, leaving a pending path-mode selection
+   with no visible cue.
+3. The connected `SemCanvas`'s post-run overlay read `s.runs[testId]?.result` estimates without
+   checking `.stale` - after a removal remap, a stale run's betas/R² could label the WRONG arrows/nodes
+   until the user re-ran.
+
+**What landed (one commit per fix, FIX 2 + the ring together):**
+
+- `42511df` - FIX 1: `renameColumn` now renames a path-mode setup's `placed[]` entries and
+  `nodePositions` keys in the same pass as `roles`, symmetric with the existing rename discipline.
+  Ride-alongs in the shared `dropPlacedIndices` remap site: moderations are now defensively
+  dropped/remapped by `pathIndex` (moderation is unreachable in path mode via the UI today, but this is
+  the one designated remap site); `placeColumn` gained a store-level guard ignoring a column no longer
+  present in `s.columns`.
+- `5bacc45` - FIX 2 + ring: the connected `SemCanvas` now remounts `SemCanvasUI` (React `key`, the new
+  `pendingResetKey(modelKind, mode, placed)`) whenever the path-mode node set changes (place/remove) or
+  the tool mode switches, resetting the fully-internal `pending`/`modGuard` state.
+  The pending-selection ring now renders for path-mode nodes too, same mechanism as latent's.
+  A new `pendingOverride` prop (mirrors `DragSlots`' `echoRole`/`armedChip`) is a test seam only - this
+  repo has no click/DOM-interaction test harness (no jsdom/testing-library), so the ring is proven via
+  `renderToStaticMarkup` with the override, and the reset trigger is proven via the pure
+  `pendingResetKey` function directly.
+- `10cd36c` - FIX 3: extracted `resolveEstimates(run)` as the single decision point - null whenever the
+  run is missing or `stale`, its estimates otherwise - and wired it into the canvas overlay in place of
+  the direct, staleness-blind read.
+
+**Verification:** `npx tsc -b --force` clean; `npm run test:fast` 162 files / 1683 tests green (up from
+1667 at the T10 gate: +16 new tests across the three fixes and ride-alongs); the three path-mode e2e
+specs (`path-analysis`, `picker-reupload-trap`, `sem-path-wlsmv`, `--project=desktop`) re-run once to
+prove the paradigm still walks end to end - 3/3 passed (3.3m), zero retries.
+
+**New tickets added to the held list (section (d) above):** item 6 (latent construct-items rename gap -
+pre-existing, PARALLELS FIX 1 but out of this wave's scope) and item 7 (WLSMV-stranding auto-fallback
+candidate - the estimator dropdown greys out WLSMV when its enabling condition goes false but never
+resets the stored option).
+
+Also corrected this document's (a).1 "next free spot" wording (review issue 6) - it undersold the
+grid-reflow behavior; see the correction in place there.
+
+NEVER pushed; NEVER deployed.
