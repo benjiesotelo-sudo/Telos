@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useSession } from '../state/session'
-import { screenToViewBox } from './SemCanvas'
+import { screenToViewBox, pendingResetKey } from './SemCanvas'
 import type { ColumnMeta } from '../lib/data/columnMeta'
 
 const numericCol = (name: string): ColumnMeta => ({ name, detected: 'float64', tags: [], level: 'ratio', used: true })
@@ -68,6 +68,29 @@ describe('SemCanvas store wiring', () => {
     expect(useSession.getState().setups[TEST_ID].moderations).toEqual([{ id: 1, moderatorId: 2, pathIndex: 0 }])
     useSession.getState().removeModeration(TEST_ID, 1)
     expect(useSession.getState().setups[TEST_ID].moderations).toEqual([])
+  })
+})
+
+// FIX 2 (final-review fix wave): a stale draw-mode `pending` (a placed INDEX) must not survive a
+// node-set change - after a delete-to-shelf remap, a stale pending would draw an edge from the WRONG
+// column, or dangle out of range. SemCanvasUI's `pending` is fully internal React state with no click
+// harness in this repo (no jsdom/testing-library), so the reset is driven by remounting SemCanvasUI via
+// React's `key` prop whenever this derived key changes - tested directly here as a pure function.
+describe('pendingResetKey - draw-mode pending-selection reset trigger (FIX 2)', () => {
+  it('is stable for the same modelKind/mode/placed', () => {
+    expect(pendingResetKey('path', 'draw', ['a', 'b'])).toBe(pendingResetKey('path', 'draw', ['a', 'b']))
+  })
+  it('changes when a column is placed (node-set change)', () => {
+    expect(pendingResetKey('path', 'draw', ['a'])).not.toBe(pendingResetKey('path', 'draw', ['a', 'b']))
+  })
+  it('changes when a column is removed (node-set change)', () => {
+    expect(pendingResetKey('path', 'draw', ['a', 'b'])).not.toBe(pendingResetKey('path', 'draw', ['b']))
+  })
+  it('changes on a tool-mode switch', () => {
+    expect(pendingResetKey('path', 'draw', ['a'])).not.toBe(pendingResetKey('path', 'move', ['a']))
+  })
+  it('latent mode still keys off the tool mode (mode-switch clears pending there too)', () => {
+    expect(pendingResetKey('latent', 'draw', [])).not.toBe(pendingResetKey('latent', 'move', []))
   })
 })
 

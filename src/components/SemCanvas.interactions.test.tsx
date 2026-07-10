@@ -96,4 +96,23 @@ describe('SemCanvasUI - interaction affordances', () => {
     expect(buttons.length).toBe(3)
     expect(buttons.every((b) => b.includes('disabled'))).toBe(true)
   })
+
+  // FIX 2 (final-review fix wave): the draw-pending highlight ring was latent-only; a pending path-mode
+  // node had no visible selection cue. `pendingOverride` is a test seam (no click/DOM interaction harness
+  // in this repo - same idiom as DragSlots' echoRole/armedChip) that lets these render without a click.
+  it('a pending PATH-mode node renders the same pending-selection ring latent nodes get', () => {
+    const html = render({ modelKind: 'path', columns: ['gpa', 'study'], pendingOverride: 0 })
+    expect(html).toContain('sem-pending-ring')
+  })
+
+  it('a non-pending path-mode node renders no pending-selection ring', () => {
+    const html = render({ modelKind: 'path', columns: ['gpa', 'study'], pendingOverride: null })
+    expect(html).not.toContain('sem-pending-ring')
+  })
+
+  it('a pending LATENT node still renders the ring via the same seam (unchanged look)', () => {
+    const constructs = [C(1, 'A', ['q1', 'q2'], 100, 80)]
+    const html = render({ constructs, pendingOverride: 1 })
+    expect(html).toContain('sem-pending-ring')
+  })
 })

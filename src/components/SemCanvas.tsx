@@ -112,6 +112,10 @@ export interface SemCanvasUIProps {
    *  Latent mode's node-delete stays a no-op here (paths-only rule - untouched, its own open
    *  question, not this slice's scope). */
   onRemoveNode?(id: number): void
+  /** Test seam only (no click/DOM-interaction harness in this repo - same idiom as DragSlots'
+   *  echoRole/armedChip): overrides the internal draw-mode pending-source node id, so the
+   *  pending-selection ring can be rendered via renderToStaticMarkup without simulating a click. */
+  pendingOverride?: number | null
 }
 
 /** Whether a delete-mode node click removes the node, by model kind (P2 shelf model, spec
@@ -230,10 +234,14 @@ export function SemCanvasUI({
   testId, constructs, columns, paths, modelKind, mode, estimates, running,
   viewBox: vbProp, moderations, estimator = 'ML', nodePositions, shelfColumns,
   onAddPath, onRemovePath, onMoveNode: _onMoveNode, onSetMode,
-  onAddModeration, onRemoveModeration, onPlaceColumn, onRemoveNode,
+  onAddModeration, onRemoveModeration, onPlaceColumn, onRemoveNode, pendingOverride,
 }: SemCanvasUIProps) {
-  // pending draw source (click source → target); cancel when same node re-clicked
-  const [pending, setPending] = useState<number | null>(null)
+  // pending draw source (click source → target); cancel when same node re-clicked. The connected
+  // wrapper remounts this component (via a `key` keyed on node-set + mode - see pendingResetKey) on
+  // any path-mode place/remove or tool-mode switch, so this internal state never survives a change
+  // that would make it stale (FIX 2, final-review fix wave).
+  const [pendingState, setPending] = useState<number | null>(null)
+  const pending = pendingOverride ?? pendingState
   // last-blocked-gesture explanation (A7 guards); cleared on the next valid gesture
   const [modGuard, setModGuard] = useState<string | null>(null)
 
@@ -407,6 +415,16 @@ export function SemCanvasUI({
           if (isPath) {
             return (
               <g key={`node-${n.id}`}>
+                {/* pending highlight ring, same mechanism as the latent oval's below - rendered first
+                 *  so the rect draws on top (FIX 2, final-review fix wave: this ring used to be
+                 *  latent-only, leaving a pending path-mode draw-source with no visible selection cue) */}
+                {pending === n.id && (
+                  <ellipse
+                    className="sem-pending-ring"
+                    cx={c.cx} cy={c.cy} rx={NODE_W / 2 + 6} ry={NODE_H / 2 + 6}
+                    fill="none" stroke={BLUE} strokeWidth={1} strokeDasharray="3 3" pointerEvents="none"
+                  />
+                )}
                 <rect
                   className="sem-node-rect"
                   data-node-id={n.id}
@@ -467,6 +485,7 @@ export function SemCanvasUI({
               {/* latent oval — pending highlight ring rendered first so oval draws on top */}
               {pending === n.id && (
                 <ellipse
+                  className="sem-pending-ring"
                   cx={c.cx} cy={c.cy} rx={NODE_W / 2 + 6} ry={NODE_H / 2 + 6}
                   fill="none" stroke={BLUE} strokeWidth={1} strokeDasharray="3 3" pointerEvents="none"
                 />
@@ -576,6 +595,17 @@ function defaultVb(setup: { modelKind?: 'latent' | 'path'; constructs?: Construc
     return latentBounds(setup.constructs)
   }
   return BASE_VB
+}
+
+/** Stable identity for "the current path/mode context" - used to force-remount SemCanvasUI (via React's
+ *  `key` prop) whenever the path-mode node set changes (place/remove) or the tool mode switches. Both
+ *  invalidate a live draw-mode `pending` selection: a stale `pending` holds a placed INDEX (P2 shelf
+ *  model), so a delete-to-shelf remap can leave it pointing at the wrong column or dangling out of
+ *  range; a tool-mode switch just means the user no longer intends to complete that gesture. Remounting
+ *  is the simplest correct reset for SemCanvasUI's fully-internal pending/modGuard state (FIX 2,
+ *  final-review fix wave). Exported for direct unit testing (no click/DOM-interaction harness here). */
+export function pendingResetKey(modelKind: 'latent' | 'path', mode: 'draw' | 'move' | 'delete', placed: string[]): string {
+  return `${modelKind}:${mode}:${placed.join(',')}`
 }
 
 /** Store-connected canvas: useSession wiring + pointer-drag move + viewBox zoom/pan + resize grip.
@@ -697,6 +727,7 @@ export function SemCanvas({ testId }: { testId: string }) {
         onPointerUp={onPointerUp}
       >
         <SemCanvasUI
+          key={pendingResetKey(modelKind, mode, placed)}
           testId={testId}
           constructs={setup.constructs ?? []}
           columns={columns}
