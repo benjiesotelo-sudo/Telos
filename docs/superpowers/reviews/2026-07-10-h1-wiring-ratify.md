@@ -9,7 +9,7 @@ Never pushed; push and deploy remain Benjie's word only.
 
 The CB-SEM card's estimator dropdown (ML / MLR / WLSMV) and missing-data dropdown (listwise / FIML / pairwise) now genuinely parameterize the lavaan fit, identically in the app and in the exported analysis.R.
 A new pure module `src/lib/stats/semFitArgs.ts` is the single source of truth for the lavaan argument fragment, the guard errors, and the disclosure facts; `runCbSem.ts` and the latent export emitter both consume it, so app and export arguments are byte-identical by construction.
-MI is removed from the missing dropdown (owner ruling 1); WLSMV auto-declares `ordered=` from Configure-data column levels (ruling 2); bootstrap runs under estimator ML only, with MLR/WLSMV reporting robust SEs and delta-method CIs through the existing `bootstrapped: false` path (ruling 3); and the step-4a mismatch note is wired (ruling 4).
+MI is removed from the missing dropdown (owner ruling 1); WLSMV auto-declares `ordered=` from Configure-data column levels (ruling 2); bootstrap runs under estimator ML only, with MLR/WLSMV reporting robust SEs and delta-method CIs through the existing `bootstrapped: false` path (ruling 3); and the step-4a mismatch note is wired (plan Task 2 - not spec ruling 4, which is the Approach B architecture ruling; fixed a mislabel here during the final-review fix wave).
 Untouched defaults (ML + listwise) emit an empty fragment and stay byte-identical everywhere, except the spec-governed always-on Estimation note and APA estimator naming (see ruling B4).
 Results cards carry estimator-aware fit labels ((scaled)/(robust)), APA estimator naming, and Estimation/ordinal/FIML/pairwise/delta disclosures; exports carry the same fragment plus a student-readable comment block; four new method citations attach conditionally, only when the option that earns them actually ran.
 
@@ -80,38 +80,45 @@ Both WLSMV cells are machine-verified PROPER solutions (ruling B5).
 
 ## C. HELD FOR BENJIE
 
-1. **compRelSEM all-ordinal follow-up (Task 10 discovery; reachability checked at this gate).**
-   Discovery: `semTools::compRelSEM` has an `isShared` bug that fires when EVERY composite is all-ordinal; the runs-in-r fixture worked around it via construct order.
-   Gate reachability check (Task 12, code read only, no changes):
-   The app DOES reach `semTools::compRelSEM` today - `src/lib/stats/cfaReliability.ts:56` calls it, and that module is called from the CB-SEM card's own reliability table at `src/lib/stats/runCbSem.ts:671` - but the CFA it fits at `cfaReliability.ts:52` (`lavaan::cfa(model_str, data = d_all, std.lv = FALSE)`) never passes `ordered=`; the H1 estimator/orderedR values from semFitArgs parameterize ONLY the structural fit in runCbSem.ts and are never threaded into cfaReliability.ts.
-   The same holds for the standalone reliability path (`src/lib/stats/cronbachsAlpha.ts:71`) and all three export mirrors that feed compRelSEM (`src/lib/export/rScript/emitters/latent.ts:131, 238, 300`): none pass `ordered=`.
-   Conclusion: every composite handed to compRelSEM is fit as continuous, so the all-ordinal `isShared` crash is NOT reachable in app or export today; it becomes a real risk only if a future slice wires `ordered=` into the reliability/AVE/omega/alpha fits (the 5 `emitters/latent.ts` call sites named by Task 10).
-   Recommendation stands: keep the follow-up ticket for that future slice; no action needed now.
+1. **compRelSEM all-ordinal crash - CORRECTED (was reachability-checked here as not-reachable; a final-review pass found it WAS export-reachable, and it is now FIXED).**
+   Discovery: `semTools::compRelSEM` has an `isShared` bug that fires when the FIRST-processed composite handed to it is all-ordinal (not "every composite" as first summarized here) - the runs-in-r fixture originally worked around it via construct declaration order.
+   Correction to the gate reachability check above: the export side WAS crash-reachable.
+   The cb-sem export emitter's Table 4 (`src/lib/export/rScript/emitters/latent.ts`) called `semTools::compRelSEM(fit)` on the PARAMETERIZED structural `fit` - the same fit object carrying `estimator = "WLSMV"`/`ordered = c(...)` when that estimator is selected - so a WLSMV export with an all-ordinal composite declared first crashed native R with `object 'isShared' not found` (reviewer-reproduced on `likert5-missing.csv`; RED evidence in the final-review fix-wave report).
+   Fix: Table 4 now fits its own SEPARATE continuous CFA (mirrors `cfaReliability.ts` exactly - `lavaan::cfa(model_str, data = d, std.lv = FALSE)`, never given `ordered=`), matching what the app card already computes (`cfaReliability.ts:52`, called from `runCbSem.ts:671`). This kills the crash for every construct order and restores app === export for reliability numbers under every estimator, not just the default.
+   The app side was, and remains, unaffected: `cfaReliability.ts` never passed `ordered=` before this fix and still doesn't - the correction above is to the EXPORT half of the original reachability check only.
+   Evidence: final-review fix-wave report (`.superpowers/sdd/final-fix-wave-report.md`), Fix 1; `src/lib/export/rScript/emitters/latent.ts`; `src/lib/export/rScript/emitters/latent.cbsem.test.ts`; `src/lib/export/rScript/runs-in-r.test.ts` (ordinal-first regression REP).
 
-2. **Minor list (every 'minor' line from the slice ledger, none blocking, for disposition at will).**
+2. **Path-mode WLSMV posture needs Benjie's ruling (new held item, final-review fix wave).**
+   Today WLSMV is permanently greyed out on the path-analysis card: `SemControls.tsx`'s `hasOrdinalIndicator` reads `setup.constructs`, which is empty in path mode until run-time synthesis, so the option can never become selectable regardless of the dataset's actual column levels.
+   The final-review fix wave made the greyed state HONEST rather than wiring it: in path mode the note now reads "WLSMV is not yet available for path analysis; use ML or MLR." instead of the false "all your indicators are scale-level" claim (which path mode cannot know at that point) - `SemControls.tsx`, `SemControls.test.tsx`.
+   Full path-mode WLSMV support needs ordinal detection from the columns actually used by the synthesized model, plus a sanitizer/domain fix: the ledgered Task 7 minor notes that the runner passes RAW column names into `ordered=` in path mode (`runCbSem.ts`'s `itemNameOf` degrades to identity when `usedCols` is empty at guard-build time), while the export emitter's path-mode data frames carry SANITIZED tokens (`latent.ts`'s `nameOf`, routed through the shared selection-global map) - the two sides disagree on what name `ordered=` should carry before any of this can be wired safely.
+   Folded into the same honesty class: `src/lib/registry/pathAnalysis.ts` still advertises `{ id: 'estimator', label: 'estimator', value: 'ML', kind: 'display' }` - a fixed display string, not sourced from the actual (currently ML-only, soon to be selectable) estimator choice - the same "unwired but visible" gap the H1 slice's own origin item (H1) was about.
+   Ruling needed from Benjie: wire path-mode WLSMV (ordinal detection + sanitizer fix + registry text) as a follow-on slice, or leave it deferred longer; either way the registry's fixed `'ML'` text should get the same wire-or-annotate treatment H1's own origin ruling gave the CB-SEM card.
+
+3. **Minor list (every 'minor' line from the slice ledger, none blocking, for disposition at will).**
    - Task 1: no nominal-level exclusion test; WLSMV + moderation + no-ordinal guard-precedence combination unexercised.
    - Task 2: `globalMissingPolicy` typed as plain string (file convention); dual role=note co-occurrence is pre-existing; mismatch-note wording is an owner-eyeball item at preview.
    - Task 3: the pre-guard fixture carries 1 verbatim em dash (provenance-ruled OK); WLSMV + self-moderation guard precedence unexercised; R-side guard execution proof deferred to Task 5's real-engine matrix (done).
    - Task 6: report undercounted updated assertions 4 vs 5 (audit-trail nit).
-   - Task 7: path-mode sanitizer mismatch - emitter `nameOf` vs runner identity-degraded `itemNameOf` (pre-existing, Task-3-inherited edge; the emitter is arguably more correct); special-char path-mode WLSMV column untested.
+   - Task 7: path-mode sanitizer mismatch - emitter `nameOf` vs runner identity-degraded `itemNameOf` (pre-existing, Task-3-inherited edge; the emitter is arguably more correct); special-char path-mode WLSMV column untested. See held item 2 above - this is the same gap, now with a ruling request attached.
    - Task 8: estimatorOf/missingOf default literals duplicated vs CB_SEM_DEFAULT_MISSING (module-boundary rationale documented in code).
    - Task 11 (backlog): app-wide role=note elements lack accessible names (pre-existing a11y).
 
-3. **Visual baselines.**
+4. **Visual baselines.**
    See section D for the gate run's verdict.
    Rule honored: no baseline was regenerated; the final e2e attempt (workers=2) passed all 6 visual-project screens (desktop/tablet/phone x light/dark) with zero mismatch, so no diff set was needed at `.superpowers/sdd/h1-baseline-diffs/`.
 
-4. **The two pre-existing desktop e2e load-flakes (`flow.spec.ts:27`, `association.spec.ts:47`).**
+5. **The two pre-existing desktop e2e load-flakes (`flow.spec.ts:27`, `association.spec.ts:47`).**
    Three prior attempts at the default worker count rotated failures between these two specs (40/41, 39/41, 22/23), each isolated-green, each untouched by this slice.
    The final gate attempt at `--workers=2` (per the Task 12 brief's reduced-parallelism instruction) ran fully green, 41/41, single attempt, zero retries - both specs passed cleanly (29.8s and 37.6s respectively).
    Held for Benjie: no code changes were made to chase this; it is recorded as machine-load flake evidence in case it recurs on CI or a busier machine. If it does, the fix candidate is either raising `workers` down further in CI config or hardening the two specs' wait conditions (`#table-t-test` visibility wait; the χ² GoF `Next:` button enable wait).
 
-5. **The tectonic LaTeX-compile timeout flake (`latex.compile.test.ts`, full-suite run 2 of 2).**
+6. **The tectonic LaTeX-compile timeout flake (`latex.compile.test.ts`, full-suite run 2 of 2).**
    One test timed out at the fixed 10000ms `testTimeout` (took 12074ms under full-suite load: tectonic compile competing with WebR fork workers); it passed in run 1 (218/218 green) and passes in isolation (3.25s).
    Held for Benjie: candidate fix is bumping that test's `testTimeout` (e.g. to 20000-30000ms) to give headroom under full parallel load; not done here since it is a pre-existing test-infra tolerance, not H1 product code, and the brief scoped Task 12 to gate-and-document, not to touch test files.
    Evidence: `.superpowers/sdd/task-12-report.md` step 3 (run 2).
 
-6. **Stale doc-capture artifacts noticed during the Task 12 docs regen (not corrected here).**
+7. **Stale doc-capture artifacts noticed during the Task 12 docs regen (not corrected here).**
    `docs/test-documentation/46_cb-sem/` and `48_path-analysis/`'s screenshots and `export/` artifacts are dated 2026-07-08, predating this slice (started 2026-07-10 night, base `aa8f03a`).
    For these two DEFAULT-config tests the numbers/export fragment are unaffected (byte-identical-defaults rule), but the on-screen "Estimation note" UI text (ruling B4) would not appear in the stale `2-app-output.png` screenshot.
    `docs/build-test-doc.mjs` only re-runs native R against the existing `export/` artifacts and rewraps the HTML - it does not recapture screenshots, which is a separate, larger capture-harness step outside this task's scope.
