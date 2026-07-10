@@ -7,11 +7,13 @@ import { loadCsvFixture } from './csvFixture'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { TestSetup, Construct } from '../../state/session'
+import { withPathModeConstructs } from '../../state/session'
 import type { Dataset } from './types'
 import {
   CELL_1_ML_LISTWISE, CELL_2_ML_FIML, CELL_3_ML_PAIRWISE,
   CELL_4_MLR_LISTWISE, CELL_5_MLR_FIML,
   CELL_6_WLSMV_LISTWISE, CELL_7_WLSMV_PAIRWISE,
+  PATH_WLSMV_SAT, PATH_WLSMV_STRUCT,
   type H1PinCell,
 } from './h1Pins'
 
@@ -991,5 +993,58 @@ describe('runCbSem - H1 known-answer matrix (real WebR, 7 cells vs native-R pins
     // 5dp (ruled): same measured WLSMV cross-engine drift class as Cell 6 above.
     assertCell(result, CELL_7_WLSMV_PAIRWISE, 5)
     expect(result.orderedItems).toEqual(['a1', 'a2', 'a3', 'b1', 'b2', 'b3'])
+  }, 600_000)
+
+  // Path-mode WLSMV cells (Amendment B, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md;
+  // pins re-cut at plan Task 6, h1Pins.ts's "Path-mode WLSMV pins" section): PRODUCTION-shaped setups --
+  // `placed` (columns in model order) run through the SAME `withPathModeConstructs` bridge the store
+  // uses (session.ts) so constructs are synthesized with id = placed-index, exactly like a real app run;
+  // `paths` reference nodes BY PLACED-INDEX, not by hand-picked construct ids. Same fixture as cells 6-7
+  // (likert5-missing.csv), no latent constructs -- observed columns only. columnLevels marks a1/b1(/b2)
+  // ordinal and cont1 scale; a1 is ordinal but purely EXOGENOUS in both models (no path points into it),
+  // so per Amendment B it is downgraded to numeric and surfaced via exogenousOrdinals rather than
+  // declared in ordered=c(...) -- the disclosure case. Compared at the same WLSMV 5dp tolerance as
+  // cells 6-7 (h1Pins.ts's "WLSMV EXCEPTION" ruling).
+  it('Path-mode WLSMV, saturated: b1 ~ a1 + cont1 (ordered=c("b1") only; a1 stays numeric/exogenous)', async () => {
+    const setup = withPathModeConstructs({
+      roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      placed: ['a1', 'cont1', 'b1'], // ids 0, 1, 2
+      paths: [{ from: 0, to: 2 }, { from: 1, to: 2 }], // b1 <- a1, b1 <- cont1
+    })
+    const columnLevels: Record<string, string> = { a1: 'ordinal', b1: 'ordinal', cont1: 'scale' }
+    const result = await runCbSem(engine, likertData(), setup, undefined, columnLevels)
+
+    // Saturated (df=0): assert the flag + trivial fit values directly, matching the existing
+    // scale.csv saturated-path-mode test's convention (CbSemResult never suppresses `fit` itself --
+    // suppression of fit-index DISPLAY on a saturated model is a card-level concern, not the runner's).
+    expect(result.saturated).toBe(true)
+    expect(result.fit!.df).toBe(0)
+
+    assertCell(result, PATH_WLSMV_SAT, 5)
+    expect(result.estimator).toBe('WLSMV')
+    expect(result.ciMethod).toBe('delta')
+    expect(result.orderedItems).toEqual(['b1'])
+    expect(result.exogenousOrdinals).toEqual(['a1'])
+  }, 600_000)
+
+  it('Path-mode WLSMV, non-saturated: b1 ~ a1 + cont1 ; b2 ~ b1 (ordered=c("b1","b2"); a1 stays numeric/exogenous)', async () => {
+    const setup = withPathModeConstructs({
+      roles: {}, options: { estimator: 'WLSMV', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      placed: ['a1', 'cont1', 'b1', 'b2'], // ids 0, 1, 2, 3
+      paths: [{ from: 0, to: 2 }, { from: 1, to: 2 }, { from: 2, to: 3 }], // b1 <- a1, b1 <- cont1, b2 <- b1
+    })
+    const columnLevels: Record<string, string> = { a1: 'ordinal', b1: 'ordinal', b2: 'ordinal', cont1: 'scale' }
+    const result = await runCbSem(engine, likertData(), setup, undefined, columnLevels)
+
+    expect(result.saturated).toBe(false)
+    expect(result.fit!.df).toBe(2)
+
+    assertCell(result, PATH_WLSMV_STRUCT, 5)
+    expect(result.estimator).toBe('WLSMV')
+    expect(result.ciMethod).toBe('delta')
+    expect(result.orderedItems).toEqual(['b1', 'b2'])
+    expect(result.exogenousOrdinals).toEqual(['a1'])
   }, 600_000)
 })
