@@ -42,6 +42,38 @@ export interface SemFitArgs {
 const ESTIMATORS = new Set<SemEstimator>(['ML', 'MLR', 'WLSMV'])
 const MISSINGS = new Set<SemMissing>(['listwise', 'fiml', 'pairwise'])
 
+/** Estimator-conditional `lavaan::fitMeasures()` request vector, in fixed table order (chisq, df,
+ *  pvalue, cfi, tli, rmsea, rmsea.ci.lower, rmsea.ci.upper, srmr). Single source shared by the WebR
+ *  runner (runCbSem.ts's fitListBlock) and the export emitter's Table 5 fit-indices block, so an
+ *  exported script requests the SAME scaled/robust measures the results card shows - never the naive
+ *  unscaled names under a robust estimator (H1 wiring final-review fix, Important I1).
+ *
+ *  Spike-verified key names (docs/superpowers/reviews/2026-07-10-h1-estimator-spike.md Q1): ML has no
+ *  `.scaled`/`.robust` suffixed names at all. MLR exposes BOTH families, populated - this uses
+ *  `.robust` for cfi/tli/rmsea (chisq/df/pvalue only ever exist as `.scaled`; lavaan never publishes a
+ *  `chisq.robust`). WLSMV's `.robust` keys EXIST but are ALWAYS NA (spike-verified), so WLSMV uses the
+ *  `.scaled` family throughout. `robust` flags the non-ML branches for the caller's own labeling
+ *  (the runner's `fit_list$robust` flag / the export's display comment) - lavaan's own returned vector
+ *  is already named with the requested strings, so a print of it is self-labeling either way. */
+export interface FitMeasureNames {
+  request: [string, string, string, string, string, string, string, string, string]
+  robust: boolean
+}
+
+export function semFitMeasureNames(estimator: SemEstimator): FitMeasureNames {
+  if (estimator === 'ML') {
+    return { request: ['chisq', 'df', 'pvalue', 'cfi', 'tli', 'rmsea', 'rmsea.ci.lower', 'rmsea.ci.upper', 'srmr'], robust: false }
+  }
+  const s = estimator === 'MLR' ? 'robust' : 'scaled' // WLSMV: .robust keys exist but are always NA (spike Q1)
+  return {
+    request: [
+      'chisq.scaled', 'df.scaled', 'pvalue.scaled', `cfi.${s}`, `tli.${s}`, `rmsea.${s}`,
+      `rmsea.ci.lower.${s}`, `rmsea.ci.upper.${s}`, 'srmr',
+    ],
+    robust: true,
+  }
+}
+
 export function semFitArgs(input: SemFitArgsInput): SemFitArgs {
   // Normalize: display-era / unknown option values (e.g. the UI's leftover "mi" multiple-imputation
   // option) fall back to the fit's own effective defaults rather than throwing.

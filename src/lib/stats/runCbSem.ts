@@ -5,7 +5,7 @@ import type { RunProgress } from '../results/builders'
 import { runCfaReliability, type CfaConstructResult } from './cfaReliability'
 import { isSaturated } from './semSaturation'
 import { lvNames } from './lvName'
-import { semFitArgs, type SemFitArgs, type SemEstimator } from './semFitArgs'
+import { semFitArgs, semFitMeasureNames, type SemFitArgs, type SemEstimator } from './semFitArgs'
 import {
   validateModerations, buildModerationLines, moderationIndProdEnv, INDPROD_R,
   MODERATION_DISCLOSURE, type ModerationDef,
@@ -192,24 +192,27 @@ function listwise(data: Dataset, cols: string[]): Record<string, unknown>[] {
  *  text is BYTE-IDENTICAL to the pre-H1 script (fixtures/runCbSemPreH1.r.txt) -- the default cell must
  *  never change. */
 function fitListBlock(estimator: SemEstimator): string {
+  // Names sourced from semFitArgs.ts's semFitMeasureNames - the SAME estimator-conditional list the
+  // export emitter's Table 5 fit block consumes (H1 wiring final-review fix, Important I1), so an
+  // exported script prints the identical scaled/robust measures this card shows.
+  const [chisqN, dfN, pvalueN, cfiN, tliN, rmseaN, rmseaLowerN, rmseaUpperN, srmrN] = semFitMeasureNames(estimator).request
   if (estimator === 'ML') {
-    return String.raw`fm <- lavaan::fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",
-                                 "rmsea.ci.lower","rmsea.ci.upper","srmr"))
+    return String.raw`fm <- lavaan::fitMeasures(fit, c("${chisqN}","${dfN}","${pvalueN}","${cfiN}","${tliN}","${rmseaN}",
+                                 "${rmseaLowerN}","${rmseaUpperN}","${srmrN}"))
 fit_list <- list(
-  chisq = as.numeric(fm["chisq"]), df = as.numeric(fm["df"]), pvalue = as.numeric(fm["pvalue"]),
-  cfi = as.numeric(fm["cfi"]), tli = as.numeric(fm["tli"]), rmsea = as.numeric(fm["rmsea"]),
-  rmseaLower = as.numeric(fm["rmsea.ci.lower"]), rmseaUpper = as.numeric(fm["rmsea.ci.upper"]),
-  srmr = as.numeric(fm["srmr"])
+  chisq = as.numeric(fm["${chisqN}"]), df = as.numeric(fm["${dfN}"]), pvalue = as.numeric(fm["${pvalueN}"]),
+  cfi = as.numeric(fm["${cfiN}"]), tli = as.numeric(fm["${tliN}"]), rmsea = as.numeric(fm["${rmseaN}"]),
+  rmseaLower = as.numeric(fm["${rmseaLowerN}"]), rmseaUpper = as.numeric(fm["${rmseaUpperN}"]),
+  srmr = as.numeric(fm["${srmrN}"])
 )`
   }
-  const s = estimator === 'MLR' ? 'robust' : 'scaled' // WLSMV: .robust keys exist but are always NA (spike Q1)
-  return String.raw`fm <- lavaan::fitMeasures(fit, c("chisq.scaled","df.scaled","pvalue.scaled","cfi.${s}",
-                                 "tli.${s}","rmsea.${s}","rmsea.ci.lower.${s}","rmsea.ci.upper.${s}","srmr"))
+  return String.raw`fm <- lavaan::fitMeasures(fit, c("${chisqN}","${dfN}","${pvalueN}","${cfiN}",
+                                 "${tliN}","${rmseaN}","${rmseaLowerN}","${rmseaUpperN}","${srmrN}"))
 fit_list <- list(
-  chisq = as.numeric(fm["chisq.scaled"]), df = as.numeric(fm["df.scaled"]), pvalue = as.numeric(fm["pvalue.scaled"]),
-  cfi = as.numeric(fm["cfi.${s}"]), tli = as.numeric(fm["tli.${s}"]), rmsea = as.numeric(fm["rmsea.${s}"]),
-  rmseaLower = as.numeric(fm["rmsea.ci.lower.${s}"]), rmseaUpper = as.numeric(fm["rmsea.ci.upper.${s}"]),
-  srmr = as.numeric(fm["srmr"])
+  chisq = as.numeric(fm["${chisqN}"]), df = as.numeric(fm["${dfN}"]), pvalue = as.numeric(fm["${pvalueN}"]),
+  cfi = as.numeric(fm["${cfiN}"]), tli = as.numeric(fm["${tliN}"]), rmsea = as.numeric(fm["${rmseaN}"]),
+  rmseaLower = as.numeric(fm["${rmseaLowerN}"]), rmseaUpper = as.numeric(fm["${rmseaUpperN}"]),
+  srmr = as.numeric(fm["${srmrN}"])
 )
 fit_list$robust <- TRUE`
 }
