@@ -14,7 +14,7 @@ export const CB_SEM: TestSpec = {
   roles: [],
   options: [
     { id: 'estimator', label: 'estimator', value: 'WLSMV (ordinal) / ML / MLR', kind: 'display' },
-    { id: 'missing', label: 'missing', value: 'listwise (default) / FIML / MI / pairwise', kind: 'display' },
+    { id: 'missing', label: 'missing', value: 'listwise (default) / FIML / pairwise', kind: 'display' },
     { id: 'bootstrap', label: 'bootstrap', value: '5000', kind: 'display' },
   ],
   constraints: {
@@ -131,7 +131,7 @@ export const CB_SEM: TestSpec = {
   howToRead:
     'First confirm the measurement model (loadings high, CR/AVE adequate) and overall fit indices. Then read the structural paths: each std. β with p/CI is a hypothesized relationship between constructs; R² shows variance explained in each outcome construct. CB-SEM is confirmatory: the measurement model must be specified from theory a priori - any post-hoc respecification (e.g. from modification indices) is exploratory, must be reported as such, and ideally cross-validated on a fresh sample.',
   apaTemplate: 'The model fit well (CFI={cfi}, RMSEA={rmsea}, SRMR={srmr}); the path from X to Y gave β={beta}, p={p}.',
-  rMap: '(if EFA stage run) psych::KMO()/cortest.bartlett() → Table E1 · psych::fa() → Table E2 · lavaan::sem() (estimator ML/MLR or WLSMV) → loadings & structural paths · lavaan::fitMeasures() (or summary(fit, fit.measures=TRUE)) → Table 2 fit indices (χ²/df = chisq/df) · semTools::compRelSEM() / AVE() / psych::alpha() → CR/AVE/ω/α table (Table 1) · lavInspect(fit, "rsquare") → Table 5 R² · defined effects (:= in the lavaan syntax, se="bootstrap") → Table 5 indirect effects · semPlot::semPaths() → diagram',
+  rMap: '(if EFA stage run) psych::KMO()/cortest.bartlett() → Table E1 · psych::fa() → Table E2 · lavaan::sem(estimator=, missing=, ordered=) → loadings & structural paths · lavaan::fitMeasures() (or summary(fit, fit.measures=TRUE)) → Table 2 fit indices (χ²/df = chisq/df) · semTools::compRelSEM() / AVE() / psych::alpha() → CR/AVE/ω/α table (Table 1) · lavInspect(fit, "rsquare") → Table 5 R² · defined effects (:= in the lavaan syntax, se="bootstrap") → Table 5 indirect effects · semPlot::semPaths() → diagram',
   bundleFiles: [
     'table_efa-suitability.png (when EFA stage selected)',
     'table_efa-loadings.png (when EFA stage selected)',
