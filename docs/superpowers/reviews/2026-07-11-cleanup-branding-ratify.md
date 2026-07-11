@@ -9,9 +9,12 @@ Four commits: `46134d5` (spec) · `dcabdcd` (specs move) · `e7be1e6` (brand) ·
 1. **Brand kit in-repo** (`docs/brand/`): tuned mark (3 SVG variants + favicon), `geometry.json` =
    source of truth (stance 71 / peak 30 / node 6.5 / arrival 9.5 / ink 2.5 / clay 4.3 / no arrow),
    kit README with the one-mark rule and the clean-junction construction rule.
-2. **Identity in the app**: Welcome hero = `TelosMark` component (currentColor ink + `var(--accent)`
-   clay, themes itself); W1 wordmark = the existing `Telos.` h1 now Crimson Pro weight 620 (clay
-   stop kept); `public/favicon.svg` = the kit mark - **the Vite purple bolt is dead**.
+2. **Identity in the app - YOUR RULING B (hero board)**: the settling curve you liked stays as the
+   Welcome hero, untouched; W1 wordmark = the `Telos.` h1 now Crimson Pro weight 620 (clay stop
+   kept); the mark carries the identity on external surfaces only (favicon, README, docs landing);
+   `public/favicon.svg` = the kit mark, cache-busted (`?v=2`) - **the Vite purple bolt is dead**
+   (the bolt in your tab was your browser's cache; it dies on redeploy). My first build replaced
+   the curve with the mark - you corrected it, the board offered A-D, you picked B (`a0da0c0`).
 3. **README rewrite**: logo `<picture>` header, live-app link first, CI/DOI/AGPL badges, the
    native-R verification story, docs routing, citation section, honest CI-scope note.
    The stale design-language paragraph (blue `#185fa5`, Workday stepper - two redesigns ago) was
@@ -66,7 +69,7 @@ normalization, then the three nodes pop in path order, clay arrival last.
 |---|---|
 | tsc -b --force | clean |
 | test:fast | 162 files, 1689/1689 (consistency suites read specs at the new path) |
-| Playwright full 5-project suite | running at doc-write time; result lands in the acceptance message |
+| Playwright full 5-project suite | 53/53 pre-ruling-B; re-run post-B lands in the acceptance message |
 | Visual | 12/12; only the 6 welcome baselines changed (owner diff set staged) |
 | Fresh clone | install + tsc + test:fast 1689/1689 + build, all green |
 | Welcome unit | 7/7 (mark structure, W1 weight, copy verbatim, CTA, stagger classes) |
