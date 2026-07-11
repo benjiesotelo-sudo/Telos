@@ -25,7 +25,10 @@ export function TestConfigScreen({ testId }: { testId: string }) {
   return (
     <section>
       <div className="eyebrow">{idx} · {spec.name}</div>
-      <h1 className="title">Drag columns into roles</h1>
+      {/* Path analysis has no role slots - its card is the P2 canvas + shelf, so the generic
+        * drag-into-roles heading was a lie there (owner-approved copy, canvas-fix board 2026-07-11).
+        * Latent SEM keeps the generic heading: its construct FORM still assigns columns to slots. */}
+      <h1 className="title">{spec.modelKind === 'path' ? 'Build your path model' : 'Drag columns into roles'}</h1>
       <WhyThisTest text={CITATIONS[testId]?.whyThisTest.text ?? ''} />
       <TestSwitcher onGo={(id) => s.goTo(`test:${id}` as never)} tests={s.selection.map((tid, ti) => ({
         id: tid, n: ti + 1,

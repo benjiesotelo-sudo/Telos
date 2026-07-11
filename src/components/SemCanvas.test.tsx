@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { SemCanvasUI, moderationGuardReason, nodeDeleteAction, pathNodeCenter, latentBounds, NODE_W, NODE_H, ITEM_W, ITEM_H } from './SemCanvas'
+import { SemCanvasUI, moderationGuardReason, nodeDeleteAction, pathNodeCenter, latentBounds, NODE_W, NODE_H, ITEM_W, ITEM_H, GRID_MARGIN } from './SemCanvas'
 import type { Construct, StructuralPath, Moderation } from '../state/session'
 import type { PlsSemResult } from '../lib/stats/plsSem'
 
@@ -564,5 +564,59 @@ describe('moderationGuardReason - pure validation (unit-tested directly, no simu
       moderatorId: 2, pathIndex: 0, constructs: snTaTiConstructs, paths: snTiPath,
       moderations: [], estimator: 'ML', modelKind: 'path',
     })).toMatch(/path.analysis|observed-only/i)
+  })
+})
+
+// ── canvas overflow fix wave (2026-07-11, owner click-through catch) ────────
+// The connected wrapper used to hard-code height:360 on a div that held toolbar + svg + shelf
+// (~415px of content), so the shelf painted over the Estimation fieldset below and the resize
+// handle resized a box nothing respected. The resize height now lives on the SVG itself
+// (svgHeight prop); the handle is passed in as a node and anchors to the svg's corner (before
+// the shelf); the auto-grid insets nodes from the clip edge; the svg advertises Move-mode pan
+// with a grab cursor (background pan is Move-mode-only - owner ruling, canvas-fix board).
+describe('SemCanvasUI - canvas overflow fix wave', () => {
+  const pathOver = {
+    modelKind: 'path' as const, constructs: [], columns: ['educ', 'score'], paths: [],
+    shelfColumns: ['wage'], onPlaceColumn: noop,
+  }
+
+  it('the svg carries the resize height, so the wrapper can size naturally', () => {
+    const html = renderLatent({ svgHeight: 340 })
+    expect(html).toMatch(/<svg[^>]*height="340"/)
+  })
+
+  it('the resizeHandle node renders after the svg and BEFORE the shelf (anchored to the canvas corner, not the shelf bottom)', () => {
+    const html = renderLatent({ ...pathOver, svgHeight: 340, resizeHandle: <div aria-label="Resize canvas" /> })
+    const svgEnd = html.indexOf('</svg>')
+    const handle = html.indexOf('Resize canvas')
+    const shelf = html.indexOf('sem-shelf')
+    expect(svgEnd).toBeGreaterThan(-1); expect(handle).toBeGreaterThan(-1); expect(shelf).toBeGreaterThan(-1)
+    expect(handle).toBeGreaterThan(svgEnd)
+    expect(handle).toBeLessThan(shelf)
+  })
+
+  it('edge grid nodes are inset from the viewBox boundary by GRID_MARGIN (never flush at the clip edge)', () => {
+    for (let count = 1; count <= 9; count++) {
+      for (let i = 0; i < count; i++) {
+        const c = pathNodeCenter(i, count, 720, 320)
+        expect(c.left, `n=${count} i=${i} left`).toBeGreaterThanOrEqual(GRID_MARGIN)
+        expect(c.left + NODE_W, `n=${count} i=${i} right`).toBeLessThanOrEqual(720 - GRID_MARGIN)
+        expect(c.top, `n=${count} i=${i} top`).toBeGreaterThanOrEqual(GRID_MARGIN)
+        expect(c.top + NODE_H, `n=${count} i=${i} bottom`).toBeLessThanOrEqual(320 - GRID_MARGIN)
+      }
+    }
+  })
+
+  it('a cramped viewBox degrades gracefully: nodes stay inside [0,W] even when the margin cannot fit', () => {
+    const c = pathNodeCenter(0, 1, NODE_W + 8, NODE_H + 8) // narrower than node + 2*margin
+    expect(c.left).toBeGreaterThanOrEqual(0)
+    expect(c.left + NODE_W).toBeLessThanOrEqual(NODE_W + 8)
+  })
+
+  it('the svg background shows the grab cursor ONLY in Move mode (pan affordance; draw/delete are click-only)', () => {
+    const svgTag = (html: string) => html.match(/<svg[^>]*sem-svg-bg[^>]*>|<svg[^>]*id="figure-path-diagram[^>]*>/)![0]
+    expect(svgTag(renderLatent({ ...pathOver, mode: 'move' }))).toContain('cursor:grab')
+    expect(svgTag(renderLatent({ ...pathOver, mode: 'draw' }))).not.toContain('cursor:grab')
+    expect(svgTag(renderLatent({ ...pathOver, mode: 'delete' }))).not.toContain('cursor:grab')
   })
 })

@@ -43,6 +43,9 @@ const ITEM_SIDE_GAP = 28  // gap between oval edge and item stack
 const DEFAULT_X = 80
 const DEFAULT_Y = 70
 const GRID_GAP = 28   // min horizontal gap between path-mode grid columns (used to pick cols-per-row)
+/** Overflow fix wave (2026-07-11): auto-grid inset from the viewBox boundary, so an edge node is
+ *  never flush against the clip edge (a slight pan used to shear it half off-screen). */
+export const GRID_MARGIN = 16
 
 /** Which side a construct's item boxes sit on, from its center's position WITHIN the span of all
  *  construct centers — viewBox-INDEPENDENT, so zoom/pan/fit never reflow the items (and the
@@ -98,6 +101,15 @@ export interface SemCanvasUIProps {
    *  rendered as add-chips in a shelf strip below the svg. Undefined/omitted → no shelf renders
    *  (latent mode, or any caller that hasn't wired the shelf). */
   shelfColumns?: string[]
+  /** Overflow fix wave (2026-07-11, owner click-through catch): the user-resizable canvas height
+   *  lives on the SVG ITSELF, not on a fixed-height wrapper around toolbar+svg+shelf - a wrapper
+   *  height nothing respected let the shelf paint over the Estimation fieldset below. Undefined →
+   *  the svg keeps its aspect-ratio height (test renders). */
+  svgHeight?: number
+  /** Overflow fix wave: the connected wrapper's resize handle, rendered inside the svg's own
+   *  positioning box so it anchors to the CANVAS corner (not the shelf bottom) and its drag
+   *  genuinely resizes the svg. */
+  resizeHandle?: React.ReactNode
   onAddPath(from: number, to: number): void
   onRemovePath(index: number): void
   onMoveNode(id: number, x: number, y: number): void
@@ -216,23 +228,26 @@ function nodeCenter(n: Node, fallbackIdx: number) {
  *  rectangles stay WITHIN [0,W]×[0,H] (and thus clickable). Positions derive purely from index/count
  *  + viewBox dims (path nodes carry no x/y), so estimate overlays keyed off the same centers track it. */
 export function pathNodeCenter(idx: number, count: number, W: number, H: number) {
+  // Grid inset, clamped so a cramped viewBox (deep zoom) degrades to flush rather than overflowing.
+  const mx = Math.max(0, Math.min(GRID_MARGIN, (W - NODE_W) / 2))
+  const my = Math.max(0, Math.min(GRID_MARGIN, (H - NODE_H) / 2))
   // Columns per row: as many as fit the width with a small inter-node gap, capped so we never overflow.
-  const cols = Math.max(1, Math.min(count, Math.floor((W + GRID_GAP) / (NODE_W + GRID_GAP))))
+  const cols = Math.max(1, Math.min(count, Math.floor((W - 2 * mx + GRID_GAP) / (NODE_W + GRID_GAP))))
   const rows = Math.ceil(count / cols)
   const col = idx % cols
   const row = Math.floor(idx / cols)
-  // Even horizontal pitch that centers the whole row block within W; same for vertical within H.
-  const pitchX = cols > 1 ? (W - NODE_W) / (cols - 1) : 0
-  const cx = (cols > 1 ? NODE_W / 2 + col * pitchX : W / 2)
-  const pitchY = rows > 1 ? (H - NODE_H) / (rows - 1) : 0
-  const cy = (rows > 1 ? NODE_H / 2 + row * pitchY : H / 2)
+  // Even horizontal pitch that centers the whole row block within the inset span; same vertically.
+  const pitchX = cols > 1 ? (W - 2 * mx - NODE_W) / (cols - 1) : 0
+  const cx = (cols > 1 ? mx + NODE_W / 2 + col * pitchX : W / 2)
+  const pitchY = rows > 1 ? (H - 2 * my - NODE_H) / (rows - 1) : 0
+  const cy = (rows > 1 ? my + NODE_H / 2 + row * pitchY : H / 2)
   return { cx, cy, left: cx - NODE_W / 2, top: cy - NODE_H / 2 }
 }
 
 /** Pure presentational canvas — testable with renderToStaticMarkup. */
 export function SemCanvasUI({
   testId, constructs, columns, paths, modelKind, mode, estimates, running,
-  viewBox: vbProp, moderations, estimator = 'ML', nodePositions, shelfColumns,
+  viewBox: vbProp, moderations, estimator = 'ML', nodePositions, shelfColumns, svgHeight, resizeHandle,
   onAddPath, onRemovePath, onMoveNode: _onMoveNode, onSetMode,
   onAddModeration, onRemoveModeration, onPlaceColumn, onRemoveNode, pendingOverride,
 }: SemCanvasUIProps) {
@@ -325,12 +340,18 @@ export function SemCanvasUI({
             : 'Add a construct to start the diagram.'}
         </p>
       )}
+      {/* Overflow fix wave: the svg + resize handle share a positioning box, so the handle pins to
+        * the canvas corner and everything after (shelf, Estimation fieldset) flows BELOW in normal
+        * layout at any width. The grab cursor advertises Move-mode background pan (owner ruling:
+        * pan is Move-only; draw/delete are click-only). */}
+      <div style={{ position: 'relative' }}>
       <svg
         id={`figure-path-diagram-${testId}`}
         width="100%"
+        height={svgHeight}
         viewBox={vbProp ? `${vbProp.x} ${vbProp.y} ${vbProp.w} ${vbProp.h}` : '0 0 760 360'}
         preserveAspectRatio="xMidYMid meet"
-        style={{ background: 'var(--fill)', border: '1px solid var(--line)', borderRadius: 10 }}
+        style={{ background: 'var(--fill)', border: '1px solid var(--line)', borderRadius: 10, ...(mode === 'move' && !running ? { cursor: 'grab' } : null) }}
       >
         <defs>
           <marker id="sem-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -561,6 +582,8 @@ export function SemCanvasUI({
           )
         })}
       </svg>
+      {resizeHandle}
+      </div>
       {/* P2 shelf model (path mode only, spec Amendment A item 1): every used-eligible column NOT
        *  yet placed waits here as an add-chip; one click places it on the canvas (auto-position at
        *  the next free grid slot - see nodesOf/pathNodeCenter). Reuses the app's .chip idiom
@@ -683,8 +706,14 @@ export function SemCanvas({ testId }: { testId: string }) {
       const y0 = pos?.y ?? slot.top
       const p = screenToViewBox(e.clientX, e.clientY, svgRect(), vb)
       drag.current = { kind: 'node', id: nodeId, offX: p.x - x0, offY: p.y - y0 }
-    } else {
+    } else if (mode === 'move' && (e.target as Element).closest('svg')) {
+      // Background pan is MOVE-MODE ONLY, and only for a press that began on the canvas itself
+      // (owner ruling, canvas-fix board 2026-07-11): in draw/delete a slightly-moving click used
+      // to pan the whole view and shear edge nodes off-screen mid-gesture.
       drag.current = { kind: 'pan', startX: e.clientX, startY: e.clientY, vb0: vb }
+    } else {
+      drag.current = null
+      return
     }
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
   }
@@ -706,6 +735,9 @@ export function SemCanvas({ testId }: { testId: string }) {
   function onPointerUp() { drag.current = null }
 
   function onResizeDown(e: React.PointerEvent) {
+    // Don't let the wrapper's own pointerdown see this press - it would clobber drag.current
+    // (pan, or the fix wave's null-reset) and kill the resize gesture mid-flight.
+    e.stopPropagation()
     drag.current = { kind: 'resize', startY: e.clientY, h0: height }
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
   }
@@ -729,8 +761,10 @@ export function SemCanvas({ testId }: { testId: string }) {
         <button type="button" aria-label="Zoom in" className="btn ghost" disabled={running} onClick={() => zoom(ZOOM_STEP)}>+</button>
         <button type="button" aria-label="Fit" className="btn ghost" disabled={running} onClick={fit}>Fit</button>
       </div>
+      {/* Overflow fix wave (2026-07-11): NO fixed height here - the resize height lives on the svg
+        * (svgHeight below), so toolbar + canvas + shelf occupy real layout space and the Estimation
+        * fieldset always starts below them, at any window width. */}
       <div
-        style={{ height, position: 'relative' }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -758,13 +792,16 @@ export function SemCanvas({ testId }: { testId: string }) {
           onRemoveModeration={(id) => s.removeModeration(testId, id)}
           onPlaceColumn={(name) => s.placeColumn(testId, name)}
           onRemoveNode={(id) => { const name = placed[id]; if (name !== undefined) s.removeColumn(testId, name) }}
-        />
-        <div
-          aria-label="Resize canvas"
-          onPointerDown={onResizeDown}
-          onPointerMove={onResizeMove}
-          onPointerUp={onResizeUp}
-          style={{ position: 'absolute', right: 4, bottom: 4, width: 14, height: 14, cursor: 'nwse-resize', borderRight: '2px solid var(--info)', borderBottom: '2px solid var(--info)' }}
+          svgHeight={height}
+          resizeHandle={
+            <div
+              aria-label="Resize canvas"
+              onPointerDown={onResizeDown}
+              onPointerMove={onResizeMove}
+              onPointerUp={onResizeUp}
+              style={{ position: 'absolute', right: 4, bottom: 4, width: 14, height: 14, cursor: 'nwse-resize', borderRight: '2px solid var(--info)', borderBottom: '2px solid var(--info)' }}
+            />
+          }
         />
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 
-// Spec R3: 5 deterministic screens x 3 viewports x 2 themes = 30 committed baselines.
+// Spec R3: 5 deterministic screens x 3 viewports x 2 themes = 30 committed baselines,
+// + the path-canvas screen added by the canvas overflow fix wave (2026-07-11) = 36.
 // Results screens excluded (WebR figure rendering is not pixel-deterministic).
 const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 900 },
@@ -44,5 +45,37 @@ for (const vp of VIEWPORTS) for (const theme of THEMES) {
     await page.locator('[data-role="outcome"]').click()
     await expect(page.locator('[data-role="outcome"] .chip.assigned', { hasText: 'score' })).toBeVisible()
     await snap('test-config')
+  })
+
+  // Path-canvas screen (canvas overflow fix wave, 2026-07-11): the P2 shelf card whose layout
+  // regressed invisibly - shelf strip, placed nodes at inset grid slots, one drawn path, and the
+  // Estimation fieldset below. Pure SVG DOM, no WebR run - deterministic like the other screens.
+  test(`baselines: path-canvas ${vp.name} ${theme}`, async ({ page }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/')
+    await setTheme(page, theme)
+    await page.getByRole('button', { name: 'Get started' }).click()
+    await page.setInputFiles('input[type=file]', 'tests/e2e/fixtures/likert5-missing.csv')
+    await expect(page.getByRole('heading', { name: 'Terms guide' })).toBeVisible()
+    await page.getByRole('button', { name: 'Continue' }).click()
+    await expect(page.getByRole('heading', { name: 'Configure data' })).toBeVisible()
+    await page.getByRole('button', { name: 'Confirm & pick test' }).click()
+    await expect(page.getByRole('heading', { name: 'Pick a test' })).toBeVisible()
+    await page.getByRole('checkbox', { name: /path analysis/i }).check()
+    await page.getByRole('button', { name: 'Confirm selection' }).click()
+    await expect(page.getByRole('heading', { name: 'Build your path model' })).toBeVisible()
+    for (const name of ['b1', 'a1', 'cont1']) {
+      await page.getByRole('button', { name: `Add ${name} to the canvas` }).click()
+    }
+    const rect = (id: number) => page.locator(`rect.sem-node-rect[data-node-id="${id}"]`)
+    await rect(1).click() // a1 (source)
+    await rect(0).click() // b1 (target)
+    await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(1)
+    // The node clicks scroll the page; snap from the top so the sticky journey rail sits in its
+    // accepted-baseline position instead of mid-page (fullPage + sticky capture artifact).
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.waitForTimeout(150)
+    await expect(page).toHaveScreenshot(`path-canvas-${vp.name}-${theme}.png`, { fullPage: true })
   })
 }
