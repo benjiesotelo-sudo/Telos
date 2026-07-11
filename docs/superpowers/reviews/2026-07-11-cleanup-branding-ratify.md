@@ -12,7 +12,7 @@ Four commits: `46134d5` (spec) · `dcabdcd` (specs move) · `e7be1e6` (brand) ·
 2. **Identity in the app - YOUR RULING B (hero board)**: the settling curve you liked stays as the
    Welcome hero, untouched; W1 wordmark = the `Telos.` h1 now Crimson Pro weight 620 (clay stop
    kept); the mark carries the identity on external surfaces only (favicon, README, docs landing);
-   `public/favicon.svg` = the kit mark, cache-busted (`?v=2`) - **the Vite purple bolt is dead**
+   `public/favicon.svg` = the kit mark with ADAPTIVE INK (your favicon-board ruling: embedded dark-mode media query flips ink to paper; OS-theme-follows + patchy-Safari limitation accepted), cache-busted (`?v=3`) - **the Vite purple bolt is dead**
    (the bolt in your tab was your browser's cache; it dies on redeploy). My first build replaced
    the curve with the mark - you corrected it, the board offered A-D, you picked B (`a0da0c0`).
 3. **README rewrite**: logo `<picture>` header, live-app link first, CI/DOI/AGPL badges, the

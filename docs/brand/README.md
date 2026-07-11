@@ -16,6 +16,8 @@ Files:
 - `telos-mark.svg` - ink strokes use `currentColor`, clay is `#d97757`. Use this wherever CSS color context exists (it themes itself).
 - `telos-mark-light.svg` / `telos-mark-dark.svg` - fixed-ink variants for contexts without CSS color (GitHub README `<picture>`, external docs).
 - `favicon.svg` - the mark centered on a square viewBox, shipped as `public/favicon.svg`.
+  ADAPTIVE INK (owner ruling, favicon board 2026-07-11): an embedded `prefers-color-scheme` media query flips the ink to paper (`#faf9f5`) in dark mode, background stays transparent.
+  Known limitation, accepted with eyes open: the query follows the OS theme, not the tab-bar color, and support is patchy outside Chrome/Firefox.
 
 In the app the mark appears as the favicon only (owner ruling B, hero board 2026-07-11): the Welcome screen keeps its settling-curve gesture, and the mark carries the identity on external surfaces (README, docs landing, GitHub).
 
