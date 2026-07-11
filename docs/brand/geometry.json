@@ -1,0 +1,12 @@
+{
+  "params": {
+    "spread": 71,
+    "peak": 30,
+    "r": 6.5,
+    "R": 9.5,
+    "w": 2.5,
+    "cw": 4.3,
+    "arrow": false
+  },
+  "note": "Benjie-tuned 2026-07-10; tuner engine v2.7 clean-junctions; lines under, circles over, ink trims=r, clay end trim=R-cw"
+}

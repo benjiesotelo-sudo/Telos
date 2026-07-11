@@ -9,9 +9,20 @@ describe('WelcomeScreen (redesign)', () => {
   it('wordmark carries the clay full stop', () => {
     expect(h()).toMatch(/Telos<span class="dot"[^>]*>\.<\/span>/)
   })
-  it('renders the settling-curve svg gesture', () => {
-    expect(h()).toContain('<svg')
-    expect(h()).toContain('aria-hidden="true"')
+  it('hero shows the tuned three-node mark (brand kit, cleanup slice 2026-07-11): 2 ink rings + 1 clay arrival', () => {
+    const html = h()
+    expect(html).toContain('class="telos-mark')
+    expect(html).toContain('aria-hidden="true"')
+    const mark = html.match(/<svg class="telos-mark[^"]*"[^>]*>(.*?)<\/svg>/s)![1]
+    expect([...mark.matchAll(/<circle/g)]).toHaveLength(3)
+    expect(mark).toMatch(/<circle[^>]*fill="var\(--accent\)"/)          // clay arrival node
+    expect(mark).toMatch(/<circle[^>]*stroke="currentColor"/)          // ink rings theme themselves
+    expect(mark).not.toContain('marker-end')                           // no arrowheads (owner rule)
+  })
+  it('wordmark is W1: Crimson Pro at weight 620 on the Welcome h1', () => {
+    const h1 = h().match(/<h1[^>]*>/)![0]
+    expect(h1).toContain('var(--font-prose)')
+    expect(h1).toMatch(/font-weight:\s*620/)
   })
   it('shows the approved copy verbatim across paragraph, subline and credit', () => {
     const html = h().replace(/<[^>]+>/g, '')
