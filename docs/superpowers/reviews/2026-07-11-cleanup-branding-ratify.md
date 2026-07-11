@@ -69,7 +69,7 @@ remains from this fix - the curve's seven dots now render for reduced-motion use
 |---|---|
 | tsc -b --force | clean |
 | test:fast | 162 files, 1689/1689 (consistency suites read specs at the new path) |
-| Playwright full 5-project suite | 53/53 pre-ruling-B; re-run post-B lands in the acceptance message |
+| Playwright full 5-project suite | 53/53 post-ruling-B (6.9m) |
 | Visual | 12/12; only the 6 welcome baselines changed (owner diff set staged) |
 | Fresh clone | install + tsc + test:fast 1689/1689 + build, all green |
 | Welcome unit | 7/7 (mark structure, W1 weight, copy verbatim, CTA, stagger classes) |
