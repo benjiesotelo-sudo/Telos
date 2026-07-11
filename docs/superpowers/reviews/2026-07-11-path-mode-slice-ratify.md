@@ -149,3 +149,31 @@ Also corrected this document's (a).1 "next free spot" wording (review issue 6) -
 grid-reflow behavior; see the correction in place there.
 
 NEVER pushed; NEVER deployed.
+
+## (g) Canvas overflow fix wave (post-slice, 2026-07-11 - YOUR click-through catch, commit `45b9750`)
+
+Your click-through found what the whole overnight gate missed - the gate asserted behavior
+(counts, text, exports) but never geometry. Four bugs, one wave, all owner-visualized and
+approved on the canvas-fix board before building:
+
+1. **Shelf painted over the Estimation fieldset** (worse the narrower the window): the canvas
+   wrapper hard-coded `height: 360px` around ~415px of toolbar+svg+shelf.
+   Fix: the resize height lives on the SVG itself; the wrapper sizes naturally.
+2. **Resize handle was a no-op** (it resized the wrapper, which nothing respected): same fix
+   makes resize real for the first time; the handle anchors to the svg corner and stops
+   propagation so the wrapper cannot clobber its gesture.
+3. **Edge nodes flush against the clip edge + accidental pan**: `pathNodeCenter` now insets the
+   grid by `GRID_MARGIN` (16, clamped for cramped viewBoxes); background pan is **Move-mode-only**
+   (your ruling), svg-origin-only, with a grab cursor affordance.
+4. **Stale heading**: path analysis now reads **"Build your path model"** (your approved copy);
+   every other test keeps "Drag columns into roles".
+
+Regression net added (the testing gap behind the miss): `tests/e2e/path-canvas-layout.spec.ts`
+pins the geometry (shelf/fieldset overlap at 1280px and 900px, node-in-svg bounds, real resize
+reflow, pan gating), and the visual suite gains a 6th screen - `path-canvas` at 3 viewports x 2
+themes (30 -> 36 baselines, determinism proven twice; NEW baselines only, the accepted 30 are
+byte-untouched).
+
+NOT a bug, for the record: the "all your placed variables are scale-level" hint you saw is the
+correct branch when columns were not marked ordinal at Configure data; with a1..b3 marked
+ordinal the "draw a path into an ordinal variable" hint shows (repro-verified both ways).
