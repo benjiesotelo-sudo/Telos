@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Telos docs</title>
+<link rel="icon" type="image/svg+xml" href="brand/favicon.svg">
+<style>
+/* Tokens mirrored from src/styles/tokens.css (the app is the source of truth). */
+:root{ --bg:#faf9f5; --card:#fff; --text:#141413; --muted:#6e6c64; --line:rgba(20,20,19,.16);
+  --accent:#d97757; --accent-deep:#a44a2e; }
+@media (prefers-color-scheme:dark){ :root{ --bg:#141413; --card:#211f1c; --text:#faf9f5; --muted:#b0aea5; --line:rgba(250,249,245,.16); --accent-deep:#d97757; } }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Helvetica Neue',sans-serif;line-height:1.55}
+.page{max-width:680px;margin:0 auto;padding:56px 20px 80px;text-align:center}
+h1{font-family:Georgia,'Times New Roman',serif;font-weight:600;font-size:38px;margin:18px 0 4px}
+h1 .dot{color:var(--accent)}
+.sub{color:var(--muted);font-size:15px;margin:0 0 36px}
+.cards{display:grid;gap:14px;text-align:left}
+a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;text-decoration:none;color:inherit;transition:border-color .15s ease}
+a.card:hover{border-color:var(--accent)}
+a.card b{display:block;font-size:16px;margin-bottom:3px}
+a.card span{color:var(--muted);font-size:13.5px}
+footer{margin-top:40px;color:var(--muted);font-size:12.5px}
+footer a{color:var(--accent-deep)}
+svg.mark{display:block;margin:0 auto}
+</style>
+</head>
+<body>
+<div class="page">
+  <svg class="mark" viewBox="0 0 86.5 60" width="96" aria-hidden="true">
+    <line x1="14.964" y1="44.301" x2="31.446" y2="24.949" stroke="currentColor" stroke-width="2.5"/>
+    <line x1="41.072" y1="23.6" x2="69.67" y2="42.62" stroke="var(--accent)" stroke-width="4.3"/>
+    <circle cx="10.75" cy="49.25" r="6.5" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <circle cx="35.66" cy="20" r="6.5" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <circle cx="74" cy="45.5" r="9.5" fill="var(--accent)"/>
+  </svg>
+  <h1>Telos<span class="dot">.</span> docs</h1>
+  <p class="sub">Browser-based statistics for thesis students. Every number verified against native R.</p>
+  <div class="cards">
+    <a class="card" href="https://telos-stats.pages.dev">
+      <b>Use the app</b>
+      <span>telos-stats.pages.dev - no account, data never leaves your browser.</span>
+    </a>
+    <a class="card" href="test-documentation/index.html">
+      <b>Per-test verification docs (48)</b>
+      <span>One audit document per statistical test: the app's output and native R's output, side by side, with the scenario data.</span>
+    </a>
+    <a class="card" href="specs/telos_test_outputs.html">
+      <b>Product specs</b>
+      <span>The locked source-of-truth spec cards the consistency tests enforce: <a href="specs/telos_test_inputs.html">inputs</a>, outputs, and the <a href="specs/telos_ui_spec.html">UI flow</a>.</span>
+    </a>
+    <a class="card" href="https://github.com/benjiesotelo-sudo/Telos">
+      <b>Source code</b>
+      <span>AGPL-3.0. Bug reports and contributions go through GitHub Issues.</span>
+    </a>
+  </div>
+  <footer>
+    Cite: Sotelo, B. (2026). <i>Telos (v1.0.0)</i> [Computer software]. <a href="https://doi.org/10.5281/zenodo.21281648">doi:10.5281/zenodo.21281648</a>
+  </footer>
+</div>
+</body>
+</html>

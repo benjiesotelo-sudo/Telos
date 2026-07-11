@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: If you use Telos in your research, please cite it using this metadata.
+title: Telos
+type: software
+authors:
+  - family-names: Sotelo
+    given-names: Benjamin
+    orcid: https://orcid.org/0009-0005-8027-6166
+    affiliation: Far Eastern University
+version: 1.0.0
+date-released: 2026-07-09
+doi: 10.5281/zenodo.21281648
+repository-code: https://github.com/benjiesotelo-sudo/Telos
+url: https://telos-stats.pages.dev
+license: AGPL-3.0
+abstract: >-
+  Browser-based statistical analysis for thesis students. All computation runs
+  client-side in WebR (R compiled to WebAssembly), so data never leaves the
+  browser. 48 statistical tests with APA tables, figures, plain-language
+  guidance, method citations, and reproducible R script exports, each verified
+  against native R.
+keywords:
+  - statistics
+  - webr
+  - webassembly
+  - r
+  - apa
+  - thesis
+  - structural-equation-modeling

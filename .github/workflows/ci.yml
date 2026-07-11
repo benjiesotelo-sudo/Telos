@@ -1,0 +1,23 @@
+# The fast release loop: typecheck, the non-WebR vitest suite, and a production build.
+# Deliberately NOT here (documented in README): the WebR engine suites, the native-R parity
+# gates (need a native R 4.6 toolchain), and the Playwright journeys - all 30+ minutes and
+# run locally as the release gate before any push/deploy.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  fast-loop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc -b --force
+      - run: npm run test:fast
+      - run: npm run build

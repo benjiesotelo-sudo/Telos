@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Use Telos
+    url: https://telos-stats.pages.dev
+    about: The live app - no account, data never leaves your browser.
+  - name: Per-test verification docs
+    url: https://benjiesotelo-sudo.github.io/Telos/test-documentation/index.html
+    about: All 48 tests audited side by side against native R.
