@@ -38,13 +38,13 @@ Four commits: `46134d5` (spec) · `dcabdcd` (specs move) · `e7be1e6` (brand) ·
 animations WITHOUT restoring the resting state, so reduced-motion users have been seeing the arc
 without its dots since slice 3 - and would have seen the mark without its three nodes.
 Fix: the reduced-motion block now explicitly restores `opacity:1` / undashed strokes for enter-3.
-Entrance rules retargeted from the old 7-dot arc to the mark: both lines draw via `pathLength=1`
-normalization, then the three nodes pop in path order, clay arrival last.
+(Under ruling B the register kept its original curve rules; only the reduced-motion neutralizer
+remains from this fix - the curve's seven dots now render for reduced-motion users.)
 
 ## (c) YOUR render review (the acceptance)
 
-1. **Welcome screen** at http://localhost:4173 (both themes): the mark's junctions at app size, the
-   W1 wordmark weight, the entrance sequence (lines draw, nodes pop, clay lands).
+1. **Welcome screen** at http://localhost:4173 (both themes): the curve back as before, the W1
+   wordmark weight (Crimson Pro 620), the original entrance sequence.
 2. **The 6 welcome baseline diffs**: `.superpowers/sdd/cleanup-baseline-diffs/`.
 3. **README** as GitHub will show it (mark header, badges - CI badge is red/missing until the
    workflow's first run completes after push).
