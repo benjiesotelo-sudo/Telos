@@ -17,7 +17,7 @@ Files:
 - `telos-mark-light.svg` / `telos-mark-dark.svg` - fixed-ink variants for contexts without CSS color (GitHub README `<picture>`, external docs).
 - `favicon.svg` - the mark centered on a square viewBox, shipped as `public/favicon.svg`.
 
-In the app, the mark is the `TelosMark` React component (`src/components/TelosMark.tsx`), which inlines the same geometry with `currentColor` ink and `var(--accent)` clay so both themes work with one asset.
+In the app the mark appears as the favicon only (owner ruling B, hero board 2026-07-11): the Welcome screen keeps its settling-curve gesture, and the mark carries the identity on external surfaces (README, docs landing, GitHub).
 
 ## The wordmark (W1)
 

@@ -9,15 +9,13 @@ describe('WelcomeScreen (redesign)', () => {
   it('wordmark carries the clay full stop', () => {
     expect(h()).toMatch(/Telos<span class="dot"[^>]*>\.<\/span>/)
   })
-  it('hero shows the tuned three-node mark (brand kit, cleanup slice 2026-07-11): 2 ink rings + 1 clay arrival', () => {
+  it('hero keeps the settling-curve gesture (owner ruling B, hero board 2026-07-11): clay path + 7 staggered dots', () => {
     const html = h()
-    expect(html).toContain('class="telos-mark')
     expect(html).toContain('aria-hidden="true"')
-    const mark = html.match(/<svg class="telos-mark[^"]*"[^>]*>(.*?)<\/svg>/s)![1]
-    expect([...mark.matchAll(/<circle/g)]).toHaveLength(3)
-    expect(mark).toMatch(/<circle[^>]*fill="var\(--accent\)"/)          // clay arrival node
-    expect(mark).toMatch(/<circle[^>]*stroke="currentColor"/)          // ink rings theme themselves
-    expect(mark).not.toContain('marker-end')                           // no arrowheads (owner rule)
+    const curve = html.match(/<svg[^>]*viewBox="0 0 420 64"[^>]*>(.*?)<\/svg>/s)![1]
+    expect(curve).toMatch(/<path[^>]*stroke="var\(--accent\)"/)
+    expect([...curve.matchAll(/<circle/g)]).toHaveLength(7)
+    expect(html).not.toContain('telos-mark') // ruling B: the mark lives in favicon/README/docs, not this hero
   })
   it('wordmark is W1: Crimson Pro at weight 620 on the Welcome h1', () => {
     const h1 = h().match(/<h1[^>]*>/)![0]
