@@ -20,7 +20,7 @@ const staticNotesFixture: CbSemResult = {
 } as unknown as CbSemResult
 const staticNotesText = () => buildCbSem(spec, staticNotesFixture).notes!.map((n) => n.text).join(' ')
 
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(
   outputsHtml.indexOf('CB-SEM</span>'),
   outputsHtml.indexOf('PLS-SEM</span>'),

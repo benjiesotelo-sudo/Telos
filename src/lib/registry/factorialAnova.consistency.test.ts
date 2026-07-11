@@ -4,9 +4,9 @@ import { FACTORIAL_ANOVA as spec } from './factorialAnova'
 import { strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('Factorial ANOVA</span>'), outputsHtml.indexOf('Repeated-measures ANOVA</span>'))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Factorial ANOVA</div>'), inputsHtml.indexOf('<div class="ttl">Repeated-measures ANOVA</div>'))
 
 describe('factorial-anova registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {

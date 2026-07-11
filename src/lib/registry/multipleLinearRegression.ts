@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Multiple linear regression cards) — display strings
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Multiple linear regression cards) — display strings
 // verbatim, AFTER the Task-1 R2 amendment ('changeable' dropped from the config guide). The R map keeps the drawn
 // ggplot2/performance::check_model() either-or phrasing (recorded decision 9 — figures are pure ggplot2, performance ships).
 export const MULTIPLE_LINEAR_REGRESSION: TestSpec = {

@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Granger causality card).
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Granger causality card).
 // APA template = drawn card verbatim (report-only neutralisation deferred to HTML edit + Benjie ratify).
 // §2.5: Granger stays as drawn — the F both-directions table is already complete for this test.
 // Single table — captionStyle 'bare' (card shows "Table." not "Table N.").

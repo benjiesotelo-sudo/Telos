@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Mixed ANOVA cards, commit 42526c1) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Mixed ANOVA cards, commit 42526c1) — display strings verbatim.
 export const MIXED_ANOVA: TestSpec = {
   id: 'mixed-anova',
   name: 'Mixed ANOVA',

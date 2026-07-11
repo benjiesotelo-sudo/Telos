@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html (PLS-SEM card, lines 1160-1188) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html (PLS-SEM card, lines 1160-1188) — display strings verbatim.
 // Convention (SEM reporting, approved 2026-06-18; measurement table merged U6-T1):
 //   - Variance-based SEM (seminr); NO global fit indices (CFI/TLI/RMSEA).
 //   - Measurement model (Table 1, A6 grouped device): construct rows (group header) carry α · ρ_A · CR (ρ_C) ·

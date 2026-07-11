@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Friedman cards) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Friedman cards) — display strings verbatim.
 // χ² and related entities are stored as HTML entities to match the spec HTML (strip() does not decode them).
 export const FRIEDMAN: TestSpec = {
   id: 'friedman',

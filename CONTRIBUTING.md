@@ -23,7 +23,7 @@ Questions about which statistical test to use are welcome too, though the in-app
 1. Fork the repo and create a branch.
 2. Set up: `npm install`, then `npm run dev` (see README "Commands").
 3. Make your change. House rules:
-   - The three root spec HTMLs (`telos_test_inputs.html`, `telos_test_outputs.html`, `telos_ui_spec.html`) are locked product specs - consistency tests read them verbatim; do not edit them in a code PR.
+   - The three spec HTMLs (`docs/specs/telos_test_inputs.html`, `docs/specs/telos_test_outputs.html`, `docs/specs/telos_ui_spec.html`) are locked product specs - consistency tests read them verbatim; do not edit them in a code PR.
    - Any change to a statistical routine must keep (or add) a known-answer test whose expected values are verified against native R.
 4. Gates before opening a PR - all must be green:
    - `npm run test:fast` (fast inner loop)

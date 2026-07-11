@@ -25,7 +25,7 @@ export function buildFriedman(spec: TestSpec, r: FriedmanResult): CardContent {
     note: null,
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     // R1 gap-fix: N subjects was computed but never rendered — appended at render time (like the α clause
-    // already here), so no registry/telos_test_outputs.html change is needed (this card has no tableNote).
+    // already here), so no registry/docs/specs/telos_test_outputs.html change is needed (this card has no tableNote).
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}. N = ${r.n} subjects.`,
     apa,
     nExcluded: r.nExcluded,

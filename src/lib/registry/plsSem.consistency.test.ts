@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { PLS_SEM as spec } from './plsSem'
 import { strip } from './specHtml'
 
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(
   outputsHtml.indexOf('PLS-SEM</span>'),
   outputsHtml.indexOf('FAMILY 7'),

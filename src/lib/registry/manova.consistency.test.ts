@@ -5,9 +5,9 @@ import { figuresOf } from './types'
 import { decode, strip } from './specHtml'
 
 // Scope each file to THIS card: 'MANOVA</span>' first occurrence is the MANOVA card (precedes MANCOVA).
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('MANOVA</span>'), outputsHtml.indexOf('MANCOVA</span>'))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">MANOVA</div>'), inputsHtml.indexOf('<div class="ttl">MANCOVA</div>'))
 
 describe('manova registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {

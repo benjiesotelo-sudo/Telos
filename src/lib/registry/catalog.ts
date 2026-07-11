@@ -51,7 +51,7 @@ import { PATH_ANALYSIS } from './pathAnalysis'
 export type CatalogStatus = 'available' | 'later-slice'
 export interface CatalogEntry { id: string; name: string; family: string; subfamily?: string; status: CatalogStatus; short?: string; note?: string } // note: the ui-spec tree's inline leaf annotation (SEM leaves), rendered verbatim
 
-// Encoded from telos_ui_spec.html "5 · Pick a test" tree. Names verbatim (entities decoded).
+// Encoded from docs/specs/telos_ui_spec.html "5 · Pick a test" tree. Names verbatim (entities decoded).
 const e = (id: string, name: string, family: string, subfamily?: string, status: CatalogStatus = 'later-slice', short?: string): CatalogEntry =>
   ({ id, name, family, ...(subfamily ? { subfamily } : {}), status, ...(short ? { short } : {}) })
 

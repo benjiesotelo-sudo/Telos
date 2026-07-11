@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Fisher's exact cards) — display strings
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Fisher's exact cards) — display strings
 // verbatim, AFTER the Task-1 R2 amendment (figure_bar.png bundle + ggplot2::geom_bar R map).
 export const FISHERS_EXACT: TestSpec = {
   id: 'fishers-exact',

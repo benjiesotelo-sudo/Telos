@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (AVE cards) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (AVE cards) — display strings verbatim.
 // Convention (SEM reporting, approved 2026-06-18):
 //   - T1 convergent validity: Construct / AVE / CR / ω / α
 //   - T2 Fornell-Larcker matrix: √AVE on diagonal (bold), latent correlations off-diagonal; lowerOnly

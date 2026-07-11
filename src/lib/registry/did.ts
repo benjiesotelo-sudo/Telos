@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded VERBATIM from telos_test_outputs.html + telos_test_inputs.html (Difference-in-differences card).
+// Encoded VERBATIM from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Difference-in-differences card).
 // Report-only APA — literal "95% CI" (no {pct} token); {lo}/{hi} replaced by builder.
 // DiD = Option-B entity fixed effects: plm::plm(y ~ post + post:treated, model='within') with clustered-by-entity
 // SE (plm::vcovHC, arellano/HC1). The within transform absorbs the time-invariant Treated main effect, so the

@@ -4,9 +4,9 @@ import { CHI_SQUARE_INDEPENDENCE as spec } from './chiSquareIndependence'
 import { strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('Chi-square independence</span>'), outputsHtml.indexOf('Chi-square goodness-of-fit</span>'))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Chi-square independence</div>'), inputsHtml.indexOf('<div class="ttl">Spearman correlation</div>'))
 
 describe('chi-square-independence registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {

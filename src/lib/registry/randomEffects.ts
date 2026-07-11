@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded VERBATIM from telos_test_outputs.html + telos_test_inputs.html (Random effects card).
+// Encoded VERBATIM from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Random effects card).
 // Report-only APA — drawn "gave" wording already neutral.
 // tableNote verbatim from the drawn card (kind 'plain', afterTableId 're-coefficients').
 // Theme-4 econometrics-grade addition: the builder APPENDS the Breusch–Pagan LM test (RE vs pooled OLS,

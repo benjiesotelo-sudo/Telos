@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Summary statistics cards).
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Summary statistics cards).
 export const SUMMARY_STATISTICS: TestSpec = {
   id: 'summary-statistics',
   name: 'Summary statistics',

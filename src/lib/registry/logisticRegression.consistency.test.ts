@@ -5,9 +5,9 @@ import { figuresOf } from './types'
 import { strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('Logistic regression</span>'), outputsHtml.indexOf('Poisson / negative binomial</span>'))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Logistic regression</div>'), inputsHtml.indexOf('<div class="ttl">Poisson / negative binomial</div>'))
 
 describe('logistic-regression registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {

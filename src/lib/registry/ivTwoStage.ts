@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded VERBATIM from telos_test_outputs.html + telos_test_inputs.html (Instrumental variables / 2SLS card).
+// Encoded VERBATIM from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Instrumental variables / 2SLS card).
 // Report-only APA — neutral "the 2SLS estimate for X was B" (no causal claim). §2.8: weak-IV F, Wu–Hausman,
 // Sargan surfaced as a dynamic diagnostics note appended to spec.tableNote.text (builder constructs the full note).
 export const IV_TWO_STAGE: TestSpec = {

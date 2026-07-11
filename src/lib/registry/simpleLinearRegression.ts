@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Simple linear regression cards) — display strings
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Simple linear regression cards) — display strings
 // verbatim, AFTER the Task-1 B4 truth-fix (broom segment dropped from the R map; spike: nothing computed needs broom).
 export const SIMPLE_LINEAR_REGRESSION: TestSpec = {
   id: 'simple-linear-regression',

@@ -5,9 +5,9 @@ import { figuresOf } from './types'
 import { strip } from './specHtml'
 
 // Scope each file to THIS test's card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('Paired t-test</span>'), outputsHtml.indexOf('One-way ANOVA + post-hoc</span>'))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Paired t-test</div>'), inputsHtml.indexOf('<div class="ttl">Factorial ANOVA</div>'))
 
 describe('paired-t-test registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {

@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Composite reliability cards) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Composite reliability cards) — display strings verbatim.
 // Convention (SEM reporting, approved 2026-06-18):
 //   - T1 composite reliability: Construct / CR / AVE / ω / α
 //   - Figure: CR bar chart per construct

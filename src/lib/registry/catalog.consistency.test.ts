@@ -3,7 +3,7 @@ import { CATALOG, SPECS } from './catalog'
 import { readSpec, strip } from './specHtml'
 
 // Scope to the picker tree: from the picktree div to the assumption-diagnostics tbd line.
-const html = readSpec('telos_ui_spec.html')
+const html = readSpec('docs/specs/telos_ui_spec.html')
 const tree = html.slice(html.indexOf('class="picktree"'), html.indexOf('Assumption diagnostics'))
 
 // Parse the tree into [{ family, subfamily, leaf }] in document order.

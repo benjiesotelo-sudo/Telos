@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html (Paired t-test card) + telos_test_inputs.html (roles, option strip).
+// Encoded from docs/specs/telos_test_outputs.html (Paired t-test card) + docs/specs/telos_test_inputs.html (roles, option strip).
 export const PAIRED_T_TEST: TestSpec = {
   id: 'paired-t-test',
   name: 'Paired t-test',

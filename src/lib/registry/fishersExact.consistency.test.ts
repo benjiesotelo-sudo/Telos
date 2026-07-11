@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs'
 import { FISHERS_EXACT as spec } from './fishersExact'
 import { strip } from './specHtml'
 
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf("Fisher's exact</span>"), outputsHtml.indexOf('4 · Regression'))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Fisher\'s exact</div>'), inputsHtml.indexOf('<div class="ttl">Multiple linear regression</div>'))
 
 describe("fisher's-exact registry stays faithful to the spec HTML (verbatim, card-scoped)", () => {

@@ -5,9 +5,9 @@ import { figuresOf } from './types'
 import { strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('Multiple linear regression</span>'), outputsHtml.indexOf('Logistic regression</span>'))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 // NOTE: the inputs file draws Multiple linear FIRST in family 4 — the next inputs card is Simple linear regression.
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Multiple linear regression</div>'), inputsHtml.indexOf('<div class="ttl">Simple linear regression</div>'))
 

@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Logistic regression cards) — display strings
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Logistic regression cards) — display strings
 // verbatim, AFTER the Task-1 D4 truth-fix (caret::confusionMatrix() → table(predicted, observed): caret is not
 // shipped; the classification table is a hand 2×2 tabulation).
 export const LOGISTIC_REGRESSION: TestSpec = {

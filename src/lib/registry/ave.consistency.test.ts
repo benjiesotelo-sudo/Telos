@@ -4,12 +4,12 @@ import { AVE as spec } from './ave'
 import { strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(
   outputsHtml.indexOf('Average variance extracted (AVE)</span>'),
   outputsHtml.indexOf('Composite reliability (CR)</span>'),
 )
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(
   inputsHtml.indexOf('<div class="ttl">Average variance extracted (AVE)</div>'),
   inputsHtml.indexOf('<div class="ttl">Composite reliability (CR)</div>'),

@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (VAR card).
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (VAR card).
 // APA template = drawn card verbatim (report-only neutralisation deferred to HTML edit + Benjie ratify).
 // §2.5 econometrics-grade additions:
 //   - Table 3: Forecast-error variance decomposition (FEVD) via vars::fevd at the IRF horizon.

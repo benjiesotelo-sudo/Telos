@@ -26,7 +26,7 @@ export function buildMannWhitneyU(spec: TestSpec, r: MannWhitneyUResult): CardCo
     figures: [{ caption: fig.caption, type: fig.type, file: fig.file, png: r.figurePng }],
     // Method disclosure (R1 gap-fix): wilcox.test()$method names the exact branch that ran (exact vs.
     // asymptotic, with/without continuity correction) — appended at render time, like tailsNote above,
-    // so telos_test_outputs.html's static howToRead text is untouched (same pattern as the α/tails suffix).
+    // so docs/specs/telos_test_outputs.html's static howToRead text is untouched (same pattern as the α/tails suffix).
     howToRead: spec.howToRead + ` Your significance threshold (α) is ${r.alpha}.` + tailsNote(r.tails) + ` Method: ${r.method}.`,
     apa,
     nExcluded: r.nExcluded,

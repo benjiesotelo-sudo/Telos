@@ -5,12 +5,12 @@ import { figuresOf } from './types'
 import { decode, strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(
   outputsHtml.indexOf('ARIMA / SARIMA</span>'),
   outputsHtml.indexOf('Stationarity tests (ADF, KPSS)</span>'),
 )
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 // In inputs HTML, ARIMA / SARIMA is followed by Fixed effects (not Stationarity)
 const inCard = inputsHtml.slice(
   inputsHtml.indexOf('<div class="ttl">ARIMA / SARIMA</div>'),

@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Stationarity tests card).
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Stationarity tests card).
 // APA template = drawn card verbatim (report-only neutralisation deferred to HTML edit + Benjie ratify).
 // §2.5 econometrics-grade addition: Phillips–Perron row added to the stationarity table (3 rows: ADF, KPSS, PP).
 // Single table — captionStyle 'bare' (card shows "Table." not "Table 1.").

@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html (Distribution & normality card) + telos_test_inputs.html (role slot, option strip).
+// Encoded from docs/specs/telos_test_outputs.html (Distribution & normality card) + docs/specs/telos_test_inputs.html (role slot, option strip).
 export const DISTRIBUTION_NORMALITY: TestSpec = {
   id: 'distribution-normality',
   name: 'Distribution & normality',

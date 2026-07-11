@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readSpec, strip } from '../lib/registry/specHtml'
 import { WELCOME_COPY, TERMS_COPY, SIZE_WARN } from './copy'
 
-const html = readSpec('telos_ui_spec.html')
+const html = readSpec('docs/specs/telos_ui_spec.html')
 const block = (from: string, to: string) => html.slice(html.indexOf(from), html.indexOf(to))
 const explainP = (s: string) => strip(s.match(/<div class="explain"[^>]*>.*?<p>(.*?)<\/p>/s)![1])
 

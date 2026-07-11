@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Chi-square independence cards) — display strings
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Chi-square independence cards) — display strings
 // verbatim, AFTER the Task-1 amendments (R2: figure_bar.png bundle + ggplot2::geom_bar R map; D1: hand-V R-map entry).
 export const CHI_SQUARE_INDEPENDENCE: TestSpec = {
   id: 'chi-square-independence',

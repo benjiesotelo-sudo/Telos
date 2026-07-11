@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Repeated-measures ANOVA cards) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Repeated-measures ANOVA cards) — display strings verbatim.
 export const REPEATED_MEASURES_ANOVA: TestSpec = {
   id: 'repeated-measures-anova',
   name: 'Repeated-measures ANOVA',

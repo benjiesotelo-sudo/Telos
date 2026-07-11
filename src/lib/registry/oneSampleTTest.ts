@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html (One-sample t-test card) + telos_test_inputs.html (Outcome slot, option strip).
+// Encoded from docs/specs/telos_test_outputs.html (One-sample t-test card) + docs/specs/telos_test_inputs.html (Outcome slot, option strip).
 export const ONE_SAMPLE_T_TEST: TestSpec = {
   id: 'one-sample-t-test',
   name: 'One-sample t-test',

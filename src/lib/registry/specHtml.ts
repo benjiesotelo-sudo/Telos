@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 
-export const readSpec = (file: 'telos_ui_spec.html' | 'telos_test_inputs.html' | 'telos_test_outputs.html') =>
+export const readSpec = (file: 'docs/specs/telos_ui_spec.html' | 'docs/specs/telos_test_inputs.html' | 'docs/specs/telos_test_outputs.html') =>
   readFileSync(file, 'utf8')
 
 export const decode = (s: string) => s

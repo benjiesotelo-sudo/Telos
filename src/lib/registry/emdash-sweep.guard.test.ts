@@ -82,17 +82,17 @@ describe('em-dash sweep guard: registry prose stays em-dash-free', () => {
     assertClean('verdictFromBoolean(false)', verdictFromBoolean(false, 'met', 'violated'))
   })
 
-  it('telos_ui_spec.html and telos_test_inputs.html carry zero em dashes (literal or entity)', () => {
-    for (const file of ['telos_ui_spec.html', 'telos_test_inputs.html']) {
+  it('docs/specs/telos_ui_spec.html and docs/specs/telos_test_inputs.html carry zero em dashes (literal or entity)', () => {
+    for (const file of ['docs/specs/telos_ui_spec.html', 'docs/specs/telos_test_inputs.html']) {
       const html = readFileSync(file, 'utf8')
       expect(html, `${file} has a literal em dash`).not.toContain(EM_DASH)
       expect(html, `${file} has an &mdash; entity`).not.toContain('&mdash;')
     }
   })
 
-  it('telos_test_outputs.html: every surviving &mdash; is confined to the allowlisted N/A-sentinel cells/quotes', () => {
-    const html = readFileSync('telos_test_outputs.html', 'utf8')
-    expect(html, 'telos_test_outputs.html has a literal em dash').not.toContain(EM_DASH)
+  it('docs/specs/telos_test_outputs.html: every surviving &mdash; is confined to the allowlisted N/A-sentinel cells/quotes', () => {
+    const html = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
+    expect(html, 'docs/specs/telos_test_outputs.html has a literal em dash').not.toContain(EM_DASH)
     // Strip the allowlisted sentinel shapes: ANY ghost-table <td> cell (bare, bolded, or a compound
     // GOF-span label like "Ljung–Box Q = —, p — (lag —)" - every one is a runtime-filled placeholder,
     // never authored prose), plus the two literal quoted meta-references describing the convention.
@@ -100,6 +100,6 @@ describe('em-dash sweep guard: registry prose stays em-dash-free', () => {
       .replace(/<td[^>]*>.*?<\/td>/g, '')
       .replace(/cells display "&mdash;" because they are filled at runtime/g, '')
       .replace(/every other table shows its column structure with "&mdash;" placeholders/g, '')
-    expect(stripped, 'a non-sentinel &mdash; survived the sweep in telos_test_outputs.html').not.toContain('&mdash;')
+    expect(stripped, 'a non-sentinel &mdash; survived the sweep in docs/specs/telos_test_outputs.html').not.toContain('&mdash;')
   })
 })

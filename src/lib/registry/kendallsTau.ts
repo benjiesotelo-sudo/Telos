@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Kendall's tau cards) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Kendall's tau cards) — display strings verbatim.
 export const KENDALLS_TAU: TestSpec = {
   id: 'kendalls-tau',
   name: "Kendall's tau",

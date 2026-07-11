@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (ARIMA / SARIMA card).
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (ARIMA / SARIMA card).
 // APA template = drawn card verbatim (report-only neutralisation deferred to HTML edit + Benjie ratify).
 // §2.5 econometrics-grade addition: figure_residuals.png (residual ACF + Q–Q) added to bundle.
 // &sigma; in decode: added to specHtml.ts decode() for σ² header.

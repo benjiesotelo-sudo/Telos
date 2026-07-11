@@ -10,9 +10,9 @@ const sliceTo = (html: string, start: string, nextMarker: string) => {
   const b = html.indexOf(nextMarker, a + start.length)
   return html.slice(a, b === -1 ? undefined : b)
 }
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = sliceTo(outputsHtml, '<span class="rt-name">Regression discontinuity (RDD)</span>', '<span class="rt-name">')
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = sliceTo(inputsHtml, '<div class="ttl">Regression discontinuity (RDD)</div>', '<div class="ttl">')
 
 describe('rdd registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {

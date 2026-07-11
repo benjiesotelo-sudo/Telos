@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Hausman test card).
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Hausman test card).
 // Report-only APA — the drawn template hardcoded a verdict ("favoured fixed effects"); NEUTRALISED here to
 // report the statistic + p only. modelsummary coef table (design 2026-06-16): the old Hausman-stat table +
 // FE-vs-RE table merge into ONE side-by-side FE|RE coef table (+ a Difference column). The old "Decision" column

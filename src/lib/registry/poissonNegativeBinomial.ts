@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Poisson / negative binomial cards) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Poisson / negative binomial cards) — display strings verbatim.
 export const POISSON_NEGATIVE_BINOMIAL: TestSpec = {
   id: 'poisson-negative-binomial',
   name: 'Poisson / negative binomial',

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { strip } from './specHtml'
 
-const html = readFileSync('telos_test_outputs.html', 'utf8')
+const html = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const cb = html.slice(html.indexOf('CB-SEM</span>'), html.indexOf('PLS-SEM</span>'))
 const pls = html.slice(html.indexOf('PLS-SEM</span>'), html.indexOf('FAMILY 7'))
 

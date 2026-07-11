@@ -4,9 +4,9 @@ import { figuresOf } from './types'
 import { decode, readSpec, strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readSpec('telos_test_outputs.html')
+const outputsHtml = readSpec('docs/specs/telos_test_outputs.html')
 const card = outputsHtml.slice(outputsHtml.indexOf('Kruskal-Wallis</span>'), outputsHtml.indexOf('Friedman</span>'))
-const inputsHtml = readSpec('telos_test_inputs.html')
+const inputsHtml = readSpec('docs/specs/telos_test_inputs.html')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Kruskal-Wallis</div>'), inputsHtml.indexOf('<div class="ttl">Friedman</div>'))
 
 describe('kruskal-wallis registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {

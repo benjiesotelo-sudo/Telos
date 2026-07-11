@@ -5,7 +5,7 @@ import type { TestSpec } from './types'
 export const FREQ_MISSING_NOTE =
   'Valid % uses the valid (non-missing) n as its denominator; Total % uses the grand total including the Missing row.'
 
-// Encoded from telos_test_outputs.html (Frequencies & cross-tabs card) + telos_test_inputs.html (role slot, option strip).
+// Encoded from docs/specs/telos_test_outputs.html (Frequencies & cross-tabs card) + docs/specs/telos_test_inputs.html (role slot, option strip).
 export const FREQUENCIES_CROSSTABS: TestSpec = {
   id: 'frequencies-crosstabs',
   name: 'Frequencies & cross-tabs',

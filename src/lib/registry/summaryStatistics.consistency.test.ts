@@ -4,9 +4,9 @@ import { SUMMARY_STATISTICS as spec } from './summaryStatistics'
 import { strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('Summary statistics</span>'), outputsHtml.indexOf('Frequencies &amp; cross-tabs</span>'))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Summary statistics</div>'), inputsHtml.indexOf('<div class="ttl">Frequencies &amp; cross-tabs</div>'))
 
 describe('summary-statistics registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {

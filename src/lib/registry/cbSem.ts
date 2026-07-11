@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html (CB-SEM card, lines 1126-1157) -- display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html (CB-SEM card, lines 1126-1157) -- display strings verbatim.
 // Convention (SEM reporting, approved 2026-06-18):
 //   - Pipeline modes resolve to fixed output shapes: full (EFA?+CFA+fit+structural) / cfa-only / path.
 //   - CFA loadings carry B/SE/z/p alongside the standardized loading (label stays "Std. loading"); reliability adds omega.

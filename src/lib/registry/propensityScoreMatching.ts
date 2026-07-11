@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Propensity score matching card).
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Propensity score matching card).
 // Report-only APA — the drawn template asserted balance ("all SMDs < .1") that may be FALSE; NEUTRALISED to
 // report the ATT only (balance is reported in Table 1). cobalt unavailable → love plot hand-rolled in ggplot2.
 // v1: method='nearest' only (optimal/full need optmatch, not WebR-shipped); covariates numeric.

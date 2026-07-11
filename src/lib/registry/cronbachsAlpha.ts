@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Cronbach's alpha cards) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Cronbach's alpha cards) — display strings verbatim.
 // Convention: McDonald's ω is the headline reliability coefficient (McNeish 2018); Cronbach's α is retained as a
 // secondary/legacy column. Both reported with a shared 95% CI block (the CI row covers ω; α CI not separately shown
 // on the output card). This is the first SEM-slice card — the template all others in the slice copy.

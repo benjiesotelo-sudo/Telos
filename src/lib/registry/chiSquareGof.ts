@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html + telos_test_inputs.html (Chi-square goodness-of-fit cards) — display strings verbatim.
+// Encoded from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Chi-square goodness-of-fit cards) — display strings verbatim.
 export const CHI_SQUARE_GOF: TestSpec = {
   id: 'chi-square-goodness-of-fit',
   name: 'Chi-square goodness-of-fit',

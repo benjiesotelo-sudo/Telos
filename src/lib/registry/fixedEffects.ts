@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded VERBATIM from telos_test_outputs.html + telos_test_inputs.html (Fixed effects card).
+// Encoded VERBATIM from docs/specs/telos_test_outputs.html + docs/specs/telos_test_inputs.html (Fixed effects card).
 // Report-only APA — drawn "gave" wording already neutral; p mirrored to the spaced report-only form ("p __").
 // §2.8 econometrics-grade addition: poolability F-test (plm::pFtest) is APPENDED to the drawn table note by the
 // builder — the drawn within-variation note (below) renders verbatim; poolability is the additive extra (ratify).

@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html (Independent t-test exemplar) + telos_test_inputs.html (roles, option strip).
+// Encoded from docs/specs/telos_test_outputs.html (Independent t-test exemplar) + docs/specs/telos_test_inputs.html (roles, option strip).
 export const INDEPENDENT_T_TEST: TestSpec = {
   id: 'independent-t-test',
   name: 'Independent t-test',

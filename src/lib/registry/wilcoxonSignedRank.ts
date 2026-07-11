@@ -1,6 +1,6 @@
 import type { TestSpec } from './types'
 
-// Encoded from telos_test_outputs.html (Wilcoxon signed-rank card) + telos_test_inputs.html (roles, option strip).
+// Encoded from docs/specs/telos_test_outputs.html (Wilcoxon signed-rank card) + docs/specs/telos_test_inputs.html (roles, option strip).
 export const WILCOXON_SIGNED_RANK: TestSpec = {
   id: 'wilcoxon-signed-rank',
   name: 'Wilcoxon signed-rank',

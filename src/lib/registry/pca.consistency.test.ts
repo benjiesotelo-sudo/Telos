@@ -4,12 +4,12 @@ import { PCA as spec } from './pca'
 import { strip } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(
   outputsHtml.indexOf('Principal component analysis (PCA)</span>'),
   outputsHtml.indexOf('CB-SEM</span>'),
 )
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(
   inputsHtml.indexOf('<div class="ttl">Principal component analysis (PCA)</div>'),
   inputsHtml.indexOf('<div class="ttl">PLS-SEM</div>'),

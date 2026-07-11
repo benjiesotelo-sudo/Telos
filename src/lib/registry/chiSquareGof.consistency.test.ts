@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs'
 import { CHI_SQUARE_GOF as spec } from './chiSquareGof'
 import { strip } from './specHtml'
 
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('Chi-square goodness-of-fit</span>'), outputsHtml.indexOf("Fisher's exact</span>"))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Chi-square goodness-of-fit</div>'), inputsHtml.indexOf('<div class="ttl">Fisher\'s exact</div>'))
 
 describe('chi-square-goodness-of-fit registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {

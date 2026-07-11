@@ -5,10 +5,10 @@ import { figuresOf } from './types'
 import { strip } from './specHtml'
 
 // Scope each file to THIS test's card (Frequencies → Distribution & normality in both spec files).
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const oStart = outputsHtml.indexOf('Frequencies &amp; cross-tabs</span>')
 const card = outputsHtml.slice(oStart, outputsHtml.indexOf('Distribution &amp; normality</span>', oStart))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const iStart = inputsHtml.indexOf('<div class="ttl">Frequencies &amp; cross-tabs</div>')
 const inCard = inputsHtml.slice(iStart, inputsHtml.indexOf('<div class="ttl">Distribution &amp; normality</div>', iStart))
 

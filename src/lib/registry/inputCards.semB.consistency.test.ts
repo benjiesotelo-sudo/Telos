@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 
-const html = readFileSync('telos_test_inputs.html', 'utf8')
+const html = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const cbCard = html.slice(
   html.indexOf('<div class="ttl">CB-SEM</div>'),
   html.indexOf("<div class=\"ttl\">Cronbach's alpha</div>"),

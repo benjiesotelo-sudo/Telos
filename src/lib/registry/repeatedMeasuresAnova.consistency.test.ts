@@ -4,9 +4,9 @@ import { REPEATED_MEASURES_ANOVA as spec } from './repeatedMeasuresAnova'
 import { strip, decode } from './specHtml'
 
 // Scope each file to THIS card, so another card's content can never satisfy an assertion.
-const outputsHtml = readFileSync('telos_test_outputs.html', 'utf8')
+const outputsHtml = readFileSync('docs/specs/telos_test_outputs.html', 'utf8')
 const card = outputsHtml.slice(outputsHtml.indexOf('Repeated-measures ANOVA</span>'), outputsHtml.indexOf('Mixed ANOVA</span>'))
-const inputsHtml = readFileSync('telos_test_inputs.html', 'utf8')
+const inputsHtml = readFileSync('docs/specs/telos_test_inputs.html', 'utf8')
 const inCard = inputsHtml.slice(inputsHtml.indexOf('<div class="ttl">Repeated-measures ANOVA</div>'), inputsHtml.indexOf('<div class="ttl">Mixed ANOVA</div>'))
 
 describe('repeated-measures-anova registry stays faithful to the spec HTML (verbatim, card-scoped)', () => {
