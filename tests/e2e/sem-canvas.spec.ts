@@ -58,9 +58,18 @@ test('CB-SEM canvas: draw → move → delete → run → estimates + figure', a
   await page.getByRole('button', { name: 'Zoom in' }).click()
   await expect(page.locator('ellipse[data-node-id]')).toHaveCount(2)
 
+  // 6b. select the EFA pipeline stage (T1b, R1 board-clearing slice) so the run below also proves
+  // the Tables E1/E2 preamble renders end-to-end (runner EFA stage -> builder -> card).
+  await page.getByRole('checkbox', { name: 'Exploratory factor analysis (EFA)' }).check()
+
   // 7. RUN → results screen → annotated path diagram with a standardized β label
   await page.getByRole('button', { name: /run/i }).click()
   await expect(page.locator('svg[id^="figure-path-diagram-"]')).toBeVisible({ timeout: 240_000 })
+
+  // 7b. the EFA stage's Tables E1/E2 render (DOM ids = table-<registry table id>; the registry
+  // declares no domId override for these, matching its own bundleFiles pins).
+  await expect(page.locator('#table-efa-suitability')).toBeVisible()
+  await expect(page.locator('#table-efa-loadings')).toBeVisible()
   // The fitted structural path is annotated with its standardized β at the diagram midpoint.
   // Target the β-label text node specifically (the svg holds ~16 text nodes — item labels,
   // loadings, construct/R² — so a bare `svg text` locator would be non-strict).

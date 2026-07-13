@@ -456,3 +456,62 @@ describe("latentEmitters['ave'] / ['composite-reliability'] - construct names wi
     expect(r).not.toContain('Visual Perception =~')
   })
 })
+
+// T1 (R1, board-clearing slice): the EFA pipeline stage in the exported analysis.R - app == export
+// parity. When setup.options['efa'] is on (latent mode), the script gains a Tables E1/E2 preamble
+// BEFORE the sem() fit, built from the SAME shared fragment the app runner executes (EFA_STAGE_R,
+// semEfaStage.ts); off (the default) leaves the script untouched (the byte-pin snapshot above).
+describe("latentEmitters['cb-sem'] - EFA stage (Tables E1/E2, export == app)", () => {
+  const efaSetup: TestSetup = { ...SETUP, options: { ...SETUP.options, efa: true } }
+  const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, efaSetup, { columns: [], rows: [] } as never)
+
+  it('emits the E1/E2 preamble before the fit: complete-cases data, KMO + Bartlett, psych::fa with the shared fixed choices', () => {
+    expect(r).toContain('--- Table E1: EFA suitability ---')
+    expect(r).toContain('--- Table E2: EFA rotated factor loadings ---')
+    expect(r).toContain('psych::KMO(R_efa)$MSA')
+    expect(r).toContain('psych::cortest.bartlett(R_efa, n = nrow(d_efa))')
+    expect(r).toContain('psych::fa(d_efa, nfactors = efa_k, fm = "pa", rotate = "oblimin")')
+    expect(r).toContain('efa_k <- 3L') // factor count fixed to the number of constructs
+    expect(r).toContain('complete.cases') // listwise sample, same rule as the app runner
+    // items = ALL construct items, in construct order
+    expect(r).toContain('efa_items <- c("x1", "x2", "x3", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8")')
+    // the preamble precedes the model/fit
+    expect(r.indexOf('Table E1')).toBeLessThan(r.indexOf('model_str <-'))
+  })
+
+  it('efa off (default) emits NO EFA text at all (regression guard for the byte-pin)', () => {
+    const off = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, SETUP, { columns: [], rows: [] } as never)
+    expect(off).not.toContain('Table E1')
+    expect(off).not.toContain('d_efa')
+    expect(off).not.toContain('psych::fa(')
+  })
+
+  it('path mode ignores the efa option (no measurement items to factor)', () => {
+    const pathSetup: TestSetup = {
+      roles: {}, options: { estimator: 'ML', nboot: 200, efa: true }, props: {}, blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 0, name: 'x', items: ['x'] },
+        { id: 1, name: 'y', items: ['y'] },
+      ],
+      paths: [{ from: 0, to: 1 }],
+    }
+    const p = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, pathSetup, { columns: [], rows: [] } as never)
+    expect(p).not.toContain('Table E1')
+    expect(p).not.toContain('d_efa')
+  })
+
+  it('spaced item names reach the EFA block sanitized (same itemNameOf as the fit)', () => {
+    const spaced: TestSetup = {
+      ...efaSetup,
+      constructs: [
+        { id: 1, name: 'CS', items: ['customer satisfaction q1', 'x2', 'x3'] },
+        { id: 2, name: 'LY', items: ['x4', 'x5', 'x6'] },
+      ],
+      paths: [{ from: 1, to: 2 }],
+    }
+    const s = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, spaced, { columns: [], rows: [] } as never)
+    expect(s).toContain('efa_items <- c("customer_satisfaction_q1", "x2", "x3", "x4", "x5", "x6")')
+    expect(s).not.toContain('"customer satisfaction q1"')
+  })
+})

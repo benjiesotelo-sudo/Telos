@@ -739,6 +739,136 @@ describe('runCbSem - semFitArgs wiring (mocked engine, no WebR)', () => {
   })
 })
 
+// T1 (R1, board-clearing slice): the EFA pipeline stage actually RUNS when the card's efa toggle is
+// on. Mocked-engine wiring tests (same fakeEngine pattern as the semFitArgs describe above): the stage
+// is its own SEPARATE engine.runJson call BEFORE the main fit (so the byte-pinned main R block never
+// changes), gated on setup.options['efa'] and latent mode, and its payload maps onto
+// efaSuitability/efaLoadings with the deterministic orderFactors() reordering (descending SS-loadings,
+// the same rule efa.ts applies).
+describe('runCbSem - EFA stage wiring (mocked engine, no WebR)', () => {
+  const items = { a: ['a1', 'a2'], b: ['b1', 'b2'] }
+  const allCols = [...items.a, ...items.b]
+  const data: Dataset = {
+    columns: allCols,
+    rows: Array.from({ length: 10 }, (_, i) => Object.fromEntries(allCols.map((c, j) => [c, i + j + 1]))),
+  }
+  const efaSetup: TestSetup = {
+    roles: {}, options: { estimator: 'ML', nboot: 200, efa: true }, props: {}, blocked: null,
+    modelKind: 'latent',
+    constructs: [
+      { id: 1, name: 'A', items: items.a },
+      { id: 2, name: 'B', items: items.b },
+    ],
+    paths: [{ from: 1, to: 2 }],
+  }
+  const cfaResult = {
+    perConstruct: [
+      { name: 'A', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+      { name: 'B', ave: 0.6, cr: 0.8, omega: 0.8, alpha: 0.8 },
+    ],
+    fornellLarcker: [[1, 0], [0, 1]], htmt: [[0, 0], [0, 0]], labels: ['A', 'B'], corLvP: [[0, 0], [0, 0]],
+  }
+  const mainRaw = {
+    fit: {}, df: 1, cfaLoadings: [], structural: [], rsquareIds: { 2: 0.4 }, indirect: [],
+    estLoadings: {}, estPaths: [], moderationRows: [], slopeRows: [],
+  }
+  // Column-major 4x2 loadings matrix whose FIRST column has the SMALLER SS-loadings - orderFactors
+  // must swap the two factors in the mapped result (deterministic display ordering, efa.ts rule).
+  const efaRaw = {
+    kmo: 0.71, bartlettChisq: 88.2, bartlettDf: 6, bartlettP: 0.0004,
+    loadMat: [0.1, 0.2, 0.8, 0.7, /* factor 2 -> */ 0.9, 0.85, 0.15, 0.05],
+    h2Vec: [0.82, 0.76, 0.66, 0.49],
+    ssPerFactor: [1.18, 1.55],
+  }
+
+  function fakeEngineWithEfa() {
+    const runJson = vi.fn()
+      .mockResolvedValueOnce(efaRaw)
+      .mockResolvedValueOnce(mainRaw)
+      .mockResolvedValueOnce(cfaResult)
+    const engine = { runJson } as unknown as Engine
+    return { engine, runJson }
+  }
+
+  it('efa toggle ON: an EFA runJson call precedes the main fit, and the payload maps onto efaSuitability/efaLoadings with orderFactors reordering', async () => {
+    const { engine, runJson } = fakeEngineWithEfa()
+    const result = await runCbSem(engine, data, efaSetup)
+
+    expect(runJson).toHaveBeenCalledTimes(3) // EFA stage + main fit + CFA reliability
+    const [efaSource, efaEnv] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(efaSource).toContain('psych::KMO')
+    expect(efaSource).toContain('psych::cortest.bartlett')
+    expect(efaSource).toContain('psych::fa(d_efa, nfactors = efa_k, fm = "pa", rotate = "oblimin")')
+    expect(efaEnv.efa_items).toEqual(['a1', 'a2', 'b1', 'b2'])
+    expect(efaEnv.efa_k).toBe(2) // number of constructs
+    expect(efaEnv.efa_n).toBe(10)
+    expect(efaEnv.efa_cols_flat).toHaveLength(40)
+    // The main fit is call [1] and is UNCHANGED by the stage (byte-pinned block untouched).
+    const [mainSource] = runJson.mock.calls[1] as [string, Record<string, unknown>]
+    expect(mainSource).toContain('lavaan::sem(model_str')
+    expect(mainSource).not.toContain('psych::fa')
+
+    expect(result.efaSuitability).toEqual({ kmo: 0.71, bartlettChisq: 88.2, bartlettDf: 6, bartlettP: 0.0004 })
+    // ssPerFactor [1.18, 1.55] -> descending order [factor2, factor1]: loadings per item are swapped.
+    expect(result.efaLoadings).toEqual([
+      { item: 'a1', loadings: [0.9, 0.1], communality: 0.82 },
+      { item: 'a2', loadings: [0.85, 0.2], communality: 0.76 },
+      { item: 'b1', loadings: [0.15, 0.8], communality: 0.66 },
+      { item: 'b2', loadings: [0.05, 0.7], communality: 0.49 },
+    ])
+  })
+
+  it('EFA stage always runs on the LISTWISE rows (cor() needs complete cases), even under fiml', async () => {
+    const holeyData: Dataset = {
+      columns: data.columns,
+      rows: data.rows.map((r, i) => (i === 3 ? { ...r, a1: null } : r)),
+    }
+    const fimlSetup: TestSetup = { ...efaSetup, options: { ...efaSetup.options, estimator: 'MLR', missing: 'fiml' } }
+    const { engine, runJson } = fakeEngineWithEfa()
+    await runCbSem(engine, holeyData, fimlSetup)
+    const [, efaEnv] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    const [, mainEnv] = runJson.mock.calls[1] as [string, Record<string, unknown>]
+    expect(efaEnv.efa_n).toBe(9) // listwise for the EFA stage
+    expect((efaEnv.efa_cols_flat as number[]).some((v) => Number.isNaN(v))).toBe(false)
+    expect(mainEnv.n).toBe(10) // fiml main fit still gets the full rows
+  })
+
+  it('efa toggle OFF (absent): no EFA call, fields absent - the existing two-call shape is untouched', async () => {
+    const offSetup: TestSetup = { ...efaSetup, options: { estimator: 'ML', nboot: 200 } }
+    const runJson = vi.fn().mockResolvedValueOnce(mainRaw).mockResolvedValueOnce(cfaResult)
+    const engine = { runJson } as unknown as Engine
+    const result = await runCbSem(engine, data, offSetup)
+    expect(runJson).toHaveBeenCalledTimes(2)
+    const [mainSource] = runJson.mock.calls[0] as [string, Record<string, unknown>]
+    expect(mainSource).toContain('lavaan::sem(model_str')
+    expect(result.efaSuitability).toBeUndefined()
+    expect(result.efaLoadings).toBeUndefined()
+  })
+
+  it('path mode ignores the efa toggle entirely (no EFA call, no fields)', async () => {
+    const pathData: Dataset = {
+      columns: ['x', 'y'],
+      rows: Array.from({ length: 10 }, (_, i) => ({ x: i + 1, y: 2 * i + 1 })),
+    }
+    const pathSetup: TestSetup = {
+      roles: {}, options: { estimator: 'ML', nboot: 200, efa: true }, props: {}, blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 0, name: 'x', items: ['x'] },
+        { id: 1, name: 'y', items: ['y'] },
+      ],
+      paths: [{ from: 0, to: 1 }],
+    }
+    const pathRaw = { ...mainRaw, rsquareIds: { 1: 0.4 } }
+    const runJson = vi.fn().mockResolvedValueOnce(pathRaw)
+    const engine = { runJson } as unknown as Engine
+    const result = await runCbSem(engine, pathData, pathSetup)
+    expect(runJson).toHaveBeenCalledTimes(1) // path mode: main fit only (no CFA reliability either)
+    expect(result.efaSuitability).toBeUndefined()
+    expect(result.efaLoadings).toBeUndefined()
+  })
+})
+
 // Task 5 (Amendment B, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md + plan's Amendment B
 // section): in path mode, `ordered=` must declare only PLACED ordinal columns that are ENDOGENOUS in the
 // drawn paths (some path's `to` is that column's construct id) -- lavaan's threshold semantics only apply

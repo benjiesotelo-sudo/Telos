@@ -9,6 +9,7 @@ import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE, moderatorMainEf
 import { BC_CI_R } from '../../../stats/plsBcCi'
 import { SIMPLE_SLOPES_PLOT_R } from '../../../stats/simpleSlopesPlot'
 import { semFitArgs, semFitMeasureNames, type SemFitArgs } from '../../../stats/semFitArgs'
+import { EFA_STAGE_R } from '../../../stats/semEfaStage'
 
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim - same calls, same design rationale.
 // Convention (McNeish 2018): ω (McDonald's) is the headline coefficient; α (Cronbach's) is retained as secondary.
@@ -539,10 +540,36 @@ export const latentEmitters: Record<string, Emitter> = {
     const semFrag = fitArgs.fragment ? `, ${fitArgs.fragment}` : ''
     const choiceComments = semChoiceCommentLines(fitArgs, exogenousOrdinals.map(indicatorNameOf))
 
-    const out: string[] = [
+    const out: string[] = []
+
+    // EFA stage (Tables E1-E2, R1 board-clearing slice): diagnostic preamble BEFORE the confirmatory
+    // fit, present exactly when the card's efa toggle was on (latent mode only). The computation is
+    // the SAME shared fragment the app runner executes (semEfaStage.ts EFA_STAGE_R) - export == app by
+    // construction; complete.cases mirrors the runner's listwise EFA sample regardless of the fit's
+    // own missing= setting. psych is already in this emitter's registered package list.
+    if (!isPath && Boolean(setup.options['efa'])) {
+      const efaItemsR = usedCols.map((it) => `"${itemNameOf(it)}"`).join(', ')
+      out.push(
+        '# ---- EFA stage (Tables E1-E2): diagnostic preamble - exploratory, run on the same sample ----',
+        '# Fixed choices (the card has no EFA selectors): principal-axis extraction + oblimin rotation;',
+        '# the factor count is fixed to the number of constructs (hypothesized-structure check).',
+        `efa_items <- c(${efaItemsR})`,
+        'd_efa <- d[stats::complete.cases(d[, efa_items]), efa_items, drop = FALSE]',
+        `efa_k <- ${constructs.length}L`,
+        EFA_STAGE_R,
+        'cat("\\n--- Table E1: EFA suitability ---\\n")',
+        'cat("KMO:", round(efa_kmo, 3), "\\n")',
+        'cat("Bartlett chisq:", round(efa_bart$chisq, 1), "df:", efa_bart$df, "p:", efa_bart$p.value, "\\n")',
+        'cat("\\n--- Table E2: EFA rotated factor loadings ---\\n")',
+        'print(round(cbind(efa_load, communality = efa_h2), 3))',
+        '',
+      )
+    }
+
+    out.push(
       '# ---- CB-SEM via lavaan::sem (measurement + structural + indirect + moderation) ----',
       `model_str <- "${modelR}"`,
-    ]
+    )
 
     // Latent moderation (design §A7): indProd double-mean-centered product-indicator columns, built
     // BEFORE the fit. model_str above already carries the interaction construct + := simple-slope defs

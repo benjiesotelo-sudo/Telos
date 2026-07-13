@@ -11,6 +11,9 @@ import {
   MODERATION_DISCLOSURE, type ModerationDef,
 } from './moderationModel'
 import { renderSimpleSlopesFigure } from './simpleSlopesPlot'
+import { EFA_STAGE_STATS_R, type EfaStageSuitability, type RawEfaStage } from './semEfaStage'
+import { orderFactors } from './factorOrder'
+import type { EfaLoadingRow } from './efa'
 
 /** One interaction-term row per moderation (design §A7). `disclosure` is populated ONLY when
  *  `matched` is false (unequal indicator counts -> indProd(match=FALSE), see MODERATION_DISCLOSURE). */
@@ -39,8 +42,13 @@ export interface SlopeRow {
 export interface CbSemResult {
   mode: 'full' | 'cfa-only' | 'path'
   saturated: boolean
-  efaSuitability?: Record<string, number>
-  efaLoadings?: unknown
+  /** E1/E2 EFA preamble stage (R1, board-clearing slice): populated ONLY when the run's efa toggle
+   *  was on (latent mode) - the builder renders Tables E1/E2 exactly when these are present, and
+   *  omits them otherwise (the card note's promised behavior). Loading rows reuse the standalone EFA
+   *  card's row shape (item + per-factor loadings + communality, factors in deterministic descending
+   *  SS-loadings order via orderFactors, same as efa.ts). */
+  efaSuitability?: EfaStageSuitability
+  efaLoadings?: EfaLoadingRow[]
   cfaLoadings: Array<Record<string, unknown>>
   reliability: Array<Record<string, unknown>>
   fit?: Record<string, number>
@@ -149,8 +157,9 @@ export function computeItemStats(
   )
 }
 
-// Resolve the structural mode (design §3.4). EFA toggling lives in the builder/emitter; the stats core
-// always fits CFA + structure for 'full', CFA-only when structure is off, observed-only for 'path'.
+// Resolve the structural mode (design §3.4). The optional EFA preamble stage is orthogonal to this
+// mode (its own gated engine call below, R1 board-clearing slice); the stats core always fits CFA +
+// structure for 'full', CFA-only when structure is off, observed-only for 'path'.
 type Mode = 'full' | 'cfa-only' | 'path'
 function resolveMode(setup: TestSetup): Mode {
   if (setup.modelKind === 'path') return 'path'
@@ -639,6 +648,38 @@ export async function runCbSem(
 
   const nboot = Number(setup.options['nboot'] ?? 5000)
 
+  // EFA preamble stage (R1, board-clearing slice): its own SEPARATE engine call, gated on the card's
+  // efa toggle and latent mode, so the byte-pinned main R block below never changes shape. Always runs
+  // on the LISTWISE rows regardless of the fit's own missing setting (cor()/psych::fa need complete
+  // cases - the same sample rule the standalone EFA card applies). Factor count = number of constructs;
+  // factors reordered TS-side by descending SS-loadings (orderFactors, the deterministic display rule
+  // shared with efa.ts), items mapped back to their raw display names.
+  let efaSuitability: EfaStageSuitability | undefined
+  let efaLoadings: EfaLoadingRow[] | undefined
+  if (!isPath && Boolean(setup.options['efa'])) {
+    onProgress?.({ message: 'Running the EFA stage (KMO, Bartlett, rotated loadings)…' })
+    const efaN = listwiseRows.length
+    const efa_cols_flat = usedCols.flatMap((col) => listwiseRows.map((r) => r[col] as number))
+    const rawEfa = await engine.runJson<RawEfaStage>(EFA_STAGE_STATS_R, {
+      efa_cols_flat, efa_items: rItemNames, efa_n: efaN, efa_k: constructs.length,
+    })
+    // .telos_json flattens an R length-1 vector to a bare scalar (engine.ts) - normalize.
+    const asArray = (v: number[] | number): number[] => (Array.isArray(v) ? v : [v])
+    const loadMat = asArray(rawEfa.loadMat)
+    const h2Vec = asArray(rawEfa.h2Vec)
+    const order = orderFactors(asArray(rawEfa.ssPerFactor))
+    const p = usedCols.length
+    efaSuitability = {
+      kmo: rawEfa.kmo, bartlettChisq: rawEfa.bartlettChisq,
+      bartlettDf: rawEfa.bartlettDf, bartlettP: rawEfa.bartlettP,
+    }
+    efaLoadings = usedCols.map((item, ri) => ({
+      item, // raw display name - usedCols order is exactly the R block's efa_items (rItemNames) order
+      loadings: order.map((fi) => loadMat[fi * p + ri]),
+      communality: h2Vec[ri],
+    }))
+  }
+
   // Bootstrap runs under estimator ML only (H1 wiring ruling 3); MLR/WLSMV report their own robust SEs
   // and delta-method CIs for indirect effects/moderation, flowing through the EXISTING bootstrapped:false
   // machinery below. moderationDefs.length is folded into wantsBootstrap above (moderation ALWAYS wants
@@ -804,6 +845,8 @@ export async function runCbSem(
   return {
     mode,
     saturated: isSaturated(raw.df),
+    efaSuitability,
+    efaLoadings,
     cfaLoadings,
     reliability,
     fit: raw.fit,

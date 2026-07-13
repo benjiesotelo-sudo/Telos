@@ -227,10 +227,12 @@ const REPS: Rep[] = [
 
   // cb-sem: Bollen PoliticalDemocracy (ind60→dem60→dem65 + direct). df=41 (NOT saturated → fit table prints).
   // native-R verified 2026-06-20: CFI≈.953, indirect a*b≈1.274; nboot reduced to 200 for the time budget.
+  // T1 (R1, board-clearing slice): efa:true so the Tables E1/E2 preamble (shared EFA_STAGE_R fragment)
+  // stays permanently native-R-gated too - needles match the emitter's own cat headers.
   { id: 'cb-sem', fixture: 'polidemocracy.csv',
     setup: {
       roles: {},
-      options: { estimator: 'ML', nboot: 200, ciType: 'percentile' },
+      options: { estimator: 'ML', nboot: 200, ciType: 'percentile', efa: true },
       props: {},
       blocked: null,
       modelKind: 'latent',
@@ -241,7 +243,7 @@ const REPS: Rep[] = [
       ],
       paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }, { from: 1, to: 3 }],
     },
-    expect: ['Table 5: Fit indices', 'Table 7: Indirect effects'],
+    expect: ['Table E1: EFA suitability', 'Table E2: EFA rotated factor loadings', 'Table 5: Fit indices', 'Table 7: Indirect effects'],
   },
 
   // path-analysis: observed-only CB-SEM, canonical saturated single-mediator X → M → Y (df = 0).

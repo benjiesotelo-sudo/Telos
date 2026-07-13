@@ -930,3 +930,94 @@ describe('buildCbSem - MLR result with indirect rows: honest delta-method CIs, n
     expect(ci).not.toContain('Andrews & Buchinsky')
   })
 })
+
+// T1 (R1, board-clearing slice): the EFA pipeline stage's Tables E1/E2 finally render. The runner
+// populates efaSuitability/efaLoadings ONLY when the card's EFA toggle was on (latent mode), so the
+// builder's gate is those fields' presence - present -> both tables (E1 suitability row shaped like
+// buildEfa.ts's T1; E2 rotated loadings as a MATRIX table, the FL/HTMT idiom, with the |.32|
+// suppression rule); absent -> neither, exactly as the card note promises.
+describe('buildCbSem - EFA stage Tables E1/E2 (R1: render when the stage ran, omit when deselected)', () => {
+  const withEfa: CbSemResult = {
+    ...base,
+    efaSuitability: { kmo: 0.83, bartlettChisq: 123.44, bartlettDf: 15, bartlettP: 0.00001 },
+    efaLoadings: [
+      { item: 'x1', loadings: [0.82, 0.11], communality: 0.68 },
+      { item: 'x2', loadings: [0.75, -0.35], communality: 0.71 },
+      { item: 'y1', loadings: [0.05, 0.88], communality: 0.79 },
+    ],
+  }
+
+  it('renders E1 + E2 FIRST (preamble position) when the runner ran the EFA stage', () => {
+    const c = buildCbSem(SPEC, withEfa)
+    expect(c.tables.map((t) => t.spec.id)).toEqual([
+      'efa-suitability', 'efa-loadings',
+      'cfa-loadings', 'fornell-larcker', 'htmt', 'fit-indices', 'structural-paths',
+    ])
+  })
+
+  it('E1 (efa-suitability): one row shaped exactly like buildEfa.ts - kmo/bartlettChisq/df/p', () => {
+    const c = buildCbSem(SPEC, withEfa)
+    const e1 = c.tables.find((t) => t.spec.id === 'efa-suitability')!
+    expect(e1.rows).toEqual([{ kmo: '.83', bartlettChisq: '123.4', df: '15', p: '<.001' }])
+  })
+
+  it('E2 (efa-loadings): matrix table (FL/HTMT idiom) - items as rows, Factor 1..k + Communality as columns, |.32| suppression', () => {
+    const c = buildCbSem(SPEC, withEfa)
+    const e2 = c.tables.find((t) => t.spec.id === 'efa-loadings')!
+    expect(e2.matrix).toBeDefined()
+    expect(e2.matrix!.id).toBe('efa-loadings')
+    expect(e2.matrix!.rowLabels).toEqual(['x1', 'x2', 'y1'])
+    expect(e2.matrix!.colLabels).toEqual(['Factor 1', 'Factor 2', 'Communality'])
+    expect(e2.matrix!.cells).toEqual([
+      ['.82', null, '.68'], // .11 suppressed (|loading| < .32, Tabachnick & Fidell - same rule as buildEfa.ts)
+      ['.75', '−.35', '.71'], // f01's typographic minus (APA convention)
+      [null, '.88', '.79'],
+    ])
+    // No triangle/diagonal styling - this is a rectangular loadings grid, not a correlation matrix.
+    expect(e2.matrix!.lowerOnly).toBeUndefined()
+  })
+
+  it('omits BOTH tables when the EFA stage was deselected (fields absent - the base fixture)', () => {
+    const c = buildCbSem(SPEC, base)
+    expect(c.tables.some((t) => t.spec.id === 'efa-suitability')).toBe(false)
+    expect(c.tables.some((t) => t.spec.id === 'efa-loadings')).toBe(false)
+  })
+
+  it('path mode never renders the EFA tables, even if fields were somehow present (defensive)', () => {
+    const path: CbSemResult = { ...withEfa, mode: 'path', cfaLoadings: [], reliability: [] }
+    const c = buildCbSem(PATH_ANALYSIS, path)
+    expect(c.tables.some((t) => t.spec.id === 'efa-suitability')).toBe(false)
+    expect(c.tables.some((t) => t.spec.id === 'efa-loadings')).toBe(false)
+  })
+
+  it('uses the REAL registry spec objects (E1 row keys cover every declared column)', () => {
+    const c = buildCbSem(CB_SEM, withEfa)
+    const e1 = c.tables.find((t) => t.spec.id === 'efa-suitability')!
+    expect(e1.spec).toBe(CB_SEM.tables.find((t) => t.id === 'efa-suitability'))
+    for (const col of e1.spec.columns) {
+      expect(e1.rows[0][col.key as keyof (typeof e1.rows)[0]], `E1 column '${col.key}' blank`).toBeTruthy()
+    }
+    const e2 = c.tables.find((t) => t.spec.id === 'efa-loadings')!
+    expect(e2.spec).toBe(CB_SEM.tables.find((t) => t.id === 'efa-loadings'))
+    expect(e2.matrix!.caption).toBe('EFA rotated factor loadings')
+  })
+
+  it('adds the "EFA stage" labelled note (after E2) when the stage ran, not otherwise', () => {
+    const c = buildCbSem(SPEC, withEfa)
+    const note = c.notes!.find((n) => n.label === 'EFA stage')!
+    expect(note.afterTableId).toBe('efa-loadings')
+    expect(note.text).toContain('principal-axis')
+    expect(note.text).toContain('oblimin')
+    expect(note.text).toContain('.32')
+    expect(buildCbSem(SPEC, base).notes!.some((n) => n.label === 'EFA stage')).toBe(false)
+  })
+
+  it('values carries kmo/bartlettChisq/df for the E1 term explainers when the stage ran, not otherwise', () => {
+    const c = buildCbSem(SPEC, withEfa)
+    expect(c.values).toMatchObject({ kmo: '.83', bartlettChisq: '123.4', df: '15' })
+    const noEfa = buildCbSem(SPEC, base)
+    expect(noEfa.values).not.toHaveProperty('kmo')
+    expect(noEfa.values).not.toHaveProperty('bartlettChisq')
+    expect(noEfa.values).not.toHaveProperty('df')
+  })
+})

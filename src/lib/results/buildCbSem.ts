@@ -23,6 +23,9 @@ const ESTIMATOR_NAMES = {
   WLSMV: 'diagonally weighted least squares with mean- and variance-adjusted test statistics (WLSMV)',
 } as const
 
+// |loading| < this -> blank cell (Tabachnick & Fidell) - the same suppression rule as buildEfa.ts.
+const EFA_SUPPRESS = 0.32
+
 export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   const isPath = r.mode === 'path'
   const tables: BuiltTable[] = []
@@ -30,6 +33,38 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   const estimator = r.estimator ?? 'ML'
   const estimatorName = ESTIMATOR_NAMES[estimator]
   const missingSetting = String(r.missing ?? 'listwise')
+
+  // T1 (R1, board-clearing slice): E1/E2 EFA preamble - rendered exactly when the runner ran the
+  // EFA stage (the card's efa toggle -> runCbSem populates efaSuitability/efaLoadings; both absent
+  // otherwise, so deselecting the stage omits both tables, as the card note promises). E1 reuses
+  // buildEfa.ts's suitability row shaping; E2 renders the rotated loadings as a MATRIX table (the
+  // FL/HTMT idiom - preamble captionStyle comes from the registry spec) with buildEfa.ts's |.32|
+  // suppression and Communality as the trailing column, matching the registry's declared labels.
+  const efa = !isPath && r.efaSuitability && r.efaLoadings?.length
+    ? { s: r.efaSuitability, rows: r.efaLoadings }
+    : null
+  if (efa) {
+    tables.push({
+      spec: specTable(spec, 'efa-suitability'),
+      rows: [{
+        kmo: f01(efa.s.kmo),
+        bartlettChisq: efa.s.bartlettChisq.toFixed(1),
+        df: String(efa.s.bartlettDf),
+        p: fp(efa.s.bartlettP),
+      }],
+    })
+    const k = efa.rows[0].loadings.length
+    const efaMatrix: MatrixTable = {
+      kind: 'matrix', id: 'efa-loadings', caption: specTable(spec, 'efa-loadings').title,
+      rowLabels: efa.rows.map((row) => row.item),
+      colLabels: [...Array.from({ length: k }, (_, i) => `Factor ${i + 1}`), 'Communality'],
+      cells: efa.rows.map((row) => [
+        ...row.loadings.map((load) => (Math.abs(load) < EFA_SUPPRESS ? null : f01(load))),
+        f01(row.communality),
+      ]),
+    }
+    tables.push({ spec: specTable(spec, 'efa-loadings'), rows: [], matrix: efaMatrix })
+  }
 
   // T1 (merged, U3-T1): Measurement model (loadings, reliability & item descriptives) - latent only.
   // Construct rows (__group marker, A6 renderer device) carry ω/α/CR/AVE once; item rows (indented by
@@ -391,6 +426,16 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       if (ciNoteText) notes.push({ label: 'CIs', text: ciNoteText, afterTableId: 'structural-paths' })
       notes.push({ label: 'Moderation', text: disclosureText ? `${modStatic} ${disclosureText}` : modStatic })
     }
+    // R1: E1/E2 provenance, rendered inline right after Table E2 whenever the stage ran (its fixed
+    // choices have no on-card selectors, so the note is the disclosure) - appended in the saturated
+    // branch too, since saturation suppresses fit indices, not the EFA preamble.
+    if (efa) {
+      notes.push({
+        label: 'EFA stage',
+        text: 'Tables E1-E2: principal-axis factoring with oblimin rotation on the listwise-complete rows, the factor count fixed to the number of constructs; loadings |< .32| are suppressed (Tabachnick & Fidell).',
+        afterTableId: 'efa-loadings',
+      })
+    }
   } else {
     // PATH_ANALYSIS labelled notes (U8-T4 sweep, reusing CB-SEM's U3-T5 mechanism - content-preserving
     // split of pathAnalysis.ts's CURRENT tableNote.text, read in full before splitting; nothing dropped,
@@ -443,11 +488,11 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   // call (one spec.id at a time), so the two cards' distinctly-named keys below never collide; fit values
   // stay empty (not partially-undefined) when fit is suppressed for saturation, mirroring the fit-indices
   // table's own `r.fit && !saturated` gate - a saturated model's fit indices are "not informative", so no
-  // explainer line should quote them either. EFA-preamble keys (kmo/bartlettChisq/df/p/f1/f2/communality)
-  // have registry entries for coverage but stay unpopulated on purpose - the E1/E2 EFA-preamble stage
-  // (design §U3-T4) isn't wired into this runner yet (r.efaSuitability/efaLoadings are still-undefined
-  // placeholders on CbSemResult), so those lines correctly self-skip via TermExplainers' guard, exactly
-  // as the E1/E2 TABLES themselves are omitted today.
+  // explainer line should quote them either. EFA-preamble keys (kmo/bartlettChisq/df) populate exactly
+  // when the E1/E2 tables render (R1 wired the stage - efaValues below); when the stage was deselected
+  // those lines correctly self-skip via TermExplainers' guard, exactly as the E1/E2 tables are omitted.
+  // 'df' here is Bartlett's df (the E1 column) - the fit chi-square's own df deliberately lives under
+  // fitDf, so the two never collide.
   // U9-T3 fix (2026-07-06 audit): path-analysis's registry spec now HAS a 'fit-indices' table (df > 0
   // over-identified models report fit, per the card's own note/howToRead) sharing the SAME columns as
   // CB-SEM's, so fit values are shared across both modes -- no longer gated on !isPath.
@@ -513,7 +558,10 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         nPaths: pathStructural.length, nIndirect: pathIndirect.length,
       }
     : {}
-  const values: CardContent['values'] = { ...fitValues, ...measurementValues, ...structuralValues, ...pathValues }
+  const efaValues: CardContent['values'] = efa
+    ? { kmo: f01(efa.s.kmo), bartlettChisq: efa.s.bartlettChisq.toFixed(1), df: String(efa.s.bartlettDf) }
+    : {}
+  const values: CardContent['values'] = { ...efaValues, ...fitValues, ...measurementValues, ...structuralValues, ...pathValues }
 
   // APA (U9-T3 fix, 2026-07-06 audit): CB-SEM's template used to be returned VERBATIM, every "__" left
   // unfilled. Worked-example convention (mirrors multiple-linear-regression's "predictor X" -> the real
