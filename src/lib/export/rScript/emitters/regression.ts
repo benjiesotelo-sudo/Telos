@@ -1,5 +1,6 @@
 import type { Emitter } from './index'
 import { modelsummaryCall } from '../helpers'
+import { stationarityTestChoice } from '../../../stats/stationarityTests'
 
 // ── shared option helpers (mirror builders.ts threading exactly) ───────────────
 const q = (s: string) => `"${s}"`
@@ -184,15 +185,18 @@ export const regressionEmitters: Record<string, Emitter> = {
     ].join('\n')
   },
 
-  // tseries ADF + KPSS + PP on ts(); series (level + first-difference) + ACF/PACF figures. Mirrors stationarityTests.ts.
+  // tseries ADF/KPSS/PP on ts(); series (level + first-difference) + ACF/PACF figures. Mirrors stationarityTests.ts.
+  // R3: the registry 'test' select subsets the printed calls exactly as the app subsets its rows -
+  // PP accompanies 'both' only; the figures are choice-independent structure plots and always emit.
   'stationarity-tests': (_spec, setup) => {
     const time = setup.roles['time'][0], series = setup.roles['series'][0]
+    const choice = stationarityTestChoice(setup.options['test'])
     return [
       `dd_ord <- d[order(d$${time}), ]`,
       `x_ts <- ts(dd_ord$${series}, frequency = 1)`,
-      `print(tseries::adf.test(x_ts))`,
-      `print(tseries::kpss.test(x_ts))`,
-      `print(tseries::pp.test(x_ts))`,
+      ...(choice !== 'kpss' ? [`print(tseries::adf.test(x_ts))`] : []),
+      ...(choice !== 'adf' ? [`print(tseries::kpss.test(x_ts))`] : []),
+      ...(choice === 'both' ? [`print(tseries::pp.test(x_ts))`] : []),
       `# Figure 1 - level + first-difference series`,
       `nn <- length(x_ts); idx <- seq_len(nn); dx <- c(NA_real_, diff(as.numeric(x_ts)))`,
       `sdf <- rbind(data.frame(panel = "Level", t = idx, y = as.numeric(x_ts)),`,

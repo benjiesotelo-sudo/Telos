@@ -170,6 +170,29 @@ describe('regression / econometrics emitters', () => {
       expect(r).toContain('acf(')
       expect(r).toContain('pacf(')
     })
+    // R3 (board-clearing T3): the registry 'test' select genuinely subsets the printed calls.
+    it("'both · ADF + KPSS' keeps all three calls incl. Phillips-Perron (today's full behavior)", () => {
+      const both = emit('stationarity-tests', setup({ time: ['year'], series: ['wage'] }, { test: 'both · ADF + KPSS', alpha: 0.05 }))
+      expect(both).toContain('tseries::adf.test(')
+      expect(both).toContain('tseries::kpss.test(')
+      expect(both).toContain('tseries::pp.test(')
+    })
+    it("'ADF only' omits kpss.test and pp.test but keeps the figures", () => {
+      const adf = emit('stationarity-tests', setup({ time: ['year'], series: ['wage'] }, { test: 'ADF only', alpha: 0.05 }))
+      expect(adf).toContain('tseries::adf.test(')
+      expect(adf).not.toContain('tseries::kpss.test(')
+      expect(adf).not.toContain('tseries::pp.test(')
+      expect(adf).toContain('acf(')
+      expect(adf).toContain('pacf(')
+    })
+    it("'KPSS only' omits adf.test and pp.test but keeps the figures", () => {
+      const kpss = emit('stationarity-tests', setup({ time: ['year'], series: ['wage'] }, { test: 'KPSS only', alpha: 0.05 }))
+      expect(kpss).toContain('tseries::kpss.test(')
+      expect(kpss).not.toContain('tseries::adf.test(')
+      expect(kpss).not.toContain('tseries::pp.test(')
+      expect(kpss).toContain('acf(')
+      expect(kpss).toContain('pacf(')
+    })
   })
 
   describe('granger-causality', () => {

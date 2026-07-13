@@ -63,7 +63,7 @@ import { runPoissonNegativeBinomial, type PoissonNbResult } from '../stats/poiss
 import { buildPoissonNegativeBinomial } from './buildPoissonNegativeBinomial'
 import { runArimaSarima, type ArimaSarimaResult } from '../stats/arimaSarima'
 import { buildArimaSarima } from './buildArimaSarima'
-import { runStationarityTests, type StationarityResult } from '../stats/stationarityTests'
+import { runStationarityTests, stationarityTestChoice, type StationarityResult } from '../stats/stationarityTests'
 import { buildStationarityTests } from './buildStationarityTests'
 import { runGrangerCausality, type GrangerResult } from '../stats/grangerCausality'
 import { buildGrangerCausality } from './buildGrangerCausality'
@@ -196,7 +196,7 @@ export const RUNNERS: Record<string, Runner> = {
       ciLevel: ciLevel(setup.options['ci']),
     }),
   'stationarity-tests': (engine, ds, setup) =>
-    runStationarityTests(engine, ds, setup.roles['time'][0], setup.roles['series'][0], { alpha: alphaOf(setup) }),
+    runStationarityTests(engine, ds, setup.roles['time'][0], setup.roles['series'][0], { alpha: alphaOf(setup), tests: stationarityTestChoice(setup.options['test']) }),
   'granger-causality': (engine, ds, setup) =>
     runGrangerCausality(engine, ds, setup.roles['time'][0], setup.roles['seriesX'][0], setup.roles['seriesY'][0], { maxLag: Number(setup.options['maxLag'] ?? 4), alpha: alphaOf(setup) }),
   'var': (engine, ds, setup) =>

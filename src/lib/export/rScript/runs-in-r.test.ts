@@ -121,6 +121,20 @@ const REPS: Rep[] = [
   mk('arima-sarima', 'timeseries.csv',
     { time: ['month'], series: ['sales'] },
     { order: 'auto-select', seasonalPeriod: 12, horizon: 12 }),
+  // R3 (board-clearing T3): the 'test' selector genuinely subsets the emitted calls - one REP per
+  // choice so every branch of the emitter is native-R-proven (PP accompanies 'both' only).
+  mk('stationarity-tests', 'timeseries.csv',
+    { time: ['month'], series: ['sales'] },
+    { test: 'both · ADF + KPSS', alpha: 0.05 },
+    ['Dickey-Fuller', 'KPSS', 'Phillips-Perron']),
+  mk('stationarity-tests', 'timeseries.csv',
+    { time: ['month'], series: ['sales'] },
+    { test: 'ADF only', alpha: 0.05 },
+    ['Dickey-Fuller']),
+  mk('stationarity-tests', 'timeseries.csv',
+    { time: ['month'], series: ['sales'] },
+    { test: 'KPSS only', alpha: 0.05 },
+    ['KPSS Test for Level Stationarity']),
 
   // --- latent variable / SEM family ---
   mk('cronbachs-alpha', 'scale.csv',

@@ -61,6 +61,52 @@ describe('buildStationarityTests - APA line surfaces all three tests (ADF, KPSS,
   it('A5: values carries the term-led explainer lookup (ADF row stands in for the 3-row table)', () => {
     expect(buildStationarityTests(STATIONARITY_TESTS, res).values).toEqual({
       test: 'ADF, KPSS, PP', statistic: '−8.38', lag: '4', p: '< .010', conclusion: 'stationary',
+      standIn: 'ADF', statLabel: 'τ',
     })
+  })
+
+  it("R3 disclosure: the 'both' run names all three tests in howToRead", () => {
+    const c = buildStationarityTests(STATIONARITY_TESTS, res)
+    expect(c.howToRead).toContain('Tests run: ADF, KPSS, and Phillips–Perron.')
+  })
+})
+
+// R3 (board-clearing T3): the 'test' selector genuinely subsets what renders - the builder must
+// degrade sensibly when the runner reports only ADF or only KPSS (no non-null crash, verdict from
+// the tests that ran, disclosure line naming them).
+describe('buildStationarityTests - subset choices (R3)', () => {
+  const adfOnly: StationarityResult = { ...res, rows: [res.rows[0]] }
+  const kpssOnly: StationarityResult = { ...res, rows: [res.rows[1]] }
+
+  it('ADF only: single table row, ADF-only APA verdict, disclosure line', () => {
+    const c = buildStationarityTests(STATIONARITY_TESTS, adfOnly)
+    expect(c.tables[0].rows.map((r) => r.test)).toEqual(['ADF'])
+    expect(c.apa).toBe('ADF gave τ=−8.38, p < .010 (α=0.05).')
+    expect(c.apa).not.toContain('KPSS')
+    expect(c.apa).not.toContain('Phillips–Perron')
+    expect(c.howToRead).toContain('Tests run: ADF only.')
+    expect(c.values).toEqual({
+      test: 'ADF', statistic: '−8.38', lag: '4', p: '< .010', conclusion: 'stationary',
+      standIn: 'ADF', statLabel: 'τ',
+    })
+  })
+
+  it('KPSS only: single table row, KPSS-only APA verdict, disclosure line, KPSS stands in for values', () => {
+    const c = buildStationarityTests(STATIONARITY_TESTS, kpssOnly)
+    expect(c.tables[0].rows.map((r) => r.test)).toEqual(['KPSS'])
+    expect(c.apa).toBe('KPSS gave LM=1.81, p < .010 (α=0.05).')
+    expect(c.apa).not.toContain('ADF')
+    expect(c.apa).not.toContain('Phillips–Perron')
+    expect(c.howToRead).toContain('Tests run: KPSS only.')
+    expect(c.values).toEqual({
+      test: 'KPSS', statistic: '1.81', lag: '3', p: '< .010', conclusion: 'non-stationary',
+      standIn: 'KPSS', statLabel: 'LM',
+    })
+  })
+
+  it('subset figures and note are unchanged (structure plots and the drawn-card note stay)', () => {
+    const c = buildStationarityTests(STATIONARITY_TESTS, adfOnly)
+    expect(c.figures).toHaveLength(2)
+    expect(c.note).toBe(STATIONARITY_TESTS.tableNote)
   })
 })

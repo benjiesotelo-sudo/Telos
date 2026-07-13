@@ -723,14 +723,16 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
   'stationarity-tests': [
     { key: 'test', term: 'Test', meaning: 'Which stationarity test this row reports - ADF, KPSS, or Phillips–Perron.',
       interpret: (v) => `Here, the table reports: ${v.test}.` },
+    // R3: the 'test' selector subsets which tests ran, so the stand-in row is not always ADF -
+    // standIn/statLabel come from the builder (ADF/τ when ADF ran, else KPSS/LM).
     { key: 'statistic', term: 'Statistic', meaning: 'The test statistic itself - the Dickey–Fuller τ for ADF, the LM statistic for KPSS, or the Phillips–Perron Z for PP (not on the same scale).',
-      interpret: (v) => `Here, the ADF statistic is τ = ${v.statistic}.` },
+      interpret: (v) => `Here, the ${v.standIn} statistic is ${v.statLabel} = ${v.statistic}.` },
     { key: 'lag', term: 'Lag', meaning: 'The number of lags the test used to account for autocorrelation.',
-      interpret: (v) => `Here, ADF used lag = ${v.lag}.` },
+      interpret: (v) => `Here, ${v.standIn} used lag = ${v.lag}.` },
     { key: 'p', term: 'p', meaning: 'For ADF, a small p means stationary; for KPSS, a small p means non-stationary - the tests have opposite null hypotheses.',
-      interpret: (v) => `Here, ADF gives p ${v.p}.` },
+      interpret: (v) => `Here, ${v.standIn} gives p ${v.p}.` },
     { key: 'conclusion', term: 'Conclusion', meaning: 'The verdict reconciling the (opposite-null) tests for this row.',
-      interpret: (v) => `Here, the ADF row's conclusion is "${v.conclusion}".` },
+      interpret: (v) => `Here, the ${v.standIn} row's conclusion is "${v.conclusion}".` },
   ],
   'granger-causality': [
     { key: 'direction', term: 'Direction', meaning: 'Which direction this row tests - whether the first series helps predict the second, or vice versa.',

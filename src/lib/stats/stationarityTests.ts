@@ -12,6 +12,15 @@ export interface StationarityRow {
   conclusion: string        // computed from p vs alpha per each test's null
 }
 
+// R3 (board-clearing T3): the registry 'test' select genuinely subsets which tests run/report.
+// PP accompanies 'both' only (the full three-row table is the 'both' behavior).
+export type StationarityTestChoice = 'both' | 'adf' | 'kpss'
+
+// Registry 'test' select string -> runner choice. The three strings are owner-visible copy
+// (src/lib/registry/stationarityTests.ts); anything else (incl. absent) falls back to the default.
+export const stationarityTestChoice = (v: unknown): StationarityTestChoice =>
+  v === 'ADF only' ? 'adf' : v === 'KPSS only' ? 'kpss' : 'both'
+
 export interface StationarityResult {
   rows: StationarityRow[]
   alpha: number
@@ -138,9 +147,10 @@ function conclusion(test: 'ADF' | 'KPSS' | 'PP', p: number, alpha: number): stri
 export async function runStationarityTests(
   engine: Engine, data: Dataset,
   timeCol: string, seriesCol: string,
-  opts: { alpha?: number } = {},
+  opts: { alpha?: number; tests?: StationarityTestChoice } = {},
 ): Promise<StationarityResult> {
   const alpha = opts.alpha ?? 0.05
+  const tests = opts.tests ?? 'both'
 
   // Listwise: keep rows where both time and series are present; series must be numeric-finite.
   const rows = data.rows.filter((r) => {
@@ -194,8 +204,12 @@ export async function runStationarityTests(
   const figSeriesPng = await engine.capturePlot(R_SERIES_PLOT, 700, 500, env)
   const figAcfPng = await engine.capturePlot(R_ACF_PLOT, 700, 500, env)
 
+  // R3: report only the selected tests (PP accompanies 'both' only). The statistics are computed
+  // independently in R, so dropping unrequested rows leaves the reported values untouched.
+  const resultRows = tests === 'adf' ? [adfRow] : tests === 'kpss' ? [kpssRow] : [adfRow, kpssRow, ppRow]
+
   return {
-    rows: [adfRow, kpssRow, ppRow],
+    rows: resultRows,
     alpha,
     n: raw.n,
     nExcluded,

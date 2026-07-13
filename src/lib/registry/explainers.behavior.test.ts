@@ -35,3 +35,26 @@ describe('explainers - unicode-minus display-value parsing (audit fix)', () => {
     expect(r.interpret({ df: 18, r: '.32', ciLow: '.05', ciHigh: '.60' })).toContain('positive')
   })
 })
+
+// R3 (board-clearing T3): the stationarity 'test' selector subsets what ran, so the interpret()
+// lines weave the stand-in test's own name and statistic symbol instead of hardcoding ADF/τ.
+describe('explainers - stationarity stand-in follows the tests that ran (R3)', () => {
+  const vBoth = { test: 'ADF, KPSS, PP', statistic: '−8.38', lag: '4', p: '< .010', conclusion: 'stationary', standIn: 'ADF', statLabel: 'τ' }
+  const vKpss = { test: 'KPSS', statistic: '1.81', lag: '3', p: '< .010', conclusion: 'non-stationary', standIn: 'KPSS', statLabel: 'LM' }
+  const ex = (key: string) => EXPLAINERS['stationarity-tests'].find((e) => e.key === key)!
+
+  it("'both' keeps today's ADF-led wording byte for byte", () => {
+    expect(ex('statistic').interpret(vBoth)).toBe('Here, the ADF statistic is τ = −8.38.')
+    expect(ex('lag').interpret(vBoth)).toBe('Here, ADF used lag = 4.')
+    expect(ex('p').interpret(vBoth)).toBe('Here, ADF gives p < .010.')
+    expect(ex('conclusion').interpret(vBoth)).toBe('Here, the ADF row\'s conclusion is "stationary".')
+  })
+
+  it('KPSS-only run speaks about KPSS and its LM statistic, never ADF', () => {
+    expect(ex('statistic').interpret(vKpss)).toBe('Here, the KPSS statistic is LM = 1.81.')
+    expect(ex('lag').interpret(vKpss)).toBe('Here, KPSS used lag = 3.')
+    expect(ex('p').interpret(vKpss)).toBe('Here, KPSS gives p < .010.')
+    expect(ex('conclusion').interpret(vKpss)).toContain('KPSS')
+    for (const k of ['statistic', 'lag', 'p', 'conclusion']) expect(ex(k).interpret(vKpss)).not.toContain('ADF')
+  })
+})
