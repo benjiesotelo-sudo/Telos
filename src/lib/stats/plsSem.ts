@@ -4,7 +4,7 @@ import type { Construct, StructuralPath, TestSetup } from '../../state/session'
 import type { RunProgress } from '../results/builders'
 import { MAKECLUSTER_SHIM } from '../webr/parallelShim'
 import { BC_CI_R } from './plsBcCi'
-import { renderSimpleSlopesFigure } from './simpleSlopesPlot'
+import { renderInteractionPlotFigure } from './interactionPlot'
 import { moderatorMainEffectPaths } from './moderationModel'
 import { lvNames } from './lvName'
 
@@ -36,8 +36,12 @@ export interface PlsSemResult {
   /** Conditional effects at -1SD/mean/+1SD per moderation edge (U6-T5); absent when no moderation ran.
    *  Feeds BOTH the conditional-effects table (buildPlsSem.ts) and figModSlopesPng below - same numbers. */
   slopes?: PlsSlopeRow[]
-  /** Whiskered simple-slopes figure (U6-T5), app-drawn via the SAME shared `simpleSlopesPlot.ts` module
-   *  CB-SEM uses, from the SAME `slopes[]` array that feeds the conditional-effects table. */
+  /** R4 interaction-plot points: one entry per moderation edge, in mod_ids order. The four predicted
+   *  outcomes at IV -1SD/+1SD x moderator -1SD/+1SD, computed in the R block from the SAME b_main/
+   *  b_int/mod_sd quantities as `slopes` above (chart = table by construction). */
+  plotPoints?: Array<{ modId: number; yLoLo: number; yHiLo: number; yLoHi: number; yHiHi: number }>
+  /** Two-line interaction chart (R4 - replaces the U6-T5 whisker figure), app-drawn via the SAME shared
+   *  `interactionPlot.ts` module CB-SEM uses, from `plotPoints` above. */
   figModSlopesPng?: Uint8Array
   estimates: {
     paths: Array<{ from: number; to: number; beta: number }>
@@ -287,6 +291,7 @@ if (!exists('mod_ids', inherits = FALSE)) {
   mod_int_name <- character(0); mod_target_name <- character(0)
 }
 slopes <- list()
+plot_rows <- list()
 if (length(mod_ids) > 0) {
   for (mi in seq_along(mod_ids)) {
     mod_sd <- stats::sd(pls$construct_scores[, mod_name[mi]])
@@ -309,6 +314,20 @@ if (length(mod_ids) > 0) {
         ciLower = as.numeric(qs[1]), ciUpper = as.numeric(qs[2])
       )
     }
+    # Interaction-plot predicted points (R4): outcome at IV -1SD/+1SD x moderator -1SD/+1SD, from the
+    # SAME b_main/b_int/mod_sd the slope rows above use (chart = Table 6 by construction) plus the
+    # moderator's auto-injected/drawn main effect. Composite scores are standardized by PLS-PM
+    # construction, so iv_sd (like mod_sd) is ~1 but computed generically. Mirrors the CB-SEM formula
+    # (interactionPlot.ts CB_INTERACTION_POINTS_R): y(iv, mod) = iv*slope(mod) + b_mod*mod.
+    iv_sd <- stats::sd(pls$construct_scores[, mod_iv_name[mi]])
+    b_mod <- as.numeric(bp[paste0(mod_name[mi], "  ->  ", mod_target_name[mi]), "Original Est."])
+    slope_lo <- b_main - b_int * mod_sd
+    slope_hi <- b_main + b_int * mod_sd
+    plot_rows[[length(plot_rows) + 1]] <- list(
+      modId = mod_ids[mi],
+      yLoLo = -iv_sd * slope_lo - b_mod * mod_sd, yHiLo = iv_sd * slope_lo - b_mod * mod_sd,
+      yLoHi = -iv_sd * slope_hi + b_mod * mod_sd, yHiHi = iv_sd * slope_hi + b_mod * mod_sd
+    )
   }
 }
 
@@ -320,6 +339,7 @@ list(
   quality = quality,
   indirect = indirect,
   slopes = slopes,
+  plotPoints = plot_rows,
   estimates = list(
     paths = estimate_paths,
     loadings = loadings_named,
@@ -468,8 +488,7 @@ export async function runPlsSem(
   )
 
   // Simple-slopes (U6-T5): TS-shape the R block's `slopes[]` with a human label ("<iv> -> <target> x
-  // <moderator>", same convention as CbSemResult.SlopeRow.label), then render the SAME shared figure
-  // CB-SEM uses (simpleSlopesPlot.ts) from those exact rows.
+  // <moderator>", same convention as CbSemResult.SlopeRow.label) for the conditional-effects table.
   const modLabelById = new Map(
     moderations.map((m, i) => [m.id, `${modInteractions[i].ivName} → ${modInteractions[i].targetName} × ${modInteractions[i].modName}`]),
   )
@@ -479,9 +498,18 @@ export async function runPlsSem(
         b: row.b, se: row.se, t: row.t, p: row.p, ciLower: row.ciLower, ciUpper: row.ciUpper,
       }))
     : undefined
-  const figModSlopesPng = await renderSimpleSlopesFigure(
+  // Moderation figure (R4, owner ruling): the two-line Aiken-West interaction chart, drawn via the SAME
+  // shared module CB-SEM uses (interactionPlot.ts) from the R block's plotPoints (in mod_ids order,
+  // same order as modInteractions) - the same b_main/b_int/mod_sd quantities as the table's slopes.
+  const figModSlopesPng = await renderInteractionPlotFigure(
     engine,
-    (slopes ?? []).map((s) => ({ level: s.level, modId: s.modId, label: s.label, b: s.b, ciLower: s.ciLower, ciUpper: s.ciUpper })),
+    moderations.length && raw.plotPoints?.length
+      ? raw.plotPoints.map((pt, i) => ({
+          label: modLabelById.get(pt.modId)!,
+          ivName: modInteractions[i].ivName, dvName: modInteractions[i].targetName, modName: modInteractions[i].modName,
+          yLoLo: pt.yLoLo, yHiLo: pt.yHiLo, yLoHi: pt.yLoHi, yHiHi: pt.yHiHi,
+        }))
+      : [],
   )
 
   // Canvas moderation-arrow overlay (U6-T5, mirrors runCbSem.ts's estModeration): the interaction path's

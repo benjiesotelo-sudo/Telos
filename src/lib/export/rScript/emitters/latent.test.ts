@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { latentEmitters, latentPackages } from './latent'
+import { INTERACTION_PLOT_R } from '../../../stats/interactionPlot'
 import type { TestSpec } from '../../../registry/types'
 import type { TestSetup } from '../../../../state/session'
 
@@ -57,8 +58,8 @@ describe('pls-sem emitter', () => {
     expect(R).toContain('# No constructs defined')
   })
 
-  it('declares the seminr package set', () => {
-    expect(latentPackages['pls-sem']).toEqual(['seminr', 'ggplot2'])
+  it('declares the seminr package set (ggplot2 dropped by R4 - the base-R interaction chart needs none)', () => {
+    expect(latentPackages['pls-sem']).toEqual(['seminr'])
   })
 
   // U6-T6: reshape parity - merged measurement table, HTMT, structural paths with dual CI, moderation.
@@ -81,6 +82,27 @@ describe('pls-sem emitter', () => {
     expect(R).toContain('interaction_term(iv =')
     expect(R).toContain('method = two_stage')
     expect(R).toContain('--- Table 6: Conditional effects (simple slopes) ---')
+  })
+
+  // R4 (board-clearing slice, owner ruling): analysis.R draws the SAME two-line interaction chart the
+  // app draws (shared INTERACTION_PLOT_R text - export = app), replacing the whiskered ggplot figure.
+  // Default R styling only (no custom colors - owner cancelled recoloring).
+  it('pls-sem moderation draws the two-line interaction chart (not the whisker plot)', () => {
+    const R = latentEmitters['pls-sem'](
+      SPEC,
+      { ...SETUP, moderations: [{ id: 1, moderatorId: 2, pathIndex: 1 }] },
+      { columns: [], rows: [] } as never,
+    )
+    expect(R).toContain('# ---- Figure: interaction plot (two-line Aiken-West chart; R4 owner ruling, default R styling) ----')
+    expect(R).toContain(INTERACTION_PLOT_R)
+    // predicted points from the SAME b_main/b_int/mod_sd the Table 6 rows use, plus the moderator main effect
+    expect(R).toContain('ip_y_lo_lo <- c(ip_y_lo_lo, -iv_sd * slope_lo - b_mod * mod_sd)')
+    expect(R).toContain('ip_edge_labels <- paste0(mod_iv_name, " → ", mod_target_name, " × ", mod_name)')
+    // whisker construction GONE, and no ggplot/custom colors anywhere in the figure code
+    expect(R).not.toContain('geom_errorbar')
+    expect(R).not.toContain('geom_point')
+    expect(R).not.toContain('ggplot2')
+    expect(R).not.toContain('#d97757')
   })
 
   // Docs-v2 sweep (2026-07-08): a moderator with NO drawn path to the target crashed seminr's two-stage

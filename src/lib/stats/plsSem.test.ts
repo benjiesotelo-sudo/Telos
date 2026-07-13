@@ -335,9 +335,11 @@ describe('plsSem', () => {
     expect(new Set(result.slopes!.map((s) => s.modId)).size).toBe(1)
     expect(lo.label).toBe('Image → Satisfaction × Expectation')
 
-    // the figure is app-drawn from these SAME rows via the shared simpleSlopesPlot.ts module
+    // the figure (R4: two-line interaction chart) is app-drawn from the same fitted quantities via the
+    // shared interactionPlot.ts module - its predicted points ride the R block's plotPoints rows
     expect(result.figModSlopesPng).toBeDefined()
     expect(result.figModSlopesPng!.length).toBeGreaterThan(0)
+    expect(result.plotPoints).toHaveLength(1)
 
     // canvas moderation-arrow overlay (U6-T5): the interaction path's own beta, keyed back to the
     // moderatorId/pathIndex the canvas drew it with - same shape as CbSemResult.estimates.moderation.

@@ -2,11 +2,16 @@ import type { Construct, StructuralPath, Moderation } from '../../state/session'
 
 /** Internal record carrying what the R env needs per moderation: item lists for the `indProd()` calls,
  *  and the labels for pulling estimates back out. `pathLabel` is a UI-facing display string
- *  ("SN → TI"); `pathLabel_` is the lavaan free-parameter label of the moderated path (`p_<from>_<to>`). */
+ *  ("SN → TI"); `pathLabel_` is the lavaan free-parameter label of the moderated path (`p_<from>_<to>`).
+ *  R4 (interaction-plot) additions: `sourceName` = the IV construct's lavaan name (for cov.lv SD lookup),
+ *  `mainLabel` = the EFFECTIVE moderator main-effect label (`pmod_<id>`, or the drawn path's own
+ *  `p_<moderatorId>_<to>` when the moderator already predicts the target), and the display names
+ *  (`sourceDisplay`/`targetDisplay`) the chart labels its axes with. */
 export interface ModerationDef {
   id: number; moderatorName: string; pathLabel: string; matched: boolean
   intLabel: string; modLabel: string; varLabel: string; pathLabel_: string
   var1: string[]; var2: string[]; targetName: string
+  sourceName: string; mainLabel: string; sourceDisplay: string; targetDisplay: string
 }
 
 /** Fixed disclosure text (design §A7 / U2-T4 brief) shown on a moderation row ONLY when the moderator
@@ -126,6 +131,11 @@ export function buildModerationLines(
       id: mod.id, moderatorName: moderator.name, pathLabel: `${source.name} → ${target.name}`,
       matched, intLabel, modLabel, varLabel, pathLabel_,
       var1: sourceItems, var2: moderatorItems, targetName: rNameOf(path.to),
+      // R4 interaction-plot lookups: when the moderator's main effect rides an already-drawn path,
+      // its coefficient carries that path's own p_<from>_<to> label, not pmod_<id>.
+      sourceName: rNameOf(path.from),
+      mainLabel: alreadyPredicts ? `p_${mod.moderatorId}_${path.to}` : modLabel,
+      sourceDisplay: source.name, targetDisplay: target.name,
     })
   }
   return { lines, moderationDefs, targetLineExtras }
@@ -167,5 +177,9 @@ export function moderationIndProdEnv(defs: ModerationDef[]) {
     mod_var2_flat: defs.flatMap((d) => d.var2), mod_var2_lens: defs.map((d) => d.var2.length),
     mod_matched: defs.map((d) => d.matched),
     mod_target: defs.map((d) => d.targetName),
+    // R4 (interaction-plot points): consumed by CB_INTERACTION_POINTS_R (interactionPlot.ts) inside
+    // the runner's R_STATS block; the export emitter emits the same two vectors as literals instead.
+    mod_source_name: defs.map((d) => d.sourceName),
+    mod_main_label: defs.map((d) => d.mainLabel),
   }
 }

@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test'
 import { gotoCard } from './fixtures/helpers'
 
 // This file starts with the DRAW-GESTURE + GUARD coverage (Unit 4). Unit 11 appends the full
-// run -> simple-slopes-figure journey once U5/U6's statistics land -- do not duplicate that here.
+// run -> moderation-figure journey once U5/U6's statistics land -- do not duplicate that here.
+// R4 (board-clearing slice): the moderation figure is the two-line interaction chart (the whisker
+// simple-slopes plot was replaced by owner ruling).
 test('CB-SEM canvas: moderation gesture draws a dashed clay edge; guards block invalid attempts', async ({ page }) => {
   await gotoCard(page, 'cb-sem', 'sem-moderation.csv')   // fixture with sn1..4/ta1..4/ti1..3 (SN/TA/TI)
 
@@ -97,8 +99,8 @@ test('CB-SEM moderation: draw edge → run at 1,000 preset → interaction row +
   await expect(structural).toContainText(/H\d/)      // H-numbered hypothesis row
   await expect(structural).toContainText('Supported')
 
-  // Conditional-effects table (-1SD / mean / +1SD simple slopes, same numbers as the figure) + the
-  // whiskered simple-slopes figure itself.
+  // Conditional-effects table (-1SD / mean / +1SD simple slopes, same fitted quantities as the figure)
+  // + the two-line interaction chart itself (R4 - replaces the whisker figure).
   await expect(page.locator('#table-cb-sem-conditional-effects')).toBeVisible()
-  await expect(page.getByRole('img', { name: /simple slopes/i })).toBeVisible()
+  await expect(page.getByRole('img', { name: /interaction plot/i })).toBeVisible()
 })

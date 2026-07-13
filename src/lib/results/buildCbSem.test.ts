@@ -35,7 +35,7 @@ const SPEC = {
   ],
   figures: [
     { caption: 'Path diagram', type: 'annotated path diagram', file: 'path-diagram' },
-    { caption: 'Simple slopes', type: 'conditional-effects plot', file: 'simple-slopes', optional: true },
+    { caption: 'Interaction plot (simple slopes)', type: 'two-line interaction plot', file: 'interaction-plot', optional: true },
   ],
   howToRead: 'hr', apaTemplate: 'apa', rMap: 'r',
 } as unknown as TestSpec
@@ -398,7 +398,8 @@ describe('buildCbSem', () => {
     expect(ids).not.toContain('htmt')
   })
 
-  // U5-T2: conditional-effects table + second (simple-slopes) figure entry.
+  // U5-T2 (figure renamed by R4, board-clearing slice): conditional-effects table + second
+  // (interaction-plot) figure entry - the two-line Aiken-West chart that replaced the whisker figure.
   // modId/label (fix round, multi-moderation regression): all 3 rows belong to the SAME edge here, so
   // the single-moderation tests below stay on the "today's exact shape" code path.
   const SLOPES: NonNullable<CbSemResult['moderation']>['slopes'] = [
@@ -418,7 +419,7 @@ describe('buildCbSem', () => {
     ])
   })
 
-  it('emits a SECOND figure entry (simple-slopes) with real PNG bytes when moderation is present, none when absent', () => {
+  it('emits a SECOND figure entry (interaction-plot) with real PNG bytes when moderation is present, none when absent', () => {
     const withMod: CbSemResult = {
       ...base,
       moderation: { rows: base.moderation!.rows, slopes: SLOPES },
@@ -427,6 +428,7 @@ describe('buildCbSem', () => {
     const contentWithMod = buildCbSem(SPEC, withMod)
     expect(contentWithMod.figures).toHaveLength(2)
     expect(contentWithMod.figures[1].png.length).toBeGreaterThan(0)
+    expect(contentWithMod.figures[1].file).toBe('interaction-plot')
 
     const withoutMod: CbSemResult = { ...base, moderation: undefined }
     const contentWithoutMod = buildCbSem(SPEC, withoutMod)

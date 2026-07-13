@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { Engine } from '../webr/engine'
 import { runCbSem, computeItemStats, CB_SEM_DEFAULT_MISSING } from './runCbSem'
 import type { CbSemResult } from './runCbSem'
+import { CB_INTERACTION_POINTS_R } from './interactionPlot'
 import { isSaturated } from './semSaturation'
 import { loadCsvFixture } from './csvFixture'
 import { readFileSync } from 'node:fs'
@@ -568,7 +569,25 @@ describe('runCbSem - semFitArgs wiring (mocked engine, no WebR)', () => {
       '# ciBc* are guarded by has_indirect exactly like struct_rows/indirect_rows above (H1 wiring: moderation\n# under MLR is legal but never bootstraps, so pe_bc is just pe aliased back -- Wald CIs, not BC -- and\n# must read as NA here, not silently masquerade as a bootstrap BC interval).\n',
       '',
     )
-    expect(sourceWithoutNewComment).toBe(goldenWithGuardFix)
+    // R4 (board-clearing slice): the ONE other legitimate diff from the golden - the interaction-plot
+    // predicted-point block (replaces the whisker figure, owner ruling) plus its return-list entry.
+    // Both stripped EXACTLY (the block text is imported, not re-typed), so any other drift still fails.
+    const R4_POINTS_BLOCK =
+      '# --- Interaction-plot predicted points (R4): outcome at IV -1SD/+1SD x moderator -1SD/+1SD, from the\n' +
+      '# SAME fitted quantities as the slope := defs (pe) - the chart cannot disagree with Table 6 ---\n' +
+      `${CB_INTERACTION_POINTS_R}\n` +
+      'plot_rows <- list()\n' +
+      'if (length(mod_ids) > 0) {\n' +
+      '  for (mi in seq_along(mod_ids)) plot_rows[[mi]] <- list(\n' +
+      '    modId = as.integer(mod_ids[mi]),\n' +
+      '    yLoLo = ip_y_lo_lo[mi], yHiLo = ip_y_hi_lo[mi], yLoHi = ip_y_lo_hi[mi], yHiHi = ip_y_hi_hi[mi]\n' +
+      '  )\n' +
+      '}\n' +
+      '\n'
+    const sourceWithoutR4 = sourceWithoutNewComment
+      .replace(R4_POINTS_BLOCK, '')
+      .replace(',\n  plotPoints = plot_rows', '')
+    expect(sourceWithoutR4).toBe(goldenWithGuardFix)
   })
 
   it('MLR + fiml: the fragment reaches both sem() lines, robust fit-index names are requested, and env carries no ci_type', async () => {
@@ -888,7 +907,7 @@ describe('runCbSem - path mode ordered= follows endogeneity (mocked engine, no W
   }
 
   // Path mode never calls runCfaReliability (isPath skips that block entirely) and never calls
-  // capturePlot (no moderation, so renderSimpleSlopesFigure short-circuits before touching the engine) --
+  // capturePlot (no moderation, so renderInteractionPlotFigure short-circuits before touching the engine) --
   // exactly ONE engine.runJson call per run, unlike the latent-mode fakeEngine helpers above.
   const baseRawPath = {
     fit: {}, df: 0, cfaLoadings: [], structural: [], rsquareIds: {}, indirect: [],

@@ -304,8 +304,8 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     }
   }
 
-  // Conditional-effects table (U5-T2): same `moderation.slopes[]` numbers as the whiskered simple-slopes
-  // figure (runCbSem.ts) - percentile CI only (binding contract), independent of the isMerged/isPath
+  // Conditional-effects table (U5-T2): the same fitted quantities also feed the two-line interaction
+  // figure (runCbSem.ts, R4) - percentile CI only (binding contract), independent of the isMerged/isPath
   // branching above (moderation never appears in path-analysis mode, design §A7).
   // Fix round (multi-moderation regression): with 2+ moderation edges, slopes holds 3 rows PER edge, all
   // sharing the same 3 `level` values - indistinguishable without the edge identity. Single-moderation
@@ -459,8 +459,9 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
 
   // Figure 0: a placeholder slot so the bundle manifest carries figure_path-diagram.png; the REAL
   // annotated-SVG PNG is layered in ResultsScreen.download() via captureNode (design §4.2), NOT produced
-  // here. Figure 1 (U5-T2): the simple-slopes plot IS produced here - real PNG bytes from runCbSem.ts's
-  // capturePlot - present only when moderation ran (optional FigureSpec; ResultPreviewCard's figureSlot
+  // here. Figure 1 (U5-T2; chart replaced by R4): the two-line interaction plot IS produced here - real
+  // PNG bytes from runCbSem.ts's capturePlot - present only when moderation ran (optional FigureSpec;
+  // ResultPreviewCard's figureSlot
   // fix keeps this from being masked by the live canvas, which only ever covers figure 0).
   const figs = figuresOf(spec)
   const figures: CardContent['figures'] = [

@@ -307,7 +307,7 @@ const CASES: Case[] = [
     constructs: [{ name: 'esg', items: ['esg1', 'esg2', 'esg3', 'esg4'] }, { name: 'norm', items: ['norm1', 'norm2', 'norm3', 'norm4'] }, { name: 'service_quality', items: ['service_quality1', 'service_quality2', 'service_quality3', 'service_quality4'] }, { name: 'attitude', items: ['attitude1', 'attitude2', 'attitude3', 'attitude4'] }, { name: 'intent', items: ['intent1', 'intent2', 'intent3'] }],
     paths: [['esg', 'intent'], ['norm', 'intent'], ['service_quality', 'intent']],
     moderations: [['attitude', 1]],
-    scenario: 'Tourism ESG: does environmental attitude strengthen the norm -> intention link (moderation, simple-slopes figure)?' },
+    scenario: 'Tourism ESG: does environmental attitude strengthen the norm -> intention link (moderation, interaction-plot figure)?' },
   { nn: '47', id: 'pls-sem', name: 'PLS-SEM', question: 'variance-based structural model (prediction-oriented)', fixture: 'tourism-esg.csv', pickName: 'PLS-SEM', dataConfig: [], drags: [],
     set: [{ label: '1k', action: 'check' }],
     constructs: [{ name: 'esg', items: ['esg1', 'esg2', 'esg3', 'esg4'] }, { name: 'norm', items: ['norm1', 'norm2', 'norm3', 'norm4'] }, { name: 'service_quality', items: ['service_quality1', 'service_quality2', 'service_quality3', 'service_quality4'] }, { name: 'attitude', items: ['attitude1', 'attitude2', 'attitude3', 'attitude4'] }, { name: 'intent', items: ['intent1', 'intent2', 'intent3'] }],

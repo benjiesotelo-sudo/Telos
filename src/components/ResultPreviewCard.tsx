@@ -79,7 +79,7 @@ export function ResultPreviewCard({ index, name, question, content, stale, runni
       {content.nExcluded > 0 && <p style={{ fontSize: 11, color: 'var(--muted)' }}>{content.nExcluded} rows excluded (missing values)</p>}
       {/* sem-canvas tests draw figure 0 live (the annotated path diagram is the export source —
           captureNode rasters it from this DOM node), so the slot replaces ONLY figure 0's placeholder
-          <img>; any further figure (e.g. the U5-T2 simple-slopes plot) is app-drawn PNG bytes and always
+          <img>; any further figure (e.g. the R4 moderation interaction plot) is app-drawn PNG bytes and always
           renders its own <img>, or it would wrongly duplicate the live canvas into its slot (fix, U5-T2). */}
       {content.figures.map((fig, i) => (
         <div key={`${fig.type}-${i}`}>

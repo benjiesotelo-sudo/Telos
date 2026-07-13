@@ -3,6 +3,7 @@ import { latentEmitters, latentPackages } from './latent'
 import type { TestSetup } from '../../../../state/session'
 import { withPathModeConstructs } from '../../../../state/session'
 import { semFitArgs } from '../../../stats/semFitArgs'
+import { INTERACTION_PLOT_R, CB_INTERACTION_POINTS_R } from '../../../stats/interactionPlot'
 import { runCbSem } from '../../../stats/runCbSem'
 import type { Engine } from '../../../webr/engine'
 import type { Dataset } from '../../../stats/types'
@@ -115,6 +116,28 @@ describe("latentEmitters['cb-sem'] - latent moderation (export ≡ app, U5-T4)",
   it('prints a Table 8 Moderation table and a Table 9 Conditional effects (simple slopes) table', () => {
     expect(r).toContain('--- Table 8: Moderation ---')
     expect(r).toContain('--- Table 9: Conditional effects (simple slopes) ---')
+  })
+
+  // R4 (board-clearing slice, owner ruling): analysis.R draws the SAME two-line interaction chart the
+  // app draws (shared INTERACTION_PLOT_R / CB_INTERACTION_POINTS_R text - export = app), replacing the
+  // whiskered simple-slopes ggplot. Default R styling only (no custom colors - owner cancelled recoloring).
+  it('draws the two-line interaction chart (not the whisker plot) after Table 9', () => {
+    expect(r).toContain('# ---- Figure: interaction plot (two-line Aiken-West chart; R4 owner ruling, default R styling) ----')
+    expect(r).toContain(CB_INTERACTION_POINTS_R)
+    expect(r).toContain(INTERACTION_PLOT_R)
+    // MOD_SETUP draws TA -> TI, so the moderator main effect rides that path's own label (p_2_3),
+    // never a duplicate pmod_1 - the emitter must emit the EFFECTIVE label.
+    expect(r).toContain('mod_source_name <- c("SN")')
+    expect(r).toContain('mod_main_label <- c("p_2_3")')
+    expect(r).toContain('ip_edge_labels <- c("SN → TI × TA")')
+    expect(r).toContain('ip_iv_names <- c("SN")')
+    expect(r).toContain('ip_dv_names <- c("TI")')
+    expect(r).toContain('ip_mod_names <- c("TA")')
+    // whisker construction GONE, and no custom colors anywhere in the figure code
+    expect(r).not.toContain('geom_errorbar')
+    expect(r).not.toContain('geom_pointrange')
+    expect(r).not.toContain('p_slopes')
+    expect(r).not.toContain('#d97757')
   })
 
   it('the semPaths note is scoped to moderation being present', () => {

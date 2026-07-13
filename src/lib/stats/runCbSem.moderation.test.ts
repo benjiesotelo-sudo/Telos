@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { buildModel, runCbSem } from './runCbSem'
+import { INTERACTION_PLOT_R } from './interactionPlot'
 import { lvNames } from './lvName'
 import type { Construct, StructuralPath } from '../../state/session'
 import type { Engine } from '../webr/engine'
@@ -104,10 +105,14 @@ describe('runCbSem — moderation row/slope count invariant (pure, mocked engine
     const runJson = vi.fn()
       .mockResolvedValueOnce(mainStats)
       .mockResolvedValueOnce(cfaResult)
-    // U5-T2: a happy-path moderation run now also calls capturePlot for the simple-slopes figure.
+    // U5-T2 (chart replaced by R4): a happy-path moderation run also calls capturePlot for the
+    // two-line interaction-plot figure.
     const capturePlot = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]))
     return { runJson, capturePlot } as unknown as Engine
   }
+  // R4: the R side now also returns the four predicted-outcome points per moderation edge (computed
+  // from the SAME fitted quantities as the slope := defs) - mocked here like every other raw row.
+  const validPlotPoint = { modId: 1, yLoLo: -0.2, yHiLo: 0.1, yLoHi: -0.1, yHiHi: 0.4 }
 
   const baseRaw = {
     fit: {}, df: 1, cfaLoadings: [], structural: [], rsquareIds: { 3: 0.4 }, indirect: [],
@@ -129,6 +134,7 @@ describe('runCbSem — moderation row/slope count invariant (pure, mocked engine
       ...baseRaw,
       moderationRows: [validModRow],
       slopeRows: [validSlopeRow('lo'), validSlopeRow('mid'), validSlopeRow('hi')],
+      plotPoints: [validPlotPoint],
     })
     const result = await runCbSem(engine, data, setup)
     expect(result.moderation!.rows).toHaveLength(1)
@@ -143,6 +149,44 @@ describe('runCbSem — moderation row/slope count invariant (pure, mocked engine
     expect(result.moderation!.slopes[0].label).toBe('SN → TI × TA')
     // Moderation forces se="bootstrap" -> the result must say so (Table 5 CI-honesty fix round).
     expect(result.bootstrapped).toBe(true)
+  })
+
+  // R4 (board-clearing slice, owner ruling): the figure drawn on a moderation run is the classic
+  // two-line Aiken-West interaction chart (base-R defaults), NOT the whiskered dot plot. Pin the exact
+  // R text handed to capturePlot plus its env: predicted outcome at IV -1SD/+1SD, one line per
+  // moderator level, and the display names for axis/legend labels.
+  it('draws the two-line interaction chart (not the whisker plot) from the R-computed predicted points', async () => {
+    const runJson = vi.fn()
+      .mockResolvedValueOnce({
+        ...baseRaw,
+        moderationRows: [validModRow],
+        slopeRows: [validSlopeRow('lo'), validSlopeRow('mid'), validSlopeRow('hi')],
+        plotPoints: [validPlotPoint],
+      })
+      .mockResolvedValueOnce(cfaResult)
+    const capturePlot = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]))
+    const engine = { runJson, capturePlot } as unknown as Engine
+    const result = await runCbSem(engine, data, setup)
+
+    expect(capturePlot).toHaveBeenCalledTimes(1)
+    const [plotR, , , env] = capturePlot.mock.calls[0] as [string, number, number, Record<string, unknown>]
+    expect(plotR).toBe(INTERACTION_PLOT_R)
+    // two-line construction: lines + a moderator-level legend...
+    expect(plotR).toContain('lines(')
+    expect(plotR).toContain('legend(')
+    // ...and NOT the whisker construction (and no custom colors - owner cancelled recoloring)
+    expect(plotR).not.toContain('geom_errorbar')
+    expect(plotR).not.toContain('geom_pointrange')
+    expect(plotR).not.toMatch(/#[0-9a-fA-F]{3,6}/)
+    expect(env.ip_edge_labels).toEqual(['SN → TI × TA'])
+    expect(env.ip_iv_names).toEqual(['SN'])
+    expect(env.ip_dv_names).toEqual(['TI'])
+    expect(env.ip_mod_names).toEqual(['TA'])
+    expect(env.ip_y_lo_lo).toEqual([validPlotPoint.yLoLo])
+    expect(env.ip_y_hi_lo).toEqual([validPlotPoint.yHiLo])
+    expect(env.ip_y_lo_hi).toEqual([validPlotPoint.yLoHi])
+    expect(env.ip_y_hi_hi).toEqual([validPlotPoint.yHiHi])
+    expect(result.figModSlopesPng).toEqual(new Uint8Array([1, 2, 3]))
   })
 
   // Fix round (Table 5 CI honesty): CbSemResult.bootstrapped mirrors the runner's own needsBootstrap
@@ -220,6 +264,10 @@ describe('runCbSem — config routing (setup.moderations reaches buildModel; U4-
     // moderationIndProdEnv flattening reached the env (not just the model string).
     expect(env.mod_ids).toEqual([1])
     expect(env.mod_var1_flat).toEqual(items.sn)
+    // R4: the interaction-plot point extraction needs the IV construct's lavaan name plus the
+    // EFFECTIVE moderator main-effect label (pmod_<id> here - TA is not drawn as its own path).
+    expect(env.mod_source_name).toEqual(['SN'])
+    expect(env.mod_main_label).toEqual(['pmod_1'])
     // moderation widens the bootstrap gate regardless of any indirect-effect chain (design §A7).
     expect(env.has_indirect).toBe(true)
   })
@@ -294,6 +342,11 @@ describe('runCbSem — TWO moderation edges (fix round: multi-moderation regress
     // moderationDefs/moderations[]) -- U5-T4 adds the runner integrity guard for THIS array (mirroring the
     // moderationRows/slopeRows guards above), so a real 2-edge fixture must carry a matching 2-entry array.
     estModeration: [{ beta: 0.21 }, { beta: 0.34 }],
+    // R4: one predicted-points row per moderation edge, in mod_ids order (like estModeration).
+    plotPoints: [
+      { modId: 1, yLoLo: -0.2, yHiLo: 0.1, yLoHi: -0.1, yHiHi: 0.4 },
+      { modId: 2, yLoLo: -0.3, yHiLo: 0.2, yLoHi: -0.2, yHiHi: 0.5 },
+    ],
   }
 
   it('threads modId + a disambiguating "<pathLabel> × <moderatorName>" label onto every slope row (no crash, no dedup/cap)', async () => {
@@ -311,8 +364,12 @@ describe('runCbSem — TWO moderation edges (fix round: multi-moderation regress
     // pathLabel_ construction mirrors ModerationRow.pathLabel: "<source> → <target> × <moderator>".
     expect(lo1.label).toBe('SN → TI × TA')
     expect(lo2.label).toBe('SN → TI × INC')
-    // The figure still ran (capturePlot called) -- proves the ggplot factor-duplication path is gone.
+    // The figure still ran (capturePlot called ONCE with both edges' point sets - the R4 two-line
+    // chart panels per edge inside one figure, like the old faceting did).
     expect(capturePlot).toHaveBeenCalledTimes(1)
+    const [, , , plotEnv] = capturePlot.mock.calls[0] as [string, number, number, Record<string, unknown>]
+    expect(plotEnv.ip_edge_labels).toEqual(['SN → TI × TA', 'SN → TI × INC'])
+    expect(plotEnv.ip_y_hi_hi).toEqual([0.4, 0.5])
     // Canvas moderation-arrow overlay: both edges survive, keyed back to their own moderatorId/pathIndex.
     expect(result.estimates.moderation).toEqual([
       { moderatorId: 2, pathIndex: 0, beta: 0.21 },

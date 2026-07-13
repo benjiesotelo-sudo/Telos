@@ -157,9 +157,9 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
   }
 
   // Figure 0 - annotated path diagram rasterized via captureNode in ResultsScreen.download(); carry
-  // empty PNG placeholder so the figure caption renders. Figure 1 (U6-T5, present only when moderation
-  // ran, mirrors buildCbSem.ts): the whiskered simple-slopes plot - real PNG bytes from plsSem.ts's
-  // capturePlot via the shared simpleSlopesPlot.ts module (same figure treatment as CB-SEM).
+  // empty PNG placeholder so the figure caption renders. Figure 1 (U6-T5; chart replaced by R4, present
+  // only when moderation ran, mirrors buildCbSem.ts): the two-line interaction plot - real PNG bytes
+  // from plsSem.ts's capturePlot via the shared interactionPlot.ts module (same figure treatment as CB-SEM).
   const figs = figuresOf(spec)
   const figures: CardContent['figures'] = [
     { caption: figs[0].caption, type: figs[0].type, file: figs[0].file, png: new Uint8Array() },

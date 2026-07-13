@@ -34,7 +34,7 @@ describe('chassis renders each card shape (design §5)', () => {
       ...base,
       figures: [
         { caption: 'Model', type: 'path diagram', png: new Uint8Array(0) },
-        { caption: 'Simple slopes', type: 'conditional-effects plot', png: new Uint8Array([137, 80, 78, 71]) },
+        { caption: 'Interaction plot (simple slopes)', type: 'two-line interaction plot', png: new Uint8Array([137, 80, 78, 71]) },
       ],
     } as CardContent
     const html = renderToStaticMarkup(

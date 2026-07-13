@@ -7,7 +7,7 @@ import { lvNames } from '../../../stats/lvName'
 import { buildModel, CB_SEM_DEFAULT_MISSING } from '../../../stats/runCbSem'
 import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE, moderatorMainEffectPaths } from '../../../stats/moderationModel'
 import { BC_CI_R } from '../../../stats/plsBcCi'
-import { SIMPLE_SLOPES_PLOT_R } from '../../../stats/simpleSlopesPlot'
+import { INTERACTION_PLOT_R, CB_INTERACTION_POINTS_R } from '../../../stats/interactionPlot'
 import { semFitArgs, semFitMeasureNames, type SemFitArgs } from '../../../stats/semFitArgs'
 import { EFA_STAGE_R } from '../../../stats/semEfaStage'
 
@@ -758,6 +758,19 @@ export const latentEmitters: Record<string, Emitter> = {
         'names(slope_tab)[names(slope_tab) == "ci.upper"] <- "perc.upper"',
         'cat("\\n--- Table 9: Conditional effects (simple slopes) ---\\n")',
         'print(slope_tab)',
+        '',
+        '# ---- Figure: interaction plot (two-line Aiken-West chart; R4 owner ruling, default R styling) ----',
+        '# Predicted outcome at IV -1SD/+1SD, one line per moderator level - computed from the SAME fitted',
+        '# quantities as Table 9 (slope := defs + pmod/vmod labels), so the chart and the table cannot',
+        '# disagree. Same R text as interactionPlot.ts (export = app).',
+        `mod_source_name <- c(${moderationDefs.map((d) => `"${d.sourceName}"`).join(', ')})`,
+        `mod_main_label <- c(${moderationDefs.map((d) => `"${d.mainLabel}"`).join(', ')})`,
+        CB_INTERACTION_POINTS_R,
+        `ip_edge_labels <- c(${moderationDefs.map((d) => `"${d.pathLabel} × ${d.moderatorName}"`).join(', ')})`,
+        `ip_iv_names <- c(${moderationDefs.map((d) => `"${d.sourceDisplay}"`).join(', ')})`,
+        `ip_dv_names <- c(${moderationDefs.map((d) => `"${d.targetDisplay}"`).join(', ')})`,
+        `ip_mod_names <- c(${moderationDefs.map((d) => `"${d.moderatorName}"`).join(', ')})`,
+        INTERACTION_PLOT_R,
       )
     }
 
@@ -1096,8 +1109,7 @@ export const latentEmitters: Record<string, Emitter> = {
         `mod_name    <- c(${modInteractions.map((m) => `"${m.modName}"`).join(', ')})`,
         `mod_int_name <- c(${modInteractions.map((m) => `"${m.name}"`).join(', ')})`,
         `mod_target_name <- c(${modInteractions.map((m) => `"${m.targetName}"`).join(', ')})`,
-        'slope_levels <- character(0); slope_mods <- character(0)',
-        'slope_bs <- numeric(0); slope_los <- numeric(0); slope_his <- numeric(0)',
+        'ip_y_lo_lo <- numeric(0); ip_y_hi_lo <- numeric(0); ip_y_lo_hi <- numeric(0); ip_y_hi_hi <- numeric(0)',
         'cat("\\n--- Table 6: Conditional effects (simple slopes) ---\\n")',
         'for (mi in seq_along(mod_iv_name)) {',
         '  mod_sd <- stats::sd(pls$construct_scores[, mod_name[mi]])',
@@ -1117,14 +1129,24 @@ export const latentEmitters: Record<string, Emitter> = {
         '    p_lvl <- 2 * min(mean(draws <= 0), mean(draws > 0))', // Same bootstrap-proportion p as plsSem.ts's app-side slope runner (matches exactly, no normal-theory approximation).
         '    cat(sprintf("  %s (%s): b=%.6f se=%.6f p=%.6f ci=[%.6f, %.6f]\\n",',
         '                mod_int_name[mi], lvl_name, b_lvl, se, p_lvl, qs[1], qs[2]))',
-        '    slope_levels <- c(slope_levels, lvl_name); slope_mods <- c(slope_mods, mod_int_name[mi])',
-        '    slope_bs <- c(slope_bs, b_lvl); slope_los <- c(slope_los, as.numeric(qs[1])); slope_his <- c(slope_his, as.numeric(qs[2]))',
         '  }',
+        // Interaction-plot predicted points (R4): same b_main/b_int/mod_sd as the Table 6 rows above,
+        // plus the moderator's auto-injected/drawn main effect - mirrors plsSem.ts's R block EXACTLY.
+        '  iv_sd <- stats::sd(pls$construct_scores[, mod_iv_name[mi]])',
+        '  b_mod <- as.numeric(bp[paste0(mod_name[mi], "  ->  ", mod_target_name[mi]), "Original Est."])',
+        '  slope_lo <- b_main - b_int * mod_sd',
+        '  slope_hi <- b_main + b_int * mod_sd',
+        '  ip_y_lo_lo <- c(ip_y_lo_lo, -iv_sd * slope_lo - b_mod * mod_sd)',
+        '  ip_y_hi_lo <- c(ip_y_hi_lo,  iv_sd * slope_lo - b_mod * mod_sd)',
+        '  ip_y_lo_hi <- c(ip_y_lo_hi, -iv_sd * slope_hi + b_mod * mod_sd)',
+        '  ip_y_hi_hi <- c(ip_y_hi_hi,  iv_sd * slope_hi + b_mod * mod_sd)',
         '}',
         '',
-        '# ---- Figure: whiskered simple-slopes plot (same R text as simpleSlopesPlot.ts - export = app) ----',
-        'levels <- slope_levels; mods <- slope_mods; bs <- slope_bs; los <- slope_los; his <- slope_his',
-        SIMPLE_SLOPES_PLOT_R,
+        '# ---- Figure: interaction plot (two-line Aiken-West chart; R4 owner ruling, default R styling) ----',
+        '# Same R text as interactionPlot.ts (export = app); replaces the pre-R4 whiskered simple-slopes plot.',
+        'ip_edge_labels <- paste0(mod_iv_name, " → ", mod_target_name, " × ", mod_name)',
+        'ip_iv_names <- mod_iv_name; ip_dv_names <- mod_target_name; ip_mod_names <- mod_name',
+        INTERACTION_PLOT_R,
       )
     }
 
@@ -1149,6 +1171,8 @@ export const latentPackages: Record<string, string[]> = {
   'efa': ['psych', 'ggplot2'],
   'pca': ['ggplot2'],
   'cb-sem': ['lavaan', 'semTools', 'psych', 'semPlot'],
-  'pls-sem': ['seminr', 'ggplot2'],
+  // ggplot2 dropped by R4: the whisker figure was the pls-sem script's only ggplot2 use; the two-line
+  // interaction chart is base-R (default styling, owner ruling).
+  'pls-sem': ['seminr'],
   'path-analysis': ['lavaan', 'semTools', 'psych', 'semPlot'],
 }

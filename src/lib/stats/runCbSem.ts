@@ -10,7 +10,7 @@ import {
   validateModerations, buildModerationLines, moderationIndProdEnv, INDPROD_R,
   MODERATION_DISCLOSURE, type ModerationDef,
 } from './moderationModel'
-import { renderSimpleSlopesFigure } from './simpleSlopesPlot'
+import { renderInteractionPlotFigure, CB_INTERACTION_POINTS_R } from './interactionPlot'
 import { EFA_STAGE_STATS_R, type EfaStageSuitability, type RawEfaStage } from './semEfaStage'
 import { orderFactors } from './factorOrder'
 import type { EfaLoadingRow } from './efa'
@@ -56,9 +56,10 @@ export interface CbSemResult {
   rsquare?: Record<number, number>
   indirect?: Array<Record<string, unknown>>
   moderation?: { rows: ModerationRow[]; slopes: SlopeRow[] }
-  /** Whiskered simple-slopes figure (design §U5-T2), app-drawn via engine.capturePlot from the SAME
-   *  `moderation.slopes[]` array that feeds the conditional-effects table (identical numbers). Present
-   *  only when moderation ran and produced at least one slope; absent otherwise (optional FigureSpec). */
+  /** Two-line interaction chart (R4, board-clearing slice - replaces the U5-T2 whisker figure),
+   *  app-drawn via engine.capturePlot from R-computed predicted points that derive from the SAME fitted
+   *  quantities as the conditional-effects table (identical numbers by construction). Present only when
+   *  moderation ran; absent otherwise (optional FigureSpec). */
   figModSlopesPng?: Uint8Array
   fornellLarcker: number[][]
   htmt: number[][]
@@ -418,6 +419,17 @@ if (length(mod_ids) > 0) {
   }
 }
 
+# --- Interaction-plot predicted points (R4): outcome at IV -1SD/+1SD x moderator -1SD/+1SD, from the
+# SAME fitted quantities as the slope := defs (pe) - the chart cannot disagree with Table 6 ---
+${CB_INTERACTION_POINTS_R}
+plot_rows <- list()
+if (length(mod_ids) > 0) {
+  for (mi in seq_along(mod_ids)) plot_rows[[mi]] <- list(
+    modId = as.integer(mod_ids[mi]),
+    yLoLo = ip_y_lo_lo[mi], yHiLo = ip_y_hi_lo[mi], yLoHi = ip_y_lo_hi[mi], yHiHi = ip_y_hi_hi[mi]
+  )
+}
+
 list(
   fit = fit_list,
   df = df_val,
@@ -429,7 +441,8 @@ list(
   slopeRows = slope_rows,
   estLoadings = est_loadings,
   estPaths = est_paths,
-  estModeration = est_moderation
+  estModeration = est_moderation,
+  plotPoints = plot_rows
 )
 `
 }
@@ -524,6 +537,10 @@ interface RawResult {
   /** One entry per moderation edge, in mod_ids order (see moderationIndProdEnv). Absent from older/
    *  mocked fixtures that predate Task 5.3 -- optional so those keep passing unmodified. */
   estModeration?: Array<{ beta: number }>
+  /** R4 interaction-plot points: one entry per moderation edge, in mod_ids order (like estModeration).
+   *  The four predicted outcomes at IV -1SD/+1SD x moderator -1SD/+1SD (CB_INTERACTION_POINTS_R).
+   *  Optional so older/mocked fixtures degrade to "no figure" instead of throwing. */
+  plotPoints?: Array<{ modId: number; yLoLo: number; yHiLo: number; yLoHi: number; yHiHi: number }>
 }
 
 const SLOPE_LEVEL: Record<RawSlopeRow['level'], SlopeRow['level']> = { lo: '-1SD', mid: 'mean', hi: '+1SD' }
@@ -829,17 +846,22 @@ export async function runCbSem(
       })
     : undefined
 
-  // Simple-slopes figure (design §U5-T2): three whiskered points (-1SD/mean/+1SD), percentile CI whiskers
-  // (binding contract: ciPercLower/ciPercUpper), no continuous band. Fed from moderation.slopes (already
-  // TS-shaped above), so the figure and the conditional-effects table (buildCbSem.ts) render the SAME
-  // numbers from the SAME array. U6-T5: the plotting code itself (R text, height calc, capturePlot call)
-  // moved to the shared `simpleSlopesPlot.ts` module - PLS-SEM's runner calls the SAME function with its
-  // own field-mapped slopes, so there are no longer two copies of this ggplot2 block.
-  const figModSlopesPng = await renderSimpleSlopesFigure(
+  // Moderation figure (R4, board-clearing slice - owner ruling): the classic two-line Aiken-West
+  // interaction chart replaces the whiskered simple-slopes plot. The four predicted points per edge
+  // (raw.plotPoints, in mod_ids order like estModeration) were computed R-side from the SAME fitted
+  // quantities as the conditional-effects table (CB_INTERACTION_POINTS_R), so chart and table cannot
+  // disagree. Drawing lives in the shared `interactionPlot.ts` module - PLS-SEM's runner calls the SAME
+  // function with its own R-computed points, so there are not two copies of the plot text.
+  const figModSlopesPng = await renderInteractionPlotFigure(
     engine,
-    (moderation?.slopes ?? []).map((s) => ({
-      level: s.level, modId: s.modId, label: s.label, b: s.b, ciLower: s.ciPercLower, ciUpper: s.ciPercUpper,
-    })),
+    moderationDefs.length && raw.plotPoints
+      ? moderationDefs.map((def, i) => ({
+          label: `${def.pathLabel} × ${def.moderatorName}`,
+          ivName: def.sourceDisplay, dvName: def.targetDisplay, modName: def.moderatorName,
+          yLoLo: raw.plotPoints![i].yLoLo, yHiLo: raw.plotPoints![i].yHiLo,
+          yLoHi: raw.plotPoints![i].yLoHi, yHiHi: raw.plotPoints![i].yHiHi,
+        }))
+      : [],
   )
 
   return {

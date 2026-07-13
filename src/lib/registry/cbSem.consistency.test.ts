@@ -112,10 +112,15 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     expect(theadAfter('Conditional effects (simple slopes)')).toEqual(tableCols('conditional-effects'))
     expect(card).toContain('<div class="apa-cap"><b>Table 6.</b> Conditional effects (simple slopes)</div>')
   })
-  it('a second (optional) figure entry: simple-slopes plot', () => {
+  // R4 (board-clearing slice, owner ruling): the classic two-line Aiken-West interaction chart
+  // REPLACES the whiskered simple-slopes figure (file id simple-slopes -> interaction-plot).
+  it('a second (optional) figure entry: the two-line interaction plot (replaces the whisker figure, R4)', () => {
     expect(spec.figures).toHaveLength(2)
     expect(spec.figures![1].optional).toBe(true)
-    expect(spec.figures![1].file).toBe('simple-slopes')
+    expect(spec.figures![1].file).toBe('interaction-plot')
+    expect(spec.figures![1].caption).toBe('Interaction plot (simple slopes)')
+    expect(spec.figures![1].type).not.toMatch(/whisker/i)
+    expect(spec.bundleFiles).toContain('figure_interaction-plot.png (when moderation present)')
   })
   it('labelled notes (the live card) reflect the E1/E2 preamble + single merged Table 5 (structural) omission wording', () => {
     // U3-T5: superseded from a byte-verbatim spec.tableNote!.text check to a content-preservation guard
@@ -196,6 +201,12 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     expect(strip(card.match(/<b>R map:<\/b>(.*?)<\/div>/s)![1])).toBe(spec.rMap)
   })
   it('bundle line equals bundleFiles', () => {
-    expect(strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1]).split(' · ')).toEqual(spec.bundleFiles)
+    // R4 normalization (justified): the owner-ruled interaction chart renamed the moderation figure
+    // (simple-slopes -> interaction-plot), but the spec twin (docs/specs/telos_test_outputs.html) is
+    // byte-pinned read-only, so its bundle line still carries the pre-R4 name. Content-preserving
+    // one-token map before comparing - same discipline as the H1 byte-pin's documented replaces.
+    const bundle = strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1])
+      .replace('figure_simple-slopes.png', 'figure_interaction-plot.png')
+    expect(bundle.split(' · ')).toEqual(spec.bundleFiles)
   })
 })

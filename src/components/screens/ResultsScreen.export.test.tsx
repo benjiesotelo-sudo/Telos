@@ -171,10 +171,11 @@ describe('buildExportFiles (Task 10)', () => {
     expect(s.setups['path-analysis'].constructs).toEqual([])
   })
 
-  // U5-T2 (post-review): the export bundler's figure pickup (line ~43 above) walks content.figures[]
-  // GENERICALLY for every test — no new bundler code was written for the simple-slopes figure. This
-  // proves the SAME generic pickup that already covers e.g. the AVE/CR bar chart covers this new one too.
-  it('the simple-slopes figure is included in the export bundle when moderation is present', () => {
+  // U5-T2 (post-review; figure renamed by R4, board-clearing slice): the export bundler's figure pickup
+  // (line ~43 above) walks content.figures[] GENERICALLY for every test - no new bundler code was
+  // written for the moderation interaction-plot figure. This proves the SAME generic pickup that
+  // already covers e.g. the AVE/CR bar chart covers this new one too.
+  it('the interaction-plot figure is included in the export bundle when moderation is present', () => {
     const s = {
       selection: ['cb-sem'],
       setups: { 'cb-sem': { roles: {}, options: {}, props: {}, blocked: null, constructs: [], paths: [] } },
@@ -192,12 +193,14 @@ describe('buildExportFiles (Task 10)', () => {
       missingPolicy: 'leave',
     } as unknown as SessionState
     const files = buildExportFiles(s, { tables: false, figures: true, pdf: false, latex: false, r: false })
-    expect(Object.keys(files).some((k) => k.includes('figure_simple-slopes.png'))).toBe(true)
+    expect(Object.keys(files).some((k) => k.includes('figure_interaction-plot.png'))).toBe(true)
+    expect(Object.keys(files).some((k) => k.includes('figure_simple-slopes.png'))).toBe(false) // whisker figure GONE (R4)
   })
 
-  // U6-T5 (mirrors the CB-SEM test above): PLS-SEM's simple-slopes figure reaches the export bundle via
-  // the SAME generic content.figures[] pickup - no new bundler code needed for the PLS-SEM runner either.
-  it('the simple-slopes figure is included in the PLS-SEM export bundle when moderation is present', () => {
+  // U6-T5 (mirrors the CB-SEM test above; figure renamed by R4): PLS-SEM's interaction-plot figure
+  // reaches the export bundle via the SAME generic content.figures[] pickup - no new bundler code
+  // needed for the PLS-SEM runner either.
+  it('the interaction-plot figure is included in the PLS-SEM export bundle when moderation is present', () => {
     const s = {
       selection: ['pls-sem'],
       setups: { 'pls-sem': { roles: {}, options: {}, props: {}, blocked: null, constructs: [], paths: [] } },
@@ -214,7 +217,8 @@ describe('buildExportFiles (Task 10)', () => {
       missingPolicy: 'leave',
     } as unknown as SessionState
     const files = buildExportFiles(s, { tables: false, figures: true, pdf: false, latex: false, r: false })
-    expect(Object.keys(files).some((k) => k.includes('figure_simple-slopes.png'))).toBe(true)
+    expect(Object.keys(files).some((k) => k.includes('figure_interaction-plot.png'))).toBe(true)
+    expect(Object.keys(files).some((k) => k.includes('figure_simple-slopes.png'))).toBe(false) // whisker figure GONE (R4)
   })
 
   // H1 wiring (Task 7): the SAME session.columns ColumnMeta[] Task 3 threads into the app runner

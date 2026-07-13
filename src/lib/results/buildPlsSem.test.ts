@@ -19,7 +19,7 @@ const SPEC = {
   ],
   figures: [
     { type: 'path-diagram', caption: 'Path diagram', file: 'figure_path-diagram' },
-    { caption: 'Simple slopes', type: 'conditional-effects plot', file: 'simple-slopes', optional: true },
+    { caption: 'Interaction plot (simple slopes)', type: 'two-line interaction plot', file: 'interaction-plot', optional: true },
   ],
   howToRead: 'HOWTO',
   apaTemplate: 'APA',
@@ -155,7 +155,8 @@ describe('buildPlsSem', () => {
     expect(c2.tables.find((t) => t.spec.id === 'indirect-effects')).toBeUndefined()
   })
 
-  // U6-T5: conditional-effects table + second (simple-slopes) figure entry - mirrors buildCbSem.test.ts's
+  // U6-T5 (figure renamed by R4, board-clearing slice): conditional-effects table + second
+  // (interaction-plot) figure entry - mirrors buildCbSem.test.ts's
   // U5-T2 tests exactly, against PlsSemResult's new slopes/figModSlopesPng fields. Single-moderation edge
   // (modId 1 on every row) stays on the "today's exact shape" (no dynamic Moderation column) code path.
   const SLOPES: NonNullable<PlsSemResult['slopes']> = [
@@ -175,11 +176,12 @@ describe('buildPlsSem', () => {
     ])
   })
 
-  it('emits a SECOND figure entry (simple-slopes) with real PNG bytes when moderation is present, none when absent', () => {
+  it('emits a SECOND figure entry (interaction-plot) with real PNG bytes when moderation is present, none when absent', () => {
     const withMod: PlsSemResult = { ...R, slopes: SLOPES, figModSlopesPng: new Uint8Array([1, 2, 3]) }
     const contentWithMod = buildPlsSem(SPEC, withMod)
     expect(contentWithMod.figures).toHaveLength(2)
     expect(contentWithMod.figures[1].png.length).toBeGreaterThan(0)
+    expect(contentWithMod.figures[1].file).toBe('interaction-plot')
 
     const withoutMod: PlsSemResult = { ...R, slopes: undefined }
     const contentWithoutMod = buildPlsSem(SPEC, withoutMod)
