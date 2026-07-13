@@ -32,6 +32,19 @@ describe('regression / econometrics emitters', () => {
     }
   })
 
+  describe('simple-linear-regression', () => {
+    it('mirrors lm() on the threaded columns and threads the CI pill into modelsummary (R2: app confint uses the chosen level)', () => {
+      const r = emit('simple-linear-regression', setup({ outcome: ['wage'], predictor: ['educ'] }, { ci: '95%' }))
+      expect(r).toContain('lm(wage ~ educ, data = d)')
+      expect(r).toContain('conf_level = 0.95,')
+    })
+    it("flips the modelsummary conf_level with the ci option ('90%' -> 0.9)", () => {
+      const r = emit('simple-linear-regression', setup({ outcome: ['wage'], predictor: ['educ'] }, { ci: '90%' }))
+      expect(r).toContain('conf_level = 0.9,')
+      expect(r).not.toContain('conf_level = 0.95')
+    })
+  })
+
   describe('multiple-linear-regression', () => {
     const r = emit('multiple-linear-regression', setup({ outcome: ['wage'], predictors: ['educ', 'exper', 'female'] }, { ci: '90%' }))
     it('mirrors lm() with the additive predictor formula on the threaded columns', () => {
@@ -75,6 +88,13 @@ describe('regression / econometrics emitters', () => {
       expect(r).toContain('table(')
       expect(r).toContain('pROC::roc')
     })
+    it('threads the CI pill into the exponentiated modelsummary; ci.auc keeps its default (app AUC CI is fixed 95%)', () => {
+      expect(r).toContain('conf_level = 0.95,')
+      const r90 = emit('logistic-regression', setup({ outcome: ['union'], predictors: ['educ', 'exper'] }, { event: 'yes', reportOR: true, ci: '90%' }))
+      expect(r90).toContain('conf_level = 0.9,')
+      // mirrors logisticRegression.ts: pROC::ci.auc is called WITHOUT conf.level in the app runner
+      expect(r90).toContain('print(pROC::ci.auc(roc_obj))')
+    })
     it('emits the single overall LR omnibus chi-square (null - residual deviance), not the sequential anova table', () => {
       // mirrors logisticRegression.ts: omnibus = null.deviance - deviance, df = df.null - df.residual,
       // p = pchisq(omnibus, df, lower.tail = FALSE). The old per-term anova(m, test = "Chisq") was wrong.
@@ -100,6 +120,12 @@ describe('regression / econometrics emitters', () => {
     it('emits no offset term when no exposure column is assigned', () => {
       const r = emit('poisson-negative-binomial', setup({ outcome: ['wage'], predictors: ['educ'] }, { model: 'Poisson' }))
       expect(r).not.toContain('offset(')
+    })
+    it("threads the CI pill into modelsummary and flips with the option ('90%' -> 0.9)", () => {
+      const r95 = emit('poisson-negative-binomial', setup({ outcome: ['wage'], predictors: ['educ'] }, { model: 'Poisson', ci: '95%' }))
+      expect(r95).toContain('conf_level = 0.95,')
+      const r90 = emit('poisson-negative-binomial', setup({ outcome: ['wage'], predictors: ['educ'] }, { model: 'Poisson', ci: '90%' }))
+      expect(r90).toContain('conf_level = 0.9,')
     })
     it('emits the fitted-vs-Pearson-residual figure', () => {
       const r = emit('poisson-negative-binomial', setup({ outcome: ['wage'], predictors: ['educ'] }, { model: 'Poisson' }))

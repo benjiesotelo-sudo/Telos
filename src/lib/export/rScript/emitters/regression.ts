@@ -25,9 +25,11 @@ const BLUE = '#0c447c', LIGHT = '#9cc2ec', ORANGE = '#c8781e'
 export const regressionEmitters: Record<string, Emitter> = {
   'simple-linear-regression': (_spec, setup) => {
     const y = setup.roles['outcome'][0], x = setup.roles['predictor'][0]
+    // R2 CI-pill parity: the app's confint(m, level=) uses the chosen level -> modelsummary conf_level matches.
+    const level = ciOf(setup.options['ci'])
     return [
       `m <- lm(${y} ~ ${x}, data = d)`,
-      modelsummaryCall('m', { gof: 'lm' }),
+      modelsummaryCall('m', { gof: 'lm', level }),
       `print(ggplot(d, aes(${x}, ${y})) + geom_point() + geom_smooth(method = "lm"))`,
     ].join('\n')
   },
@@ -77,12 +79,15 @@ export const regressionEmitters: Record<string, Emitter> = {
     const rhs = preds.join(' + ')
     // event: the chosen positive level (B2 level-select); fall back to the second distinct level.
     const event = String(setup.options['event'] ?? distinctLevels(ds, y)[1] ?? '')
+    // R2 CI-pill parity: the app's confint(m, level=) uses the chosen level -> modelsummary conf_level matches.
+    // pROC::ci.auc stays at its default: the app calls it without conf.level (AUC CI is fixed 95%).
+    const level = ciOf(setup.options['ci'])
     return [
       `# re-level the outcome so the chosen event becomes glm's SECOND factor level`,
       `oth <- setdiff(sort(unique(as.character(d$${y}))), ${q(event)})`,
       `d$${y} <- factor(as.character(d$${y}), levels = c(oth, ${q(event)}))`,
       `m <- glm(${y} ~ ${rhs}, family = binomial, data = d)`,
-      modelsummaryCall('m', { gof: 'glm', exponentiate: true }),
+      modelsummaryCall('m', { gof: 'glm', exponentiate: true, level }),
       `# omnibus chi-square + pseudo-R2 (report-only footer stats)`,
       `# single overall likelihood-ratio omnibus: null - residual deviance (mirrors logisticRegression.ts)`,
       `omnibus <- m$null.deviance - m$deviance`,
@@ -118,6 +123,8 @@ export const regressionEmitters: Record<string, Emitter> = {
     const exposure = setup.roles['exposure']?.[0] ?? null
     const negbin = String(setup.options['model'] ?? 'Poisson') === 'negative binomial'
     const rhs = exposure ? `${preds.join(' + ')} + offset(log(${exposure}))` : preds.join(' + ')
+    // R2 CI-pill parity: the app's confint(m, level=) uses the chosen level -> modelsummary conf_level matches.
+    const level = ciOf(setup.options['ci'])
     const fit = negbin
       ? `m <- MASS::glm.nb(${y} ~ ${rhs}, data = d)`
       : `m <- glm(${y} ~ ${rhs}, family = poisson, data = d)`
@@ -125,7 +132,7 @@ export const regressionEmitters: Record<string, Emitter> = {
     const dispComment = negbin ? `# negative-binomial dispersion (theta)` : `# Poisson dispersion ratio (overdispersion)`
     return [
       fit,
-      modelsummaryCall('m', { gof: 'glm', exponentiate: true }),
+      modelsummaryCall('m', { gof: 'glm', exponentiate: true, level }),
       dispComment,
       `print(${disp})`,
       `# Figure - fitted vs. Pearson residuals`,

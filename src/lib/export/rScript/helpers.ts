@@ -50,12 +50,15 @@ export function factorLines(setup: { roles: Record<string, string[]> }, _spec: u
     .join('\n')
 }
 
-/** The canonical report-only modelsummary() call (spike §3): no stars, SE + CI beneath, GOF footer silently dropping rows a family lacks. */
-export function modelsummaryCall(modelVar: string, opts: { gof?: string; exponentiate?: boolean } = {}): string {
+/** The canonical report-only modelsummary() call (spike §3): no stars, SE + CI beneath, GOF footer silently dropping rows a family lacks.
+ *  `level` (R2 CI-pill parity): when given, conf_level= is emitted so the script's CI matches the app's
+ *  confint(m, level=) at the chosen level. Omitted keeps the call byte-identical to the pre-R2 form. */
+export function modelsummaryCall(modelVar: string, opts: { gof?: string; exponentiate?: boolean; level?: number } = {}): string {
   const stat = opts.exponentiate ? '"conf.int"' : 'c("std.error", "conf.int")'
   const head = opts.exponentiate ? '"Odds ratio"' : '"(1)"'
   const exp = opts.exponentiate ? 'exponentiate = TRUE, ' : ''
-  return `modelsummary(list(${head} = ${modelVar}), ${exp}statistic = ${stat}, stars = FALSE, fmt = 3, ` +
+  const lvl = opts.level !== undefined ? `conf_level = ${opts.level}, ` : ''
+  return `modelsummary(list(${head} = ${modelVar}), ${exp}${lvl}statistic = ${stat}, stars = FALSE, fmt = 3, ` +
     'gof_map = c("nobs", "r.squared", "adj.r.squared", "aic", "bic", "logLik", "rmse"), output = "markdown")'
 }
 

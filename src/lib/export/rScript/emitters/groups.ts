@@ -98,14 +98,16 @@ export const groupEmitters: Record<string, Emitter> = {
     const fv = (i: number) => `f${i + 1}`          // stable factor var names in the model data.frame + formula
     const rhs = factors.map((_f, i) => fv(i)).join(sep)
     const f1 = fv(0), f2 = factors.length > 1 ? fv(1) : fv(0)
+    // R2 CI-pill parity: the app threads level into eta_squared(ci=) and .telos_posthoc(..., level).
+    const level = conf(setup)
     return [
       `fad <- data.frame(.sid = factor(seq_along(${col(y)})), y = ${col(y)}, ${factors.map((f, i) => `${fv(i)} = factor(${col(f)})`).join(', ')})`,
       `bal <- data.frame(y = fad$y, cell = interaction(${factors.map((_f, i) => `fad$${fv(i)}`).join(', ')}, sep = " x "))`,
       `print(datasummary_balance(~cell, data = bal, dinm = FALSE))  # Table 1 cell descriptives (Arel-Bundock datasummary)`,
       `m <- afex::aov_car(y ~ ${rhs} + Error(.sid), data = fad, anova_table = list(es = "pes"))`,
       `print(m$anova_table)`,
-      `print(effectsize::eta_squared(m$lm, partial = TRUE))`,
-      factors.map((_f, i) => `print(summary(pairs(emmeans::emmeans(m, ~ ${fv(i)}), adjust = "tukey"), infer = TRUE))`).join('\n'),
+      `print(effectsize::eta_squared(m$lm, partial = TRUE, ci = ${level}))`,
+      factors.map((_f, i) => `print(summary(pairs(emmeans::emmeans(m, ~ ${fv(i)}), adjust = "tukey"), infer = TRUE, level = ${level}))`).join('\n'),
       `agg <- aggregate(list(m = fad$y), by = list(a = fad$${f1}, b = fad$${f2}), FUN = mean)`,
       `print(ggplot(agg, aes(a, m, group = b, colour = b)) + geom_line() + geom_point() + labs(x = NULL, y = NULL, colour = "${factors[1] ?? factors[0]}"))`,
     ].join('\n')

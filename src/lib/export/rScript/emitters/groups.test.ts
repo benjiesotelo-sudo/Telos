@@ -113,6 +113,15 @@ describe('group-comparison emitters', () => {
       expect(r).toContain('eta_squared')
       expect(r).toContain('geom_line')
     })
+    it('threads the CI pill into eta_squared + emmeans (R2: app uses ci=level and .telos_posthoc level); defaults 0.95', () => {
+      expect(r).toContain('eta_squared(m$lm, partial = TRUE, ci = 0.95)')
+      expect(r).toContain('infer = TRUE, level = 0.95)')
+    })
+    it("flips the level with the ci option ('90%' -> 0.9)", () => {
+      const d = emit('factorial-anova', setup({ outcome: ['y'], factors: ['g', 'f2'] }, { interactions: true, ci: '90%' }))
+      expect(d).toContain('eta_squared(m$lm, partial = TRUE, ci = 0.9)')
+      expect(d).toContain('infer = TRUE, level = 0.9)')
+    })
   })
 
   describe('repeated-measures-anova', () => {
