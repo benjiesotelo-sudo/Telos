@@ -19,6 +19,11 @@ import type { EfaLoadingRow } from './efa'
  *  `matched` is false (unequal indicator counts -> indProd(match=FALSE), see MODERATION_DISCLOSURE). */
 export interface ModerationRow {
   moderatorName: string; pathLabel: string
+  /** IV (source construct) display name, from ModerationDef.sourceDisplay (T5/R5, board-clearing
+   *  slice): the measurement table labels the interaction construct's group header
+   *  '<sourceDisplay>×<moderatorName> (product indicators)' - INT_<id> has no entry in the R side's
+   *  con_ids/con_names display map, so its cfaLoadings rows come back with construct = null. */
+  sourceDisplay: string
   b: number; se: number; z: number; p: number; stdBeta: number
   ciPercLower: number; ciPercUpper: number; ciBcLower: number; ciBcUpper: number
   matched: boolean; disclosure?: string
@@ -812,6 +817,7 @@ export async function runCbSem(
             // BARE path label ("SN → TI") - the builder composes "<pathLabel> × <moderatorName>"
             // (buildCbSem.ts Table 5); pre-composing here doubled the moderator in the rendered row.
             pathLabel: def.pathLabel,
+            sourceDisplay: def.sourceDisplay,
             b: row.b, se: row.se, z: row.z, p: row.p, stdBeta: row.stdBeta,
             ciPercLower: row.ciPercLower, ciPercUpper: row.ciPercUpper,
             ciBcLower: row.ciBcLower, ciBcUpper: row.ciBcUpper,

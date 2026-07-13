@@ -66,7 +66,8 @@ const base: CbSemResult = {
   ],
   moderation: {
     rows: [
-      { moderatorName: 'age', pathLabel: 'ind60 → dem60', b: 0.32, se: 0.11, z: 2.9, p: 0.004, stdBeta: 0.18,
+      { moderatorName: 'age', pathLabel: 'ind60 → dem60', sourceDisplay: 'ind60',
+        b: 0.32, se: 0.11, z: 2.9, p: 0.004, stdBeta: 0.18,
         ciPercLower: -0.05, ciPercUpper: 0.30, ciBcLower: -0.08, ciBcUpper: 0.27, matched: true },
     ],
     slopes: [],
@@ -218,6 +219,81 @@ describe('buildCbSem', () => {
   it('omits the disclosure note when every moderation row is matched (no disclosure)', () => {
     const c = buildCbSem(SPEC, base)
     expect(c.notes!.find((n) => n.label === 'Moderation')!.text).not.toContain(MODERATION_DISCLOSURE)
+  })
+
+  // T5 (R5, board-clearing slice): the interaction construct INT_<id> is absent from the R side's
+  // con_ids/con_names display map, so its cfaLoadings rows arrive with construct = null - the
+  // measurement table rendered a literal "null" group header above the product-indicator rows
+  // (owner-seen in a real moderation run). The group must instead read
+  // '<IV>×<Moderator> (product indicators)' (multiplication sign, not the letter x), derived
+  // from the moderation's construct names. Reliability cells keep today's no-reliability-row
+  // sentinel behavior - ONLY the label changes.
+  it('labels the product-indicator group "<IV>×<Moderator> (product indicators)", never null (R5)', () => {
+    const r: CbSemResult = {
+      ...base,
+      cfaLoadings: [
+        ...base.cfaLoadings,
+        // the runner's real interaction-row payload: construct = null, items = indProd product names
+        { construct: null, item: 'x1.m1', b: 1, se: 0, z: 0, p: 0, stdLoading: 0.81, rhs: 'x1.m1' },
+        { construct: null, item: 'x2.m2', b: 0.93, se: 0.08, z: 11.6, p: 0, stdLoading: 0.77, rhs: 'x2.m2' },
+      ],
+    }
+    const c = buildCbSem(SPEC, r)
+    const t1 = c.tables.find((t) => t.spec.id === 'cfa-loadings')!
+    const groups = t1.rows.filter((row) => row.__group !== undefined)
+    expect(groups.map((row) => row.__group)).toEqual(['ind60', 'ind60×age (product indicators)'])
+    // reliability columns keep the sentinel the group already renders (label-only fix, R5 ruling)
+    expect(groups[1]).toMatchObject({ omega: '—', alpha: '—', cr: '—', ave: '—' })
+    // the literal string "null" appears in NO rendered cell of the measurement table
+    for (const row of t1.rows) {
+      for (const v of Object.values(row)) expect(String(v)).not.toContain('null')
+    }
+  })
+
+  // R5 follow-through: with TWO moderation edges the interaction groups' null rows sit ADJACENT in
+  // cfaLoadings (model-syntax order), so the builder must split the run by product-indicator count
+  // (semTools::indProd - matched: one per source item; unmatched: all source x moderator pairs,
+  // counts read off itemStats) or the second edge would silently merge under the first header.
+  it('two moderation edges: adjacent interaction groups get separate, correctly split headers (R5)', () => {
+    const r: CbSemResult = {
+      ...base,
+      moderation: {
+        rows: [
+          base.moderation!.rows[0], // ind60 × age, matched -> 2 product indicators (ind60 has 2 items)
+          { ...base.moderation!.rows[0], moderatorName: 'inc', sourceDisplay: 'dem60',
+            pathLabel: 'dem60 → dem65', matched: false }, // unmatched -> 1 source item × 2 moderator items
+        ],
+        slopes: [],
+      },
+      itemStats: [
+        ...base.itemStats,
+        { construct: 'dem60', item: 'y1', mean: 3.0, sd: 1.0, n: 75 },
+        { construct: 'inc', item: 'i1', mean: 2.0, sd: 0.5, n: 75 },
+        { construct: 'inc', item: 'i2', mean: 2.2, sd: 0.6, n: 75 },
+      ],
+      cfaLoadings: [
+        ...base.cfaLoadings,
+        { construct: null, item: 'x1.m1', b: 1, se: 0, z: 0, p: 0, stdLoading: 0.81, rhs: 'x1.m1' },
+        { construct: null, item: 'x2.m2', b: 0.93, se: 0.08, z: 11.6, p: 0, stdLoading: 0.77, rhs: 'x2.m2' },
+        { construct: null, item: 'y1.i1', b: 1, se: 0, z: 0, p: 0, stdLoading: 0.62, rhs: 'y1.i1' },
+        { construct: null, item: 'y1.i2', b: 0.88, se: 0.12, z: 7.3, p: 0, stdLoading: 0.58, rhs: 'y1.i2' },
+      ],
+    }
+    const c = buildCbSem(SPEC, r)
+    const t1 = c.tables.find((t) => t.spec.id === 'cfa-loadings')!
+    const groups = t1.rows.filter((row) => row.__group !== undefined)
+    expect(groups.map((row) => row.__group)).toEqual([
+      'ind60',
+      'ind60×age (product indicators)',
+      'dem60×inc (product indicators)',
+    ])
+    // the split lands on the right rows: each interaction header is followed by ITS two product items
+    const paths = t1.rows.map((row) => String(row.__group ?? row.path))
+    expect(paths).toEqual([
+      'ind60', 'x1', 'x2',
+      'ind60×age (product indicators)', 'x1.m1', 'x2.m2',
+      'dem60×inc (product indicators)', 'y1.i1', 'y1.i2',
+    ])
   })
 
   // Fix round (U3-T5 review findings, item 1): the Moderation note dropped a methodological clause

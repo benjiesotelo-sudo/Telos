@@ -75,10 +75,35 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   if (!isPath && r.cfaLoadings.length) {
     const relByConstruct = new Map(r.reliability.map((row) => [String(row.construct), row]))
     const itemByKey = new Map(r.itemStats.map((s) => [`${s.construct}::${s.item}`, s]))
+
+    // T5 (R5, board-clearing slice): the interaction construct (INT_<id>, buildModerationLines) has
+    // no entry in the con_ids/con_names display map the R side attaches construct names with, so its
+    // rows arrive here with construct = null - String(null) rendered a literal "null" group header.
+    // Label each such group '<IV>×<Moderator> (product indicators)' from the moderation rows instead
+    // (same order as the null runs: mod_rows and the INT_ measurement lines are both emitted in
+    // setup.moderations order, and lavaan's solution keeps model-syntax order). Runs of null rows are
+    // split by product-indicator count (semTools::indProd - matched: one per source item; unmatched:
+    // all source × moderator pairs; item counts read off itemStats), so ADJACENT interaction groups
+    // from 2+ moderation edges keep separate headers. Reliability/descriptive lookups keep missing
+    // for these groups (an interaction construct has no reliability row) - the sentinel cells the
+    // group rendered before this fix are unchanged; ONLY the label changes.
+    const nItems = (name: string) => r.itemStats.filter((s) => s.construct === name).length
+    const intGroups = (r.moderation?.rows ?? []).map((row) => ({
+      label: `${row.sourceDisplay}×${row.moderatorName} (product indicators)`,
+      count: row.matched ? nItems(row.sourceDisplay) : nItems(row.sourceDisplay) * nItems(row.moderatorName),
+    }))
+    let gi = 0
+    let taken = 0
+    const interactionLabel = () => {
+      if (gi + 1 < intGroups.length && taken >= intGroups[gi].count) { gi += 1; taken = 0 }
+      taken += 1
+      return intGroups[gi]?.label ?? '(product indicators)'
+    }
+
     const rows: BuiltTable['rows'] = []
     let lastConstruct: string | null = null
     for (const row of r.cfaLoadings) {
-      const construct = String(row.construct)
+      const construct = row.construct == null ? interactionLabel() : String(row.construct)
       if (construct !== lastConstruct) {
         const rel = relByConstruct.get(construct)
         rows.push({
