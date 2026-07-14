@@ -9,6 +9,7 @@ import { SPECS } from '../lib/registry/catalog'
 import { RUNNERS } from '../lib/results/builders'
 import { getEngine } from '../lib/webr/getEngine'
 import { categoriesOf, propsArray, propsSumOk, strictlyPositive, defaultEventLevel } from '../lib/data/props'
+import { hasWlsmvOrdinalIndicator } from '../lib/stats/semEndogeneity'
 
 export type StepId = 'welcome' | 'upload' | 'guide' | 'configure-data' | 'pick-tests' | `test:${string}` | 'results'
 export interface FileInfo { name: string; rows: number; cols: number; encoding: string }
@@ -232,21 +233,14 @@ const syncLevelSelect = (s: SessionState, testId: string, roleId: string, setup:
   return { ...setup, options: { ...setup.options, [opt.id]: value } }
 }
 
-/** R7 (board-clearing slice): can this setup validly hold estimator 'WLSMV'? Mirrors SemControls'
- *  option-greying condition (`hasModeration || !hasOrdinalIndicator`, Amendment B) - the two must
- *  stay in sync until T11's shared semEndogeneity helper centralizes the derivations.
- *  Latent mode: at least one construct item is ordinal-level AND no moderation edge exists
- *  (latent moderation's indProd() approach is ML-family-only). Path mode: at least one PLACED
- *  ordinal column is ENDOGENOUS (some path's `to` points at it) - lavaan only assigns thresholds
- *  to endogenous ordered variables. */
+/** R7 (board-clearing slice): can this setup validly hold estimator 'WLSMV'? The ordinal-indicator
+ *  derivation is semEndogeneity.ts's hasWlsmvOrdinalIndicator - the SAME call SemControls' option
+ *  greying makes (T11/R13), so the two cannot drift. The moderation gate stays here: latent
+ *  moderation's indProd() approach is ML-family-only. */
 export const wlsmvAllowed = (setup: TestSetup, columns: ColumnMeta[]): boolean => {
   if ((setup.moderations ?? []).length > 0) return false
   const level = new Map(columns.map((c) => [c.name, c.level]))
-  if (setup.modelKind === 'path') {
-    const paths = setup.paths ?? []
-    return (setup.placed ?? []).some((name, i) => level.get(name) === 'ordinal' && paths.some((p) => p.to === i))
-  }
-  return (setup.constructs ?? []).some((c) => c.items.some((item) => level.get(item) === 'ordinal'))
+  return hasWlsmvOrdinalIndicator(setup, (col) => level.get(col))
 }
 
 /** Re-evaluate every later gate after an upstream edit: keep still-valid work, block invalid configs

@@ -84,3 +84,31 @@ describe('path-analysis - observed-only CB-SEM picker entry', () => {
     expect(gateOk(oneCol, 'test:path-analysis')).toBe(false)
   })
 })
+
+// T11/R13 (board-clearing slice): consistency pins for the owner-visible registry strings. Every other
+// SEM-family card pins these against its spec twin (docs/specs/telos_test_outputs.html), but the twin
+// has NO path-analysis card (path analysis was added post-twin as a picker entry that reuses the CB-SEM
+// output card, and the twin is byte-pinned read-only), so these are SELF-REFERENTIAL pins against
+// literal expected strings - same drift protection, no twin to compare to. A deliberate wording change
+// updates the literal here in the same commit (the point: silent drift fails loudly, on the exact string).
+describe('path-analysis - owner-visible string pins (self-referential; the spec twin has no path-analysis card)', () => {
+  it('options are pinned: three display-only entries (ids/labels/values/kind)', () => {
+    expect(PATH_ANALYSIS.options).toEqual([
+      { id: 'estimator', label: 'estimator', value: 'WLSMV (ordinal) / ML / MLR', kind: 'display' },
+      { id: 'missing', label: 'missing', value: 'listwise (default) / FIML / pairwise', kind: 'display' },
+      { id: 'bootstrap', label: 'bootstrap resamples', value: '5000', kind: 'display' },
+    ])
+  })
+  it('rMap is pinned verbatim', () => {
+    expect(PATH_ANALYSIS.rMap).toBe(
+      'lavaan::sem(estimator=, missing=, ordered=) on observed variables (regressions only; no =~) → fit · lavaan::fitMeasures() → Table 1 (fit indices, df > 0 only; suppressed when fitMeasures(fit,"df") == 0, saturated) · standardizedSolution() + lavInspect(fit,"rsquare") → Table 2 (structural paths + R²) · auto := indirect-effect definitions + bootstrap (boot.ci.type="perc", R = 5000) → Table 3 (indirect effects) · semPlot::semPaths() → figure (rectangles = observed)',
+    )
+  })
+  it('table note is pinned verbatim (kind, text, placement)', () => {
+    expect(PATH_ANALYSIS.tableNote).toEqual({
+      kind: 'plain',
+      text: 'Path analysis fits directed relationships among observed variables (lavaan::sem) - no latent measurement model, so no CFA loadings, reliability, or AVE are reported. When the model is saturated (df = 0, e.g. a single-mediator X → M → Y chain), it fits the data perfectly by construction and global fit indices (χ², CFI, TLI, RMSEA, SRMR) are not reported; an over-identified model (df > 0) reports fit, interpreting RMSEA cautiously at small df / small N (Kenny, Kaniskan & McCoach, 2015). Indirect (mediated) effects are tested with bias-uncorrected percentile bootstrap 95% CIs (5,000 resamples; MacKinnon, Lockwood & Williams, 2004); an interval excluding 0 indicates a credible indirect effect.',
+      afterTableId: 'indirect-effects',
+    })
+  })
+})

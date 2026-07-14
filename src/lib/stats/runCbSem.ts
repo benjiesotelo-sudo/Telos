@@ -6,6 +6,7 @@ import { runCfaReliability, type CfaConstructResult } from './cfaReliability'
 import { isSaturated } from './semSaturation'
 import { lvNames } from './lvName'
 import { semFitArgs, semFitMeasureNames, type SemFitArgs, type SemEstimator } from './semFitArgs'
+import { semEndogeneity } from './semEndogeneity'
 import {
   validateModerations, buildModerationLines, moderationIndProdEnv, INDPROD_R,
   MODERATION_DISCLOSURE, type ModerationDef,
@@ -648,25 +649,12 @@ export async function runCbSem(
   // observed columns; latent mode: the items) so a dataset column outside this model never reaches
   // lavaan's `ordered = c(...)`.
   //
-  // Amendment B (path mode only, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md): a
-  // PLACED ordinal column only declares `ordered=` when it is ENDOGENOUS in the drawn paths (some
-  // path's `to` is that column's construct id) -- lavaan applies threshold semantics only to
-  // endogenous ordered variables; declaring an exogenous one warns ("no thresholds") and changes
-  // nothing numerically (T1 spike evidence). Exogenous ordinal columns are downgraded to 'scale' here
-  // (so semFitArgs never adds them to orderedRaw) and surfaced separately via exogenousOrdinals for
-  // the card's disclosure. Latent mode is unaffected: every ordinal item is still declared regardless
-  // of its role in the structural model (untouched H1 behavior).
-  const endogenousIds = isPath ? new Set(paths.map((p) => p.to)) : null
-  const isEndogenous = (raw: string) => endogenousIds!.has(constructByName.get(raw)!.id)
-  const indicatorLevels: Record<string, string> = Object.fromEntries(
-    usedCols.map((raw) => {
-      const level = columnLevels[raw] ?? 'scale'
-      return [raw, isPath && level === 'ordinal' && !isEndogenous(raw) ? 'scale' : level]
-    }),
-  )
-  const exogenousOrdinals = isPath
-    ? usedCols.filter((raw) => (columnLevels[raw] ?? 'scale') === 'ordinal' && !isEndogenous(raw))
-    : []
+  // Amendment B (path mode only): the exogenous-ordinal downgrade + disclosure derivation lives in
+  // semEndogeneity.ts (T11/R13) - the ONE source shared with the export emitter, so app and export
+  // downgrade the SAME columns by construction. Latent mode is unaffected (untouched H1 behavior).
+  const { indicatorLevels, exogenousOrdinals } = semEndogeneity({
+    isPath, constructs, paths, domain: usedCols, columnLevels,
+  })
   const fitArgs = semFitArgs({
     estimator: String(setup.options['estimator'] ?? 'ML'),
     missing: missingSetting,

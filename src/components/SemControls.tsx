@@ -2,6 +2,7 @@
 import { useSession } from '../state/session'
 import type { TestSetup } from '../state/session'
 import { CB_SEM_DEFAULT_MISSING } from '../lib/stats/runCbSem'
+import { hasWlsmvOrdinalIndicator } from '../lib/stats/semEndogeneity'
 
 export const BOOTSTRAP_PRESETS = [1000, 5000, 10000] as const
 
@@ -244,19 +245,13 @@ export function SemControls({ testId }: { testId: string }) {
   const columnLevel = new Map(s.columns.map((c) => [c.name, c.level]))
   const isPath = setup.modelKind === 'path'
   const placed = setup.placed ?? []
-  const paths = setup.paths ?? []
-  // Amendment B (docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md): path-mode WLSMV
-  // enablement requires a PLACED ordinal column that is ENDOGENOUS in the drawn paths (some
-  // path's `to` is that column's placed-index) - lavaan only assigns thresholds to endogenous
-  // ordered variables; exogenous ordinal predictors enter numerically with no warning. This is
-  // dynamic with drawing: it re-derives from the live setup on every render. Latent mode's rule
-  // (any ordinal item among construct indicators) is unchanged.
+  // Amendment B WLSMV enablement (path mode: a PLACED ordinal column that is ENDOGENOUS in the drawn
+  // paths; latent mode: any ordinal item among construct indicators): the derivation is
+  // semEndogeneity.ts's hasWlsmvOrdinalIndicator - the SAME call session.ts's wlsmvAllowed reset
+  // guard makes (T11/R13), so greying and auto-reset cannot drift. Re-derives from the live setup on
+  // every render (dynamic with drawing).
   const hasPlacedOrdinal = isPath && placed.some((name) => columnLevel.get(name) === 'ordinal')
-  const hasEndogenousOrdinal = isPath && placed.some((name, i) =>
-    columnLevel.get(name) === 'ordinal' && paths.some((p) => p.to === i))
-  const hasOrdinalIndicator = isPath
-    ? hasEndogenousOrdinal
-    : (setup.constructs ?? []).some((c) => c.items.some((item) => columnLevel.get(item) === 'ordinal'))
+  const hasOrdinalIndicator = hasWlsmvOrdinalIndicator(setup, (col) => columnLevel.get(col))
   return (
     <SemControlsUI
       track={track}

@@ -9,6 +9,7 @@ import { moderationIndProdEnv, INDPROD_R, MODERATION_DISCLOSURE, moderatorMainEf
 import { BC_CI_R } from '../../../stats/plsBcCi'
 import { INTERACTION_PLOT_R, CB_INTERACTION_POINTS_R } from '../../../stats/interactionPlot'
 import { semFitArgs, semFitMeasureNames, type SemFitArgs } from '../../../stats/semFitArgs'
+import { semEndogeneity } from '../../../stats/semEndogeneity'
 import { EFA_STAGE_R } from '../../../stats/semEfaStage'
 
 // Latent variable / SEM family. Mirrors the stats modules' R verbatim - same calls, same design rationale.
@@ -507,24 +508,12 @@ export const latentEmitters: Record<string, Emitter> = {
     const indicatorDomain = isPath ? nameDomain : usedCols
     const indicatorNameOf = isPath ? nameOf : itemNameOf
 
-    // Amendment B (path mode only, docs/superpowers/specs/2026-07-11-path-mode-wlsmv-design.md):
-    // mirrors runCbSem.ts's isEndogenous/indicatorLevels downgrade EXACTLY - a placed ordinal column only
-    // declares `ordered=` when it is ENDOGENOUS in the drawn paths (some path's `to` is that column's
-    // construct id); an exogenous ordinal column is downgraded to 'scale' here (so semFitArgs never adds
-    // it to orderedRaw) and surfaced separately via exogenousOrdinals for the disclosure comment below.
-    // Latent mode is unaffected (endogenousIds stays null, isEndogenous is never called).
-    const constructByName = new Map(constructs.map((c) => [c.name, c]))
-    const endogenousIds = isPath ? new Set(paths.map((p) => p.to)) : null
-    const isEndogenous = (raw: string) => endogenousIds!.has(constructByName.get(raw)!.id)
-    const indicatorLevels: Record<string, string> = Object.fromEntries(
-      indicatorDomain.map((raw) => {
-        const level = columnLevels[raw] ?? 'scale'
-        return [raw, isPath && level === 'ordinal' && !isEndogenous(raw) ? 'scale' : level]
-      }),
-    )
-    const exogenousOrdinals = isPath
-      ? indicatorDomain.filter((raw) => (columnLevels[raw] ?? 'scale') === 'ordinal' && !isEndogenous(raw))
-      : []
+    // Amendment B (path mode only): the exogenous-ordinal downgrade + disclosure derivation is the
+    // SAME semEndogeneity.ts call runCbSem.ts makes (T11/R13) - export ≡ app by construction, not by
+    // parallel maintenance. Latent mode is unaffected (the helper never downgrades there).
+    const { indicatorLevels, exogenousOrdinals } = semEndogeneity({
+      isPath, constructs, paths, domain: indicatorDomain, columnLevels,
+    })
     const fitArgs = semFitArgs({
       estimator: String(setup.options['estimator'] ?? 'ML'),
       missing: String(setup.options['missing'] ?? CB_SEM_DEFAULT_MISSING),
