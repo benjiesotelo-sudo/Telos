@@ -207,7 +207,18 @@ const REPS: Rep[] = [
         { from: 2, to: 3 },
       ],
     },
-    expect: ['Table 1: Measurement model', 'Table 2: HTMT', 'Table 3: Structural paths'],
+    expect: ['Table 1: Measurement model', 'Table 2: HTMT', 'Table 3: Structural paths',
+      // R6 (Hair 2019 completeness) needles - native-R verified 2026-07-14 (R 4.6.0, seminr 2.5.0;
+      // seed-independent estimate_pls point estimates, so the %.6f strings are stable):
+      //   f² Image->Expectation=0.3505897754, Image->Satisfaction=0.5128647213,
+      //      Expectation->Satisfaction=0.0705561085 (s$fSquare);
+      //   inner VIF (s$vif_antecedents): both Satisfaction antecedents = 1.3505897754; Expectation has a
+      //   single antecedent -> seminr NA (printed "."), emitted as the literal "NA". Sanity check: for
+      //   this triangle model VIF = 1/(1 - beta_ImEx²) = 1 + f²(Image->Expectation) exactly - the
+      //   matching .3505897754 digits are the algebra, not a copy-paste error.
+      'Image -> Expectation: f2=0.350590 VIF=NA',
+      'Image -> Satisfaction: f2=0.512865 VIF=1.350590',
+      'Expectation -> Satisfaction: f2=0.070556 VIF=1.350590'],
   },
 
   // pls-sem moderation: full 7-construct mobi model (moderation spike §3 / plsSem.test.ts's MOBI_MOD_SETUP)

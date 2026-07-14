@@ -48,7 +48,25 @@ describe('plsSem registry stays faithful to the amended output card (verbatim, c
     expect(card).toContain('<div class="apa-cap"><b>Table 1.</b> Measurement model</div>')
   })
   it('Table 3 (structural paths) thead matches the spec columns', () => {
-    expect(theadAfter('Structural paths')).toEqual(tableCols('structural'))
+    // R6 normalization (justified): Hair et al. (2019) completeness added f² (effect size, checklist
+    // step 4) and inner VIF (structural collinearity, step 1) as Table 3 columns AFTER the spec twin
+    // (docs/specs/telos_test_outputs.html) was byte-pinned read-only. Drop exactly those two leaves
+    // before comparing - content-preserving, same discipline as the R4 bundle-line map below; the two
+    // columns themselves are pinned by the dedicated R6 test underneath.
+    expect(theadAfter('Structural paths')).toEqual(tableCols('structural').filter((l) => l !== 'f²' && l !== 'VIF'))
+  })
+  // R6 (Hair 2019 completeness): the two post-twin Table 3 additions, pinned by key and position
+  // (between p and the spanned CI groups) so the thead filter above can never mask their absence.
+  it('Table 3 carries the R6 additions: f² and VIF columns between p and the CI groups', () => {
+    const keys = spec.tables.find((t) => t.id === 'structural')!.columns.map((c) => c.key)
+    expect(keys).toEqual(['h', 'path', 'beta', 'p', 'f2', 'vif', 'ciPercLo', 'ciPercHi', 'ciBcLo', 'ciBcHi', 'result'])
+  })
+  // R6: which-tradition-when explainer + inner-VIF reading guidance live in the card note (plain
+  // language for thesis students; the CB-SEM card carries the mirrored explainer in its labelled notes).
+  it('tableNote explains which tradition to use when, and how to read inner VIF (R6)', () => {
+    expect(spec.tableNote!.text).toContain('Which tradition, when')
+    expect(spec.tableNote!.text).toMatch(/prediction-oriented/)
+    expect(spec.tableNote!.text).toMatch(/Inner VIF/)
   })
   it('Table 4 (structural quality) thead matches the spec columns', () => {
     expect(theadAfter('Structural model quality')).toEqual(tableCols('structural-quality'))

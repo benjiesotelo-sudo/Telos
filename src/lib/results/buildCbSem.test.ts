@@ -170,13 +170,27 @@ describe('buildCbSem', () => {
     const clean: CbSemResult = { ...base, cfaLoadings: [], reliability: [], rsquare: undefined, moderation: undefined, indirect: undefined, bootstrapped: true, nboot: 10000 }
     const c = buildCbSem(SPEC, clean)
     // H1 wiring (task 6): 'Estimation' is a NEW always-present note, inserted right after 'Estimator'.
-    expect(c.notes!.map((n) => n.label)).toEqual(['Scope', 'Cutoffs', 'Estimator', 'Estimation', 'R²', 'Caution', 'Discriminant validity', 'Indirect effects', 'Moderation'])
+    // R6 (board-clearing slice): 'Tradition' appended - the which-tradition-when explainer both SEM
+    // cards now carry (CB = confirmatory/factor-based/global fit; PLS = prediction/composite/no global
+    // fit by design). Pin updated in the same commit as the note, per the consistency-test discipline.
+    expect(c.notes!.map((n) => n.label)).toEqual(['Scope', 'Cutoffs', 'Estimator', 'Estimation', 'R²', 'Caution', 'Discriminant validity', 'Indirect effects', 'Moderation', 'Tradition'])
     expect(c.notes!.find((n) => n.label === 'Cutoffs')!.text).toContain('CFI/TLI ≥ .95')
     expect(c.notes!.find((n) => n.label === 'Discriminant validity')).toMatchObject({
       text: 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.',
       afterTableId: 'htmt',
     })
     expect(c.note).toBeNull() // CB-SEM renders notes, not the legacy single note
+  })
+
+  // R6 RED: the which-tradition-when explainer (owner-ruled, board-clearing slice) - plain language for
+  // thesis students choosing between the two SEM cards; wording kept 1:1 with the clause appended to
+  // CB_SEM.tableNote (the legacy field's content-preserving mapping to these labelled notes).
+  it('Tradition note names both traditions and why PLS-SEM shows no fit-index table (R6)', () => {
+    const c = buildCbSem(SPEC, base)
+    const tradition = c.notes!.find((n) => n.label === 'Tradition')!.text
+    expect(tradition).toContain('confirmatory and factor-based')
+    expect(tradition).toContain('prediction-oriented and composite-based')
+    expect(tradition).toContain('no global fit indices by design')
   })
 
   it('R² note: one line per endogenous construct, keyed by construct id and named via structural toName', () => {

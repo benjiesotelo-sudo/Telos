@@ -71,6 +71,9 @@ export interface PlsSemResult {
 //   - bootstrapped_loadings / bootstrapped_weights rows are keyed ITEM-FIRST: "IMAG1  ->  Image"
 //     (NOT "Image  ->  IMAG1"); bootstrapped_paths rows are construct-first: "Image  ->  Expectation".
 //   - $validity$vif_items is a NAMED LIST keyed by construct name (vif_items[["Name"]][item]), not a matrix.
+//   - $vif_antecedents (inner-model VIF, R6) is a NAMED LIST keyed by ENDOGENOUS construct; each element
+//     is a named vector of predictor VIFs, with a logical-NA placeholder (printed ".") when the target
+//     has a single antecedent (verified native R 4.6.0 / seminr 2.5.0, 2026-07-14).
 //   - $fSquare is a predictor×outcome matrix (fSquare[from, to]).
 //   - $reliability raw columns are alpha / rhoC / AVE / rhoA (indexed by name).
 //   - $validity$htmt is lower-triangle populated: htmt[row=later, col=earlier].
@@ -187,9 +190,14 @@ htmt_cells <- lapply(seq_len(k), function(i) {
   })
 })
 
-# ---- Structural paths: β + t/p + dual 95% CI (percentile + hand-rolled BC) + f² ----
+# ---- Structural paths: β + t/p + dual 95% CI (percentile + hand-rolled BC) + f² + inner VIF ----
 bp <- sb$bootstrapped_paths       # rows "From  ->  To"
 fsq <- s$fSquare                   # square matrix: fSquare[from, to]
+# Inner-model VIF (R6, Hair et al. 2019 structural checklist step 1): s$vif_antecedents is a named LIST
+# keyed by ENDOGENOUS construct; each element is a named vector of that construct's predictors' VIFs.
+# A single-antecedent target carries seminr's NA placeholder (printed ".") - surfaced as NA -> null,
+# rendered as a dash (collinearity is undefined with one predictor).
+vif_ant <- tryCatch(s$vif_antecedents, error = function(e) NULL)
 estimate_paths <- list()
 structural <- lapply(seq_along(path_from), function(e) {
   fr <- path_from_name[e]; to <- path_to_name[e]
@@ -208,7 +216,11 @@ structural <- lapply(seq_along(path_from), function(e) {
     ciUpper = as.numeric(bp[key, "97.5% CI"]),
     ciBcLower = as.numeric(bcc[1]),
     ciBcUpper = as.numeric(bcc[2]),
-    fSquare = as.numeric(fsq[fr, to])
+    fSquare = as.numeric(fsq[fr, to]),
+    vif = {
+      v <- if (is.null(vif_ant) || !(to %in% names(vif_ant))) NA else suppressWarnings(as.numeric(vif_ant[[to]][fr]))
+      if (length(v) == 0 || is.na(v)) NA else v
+    }
   )
 })
 

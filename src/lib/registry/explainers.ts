@@ -1007,6 +1007,12 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
       interpret: () => 'Each H-row is one drawn structural path, numbered in creation order.' },
     { key: 'beta', term: 'β (path coefficient)', meaning: 'The standardized structural path coefficient - PLS-SEM path coefficients are already on the standardized/composite scale.',
       interpret: () => "Each H-row's β is that path's own standardized coefficient." },
+    // R6 (Hair 2019 completeness): the two Table 3 additions - effect size (checklist step 4) and
+    // structural collinearity (step 1).
+    { key: 'f2', term: 'f² (effect size)', meaning: "How much one path contributes to its target construct's R² - roughly 0.02 small, 0.15 medium, 0.35 large (Cohen, 1988).",
+      interpret: () => "Each H-row's f² is that path's own contribution to its target construct's explained variance." },
+    { key: 'vif', term: 'VIF (inner model)', meaning: "Collinearity among the predictors of a path's target construct - below 3 is ideal, above 5 signals collinearity problems (Hair et al., 2019); a dash marks a single-predictor target, where collinearity is undefined.",
+      interpret: () => "Each H-row's VIF is checked before its path is interpreted; a dashed cell means that target has only one predictor, not a missing value." },
     { key: 'ciPercLo', term: 'Percentile 95% CI - lower bound', meaning: 'The lower bound of the primary bootstrap confidence interval for a structural path.',
       interpret: () => "Each H-row's percentile-CI lower bound, with its upper bound, is what the Result column is derived from." },
     { key: 'ciPercHi', term: 'Percentile 95% CI - upper bound', meaning: 'The upper bound of the primary bootstrap confidence interval for a structural path.',
@@ -1018,7 +1024,8 @@ export const EXPLAINERS: Record<string, Explainer[]> = {
     { key: 'result', term: 'Result', meaning: "Whether a structural path's percentile CI excludes zero (Supported) or straddles it (Not supported), at α = .05.",
       interpret: () => "Each H-row's Result reads directly off whether its own percentile CI excludes zero." },
     { key: 'r2', term: 'R²', meaning: "The share of an endogenous construct's variance explained by the paths pointing into it.",
-      interpret: () => "Each endogenous construct's row shows its own R² (with R²adj alongside); f² for each incoming path is reported in the note below." },
+      // R6: f² moved from the note line into Table 3's own f² column - cross-reference updated to match.
+      interpret: () => "Each endogenous construct's row shows its own R² (with R²adj alongside); f² for each incoming path is in Table 3's f² column." },
     { key: 'r2adj', term: 'R²_adj', meaning: 'R² adjusted for the number of predictor paths into that construct.',
       interpret: () => "Each construct's R²adj sits beside its R², adjusting for the number of incoming paths." },
     { key: 'q2', term: 'Q²', meaning: 'A measure of predictive relevance for an endogenous construct - values above zero indicate the model has predictive relevance for it (Hair et al., 2019).',

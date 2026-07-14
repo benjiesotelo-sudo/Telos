@@ -53,6 +53,16 @@ describe('pls-sem emitter', () => {
     expect(R).toContain('Q^2_predict')
   })
 
+  // R6 (Hair 2019 completeness) RED: the app card's Table 3 now carries f² + inner VIF columns, so the
+  // exported script must print the same values (app == export parity - `fsq <- s$fSquare` was previously
+  // assigned but NEVER printed: the app showed f² while analysis.R did not reproduce it).
+  it('pls-sem emitter prints inner VIF and f² per structural path (R6)', () => {
+    const R = latentEmitters['pls-sem'](SPEC, SETUP, { columns: [], rows: [] } as never)
+    expect(R).toContain('vif_ant <- s$vif_antecedents')
+    expect(R).toContain('--- Table 3 (cont.): inner VIF & f^2 per path ---')
+    expect(R).toContain('f2=%.6f VIF=%s')
+  })
+
   it('handles an empty model gracefully', () => {
     const R = latentEmitters['pls-sem'](SPEC, { ...SETUP, constructs: [] }, { columns: [], rows: [] } as never)
     expect(R).toContain('# No constructs defined')

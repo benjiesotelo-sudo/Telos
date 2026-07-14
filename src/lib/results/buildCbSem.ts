@@ -450,6 +450,14 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       notes.push({ label: 'Indirect effects', text: 'The indirect-effects section of Table 5 appears only when the drawn structural paths form a chain (X → M → Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI.', afterTableId: 'structural-paths' })
       if (ciNoteText) notes.push({ label: 'CIs', text: ciNoteText, afterTableId: 'structural-paths' })
       notes.push({ label: 'Moderation', text: disclosureText ? `${modStatic} ${disclosureText}` : modStatic })
+      // R6 (board-clearing slice): which-tradition-when explainer, owner-ruled onto BOTH SEM cards.
+      // Wording kept 1:1 with the clause appended to CB_SEM.tableNote (the legacy field's content-
+      // preserving mapping to these labelled notes); the PLS-SEM card carries the mirrored explainer
+      // in its own registry note. Plain language for thesis students choosing between the two cards.
+      notes.push({
+        label: 'Tradition',
+        text: 'CB-SEM is confirmatory and factor-based - it tests a theory-derived measurement and structural model and is judged by global fit indices (CFI/TLI/RMSEA/SRMR). PLS-SEM (its own card) is prediction-oriented and composite-based and reports no global fit indices by design. Prefer CB-SEM to test an established theory; prefer PLS-SEM to predict key outcomes, for smaller samples, or when constructs are formative (Hair et al., 2019).',
+      })
     }
     // R1: E1/E2 provenance, rendered inline right after Table E2 whenever the stage ran (its fixed
     // choices have no on-card selectors, so the note is the disclosure) - appended in the saturated

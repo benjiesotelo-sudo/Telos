@@ -1023,6 +1023,7 @@ export const latentEmitters: Record<string, Emitter> = {
       '# ---- Table 3: Structural paths (β + t/p + dual 95% CI: percentile & hand-rolled BC) ----',
       'bp <- sb$bootstrapped_paths',
       'fsq <- s$fSquare',
+      'vif_ant <- s$vif_antecedents',
     ]
 
     // Same row order as the app runner: drawn paths, auto-injected moderator main effects, interactions —
@@ -1055,6 +1056,20 @@ export const latentEmitters: Record<string, Emitter> = {
       ')',
       'cat("\\n--- Table 3: Structural paths ---\\n")',
       'print(struct_tab)',
+      '',
+      '# ---- Table 3 (cont.): f² + inner VIF per path (R6; Hair, Risher, Sarstedt & Ringle 2019 -',
+      '# collinearity is checklist step 1, effect sizes step 4). These are Table 3 COLUMNS on the app',
+      '# card; printed as their own compact block here so the wide struct_tab data.frame stays stable.',
+      '# vif_ant is a named list keyed by endogenous construct; a single-antecedent target carries',
+      "# seminr's NA placeholder (the app renders a dash - collinearity is undefined with one predictor).",
+      'cat("\\n--- Table 3 (cont.): inner VIF & f^2 per path ---\\n")',
+      'for (e in seq_along(path_from_all)) {',
+      '  fr <- path_from_all[e]; to <- path_to_all[e]',
+      '  vif_e <- suppressWarnings(as.numeric(vif_ant[[to]][fr]))',
+      '  if (length(vif_e) == 0) vif_e <- NA',
+      '  vif_s <- if (is.na(vif_e)) "NA" else sprintf("%.6f", vif_e)',
+      '  cat(sprintf("  %s -> %s: f2=%.6f VIF=%s\\n", fr, to, as.numeric(fsq[fr, to]), vif_s))',
+      '}',
       '',
       '# ---- Table 4: Structural quality (R² / R²adj / Q²_predict) ----',
       'paths_tbl <- s$paths',

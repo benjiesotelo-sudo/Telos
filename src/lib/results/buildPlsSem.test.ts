@@ -37,7 +37,9 @@ const R: PlsSemResult = {
   ],
   htmt: { labels: ['Image', 'Expectation'], cells: [[null, null], [0.41, null]] },
   structural: [
-    { path: 'Image → Expectation', beta: 0.30, t: 4.1, p: 0.001, ciLower: 0.16, ciUpper: 0.44, ciBcLower: 0.15, ciBcUpper: 0.43, fSquare: 0.10 },
+    // vif: null mirrors seminr's single-antecedent placeholder (s$vif_antecedents reports NA, printed
+    // ".", for a target with one predictor) - the realistic shape for this one-path fixture (R6).
+    { path: 'Image → Expectation', beta: 0.30, t: 4.1, p: 0.001, ciLower: 0.16, ciUpper: 0.44, ciBcLower: 0.15, ciBcUpper: 0.43, fSquare: 0.10, vif: null },
   ],
   quality: [
     { construct: 'Expectation', r2: 0.092, r2adj: 0.090, q2: 0.05 },
@@ -137,12 +139,28 @@ describe('buildPlsSem', () => {
     expect(table.rows[1].result).toBe('Not supported') // percentile CI [-.0722, .0399] straddles zero
   })
 
-  // U6-T3 RED: f² is not a structural-table column any more (dual CIs took its place) — it must reach the
-  // R² note line, keyed by target construct, never vanish as a silently-unrendered orphan row key.
-  it('the R²/f² note line reports f² per incoming path, not as a silent orphan row key', () => {
+  // R6 (Hair 2019 completeness) RED: f² returns to Table 3 as a real column (checklist step 4) joined
+  // by inner VIF (checklist step 1, structural collinearity); a single-antecedent target has no defined
+  // VIF (seminr reports NA) and renders the house em-dash, never a fabricated 1.00.
+  it('structural rows carry f² and inner VIF columns; single-antecedent VIF renders a dash (R6)', () => {
+    const content = buildPlsSem(SPEC, { ...R, structural: [
+      ...R.structural,
+      { path: 'Image → Satisfaction', beta: 0.58, p: 0.001, ciLower: 0.50, ciUpper: 0.66, ciBcLower: 0.49, ciBcUpper: 0.65, fSquare: 0.5129, vif: 1.3506 },
+    ] })
+    const table = content.tables.find((t) => t.spec.id === 'structural')!
+    expect(table.rows[0].f2).toBe('0.10')
+    expect(table.rows[0].vif).toBe('—')   // single antecedent: null -> em dash
+    expect(table.rows[1].f2).toBe('0.51')
+    expect(table.rows[1].vif).toBe('1.35')
+  })
+
+  // R6 flips U6-T3's arrangement: with f² a Table 3 column again, the dynamic R²/f² note line is gone -
+  // R² already has its own quality table (Table 4), so the note would only duplicate both values. The
+  // bootstrap-count disclosure (Andrews & Buchinsky) still appends to the registry note unchanged.
+  it('the note no longer carries the dynamic R²/f² line (f² is a Table 3 column now, R6)', () => {
     const content = buildPlsSem(PLS_SEM, R)
-    expect(content.note!.text).toMatch(/R²\(Expectation\)/)
-    expect(content.note!.text).toMatch(/f²/i)
+    expect(content.note!.text).not.toMatch(/R²\(/)
+    expect(content.note!.text).toContain('Bias-corrected CIs benefit from') // nboot defaults to 5000 (< 7000)
   })
 
   it('emits the indirect-effects table only when present', () => {

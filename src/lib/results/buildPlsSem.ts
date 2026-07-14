@@ -79,35 +79,22 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
     const hiN = hi == null ? NaN : Number(hi)
     return !Number.isFinite(loN) || !Number.isFinite(hiN) ? DASH : loN > 0 || hiN < 0 ? 'Supported' : 'Not supported'
   }
+  // R6 (Hair et al. 2019 completeness): f² (checklist step 4) and inner VIF (structural collinearity,
+  // step 1) are Table 3 columns - f² returns from U6-T3's note-line arrangement now that the column
+  // exists again, and VIF comes from seminr's s$vif_antecedents (null for a single-antecedent target,
+  // where collinearity is undefined -> em dash, never a fabricated 1.00).
   const t3rows = r.structural.map((row, i) => ({
     h: `H${i + 1}`,
     path: String(row.path),
     beta: fc(row.beta),
     p: fpFmt(row.p),
+    f2: f2(row.fSquare),
+    vif: f2(row.vif),
     ciPercLo: fc(row.ciLower), ciPercHi: fc(row.ciUpper),
     ciBcLo: fc(row.ciBcLower), ciBcHi: fc(row.ciBcUpper),
     result: result(row.ciLower, row.ciUpper),
   }))
   tables.push({ spec: tableById('structural'), rows: t3rows })
-
-  // R²/f² note line (mirrors CB-SEM's R² note-line pattern, U3-T3): one line per endogenous construct's
-  // R², with each incoming path's f² parenthesized alongside its source construct — since f² is no longer
-  // a structural-table column (dual CIs took its place), it joins the note instead of becoming a silent,
-  // unrendered row key. Path strings are always built R-side as "From → To" (plsSem.ts), so splitting on
-  // the arrow recovers the source/target names without a second field on the row.
-  let r2NoteText: string | null = null
-  if (r.quality.length) {
-    r2NoteText = r.quality
-      .map((q) => {
-        const target = String(q.construct)
-        const incoming = r.structural.filter((row) => String(row.path).split(' → ')[1] === target)
-        const fParts = incoming
-          .map((row) => `${String(row.path).split(' → ')[0]}=${f2(row.fSquare)}`)
-          .join(', ')
-        return `R²(${target}) = ${fc(q.r2)}${fParts ? ` (f² ${fParts})` : ''}`
-      })
-      .join('; ')
-  }
 
   // Andrews & Buchinsky (2000) bootstrap-count disclosure (mirrors CB-SEM's note exactly) — PLS-SEM's
   // structural table always bootstraps (seminr's estimate_pls has no closed-form SE path), so this note
@@ -168,9 +155,11 @@ export function buildPlsSem(spec: TestSpec, r: PlsSemResult): CardContent {
       : undefined,
   ].filter((x): x is NonNullable<typeof x> => x != null)
 
-  // Dynamic note extras (R²/f² line + bootstrap-count disclosure) append to the static registry note
-  // text, same append pattern as CB-SEM's PATH_ANALYSIS legacy branch (buildCbSem.ts).
-  const noteExtras = [r2NoteText, bootNoteText].filter((s): s is string => !!s)
+  // Dynamic note extras append to the static registry note text, same append pattern as CB-SEM's
+  // PATH_ANALYSIS legacy branch (buildCbSem.ts). The U6-T3 R²/f² note line is retired by R6: f² is a
+  // Table 3 column again and R² has its own quality table (Table 4), so the note would only duplicate
+  // both. Only the bootstrap-count disclosure remains dynamic.
+  const noteExtras = [bootNoteText].filter((s): s is string => !!s)
   const note: CardContent['note'] = spec.tableNote
     ? { ...spec.tableNote, text: noteExtras.length ? `${spec.tableNote.text} ${noteExtras.join(' ')}` : spec.tableNote.text }
     : noteExtras.length

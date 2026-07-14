@@ -35,6 +35,12 @@ import type { Dataset } from './types'
 //   Q²_predict (PLSpredict, set.seed(20260620) before predict_pls; mean over a construct's indicators):
 //     Expectation=0.030362  Satisfaction=0.031243  (derived for THIS 3-construct sub-model — NOT the
 //     spike's full-model 0.043/0.039). Image is exogenous → no out-of-sample column → no Q² (not in table).
+//   Inner VIF (R6, s$vif_antecedents; native R 4.6.0 / seminr 2.5.0, 2026-07-14) + unrounded f²:
+//     VIF Image->Satisfaction = Expectation->Satisfaction = 1.3505897754 ; Image->Expectation has a
+//     SINGLE antecedent -> seminr reports a logical-NA placeholder (printed ".") -> surfaced as null.
+//     f² Image->Expectation=0.3505897754  Image->Satisfaction=0.5128647213  Expectation->Satisfaction=0.0705561085
+//     (all seed-independent estimate_pls point estimates; sanity check: for this triangle model
+//     VIF = 1/(1 - beta_ImEx²) = 1 + f²(Image->Expectation) exactly, and the digits agree).
 // Mixed fixture (reflective Image + FORMATIVE Expectation): suppresses AVE/HTMT row for Expectation,
 //   reports outer WEIGHTS for its indicators, indicator VIF, weight significance.
 
@@ -106,8 +112,20 @@ describe('plsSem', () => {
     expect(r.outer.length).toBe(11)
     expect(typeof r.outer[0].loading).toBe('number')
 
-    // f² present on structural rows; r2 keyed by numeric id in estimates
-    expect(typeof r.structural[0].fSquare).toBe('number')
+    // f² + inner VIF on structural rows (R6, Hair 2019 completeness), pinned to the native-R references
+    // in the file header (seed-independent estimate_pls point estimates; 7dp per h1Pins' comparison rule).
+    // Image → Expectation is a SINGLE-antecedent target: seminr's vif_antecedents placeholder is NA,
+    // surfaced as null - never a fabricated 1.00.
+    const rowImEx = r.structural.find((row) => row.path === 'Image → Expectation')!
+    const rowImSa = r.structural.find((row) => row.path === 'Image → Satisfaction')!
+    const rowExSa = r.structural.find((row) => row.path === 'Expectation → Satisfaction')!
+    expect(Number(rowImEx.fSquare)).toBeCloseTo(0.3505897754, 7)
+    expect(Number(rowImSa.fSquare)).toBeCloseTo(0.5128647213, 7)
+    expect(Number(rowExSa.fSquare)).toBeCloseTo(0.0705561085, 7)
+    expect(rowImEx.vif).toBeNull()
+    expect(Number(rowImSa.vif)).toBeCloseTo(1.3505897754, 7)
+    expect(Number(rowExSa.vif)).toBeCloseTo(1.3505897754, 7)
+    // r2 keyed by numeric id in estimates
     expect(typeof r.estimates.r2[3]).toBe('number')
 
     // BC CI (U6-T3) — hand-rolled via plsBcCi.ts's bc_ci() on bo$boot_paths["Image","Expectation",];

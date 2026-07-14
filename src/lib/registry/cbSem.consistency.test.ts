@@ -182,6 +182,14 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
       expect(tds[idx]).toMatch(/^\.\d{2}$/)
     }
   })
+  // R6 (board-clearing slice): which-tradition-when explainer on BOTH SEM cards. CB-SEM's lives in the
+  // built labelled notes (the live surface, label 'Tradition') AND in the legacy tableNote - the U3-T5
+  // split's 1:1 content-preserving mapping is kept by appending the same clause to both in one commit.
+  it('documents the which-tradition-when explainer (R6) in both the labelled notes and the legacy tableNote', () => {
+    expect(staticNotesText()).toContain('confirmatory and factor-based')
+    expect(spec.tableNote!.text).toContain('confirmatory and factor-based')
+    expect(spec.tableNote!.text).toContain('no global fit indices by design')
+  })
   it('question matches', () => {
     expect(strip(card.match(/<span class="rt-q">(.*?)<\/span>/)![1])).toBe(spec.question)
   })
