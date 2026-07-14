@@ -1071,3 +1071,104 @@ describe('runAll threads Configure-data column levels into the CB-SEM fit (H1 wi
     spy.mockRestore()
   })
 })
+
+// R7 (board-clearing slice): a stored 'WLSMV' estimator must reset to 'ML' the moment its enabling
+// condition breaks (same reset discipline as syncLevelSelect: the stored option follows its enabling
+// inputs). The guard lives in revalidated() - the ONE seam every edit()-routed mutation flows through -
+// so removePath/removeColumn/addModeration/setColumnLevel/toggleConstructItem/re-upload are all covered
+// without per-action code. `estimatorFallback` surfaces the reset as a hint in SemControls.
+describe('WLSMV auto-fallback (R7): stored WLSMV resets to ML when its enabling condition breaks', () => {
+  const col = (name: string, level: 'ordinal' | 'interval'): import('../lib/data/columnMeta').ColumnMeta =>
+    ({ name, detected: 'float64', tags: [], level, used: true })
+  const PATH_ID = 'path-analysis'
+  const LATENT_ID = 'cb-sem'
+  const setupOf = (id: string) => useSession.getState().setups[id]
+
+  // Path mode: b1 (ordinal) is endogenous via a1 -> b1, so WLSMV is validly stored.
+  const seedPath = () => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: [PATH_ID],
+      columns: [col('b1', 'ordinal'), col('a1', 'interval')],
+      setups: { [PATH_ID]: { roles: {}, options: { estimator: 'WLSMV' }, props: {}, blocked: null,
+        modelKind: 'path', constructs: [], placed: ['b1', 'a1'], paths: [{ from: 1, to: 0 }] } },
+    })
+  }
+  // Latent mode: construct A carries the ordinal item o1, so WLSMV is validly stored.
+  const seedLatent = () => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: [LATENT_ID],
+      columns: [col('o1', 'ordinal'), col('q2', 'interval'), col('q3', 'interval'), col('q4', 'interval'), col('q5', 'interval'), col('q6', 'interval')],
+      setups: { [LATENT_ID]: { roles: {}, options: { estimator: 'WLSMV' }, props: {}, blocked: null, modelKind: 'latent',
+        constructs: [{ id: 1, name: 'A', items: ['o1', 'q2'] }, { id: 2, name: 'B', items: ['q3', 'q4'] }, { id: 3, name: 'M', items: ['q5', 'q6'] }],
+        paths: [{ from: 1, to: 2 }] } },
+    })
+  }
+
+  it('path: removing the path into the last ordinal outcome resets estimator to ML and flags the fallback', () => {
+    seedPath()
+    useSession.getState().removePath(PATH_ID, 0)
+    expect(setupOf(PATH_ID).options.estimator).toBe('ML')
+    expect(setupOf(PATH_ID).estimatorFallback).toBe(true)
+  })
+
+  it('path: removing the ordinal-endogenous node (back to the shelf) resets estimator to ML', () => {
+    seedPath()
+    useSession.getState().removeColumn(PATH_ID, 'b1')
+    expect(setupOf(PATH_ID).options.estimator).toBe('ML')
+    expect(setupOf(PATH_ID).estimatorFallback).toBe(true)
+  })
+
+  it('path: re-levelling the ordinal outcome to interval (Configure-data back-edit) resets estimator to ML', () => {
+    seedPath()
+    useSession.getState().setColumnLevel('b1', 'interval')
+    expect(setupOf(PATH_ID).options.estimator).toBe('ML')
+    expect(setupOf(PATH_ID).estimatorFallback).toBe(true)
+  })
+
+  it('path: restoring eligibility (redrawing the path) clears the fallback flag; estimator stays ML (never auto-re-upgrades)', () => {
+    seedPath()
+    useSession.getState().removePath(PATH_ID, 0)
+    useSession.getState().addPath(PATH_ID, 1, 0)
+    expect(setupOf(PATH_ID).options.estimator).toBe('ML')
+    expect(setupOf(PATH_ID).estimatorFallback).toBeFalsy()
+  })
+
+  it('path: a manual estimator pick acknowledges (clears) the fallback flag', () => {
+    seedPath()
+    useSession.getState().removePath(PATH_ID, 0)
+    useSession.getState().setOption(PATH_ID, 'estimator', 'MLR')
+    expect(setupOf(PATH_ID).options.estimator).toBe('MLR')
+    expect(setupOf(PATH_ID).estimatorFallback).toBeFalsy()
+  })
+
+  it('latent: drawing a moderation edge (moderation is ML-only) resets estimator to ML and flags the fallback', () => {
+    seedLatent()
+    useSession.getState().addModeration(LATENT_ID, 3, 0)
+    expect(setupOf(LATENT_ID).options.estimator).toBe('ML')
+    expect(setupOf(LATENT_ID).estimatorFallback).toBe(true)
+  })
+
+  it('latent: un-toggling the last ordinal item resets estimator to ML', () => {
+    seedLatent()
+    useSession.getState().toggleConstructItem(LATENT_ID, 1, 'o1')
+    expect(setupOf(LATENT_ID).options.estimator).toBe('ML')
+    expect(setupOf(LATENT_ID).estimatorFallback).toBe(true)
+  })
+
+  it('latent: an edit that keeps the condition true leaves WLSMV stored, no flag', () => {
+    seedLatent()
+    useSession.getState().addPath(LATENT_ID, 2, 3)
+    expect(setupOf(LATENT_ID).options.estimator).toBe('WLSMV')
+    expect(setupOf(LATENT_ID).estimatorFallback).toBeFalsy()
+  })
+
+  it('a non-WLSMV estimator is never touched and never flagged by a condition-breaking edit', () => {
+    seedPath()
+    useSession.getState().setOption(PATH_ID, 'estimator', 'MLR')
+    useSession.getState().removePath(PATH_ID, 0)
+    expect(setupOf(PATH_ID).options.estimator).toBe('MLR')
+    expect(setupOf(PATH_ID).estimatorFallback).toBeFalsy()
+  })
+})

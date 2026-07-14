@@ -939,10 +939,16 @@ describe('buildCbSem - "Ordinal predictors" labelled note (Amendment B, path-mod
     expect(c.notes!.find((n) => n.label === 'Ordinal predictors')!.text).toContain('Ordinal predictor a1')
   })
 
-  it('is suppressed under saturation, same as every other dynamic note', () => {
+  it('renders on a SATURATED path model too - the data-treatment note is independent of fit (R8, board-clearing slice)', () => {
     const sat: CbSemResult = { ...path, exogenousOrdinals: ['a1'], saturated: true, fit: { ...base.fit!, df: 0 } }
     const c = buildCbSem(PATH_ANALYSIS, sat)
-    expect(c.notes!.find((n) => n.label === 'Ordinal predictors')).toBeUndefined()
+    const note = c.notes!.find((n) => n.label === 'Ordinal predictors')!
+    expect(note.text).toContain('Ordinal predictor a1')
+    // ONLY the disclosure's gate was lifted: the fit-indices table stays suppressed, the Saturation
+    // note still leads, and the other dynamic notes (Estimation etc.) stay saturation-suppressed.
+    expect(c.tables.some((t) => t.spec.id === 'fit-indices')).toBe(false)
+    expect(c.notes![0]).toMatchObject({ label: 'Saturation' })
+    expect(c.notes!.find((n) => n.label === 'Estimation')).toBeUndefined()
   })
 
   it('merged (latent-mode) branch also renders it when exogenousOrdinals happens to be populated (defensive; latent mode never populates it in practice)', () => {

@@ -266,6 +266,37 @@ describe('SemControlsUI - path-mode WLSMV hints (Amendment B: enablement follows
   })
 })
 
+// R7 (board-clearing slice): when the store's revalidated() guard auto-resets a stranded WLSMV to ML
+// (see session.ts), setup.estimatorFallback surfaces here as a one-sentence hint saying the reset
+// happened - wording adapted from the existing WLSMV-unavailability hints above.
+describe('SemControlsUI - WLSMV auto-fallback hint (R7: the store reset WLSMV to ML)', () => {
+  it('path mode: shows the reset hint with the ordinal-outcome wording', () => {
+    const html = renderUI({
+      track: 'cb-sem', modelKind: 'path', estimator: 'ML', hasOrdinalIndicator: false, estimatorFallback: true,
+    })
+    expect(html).toContain('Estimator reset to ML: WLSMV needs an ordinal outcome on the canvas')
+  })
+
+  it('latent mode with a moderation edge: shows the reset hint with the moderation wording', () => {
+    const html = renderUI({
+      estimator: 'ML', hasOrdinalIndicator: true, hasModeration: true, estimatorFallback: true,
+    })
+    expect(html).toContain('Estimator reset to ML: latent moderation forces an ML-family estimator')
+  })
+
+  it('latent mode without an ordinal indicator: shows the reset hint with the ordinal-indicator wording', () => {
+    const html = renderUI({
+      estimator: 'ML', hasOrdinalIndicator: false, estimatorFallback: true,
+    })
+    expect(html).toContain('Estimator reset to ML: WLSMV needs at least one ordinal indicator')
+  })
+
+  it('absent when the fallback never fired (default)', () => {
+    const html = renderUI({ estimator: 'ML', hasOrdinalIndicator: false })
+    expect(html).not.toContain('Estimator reset to ML')
+  })
+})
+
 describe('Step-4a missing-policy mismatch note (Task 2 behavior 4)', () => {
   it('shows the mismatch note: global "drop" vs SEM fiml', () => {
     const html = renderUI({ missing: 'fiml', globalMissingPolicy: 'drop' })

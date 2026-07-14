@@ -128,4 +128,23 @@ describe('SemControls (connected) - path-mode WLSMV enablement (Amendment B)', (
     const html = renderToStaticMarkup(<SemControls testId="cb-sem" />)
     expect(html).not.toContain('value="WLSMV" disabled=""')
   })
+
+  // R7 (board-clearing slice): the container forwards setup.estimatorFallback (set by the store's
+  // revalidated() guard when it auto-reset a stranded WLSMV to ML) so the reset hint renders.
+  it('R7: setup.estimatorFallback surfaces the "Estimator reset to ML" hint', () => {
+    setPath(
+      { placed: ['a1', 'cont2'], paths: [], options: { estimator: 'ML' }, estimatorFallback: true },
+      [col('a1', 'ordinal'), col('cont2', 'interval')]
+    )
+    const html = render()
+    expect(html).toContain('Estimator reset to ML: WLSMV needs an ordinal outcome on the canvas')
+  })
+
+  it('R7: no fallback flag, no reset hint', () => {
+    setPath(
+      { placed: ['a1', 'cont2'], paths: [], options: { estimator: 'ML' } },
+      [col('a1', 'ordinal'), col('cont2', 'interval')]
+    )
+    expect(render()).not.toContain('Estimator reset to ML')
+  })
 })

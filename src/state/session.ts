@@ -26,6 +26,11 @@ export interface TestSetup {
   // withPathModeConstructs. `nodePositions` holds drag-moved positions keyed by column NAME (not index,
   // which shifts on removal) - the path-mode analogue of latent's Construct.x/y.
   placed?: string[]; nodePositions?: Record<string, NodePosition>
+  // R7 (board-clearing slice): true while a stored 'WLSMV' estimator was auto-reset to 'ML' because
+  // its enabling condition broke (see wlsmvAllowed + the revalidated() guard). Surfaces the
+  // "Estimator reset to ML" hint in SemControls; cleared when eligibility returns or the user
+  // picks an estimator manually (setOption).
+  estimatorFallback?: boolean
 }
 export interface TestRun { result: unknown; stale: boolean }
 
@@ -227,6 +232,23 @@ const syncLevelSelect = (s: SessionState, testId: string, roleId: string, setup:
   return { ...setup, options: { ...setup.options, [opt.id]: value } }
 }
 
+/** R7 (board-clearing slice): can this setup validly hold estimator 'WLSMV'? Mirrors SemControls'
+ *  option-greying condition (`hasModeration || !hasOrdinalIndicator`, Amendment B) - the two must
+ *  stay in sync until T11's shared semEndogeneity helper centralizes the derivations.
+ *  Latent mode: at least one construct item is ordinal-level AND no moderation edge exists
+ *  (latent moderation's indProd() approach is ML-family-only). Path mode: at least one PLACED
+ *  ordinal column is ENDOGENOUS (some path's `to` points at it) - lavaan only assigns thresholds
+ *  to endogenous ordered variables. */
+export const wlsmvAllowed = (setup: TestSetup, columns: ColumnMeta[]): boolean => {
+  if ((setup.moderations ?? []).length > 0) return false
+  const level = new Map(columns.map((c) => [c.name, c.level]))
+  if (setup.modelKind === 'path') {
+    const paths = setup.paths ?? []
+    return (setup.placed ?? []).some((name, i) => level.get(name) === 'ordinal' && paths.some((p) => p.to === i))
+  }
+  return (setup.constructs ?? []).some((c) => c.items.some((item) => level.get(item) === 'ordinal'))
+}
+
 /** Re-evaluate every later gate after an upstream edit: keep still-valid work, block invalid configs
  *  with the reason, mark rendered results stale (the spec's navcap rules, in one place). */
 const revalidated = (s: SessionState): Pick<SessionState, 'setups' | 'runs'> => {
@@ -249,6 +271,17 @@ const revalidated = (s: SessionState): Pick<SessionState, 'setups' | 'runs'> => 
     if (next.modelKind === 'path' && next.placed?.length) {
       const dropIdx = new Set(next.placed.reduce<number[]>((acc, name, i) => (existingNames.has(name) ? acc : [...acc, i]), []))
       if (dropIdx.size) next = dropPlacedIndices(next, dropIdx)
+    }
+    // R7 (board-clearing slice): a stored 'WLSMV' whose enabling condition broke resets to 'ML' the
+    // moment it breaks (same reset discipline as syncLevelSelect - the stored option follows its
+    // enabling inputs). Guarded HERE, not per-action: revalidated() is the one seam every edit()-routed
+    // mutation flows through, so removePath/removeColumn/addModeration/setColumnLevel/toggle-item/
+    // re-upload are all covered regardless of which component is mounted. `estimatorFallback` drives
+    // the SemControls hint; it clears once eligibility returns (the hint would otherwise go stale).
+    if (next.options.estimator === 'WLSMV' && !wlsmvAllowed(next, s.columns)) {
+      next = { ...next, options: { ...next.options, estimator: 'ML' }, estimatorFallback: true }
+    } else if (next.estimatorFallback && wlsmvAllowed(next, s.columns)) {
+      next = { ...next, estimatorFallback: undefined }
     }
     setups[id] = next
   }
@@ -342,7 +375,10 @@ export const useSession = create<SessionState>((set, get) => {
       return { setups: { ...s.setups, [testId]: next } }
     }),
     setOption: (testId, optionId, value: boolean | number | string) => edit((s) => ({
-      setups: { ...s.setups, [testId]: { ...s.setups[testId], options: { ...s.setups[testId].options, [optionId]: value } } },
+      // R7: a manual estimator pick acknowledges (clears) the auto-fallback flag; revalidated() re-sets
+      // it if the picked value is 'WLSMV' while the enabling condition is still broken (defensive).
+      setups: { ...s.setups, [testId]: { ...s.setups[testId], options: { ...s.setups[testId].options, [optionId]: value },
+        ...(optionId === 'estimator' ? { estimatorFallback: undefined } : {}) } },
     })),
     setProp: (testId, category, value: number) => edit((s) => ({
       setups: { ...s.setups, [testId]: { ...s.setups[testId], props: { ...s.setups[testId].props, [category]: value } } },

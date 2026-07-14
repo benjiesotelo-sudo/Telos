@@ -9,12 +9,13 @@ import { placeColumns } from './fixtures/helpers'
 // runCbSem.test.ts): `b1 ~ a1 + cont1; b2 ~ b1`, ordered = c("b1","b2"), a1 stays numeric/exogenous.
 //
 // This model (not the bare 3-node `b1 ~ a1 + cont1` saturated regression) is deliberate: a single-
-// outcome regression is ALWAYS saturated (df=0), and buildCbSem.ts only emits the "Estimation" and
-// "Ordinal predictors" labelled notes on a NON-saturated path-mode card (saturated cards show only the
-// Saturation note). Adding the b2 <- b1 edge makes the model non-saturated (df=2) so those notes
-// actually render - while still being "fast, no bootstrap": WLSMV always uses delta-method CIs for
-// indirect effects (never bootstrap - that's an ML-only feature, confirmed by runCbSem.test.ts's
-// `result.ciMethod === 'delta'` assertion on this exact model).
+// outcome regression is ALWAYS saturated (df=0), and buildCbSem.ts only emits the "Estimation"
+// labelled note on a NON-saturated path-mode card (the "Ordinal predictors" disclosure now renders
+// on saturated cards too - R8, board-clearing slice - but "Estimation" still doesn't). Adding the
+// b2 <- b1 edge makes the model non-saturated (df=2) so both notes render - while still being
+// "fast, no bootstrap": WLSMV always uses delta-method CIs for indirect effects (never bootstrap -
+// that's an ML-only feature, confirmed by runCbSem.test.ts's `result.ciMethod === 'delta'`
+// assertion on this exact model).
 
 test('path-analysis WLSMV: shelf placement → ordinal-endogenous gate → run → ordinal disclosures → export', async ({ page }) => {
   test.setTimeout(600_000) // cold WebR boot + lavaan/semTools download; no bootstrap (WLSMV = delta-method CIs)
@@ -71,8 +72,39 @@ test('path-analysis WLSMV: shelf placement → ordinal-endogenous gate → run �
   await rect(3).click() // b2 (target)
   await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(3)
 
-  // ── 8. Select WLSMV, then run (fast - no bootstrap under WLSMV) ──
+  // ── 8. Select WLSMV ──
   await estimatorSelect.selectOption('WLSMV')
+
+  // ── 8b. R7 auto-fallback: deleting the ordinal-endogenous node b1 strands WLSMV -> the STORE
+  // resets the estimator to ML (revalidated() guard) and SemControls shows the reset hint. ──
+  await page.getByRole('button', { name: 'Delete' }).click()
+  await rect(0).click() // b1 back to the shelf; its 3 touching paths go with it
+  await expect(page.locator('rect.sem-node-rect[data-node-id]')).toHaveCount(3)
+  await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(0)
+  await expect(estimatorSelect).toHaveValue('ML')
+  await expect(estimationFieldset.getByRole('note').filter({ hasText: 'Estimator reset to ML' })).toBeVisible()
+
+  // ── 8c. Restore the PATH_WLSMV_STRUCT model in the ORIGINAL placement order (`ordered = c(...)`
+  // and the "Treated as ordinal" disclosure follow placed order, and steps 9-10 pin "b1, b2"): clear
+  // the remaining nodes, re-place all four, redraw the 3 paths. Eligibility returns, the reset hint
+  // clears, WLSMV is selectable again. ──
+  await rect(0).click() // a1 (delete mode still active)
+  await rect(0).click() // cont1 (ids shift down after each removal)
+  await rect(0).click() // b2
+  await expect(page.locator('rect.sem-node-rect[data-node-id]')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Draw path' }).click()
+  await placeColumns(page, ['b1', 'a1', 'cont1', 'b2']) // ids again: 0=b1, 1=a1, 2=cont1, 3=b2
+  await rect(1).click() // a1 (source)
+  await rect(0).click() // b1 (target)
+  await rect(2).click() // cont1 (source)
+  await rect(0).click() // b1 (target)
+  await rect(0).click() // b1 (source)
+  await rect(3).click() // b2 (target)
+  await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(3)
+  await expect(estimationFieldset.getByRole('note').filter({ hasText: 'Estimator reset to ML' })).toHaveCount(0)
+  await estimatorSelect.selectOption('WLSMV')
+
+  // ── 8d. Run (fast - no bootstrap under WLSMV) ──
   await page.getByRole('button', { name: 'Run analysis' }).click()
   await expect(page.getByRole('heading', { name: 'Results' })).toBeVisible({ timeout: 5_000 })
   await expect(page.locator('#table-path-analysis-structural-paths')).toBeVisible({ timeout: 300_000 })

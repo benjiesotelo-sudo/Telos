@@ -486,7 +486,11 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
           { label: 'Fit', text: 'When the model is saturated (df = 0, e.g. a single-mediator X → M → Y chain), it fits the data perfectly by construction and global fit indices (χ², CFI, TLI, RMSEA, SRMR) are not reported; an over-identified model (df > 0) reports fit, interpreting RMSEA cautiously at small df / small N (Kenny, Kaniskan & McCoach, 2015).', afterTableId: 'structural-paths' },
           { label: 'Indirect effects', text: 'Indirect (mediated) effects are tested with bias-uncorrected percentile bootstrap 95% CIs (5,000 resamples; MacKinnon, Lockwood & Williams, 2004); an interval excluding 0 indicates a credible indirect effect.', afterTableId: 'indirect-effects' },
         ]
-    if (!saturated && ordinalPredictorsNoteText) notes.push({ label: 'Ordinal predictors', text: ordinalPredictorsNoteText })
+    // R8 (board-clearing slice, owner ruling): the exogenous-ordinal disclosure renders on SATURATED
+    // path models too - how the data entered the fit is independent of whether fit indices are
+    // informative. Only this note's saturation gate was lifted; the fit-block suppression (and every
+    // other dynamic note's saturation collapse) stays.
+    if (ordinalPredictorsNoteText) notes.push({ label: 'Ordinal predictors', text: ordinalPredictorsNoteText })
     if (noteExtras.length) notes.push({ label: 'Notes', text: noteExtras.join(' ') })
   }
 

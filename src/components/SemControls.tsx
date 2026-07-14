@@ -63,6 +63,11 @@ export interface SemControlsUIProps {
    *  "nothing ordinal on the canvas at all" vs "an ordinal variable is placed but none is
    *  endogenous yet" (Amendment B). Unused outside path mode. */
   hasPlacedOrdinal?: boolean
+  /** R7 (board-clearing slice): true while the store's revalidated() guard auto-reset a stranded
+   *  'WLSMV' to 'ML' (the enabling condition broke - see session.ts's wlsmvAllowed). Renders a
+   *  one-sentence "Estimator reset to ML" hint; the store clears it when eligibility returns or
+   *  the user picks an estimator manually. */
+  estimatorFallback?: boolean
   /** Session-level Configure-data missing policy ('leave' | 'drop' | 'impute') - compared against
    *  the SEM-local missing choice for the step-4a mismatch note. */
   globalMissingPolicy: string
@@ -76,7 +81,7 @@ export interface SemControlsUIProps {
 /** Pure presentational bespoke controls — NOT generic option pills (locked stages, conditional greying, computed estimate). */
 export function SemControlsUI({
   track, modelKind, pipeline, efa, estimator, missing, nboot, running, hasModeration = false,
-  hasOrdinalIndicator, hasPlacedOrdinal = false, globalMissingPolicy,
+  hasOrdinalIndicator, hasPlacedOrdinal = false, estimatorFallback = false, globalMissingPolicy,
   onSetPipeline, onSetEfa, onSetEstimator, onSetMissing, onSetNboot,
 }: SemControlsUIProps) {
   const isCb = track === 'cb-sem'
@@ -167,6 +172,17 @@ export function SemControlsUI({
                 : 'WLSMV needs at least one ordinal indicator; all your indicators are scale-level - use ML or MLR.'}
             </p>
           )}
+          {estimatorFallback && (
+            // R7: the store auto-reset a stranded WLSMV to ML (revalidated() guard) - say so, in one
+            // sentence, wording adapted from the unavailability hints above (which state the remedy).
+            <p className="hint" role="note" style={{ marginTop: 4 }}>
+              {modelKind === 'path'
+                ? 'Estimator reset to ML: WLSMV needs an ordinal outcome on the canvas (a path drawn into an ordinal variable).'
+                : hasModeration
+                  ? 'Estimator reset to ML: latent moderation forces an ML-family estimator (ML or MLR).'
+                  : 'Estimator reset to ML: WLSMV needs at least one ordinal indicator.'}
+            </p>
+          )}
           {showStep4aMismatch && (
             <p className="hint" role="note" style={{ marginTop: 4 }}>
               {`Your Configure-data missing setting is "${STEP4A_POLICY_LABEL[globalMissingPolicy] ?? globalMissingPolicy}"; this SEM fit uses ${SEM_MISSING_LABEL[missing] ?? missing} instead.`}
@@ -254,6 +270,7 @@ export function SemControls({ testId }: { testId: string }) {
       hasModeration={(setup.moderations ?? []).length > 0}
       hasOrdinalIndicator={hasOrdinalIndicator}
       hasPlacedOrdinal={hasPlacedOrdinal}
+      estimatorFallback={!!setup.estimatorFallback}
       globalMissingPolicy={s.missingPolicy}
       onSetPipeline={(p) => s.setOption(testId, 'pipeline', p)}
       onSetEfa={(on) => s.setOption(testId, 'efa', on)}
