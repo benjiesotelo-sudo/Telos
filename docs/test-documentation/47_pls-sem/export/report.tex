@@ -51,17 +51,17 @@ intent & .37 & .26 & .24 & .32 &  \\
 \bottomrule
 \end{tabular}
 
-\begin{tabular}{lllllllll}
+\begin{tabular}{lllllllllll}
 \toprule
-H & Path & $\beta$ & p & \multicolumn{2}{c}{Percentile 95\% CI} & \multicolumn{2}{c}{BC 95\% CI} & Result \\
-\cmidrule(lr){5-6} \cmidrule(lr){7-8}
- &  &  &  & Lower & Upper & Lower & Upper &  \\
+H & Path & $\beta$ & p & f\textsuperscript{2} & VIF & \multicolumn{2}{c}{Percentile 95\% CI} & \multicolumn{2}{c}{BC 95\% CI} & Result \\
+\cmidrule(lr){7-8} \cmidrule(lr){9-10}
+ &  &  &  &  &  & Lower & Upper & Lower & Upper &  \\
 \midrule
-H1 & esg $\rightarrow$ intent & .35 & $<$.001 & .28 & .43 & .27 & .42 & Supported \\
-H2 & norm $\rightarrow$ intent & .28 & $<$.001 & .20 & .36 & .20 & .36 & Supported \\
-H3 & service\_quality $\rightarrow$ intent & .20 & $<$.001 & .12 & .28 & .12 & .27 & Supported \\
-H4 & attitude $\rightarrow$ intent & .25 & $<$.001 & .17 & .33 & .17 & .33 & Supported \\
-H5 & norm*attitude $\rightarrow$ intent & .22 & $<$.001 & .15 & .29 & .15 & .29 & Supported \\
+H1 & esg $\rightarrow$ intent & .35 & $<$.001 & 0.19 & 1.01 & .28 & .43 & .27 & .42 & Supported \\
+H2 & norm $\rightarrow$ intent & .28 & $<$.001 & --- & 1.03 & .20 & .36 & .20 & .36 & Supported \\
+H3 & service\_quality $\rightarrow$ intent & .20 & $<$.001 & 0.06 & 1.04 & .12 & .28 & .12 & .27 & Supported \\
+H4 & attitude $\rightarrow$ intent & .25 & $<$.001 & --- & 1.03 & .17 & .33 & .17 & .33 & Supported \\
+H5 & norm*attitude $\rightarrow$ intent & .22 & $<$.001 & 0.07 & 1.01 & .15 & .29 & .15 & .29 & Supported \\
 \bottomrule
 \end{tabular}
 
@@ -85,7 +85,7 @@ mean & .28 & 0.04 & $<$.001 & [.20, .36] \\
 
 \includegraphics{figures/01_pls-sem/figure_path-diagram.png}
 
-\includegraphics{figures/01_pls-sem/figure_simple-slopes.png}
+\includegraphics{figures/01_pls-sem/figure_interaction-plot.png}
 
 Like CB-SEM but variance-based and prediction-oriented (good for smaller samples / formative constructs). PLS-SEM does not use CB-SEM global fit indices (CFI/TLI/RMSEA) - judge it instead by reliability \& validity (CR, AVE, HTMT), then R\textsuperscript{2}, Q\textsuperscript{2} (predictive relevance) and f\textsuperscript{2}, with SRMR the only commonly reported approximate fit index. Read the bootstrapped path coefficients ($\beta$, p); f\textsuperscript{2} is each path's effect size (\textasciitilde{}0.02 small, 0.15 medium, 0.35 large).
 

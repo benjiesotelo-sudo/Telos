@@ -101,7 +101,7 @@ then compiling each LaTeX piece with tectonic. The three outputs share one run, 
 
 | # | Test | Question | Scenario |
 |---|---|---|---|
-| 46 | [CB-SEM](46_cb-sem/) | confirmatory structural model among latent constructs | Tourism ESG: does environmental attitude strengthen the norm-intention link (moderation, simple-slopes figure)? |
+| 46 | [CB-SEM](46_cb-sem/) | confirmatory structural model among latent constructs | Tourism ESG: does environmental attitude strengthen the norm-intention link (moderation, interaction-plot figure)? |
 | 47 | [PLS-SEM](47_pls-sem/) | variance-based structural model (prediction-oriented) | Tourism ESG: the same moderated structural model, estimated variance-based (PLS interaction_term). |
 | 48 | [Path analysis](48_path-analysis/) | directed-path model among observed variables | Tourism ESG: does ESG perception's effect on intention run partly through norm (observed composites)? |
 

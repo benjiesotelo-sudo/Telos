@@ -6,8 +6,8 @@ methods-paragraph summary, and credit the R packages your analysis.R depends on.
 
 1. CITE THIS APP
 ================
-Sotelo, B. (2026). Telos (v0.0.0) [Computer software]. https://doi.org/10.5281/zenodo.PLACEHOLDER
-  Retrieval-URL fallback (use until the DOI above resolves): https://github.com/PLACEHOLDER/telos
+Sotelo, B. (2026). Telos (v1.0.0) [Computer software]. https://doi.org/10.5281/zenodo.21281648
+  Source code: https://github.com/benjiesotelo-sudo/Telos
 
 2. YOUR REFERENCE LIST
 =======================

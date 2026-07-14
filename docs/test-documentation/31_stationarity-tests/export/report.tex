@@ -22,7 +22,7 @@ PP & $-$13.17 & 4 & .354 & non-stationary \\
 
 \includegraphics{figures/01_stationarity-tests/figure_acf.png}
 
-For ADF, a small p means stationary; for KPSS, a small p means non-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value. Method: R tseries package ADF/KPSS/PP (Dickey \& Fuller; Kwiatkowski, Phillips, Schmidt \& Shin, 1992; Phillips \& Perron, 1988). Your significance threshold ($\alpha$) is 0.05.
+For ADF, a small p means stationary; for KPSS, a small p means non-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value. Method: R tseries package ADF/KPSS/PP (Dickey \& Fuller; Kwiatkowski, Phillips, Schmidt \& Shin, 1992; Phillips \& Perron, 1988). Your significance threshold ($\alpha$) is 0.05. Tests run: ADF, KPSS, and Phillips--Perron.
 
 ADF gave $\tau$=$-$3.83, p = .020; KPSS gave LM=0.08, p $>$ .100; Phillips--Perron gave Z=$-$13.17, p = .354 ($\alpha$=0.05).
 

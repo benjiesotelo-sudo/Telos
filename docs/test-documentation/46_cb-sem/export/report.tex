@@ -36,7 +36,7 @@ Construct / Item & Mean & SD & B & SE & z & p & Std. loading & $\omega$ & $\alph
 \quad intent1 & $-$0.05 & 0.96 & 1.00 & 0.00 & 0 & $<$.001 & .83 &  &  &  &  \\
 \quad intent2 & $-$0.02 & 0.98 & 0.94 & 0.06 & 14.64 & $<$.001 & .76 &  &  &  &  \\
 \quad intent3 & $-$0.08 & 0.99 & 1.01 & 0.06 & 15.71 & $<$.001 & .81 &  &  &  &  \\
-\textit{null} & \textit{} & \textit{} & \textit{} & \textit{} & \textit{} & \textit{} & \textit{} & \textit{---} & \textit{---} & \textit{---} & \textit{---} \\
+\textit{norm$\times$attitude (product indicators)} & \textit{} & \textit{} & \textit{} & \textit{} & \textit{} & \textit{} & \textit{} & \textit{---} & \textit{---} & \textit{---} & \textit{---} \\
 \quad norm1.attitude1 & --- & --- & 1.00 & 0.00 & 0 & $<$.001 & .68 &  &  &  &  \\
 \quad norm2.attitude2 & --- & --- & 0.98 & 0.13 & 7.84 & $<$.001 & .63 &  &  &  &  \\
 \quad norm3.attitude3 & --- & --- & 0.97 & 0.13 & 7.64 & $<$.001 & .65 &  &  &  &  \\
@@ -66,6 +66,18 @@ norm & .10 &  &  &  &  \\
 service\_quality & .05 & .13 &  &  &  \\
 attitude & .03 & .03 & .14 &  &  \\
 intent & .37 & .26 & .23 & .31 &  \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{lccccccc}
+\toprule
+ & esg & norm & service\_quality & attitude & intent & Mean & SD \\
+\midrule
+esg & \textit{.78} &  &  &  &  & $-$0.04 & 0.83 \\
+norm & $-$.11 & \textit{.81} &  &  &  & $-$0.01 & 0.88 \\
+service\_quality & .00 & $-$.14 & \textit{.79} &  &  & $-$0.01 & 0.83 \\
+attitude & $-$.02 & $-$.03 & .16 & \textit{.81} &  & 0.06 & 0.86 \\
+intent & .37 & .26 & .23 & .32 & \textit{.80} & $-$0.05 & 0.86 \\
 \bottomrule
 \end{tabular}
 
@@ -104,7 +116,7 @@ mean & 0.30 & 0.05 & $<$.001 & [.20, .39] \\
 
 \includegraphics{figures/01_cb-sem/figure_path-diagram.png}
 
-\includegraphics{figures/01_cb-sem/figure_simple-slopes.png}
+\includegraphics{figures/01_cb-sem/figure_interaction-plot.png}
 
 First confirm the measurement model (loadings high, CR/AVE adequate) and overall fit indices. Then read the structural paths: each std. $\beta$ with p/CI is a hypothesized relationship between constructs; R\textsuperscript{2} shows variance explained in each outcome construct. CB-SEM is confirmatory: the measurement model must be specified from theory a priori - any post-hoc respecification (e.g. from modification indices) is exploratory, must be reported as such, and ideally cross-validated on a fresh sample.
 

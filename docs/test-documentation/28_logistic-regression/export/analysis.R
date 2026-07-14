@@ -14,7 +14,7 @@ d[["teaching_method"]] <- factor(d[["teaching_method"]])
 oth <- setdiff(sort(unique(as.character(d$passed_course))), "Yes")
 d$passed_course <- factor(as.character(d$passed_course), levels = c(oth, "Yes"))
 m <- glm(passed_course ~ pretest_score + study_hours_per_week + teaching_method, family = binomial, data = d)
-modelsummary(list("Odds ratio" = m), exponentiate = TRUE, statistic = "conf.int", stars = FALSE, fmt = 3, gof_map = c("nobs", "r.squared", "adj.r.squared", "aic", "bic", "logLik", "rmse"), output = "markdown")
+modelsummary(list("Odds ratio" = m), exponentiate = TRUE, conf_level = 0.95, statistic = "conf.int", stars = FALSE, fmt = 3, gof_map = c("nobs", "r.squared", "adj.r.squared", "aic", "bic", "logLik", "rmse"), output = "markdown")
 # omnibus chi-square + pseudo-R2 (report-only footer stats)
 # single overall likelihood-ratio omnibus: null - residual deviance (mirrors logisticRegression.ts)
 omnibus <- m$null.deviance - m$deviance

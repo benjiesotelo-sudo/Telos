@@ -2,7 +2,7 @@
 
 **Question:** confirmatory structural model among latent constructs
 
-**Scenario:** Tourism ESG: does environmental attitude strengthen the norm-intention link (moderation, simple-slopes figure)?
+**Scenario:** Tourism ESG: does environmental attitude strengthen the norm-intention link (moderation, interaction-plot figure)?
 
 ## Input configuration
 

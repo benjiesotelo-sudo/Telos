@@ -73,6 +73,29 @@ ave_vec <- semTools::AVE(fit_rel)
 cat("\n--- Table 4: Reliability & validity ---\n")
 print(round(rbind(CR = cr_vec, AVE = ave_vec[names(cr_vec)]), 3))
 
+# ---- Table 4a: combined correlation matrix (the app card's Table 3a) ----
+cm_names <- c("esg", "norm", "service_quality", "attitude", "intent")
+cm_items_flat <- c("esg1", "esg2", "esg3", "esg4", "norm1", "norm2", "norm3", "norm4", "service_quality1", "service_quality2", "service_quality3", "service_quality4", "attitude1", "attitude2", "attitude3", "attitude4", "intent1", "intent2", "intent3")
+cm_items_lens <- c(4, 4, 4, 4, 3)
+cor_lv <- lavInspect(fit_rel, "cor.lv")
+cm <- cor_lv[cm_names, cm_names]
+ave_cm <- ave_vec[cm_names]
+for (ci in seq_along(cm_names)) diag(cm)[ci] <- sqrt(ave_cm[ci])
+# Construct composites: each case scored as the unweighted mean of its items (rowMeans),
+# on the listwise-complete rows - the same sample the reliability CFA above fits.
+d_cm <- d[stats::complete.cases(d[, unique(cm_items_flat)]), , drop = FALSE]
+cm_mean <- numeric(length(cm_names)); cm_sd <- numeric(length(cm_names))
+item_start <- 1L
+for (ci in seq_along(cm_names)) {
+  len <- cm_items_lens[ci]
+  citems <- cm_items_flat[item_start:(item_start + len - 1L)]
+  item_start <- item_start + len
+  comp <- rowMeans(d_cm[, citems, drop = FALSE])
+  cm_mean[ci] <- mean(comp); cm_sd[ci] <- sd(comp)
+}
+cat("\n--- Table 4a: Construct correlations, means & SDs (sqrt(AVE) diagonal) ---\n")
+print(round(cbind(cm, Mean = cm_mean, SD = cm_sd), 3))
+
 # ---- Table 5: Fit indices (suppressed strictly when df == 0 - saturated) ----
 # Shared predicate: byte-identical to the app screen (src/lib/stats/semSaturation.ts R_SATURATED_PREDICATE).
 if (!(as.numeric(lavaan::fitMeasures(fit, "df")) == 0)) {
@@ -132,6 +155,46 @@ names(slope_tab)[names(slope_tab) == "ci.lower"] <- "perc.lower"
 names(slope_tab)[names(slope_tab) == "ci.upper"] <- "perc.upper"
 cat("\n--- Table 9: Conditional effects (simple slopes) ---\n")
 print(slope_tab)
+
+# ---- Figure: interaction plot (two-line Aiken-West chart; R4 owner ruling, default R styling) ----
+# Predicted outcome at IV -1SD/+1SD, one line per moderator level - computed from the SAME fitted
+# quantities as Table 9 (slope := defs + pmod/vmod labels), so the chart and the table cannot
+# disagree. Same R text as interactionPlot.ts (export = app).
+mod_source_name <- c("norm")
+mod_main_label <- c("pmod_1")
+ip_y_lo_lo <- numeric(0); ip_y_hi_lo <- numeric(0); ip_y_lo_hi <- numeric(0); ip_y_hi_hi <- numeric(0)
+if (length(mod_ids) > 0) {
+  ip_cov_lv <- lavaan::lavInspect(fit, "cov.lv")
+  for (mi in seq_along(mod_ids)) {
+    ip_sd_iv <- sqrt(ip_cov_lv[mod_source_name[mi], mod_source_name[mi]])
+    ip_sd_mod <- sqrt(pe$est[which(pe$label == paste0("vmod_", mod_ids[mi]) & pe$op == "~~")[1]])
+    ip_b_mod <- pe$est[which(pe$label == mod_main_label[mi] & pe$op == "~")[1]]
+    ip_slope_lo <- pe$est[which(pe$lhs == paste0("slope_lo_", mod_ids[mi]) & pe$op == ":=")[1]]
+    ip_slope_hi <- pe$est[which(pe$lhs == paste0("slope_hi_", mod_ids[mi]) & pe$op == ":=")[1]]
+    ip_y_lo_lo <- c(ip_y_lo_lo, -ip_sd_iv * ip_slope_lo - ip_b_mod * ip_sd_mod)
+    ip_y_hi_lo <- c(ip_y_hi_lo,  ip_sd_iv * ip_slope_lo - ip_b_mod * ip_sd_mod)
+    ip_y_lo_hi <- c(ip_y_lo_hi, -ip_sd_iv * ip_slope_hi + ip_b_mod * ip_sd_mod)
+    ip_y_hi_hi <- c(ip_y_hi_hi,  ip_sd_iv * ip_slope_hi + ip_b_mod * ip_sd_mod)
+  }
+}
+ip_edge_labels <- c("norm → intent × attitude")
+ip_iv_names <- c("norm")
+ip_dv_names <- c("intent")
+ip_mod_names <- c("attitude")
+n_edges <- length(ip_edge_labels)
+if (n_edges > 1) par(mfrow = c(n_edges, 1))
+for (ei in seq_len(n_edges)) {
+  ys <- c(ip_y_lo_lo[ei], ip_y_hi_lo[ei], ip_y_lo_hi[ei], ip_y_hi_hi[ei])
+  plot(c(-1, 1), ys[1:2], type = "o", pch = 16, lty = 1,
+       xlim = c(-1.4, 1.4), ylim = grDevices::extendrange(ys),
+       xaxt = "n", xlab = NA, ylab = ip_dv_names[ei],
+       main = if (n_edges > 1) ip_edge_labels[ei] else NA)
+  lines(c(-1, 1), ys[3:4], type = "o", pch = 15, lty = 2)
+  axis(1, at = c(-1, 1), labels = paste(ip_iv_names[ei], c("-1 SD", "+1 SD")))
+  legend("topleft", legend = paste(ip_mod_names[ei], c("-1 SD", "+1 SD")),
+         lty = c(1, 2), pch = c(16, 15), bty = "n")
+}
+if (n_edges > 1) par(mfrow = c(1, 1))
 
 # ---- Figure: path diagram (reproducible stand-in for the app-drawn annotated SVG) ----
 semPlot::semPaths(fit, what = "std", layout = "tree", edge.label.cex = 0.9,
