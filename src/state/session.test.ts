@@ -802,6 +802,47 @@ describe('renameColumn (path mode) - keeps a placed node under its canvas identi
   })
 })
 
+describe('renameColumn (latent mode) - a construct keeps measuring a renamed item column', () => {
+  const TEST_ID = 'cb-sem'
+  beforeEach(() => {
+    useSession.getState().reset()
+    useSession.setState({
+      selection: [TEST_ID],
+      columns: [
+        { name: 'x1', detected: 'float64', tags: [], level: 'ratio', used: true },
+        { name: 'x2', detected: 'float64', tags: [], level: 'ratio', used: true },
+        { name: 'x3', detected: 'float64', tags: [], level: 'ratio', used: true },
+        { name: 'z', detected: 'float64', tags: [], level: 'ratio', used: true },
+      ],
+      setups: { [TEST_ID]: { roles: {}, options: {}, props: {}, blocked: null, modelKind: 'latent',
+        constructs: [
+          { id: 0, name: 'Trust', items: ['x1', 'x2'], mode: 'reflective', x: 10, y: 20 },
+          { id: 1, name: 'x2', items: ['x3'] }, // construct NAME happens to collide with a column name - it is a label, never renamed
+        ],
+        paths: [{ from: 0, to: 1 }] } },
+    })
+  })
+
+  it('renaming an item column remaps it inside constructs[].items - everything else identical', () => {
+    useSession.getState().renameColumn('x2', 'wage')
+    const setup = useSession.getState().setups[TEST_ID]
+    expect(setup.constructs).toEqual([
+      { id: 0, name: 'Trust', items: ['x1', 'wage'], mode: 'reflective', x: 10, y: 20 },
+      { id: 1, name: 'x2', items: ['x3'] }, // construct name untouched even though it matches the old column name
+    ])
+    expect(setup.paths).toEqual([{ from: 0, to: 1 }])
+  })
+
+  it('renaming a column that is NOT an item leaves constructs untouched', () => {
+    useSession.getState().renameColumn('z', 'covariate') // z is not an item of any construct
+    const setup = useSession.getState().setups[TEST_ID]
+    expect(setup.constructs).toEqual([
+      { id: 0, name: 'Trust', items: ['x1', 'x2'], mode: 'reflective', x: 10, y: 20 },
+      { id: 1, name: 'x2', items: ['x3'] },
+    ])
+  })
+})
+
 describe('moveNode (path mode) - positions keyed by column name, not shifting index', () => {
   const TEST_ID = 'path-analysis'
   beforeEach(() => {

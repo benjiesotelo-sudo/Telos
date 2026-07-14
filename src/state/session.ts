@@ -333,15 +333,19 @@ export const useSession = create<SessionState>((set, get) => {
       // and its drag position is keyed by column NAME in `nodePositions` - both must be renamed in the SAME
       // pass as `roles`, symmetrically, or revalidated() sees the old name vanish from s.columns and drops
       // the node (and its paths) as "vanished" even though it just got renamed, not removed.
-      // (The analogous gap for latent `constructs[].items` is pre-existing and out of scope here.)
+      // Latent `constructs[].items` are column names too and must follow the rename the same way (R12) -
+      // construct NAMES are user-typed labels, never columns, so they stay untouched.
       const setups = Object.fromEntries(Object.entries(s.setups).map(([id, t]) => {
         const roles = Object.fromEntries(Object.entries(t.roles).map(([k, v]) => [k, v.map((c) => (c === name ? next : c))]))
-        if (t.modelKind !== 'path' || !(t.placed ?? []).includes(name)) return [id, { ...t, roles }]
+        const constructs = t.constructs?.some((c) => c.items.includes(name))
+          ? t.constructs.map((c) => (c.items.includes(name) ? { ...c, items: c.items.map((item) => (item === name ? next : item)) } : c))
+          : t.constructs
+        if (t.modelKind !== 'path' || !(t.placed ?? []).includes(name)) return [id, { ...t, roles, constructs }]
         const placed = t.placed!.map((c) => (c === name ? next : c))
         const nodePositions = t.nodePositions && name in t.nodePositions
           ? Object.fromEntries(Object.entries(t.nodePositions).map(([k, v]) => [k === name ? next : k, v]))
           : t.nodePositions
-        return [id, { ...t, roles, placed, nodePositions }]
+        return [id, { ...t, roles, constructs, placed, nodePositions }]
       }))
       return { raw, setups, columns: s.columns.map((c) => (c.name === name ? { ...c, name: next } : c)) }
     }),
