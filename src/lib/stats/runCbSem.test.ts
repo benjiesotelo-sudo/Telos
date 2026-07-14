@@ -486,7 +486,7 @@ describe('computeItemStats — item Mean/SD per missing-setting', () => {
 // score per case is the UNWEIGHTED mean of its raw items (rowMeans), computed on the listwise-complete
 // rows over ALL used items - the SAME estimation sample cfaReliability.ts fits the discriminant
 // matrices on - with n-1 sample SD (R's sd()).
-describe('computeConstructStats — construct composite Mean/SD (R11)', () => {
+describe('computeConstructStats - construct composite Mean/SD (R11)', () => {
   // Reference values computed 2026-07-14 via native Rscript on tests/e2e/fixtures/scale.csv
   // (HolzingerSwineford x1..x9, n=301, complete): comp <- rowMeans(d[, items]); mean(comp); sd(comp):
   //   visual  (x1..x3) mean=4.424742 sd=0.876525
