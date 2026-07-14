@@ -46,6 +46,14 @@ const GRID_GAP = 28   // min horizontal gap between path-mode grid columns (used
 /** Overflow fix wave (2026-07-11): auto-grid inset from the viewBox boundary, so an edge node is
  *  never flush against the clip edge (a slight pan used to shear it half off-screen). */
 export const GRID_MARGIN = 16
+// T8 (R9, board-clearing slice): latent diamond auto-layout geometry. Column pitch clears a side
+// item stack (ITEM_SIDE_GAP + ITEM_W = 84 each side) plus path-label room; row pitch clears a
+// typical 3-4 item side stack between vertically stacked ovals in one column.
+const SLOT_LEFT_X = 80          // top-left x of the exogenous column (matches the old DEFAULT_X)
+const SLOT_COL_PITCH = 300      // exogenous -> mediator -> terminal column spacing
+const SLOT_BAND_CY = 190        // vertical center of each column's stack
+const SLOT_ROW_PITCH = 170      // vertical pitch between same-column ovals
+const SLOT_MOD_DROP = 190       // moderation-only band's drop below the deepest column
 
 /** Which side a construct's item boxes sit on, from its center's position WITHIN the span of all
  *  construct centers — viewBox-INDEPENDENT, so zoom/pan/fit never reflow the items (and the
@@ -181,13 +189,86 @@ export function nodesOf(p: Pick<SemCanvasUIProps, 'constructs' | 'columns' | 'mo
   return p.constructs
 }
 
+/** T8 (R9): a latent construct's diamond role, classified from the structural paths + moderation
+ *  edges. Exogenous = no incoming path (isolated constructs included); mediator = incoming AND
+ *  outgoing; terminal = incoming only; moderator = moderates an edge with NO structural paths of
+ *  its own (a moderating construct that also sends/receives paths keeps its structural class). */
+export type ConstructRole = 'exogenous' | 'mediator' | 'terminal' | 'moderator'
+
+export function constructRole(id: number, paths: StructuralPath[], moderations: Moderation[]): ConstructRole {
+  const hasOut = paths.some((p) => p.from === id)
+  const hasIn = paths.some((p) => p.to === id)
+  if (!hasIn && !hasOut && moderations.some((m) => m.moderatorId === id)) return 'moderator'
+  if (hasIn && hasOut) return 'mediator'
+  if (hasIn) return 'terminal'
+  return 'exogenous'
+}
+
+/** T8 (R9, owner ruling): default DIAMOND slots (top-left, the Construct.x/y convention) for every
+ *  construct - exogenous left column, mediators center, terminal endogenous right, moderation-only
+ *  low center. Same-column constructs stack vertically about SLOT_BAND_CY with even SLOT_ROW_PITCH.
+ *  Returns a slot for EVERY construct; callers apply it only where x/y are unset, so a manually
+ *  dragged construct keeps its position (and its siblings' slots stay stable - a drag reserves the
+ *  dragged construct's slot rather than reflowing the column). Re-classification is live: drawing a
+ *  path into a construct moves it (if un-dragged) to the center/right column on the next render.
+ *  Replaces the old one-long-row fallback (DEFAULT_X + idx*(NODE_W+120)) that pushed constructs 4+
+ *  outside the viewBox until Fit was clicked - and into the exported figure's clip. */
+export function autoLayoutSlots(
+  constructs: Construct[], paths: StructuralPath[], moderations: Moderation[],
+): Map<number, { x: number; y: number }> {
+  const slots = new Map<number, { x: number; y: number }>()
+  const byRole = (role: ConstructRole) => constructs.filter((c) => constructRole(c.id, paths, moderations) === role)
+  const columns: Array<[ConstructRole, number]> = [
+    ['exogenous', SLOT_LEFT_X],
+    ['mediator', SLOT_LEFT_X + SLOT_COL_PITCH],
+    ['terminal', SLOT_LEFT_X + 2 * SLOT_COL_PITCH],
+  ]
+  let maxRows = 1
+  for (const [role, x] of columns) {
+    const col = byRole(role)
+    maxRows = Math.max(maxRows, col.length)
+    col.forEach((c, i) => {
+      const cy = SLOT_BAND_CY + (i - (col.length - 1) / 2) * SLOT_ROW_PITCH
+      slots.set(c.id, { x, y: cy - NODE_H / 2 })
+    })
+  }
+  // Moderation-only constructs: low center - mediator-column x, one band below the deepest column,
+  // stacking further down if there are several.
+  const bandBottomCy = SLOT_BAND_CY + ((maxRows - 1) / 2) * SLOT_ROW_PITCH
+  byRole('moderator').forEach((c, i) => {
+    slots.set(c.id, { x: SLOT_LEFT_X + SLOT_COL_PITCH, y: bandBottomCy + SLOT_MOD_DROP + i * SLOT_ROW_PITCH - NODE_H / 2 })
+  })
+  return slots
+}
+
+/** T8 (R9) auto-Fit trigger: a fingerprint of everything that changes the latent diagram's CONTENT
+ *  (construct set, item counts, paths, moderations) while deliberately EXCLUDING x/y - so construct
+ *  adds, item toggles, and edge draws re-fit the viewBox, but a node drag never yanks the view
+ *  mid-gesture. Consumed by the connected wrapper via shouldAutoFit. */
+export function contentKey(constructs: Construct[], paths: StructuralPath[], moderations: Moderation[]): string {
+  return [
+    constructs.map((c) => `${c.id}:${c.items.length}`).join('|'),
+    paths.map((p) => `${p.from}>${p.to}`).join('|'),
+    moderations.map((m) => `${m.moderatorId}@${m.pathIndex}`).join('|'),
+  ].join(';')
+}
+
+/** T8 (R9) auto-Fit decision: re-fit when the content fingerprint changed, UNLESS the user has
+ *  manually panned/zoomed since the last fit (the flag resets on the Fit button). */
+export function shouldAutoFit(nextKey: string, lastFitKey: string, userAdjustedVb: boolean): boolean {
+  return !userAdjustedVb && nextKey !== lastFitKey
+}
+
 /** Content-fitting viewBox for the latent (Full-AMOS) figure: the bounding box of every construct
  *  oval and every item box, plus padding for the loading / R² labels. Used as the canvas's initial
  *  viewBox and the "Fit" target so the captured/exported figure always contains the whole diagram
- *  (fixes the export clip where the outermost constructs' item boxes ran off a fixed viewBox). */
-export function latentBounds(constructs: Construct[]): ViewBox {
+ *  (fixes the export clip where the outermost constructs' item boxes ran off a fixed viewBox).
+ *  T8 (R9): paths + moderations feed the diamond auto-slots, so the fitted box matches what an
+ *  un-dragged construct actually draws at (they default to [] for position-only callers/tests). */
+export function latentBounds(constructs: Construct[], paths: StructuralPath[] = [], moderations: Moderation[] = []): ViewBox {
   if (!constructs.length) return BASE_VB
-  const centers = constructs.map((n, i) => nodeCenter(n, i))
+  const slots = autoLayoutSlots(constructs, paths, moderations)
+  const centers = constructs.map((n) => nodeCenter(n, slots.get(n.id)))
   const cxs = centers.map((c) => c.cx)
   const minCx = Math.min(...cxs)
   const maxCx = Math.max(...cxs)
@@ -217,10 +298,11 @@ function nodeCursor(running: boolean, mode: 'draw' | 'move' | 'delete'): string 
   return running ? 'default' : mode === 'move' ? 'grab' : 'pointer'
 }
 
-/** Center of a latent node given its (top-left) x/y, with a left-to-right default for unplaced nodes. */
-function nodeCenter(n: Node, fallbackIdx: number) {
-  const x = (n.x ?? DEFAULT_X + fallbackIdx * (NODE_W + 120)) + NODE_W / 2
-  const y = (n.y ?? DEFAULT_Y) + NODE_H / 2
+/** Center of a latent node given its (top-left) x/y; an un-dragged node falls back to its diamond
+ *  auto-slot (T8/R9 - autoLayoutSlots replaced the old one-long-row index math). */
+function nodeCenter(n: Node, slot?: { x: number; y: number }) {
+  const x = (n.x ?? slot?.x ?? DEFAULT_X) + NODE_W / 2
+  const y = (n.y ?? slot?.y ?? DEFAULT_Y) + NODE_H / 2
   return { cx: x, cy: y, left: x - NODE_W / 2, top: y - NODE_H / 2 }
 }
 
@@ -269,11 +351,13 @@ export function SemCanvasUI({
   // unmoved one auto-grids into the viewBox (P2 shelf model, spec Amendment A item 3 - this slice).
   const vbW = vbProp ? vbProp.w : 760
   const vbH = vbProp ? vbProp.h : 360
+  // Latent mode: un-dragged constructs draw at their diamond auto-slot (T8/R9) - manual x/y wins.
+  const slots = isPath ? null : autoLayoutSlots(constructs, paths, moderations)
   const centers = new Map<number, ReturnType<typeof nodeCenter>>()
   nodes.forEach((n, i) =>
     centers.set(n.id, isPath
-      ? (n.x !== undefined && n.y !== undefined ? nodeCenter(n, i) : pathNodeCenter(i, nodes.length, vbW, vbH))
-      : nodeCenter(n, i)))
+      ? (n.x !== undefined && n.y !== undefined ? nodeCenter(n) : pathNodeCenter(i, nodes.length, vbW, vbH))
+      : nodeCenter(n, slots!.get(n.id))))
   // Span of construct centers → viewBox-independent item-side selection (latent only).
   const latentCxs = isPath ? [] : nodes.map((n) => centers.get(n.id)!.cx)
   const minCx = latentCxs.length ? Math.min(...latentCxs) : 0
@@ -613,9 +697,9 @@ export function SemCanvasUI({
 /** The canvas's default/"Fit" viewBox: content-fitted to the constructs in latent mode (so the
  *  exported figure contains the whole diagram); the fixed BASE_VB in path mode (the column grid
  *  auto-fits BASE_VB) and as the empty/loading fallback. */
-function defaultVb(setup: { modelKind?: 'latent' | 'path'; constructs?: Construct[] } | undefined): ViewBox {
+function defaultVb(setup: { modelKind?: 'latent' | 'path'; constructs?: Construct[]; paths?: StructuralPath[]; moderations?: Moderation[] } | undefined): ViewBox {
   if (setup && (setup.modelKind ?? 'latent') === 'latent' && setup.constructs && setup.constructs.length) {
-    return latentBounds(setup.constructs)
+    return latentBounds(setup.constructs, setup.paths ?? [], setup.moderations ?? [])
   }
   return BASE_VB
 }
@@ -647,6 +731,14 @@ export function SemCanvas({ testId }: { testId: string }) {
   const setup = s.setups[testId]
   const [mode, setMode] = useState<'draw' | 'move' | 'delete'>('draw')
   const [vb, setVb] = useState<ViewBox>(() => defaultVb(s.setups[testId]))
+  // T8 (R9) auto-Fit: re-fit the viewBox whenever the latent diagram's CONTENT changes (construct
+  // add, item toggle, path/moderation draw - contentKey excludes x/y so node drags never re-fit),
+  // unless the user has manually panned/zoomed since the last fit. The flag resets on Fit.
+  const [userAdjustedVb, setUserAdjustedVb] = useState(false)
+  const [fitKey, setFitKey] = useState(() => {
+    const st = s.setups[testId]
+    return st ? contentKey(st.constructs ?? [], st.paths ?? [], st.moderations ?? []) : ''
+  })
   const [height, setHeight] = useState(360)
   const wrapRef = useRef<HTMLDivElement | null>(null)
   // active gesture: dragging a node (move tool) or panning the canvas (any tool, blank-space drag)
@@ -660,6 +752,16 @@ export function SemCanvas({ testId }: { testId: string }) {
   if (!setup) return null
   const running = s.runStatus === 'running'
   const modelKind = setup.modelKind ?? 'latent'
+  // T8 (R9) auto-Fit, latent only (the path-mode grid lays itself out inside the fixed BASE_VB).
+  // Render-adjust pattern: comparing against fitKey guards the setState, so React re-renders once
+  // with the fitted viewBox before committing - no flash of the stale view.
+  if (modelKind === 'latent') {
+    const key = contentKey(setup.constructs ?? [], setup.paths ?? [], setup.moderations ?? [])
+    if (shouldAutoFit(key, fitKey, userAdjustedVb)) {
+      setFitKey(key)
+      setVb(defaultVb(setup))
+    }
+  }
   const usedColumns = s.columns.filter((c) => c.used).map((c) => c.name)
   // P2 shelf model (spec Amendment A item 1, this slice): the canvas's node source is the setup's
   // PLACED columns (T2, session.ts), not every used column - "the model you see is the model that
@@ -688,9 +790,11 @@ export function SemCanvas({ testId }: { testId: string }) {
       // Guard: abort if the node id does not match any current construct (stale data-node-id)
       if (c === undefined) { drag.current = null; return }
       // A construct added via the form has no x/y yet — start the drag from where the node is
-      // actually drawn (SemCanvasUI's nodeCenter default), so the first drag doesn't jump from NaN.
-      const cx = c.x ?? DEFAULT_X + idx * (NODE_W + 120)
-      const cy = c.y ?? DEFAULT_Y
+      // actually drawn (its diamond auto-slot, T8/R9 - the exact resolution SemCanvasUI's centers
+      // use), so the first drag doesn't jump from NaN.
+      const slot = autoLayoutSlots(setup.constructs ?? [], setup.paths ?? [], setup.moderations ?? []).get(nodeId)
+      const cx = c.x ?? slot?.x ?? DEFAULT_X
+      const cy = c.y ?? slot?.y ?? DEFAULT_Y
       const p = screenToViewBox(e.clientX, e.clientY, svgRect(), vb)
       drag.current = { kind: 'node', id: nodeId, offX: p.x - cx, offY: p.y - cy }
     } else if (mode === 'move' && nodeId !== null && modelKind === 'path') {
@@ -728,6 +832,7 @@ export function SemCanvas({ testId }: { testId: string }) {
       const r = svgRect()
       const dx = ((e.clientX - d.startX) / r.width) * vb.w
       const dy = ((e.clientY - d.startY) / r.height) * vb.h
+      setUserAdjustedVb(true)   // T8 (R9): a manual pan suspends auto-Fit until the next Fit click
       setVb({ ...d.vb0, x: d.vb0.x - dx, y: d.vb0.y - dy })
     }
   }
@@ -747,12 +852,19 @@ export function SemCanvas({ testId }: { testId: string }) {
   }
   function onResizeUp() { drag.current = null }
 
-  const zoom = (factor: number) =>
+  const zoom = (factor: number) => {
+    setUserAdjustedVb(true)     // T8 (R9): a manual zoom suspends auto-Fit until the next Fit click
     setVb((v) => {
       const w = v.w / factor; const h = v.h / factor
       return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w, h }   // zoom about the centre
     })
-  const fit = () => setVb(defaultVb(setup))
+  }
+  const fit = () => {
+    // T8 (R9): Fit re-arms auto-Fit (flag reset) and syncs the fingerprint to the fitted content.
+    setUserAdjustedVb(false)
+    setFitKey(contentKey(setup.constructs ?? [], setup.paths ?? [], setup.moderations ?? []))
+    setVb(defaultVb(setup))
+  }
 
   return (
     <div ref={wrapRef}>

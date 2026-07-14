@@ -1,5 +1,48 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { gotoCard } from './fixtures/helpers'
+
+// T8 (R9, board-clearing slice - owner evidence): with 6 constructs the old default layout drew one
+// long overlapping row; constructs 4+ landed OUTSIDE the viewBox until Fit was clicked, and the
+// exported figure inherited the mess. Un-dragged constructs now take diamond slots (exogenous left,
+// mediators center, terminal right) and the viewBox auto-Fits on every content change - so a
+// 6-construct model must be fully visible with NO Fit click. Geometry idiom from
+// path-canvas-layout.spec.ts (no analysis run - fast, no WebR).
+test('R9: 6-construct latent model auto-lays out and needs NO Fit click (all ovals inside the svg)', async ({ page }) => {
+  await gotoCard(page, 'cb-sem', 'scale.csv')   // x1..x9 - enough columns for 6 one-item constructs
+
+  const card = (n: number) =>
+    page.locator('.card').filter({ has: page.getByLabel(`Construct ${n} name`) })
+  for (let n = 1; n <= 6; n++) {
+    await page.getByRole('button', { name: '+ Add construct' }).click()
+    await page.getByLabel(`Construct ${n} name`).fill(`C${n}`)
+    await card(n).getByRole('checkbox', { name: `x${n}` }).check()
+  }
+  await expect(page.locator('ellipse[data-node-id]')).toHaveCount(6)
+
+  // Draw the diamond: C1/C2 -> C3 (mediator) -> C4/C5 (terminals); C6 stays isolated (exogenous).
+  // Construct ids are 1-based in creation order, so data-node-id = n.
+  const oval = (id: number) => page.locator(`ellipse[data-node-id="${id}"]`)
+  for (const [from, to] of [[1, 3], [2, 3], [3, 4], [3, 5]]) {
+    await oval(from).click()
+    await oval(to).click()
+  }
+  await expect(page.locator('line[marker-end="url(#sem-arrow)"]')).toHaveCount(4)
+
+  // NO Fit click anywhere above: every construct oval must sit FULLY inside the svg box.
+  const box = async (p: Page, selector: string) => {
+    const b = await p.locator(selector).boundingBox()
+    expect(b, `${selector} must be visible`).not.toBeNull()
+    return b!
+  }
+  const svg = await box(page, 'svg[id^="figure-path-diagram"]')
+  for (let id = 1; id <= 6; id++) {
+    const r = (await oval(id).boundingBox())!
+    expect(r.x, `oval ${id} left inside svg`).toBeGreaterThan(svg.x)
+    expect(r.x + r.width, `oval ${id} right inside svg`).toBeLessThan(svg.x + svg.width)
+    expect(r.y, `oval ${id} top inside svg`).toBeGreaterThan(svg.y)
+    expect(r.y + r.height, `oval ${id} bottom inside svg`).toBeLessThan(svg.y + svg.height)
+  }
+})
 
 // Drives the AMOS canvas end-to-end: define constructs in the form, draw a path,
 // drag-move a node, delete a path, zoom, run, see estimate overlay + figure.
