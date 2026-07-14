@@ -21,6 +21,12 @@ img{max-width:100%;height:auto;}
 a{color:var(--accent-deep);}
 a:visited{color:var(--accent-deep);}
 .theme-select{position:fixed;top:10px;right:12px;z-index:30;font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-family:var(--font-ui);}
+/* R14 (owner C1): at compact-rail widths (same 560px breakpoint as the rail below) the top-right
+   float sat on the full-width sticky rail (right over its thread fraction). Float it bottom-right
+   instead - always clear of the rail, still fixed, safe-area aware for phone home indicators. */
+@media (max-width:560px){
+  .theme-select{top:auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));}
+}
 .screen{max-width:760px;margin:0 auto;padding:24px 16px 64px;}
 .eyebrow{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600;}
 .title{font-family:var(--font-display);font-size:27px;font-weight:650;letter-spacing:-.015em;margin:4px 0 14px;}

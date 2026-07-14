@@ -1,5 +1,32 @@
 import { test, expect } from '@playwright/test'
 
+// R14 (owner-reported C1): the fixed .theme-select sat on top of the compact journey rail at phone
+// widths (its box covered the rail's thread fraction). Geometry assertions in the style of
+// path-canvas-layout.spec.ts. Runs in the mobile AND tablet projects: at phone widths the two
+// bounding boxes must be fully disjoint (the select floats bottom-right there); at tablet width the
+// select stays top-right and its box may touch the rail's empty top padding, so assert against the
+// rail's visible content (the track and the stages row) instead.
+test('theme-select never overlaps the journey rail', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Get started' }).click()
+  await page.setInputFiles('input[type=file]', 'tests/e2e/fixtures/study.csv')
+  await expect(page.getByRole('heading', { name: 'Terms guide' })).toBeVisible()
+  const box = async (selector: string) => {
+    const b = await page.locator(selector).boundingBox()
+    expect(b, `${selector} must be visible`).not.toBeNull()
+    return b!
+  }
+  const disjoint = (a: { x: number; y: number; width: number; height: number }, b: typeof a) =>
+    a.x >= b.x + b.width || a.x + a.width <= b.x || a.y >= b.y + b.height || a.y + a.height <= b.y
+  const sel = await box('.theme-select')
+  if (page.viewportSize()!.width <= 560) {
+    expect(disjoint(sel, await box('.rail')), 'theme-select box must not intersect the rail box').toBe(true)
+  } else {
+    expect(disjoint(sel, await box('.rail-track')), 'theme-select must clear the rail track').toBe(true)
+    expect(disjoint(sel, await box('.rail .stages')), 'theme-select must clear the rail stages').toBe(true)
+  }
+})
+
 test('touch journey: upload → configure → pick → tap-to-assign → run gate enabled', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Get started' }).click()

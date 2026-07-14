@@ -1,0 +1,26 @@
+#!/bin/sh
+# Pre-commit guard (R15): Benjie's personal docs are intentionally untracked and must stay
+# out of git history (two prior incidents of automated fixers sweeping them into commits).
+# Source of truth lives at scripts/git-hooks/pre-commit; scripts/install-git-hooks.mjs
+# (wired to npm "prepare") copies it into .git/hooks on every npm install.
+
+blocked=$(git diff --cached --name-only | grep -E \
+  -e '^docs/Telos-[^/]+\.(txt|pdf)$' \
+  -e '^docs/testing/' \
+  -e '^docs/paper/paper\.pdf$' \
+  -e '^docs/superpowers/plans/2026-06-15-' \
+  -e '^docs/superpowers/reviews/2026-06-15-econometrics-spike\.md$' \
+  -e '^docs/superpowers/reviews/2026-06-20-sem-b-spike-data/')
+
+if [ -n "$blocked" ]; then
+  {
+    echo "pre-commit guard: staged paths match the owner's personal-doc patterns:"
+    echo "$blocked" | sed 's/^/  - /'
+    echo ""
+    echo "These files are intentionally untracked (Benjie's personal docs)."
+    echo "Unstage them:            git restore --staged <path>"
+    echo "Intentional override:    git commit --no-verify   (owner's word only)"
+  } >&2
+  exit 1
+fi
+exit 0
