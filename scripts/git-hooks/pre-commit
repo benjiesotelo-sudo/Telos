@@ -9,6 +9,7 @@ blocked=$(git diff --cached --name-only | grep -E \
   -e '^docs/testing/' \
   -e '^docs/paper/paper\.pdf$' \
   -e '^docs/superpowers/plans/2026-06-15-' \
+  -e '^docs/superpowers/specs/2026-06-15-' \
   -e '^docs/superpowers/reviews/2026-06-15-econometrics-spike\.md$' \
   -e '^docs/superpowers/reviews/2026-06-20-sem-b-spike-data/')
 

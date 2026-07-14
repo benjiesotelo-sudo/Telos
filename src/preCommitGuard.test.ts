@@ -48,6 +48,7 @@ describe.skipIf(!hasGit)('pre-commit guard (owner personal-doc paths)', () => {
       'docs/testing/wage1.csv',
       'docs/paper/paper.pdf',
       'docs/superpowers/plans/2026-06-15-telos-econometrics-timeseries.md',
+    'docs/superpowers/specs/2026-06-15-telos-econometrics-timeseries-design.md',
       'docs/superpowers/reviews/2026-06-15-econometrics-spike.md',
       'docs/superpowers/reviews/2026-06-20-sem-b-spike-data/canvas-render-building.png',
     ]
