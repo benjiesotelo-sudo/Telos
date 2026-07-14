@@ -102,10 +102,36 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     expect(card).toContain('<div class="apa-cap"><b>Table 5.</b> Structural paths, indirect effects &amp; moderation</div>')
   })
   it('canonical Table 1-5 order matches the reordered registry (measurement, fit, Fornell-Larcker, HTMT, structural)', () => {
+    // R11 normalization (justified): the combined correlation matrix (owner-ruled, Huang Table 3
+    // arrangement) was added AFTER the spec twin (docs/specs/telos_test_outputs.html) was byte-pinned
+    // read-only, so the twin's card does not know it. It slots directly after 'htmt' here -
+    // content-preserving, same discipline as PLS-SEM's R6 f²/VIF filter; the table itself is pinned by
+    // the dedicated R11 test underneath, so this list can never mask its absence.
     expect(spec.tables.map((t) => t.id)).toEqual([
-      'efa-suitability', 'efa-loadings', 'cfa-loadings', 'fit-indices', 'fornell-larcker', 'htmt', 'structural-paths',
-      'conditional-effects',
+      'efa-suitability', 'efa-loadings', 'cfa-loadings', 'fit-indices', 'fornell-larcker', 'htmt',
+      'correlation-matrix', 'structural-paths', 'conditional-effects',
     ])
+  })
+  // R11 (board-clearing slice, owner ruling): combined correlation matrix - construct-by-construct
+  // latent correlations with √AVE italic on the diagonal plus Mean and SD columns appended (Huang
+  // Table 3 arrangement), placed after HTMT. Fornell-Larcker/HTMT stay untouched (pure ADDITION).
+  // Post-twin pin (the twin cannot carry it): id/position/matrix-shape/caption device/bundle entry.
+  it('R11: the combined correlation matrix is pinned - after htmt, matrix-shaped, fixed "3a" label, bundled', () => {
+    const ids = spec.tables.map((t) => t.id)
+    expect(ids.indexOf('correlation-matrix')).toBe(ids.indexOf('htmt') + 1)
+    const cm = spec.tables.find((t) => t.id === 'correlation-matrix')!
+    expect(cm.columns).toHaveLength(0) // matrix table - no fixed thead (FL/HTMT idiom)
+    expect(cm.domId).toBe('cb-sem-correlation-matrix')
+    // Fixed out-of-run label (the E1/E2 device): the live card numbers tables by render order
+    // (measurement 1, FL 2, HTMT 3, fit 4, structural 5), and "Table 5" for the structural table is
+    // pinned across the rMap/notes/twin - a counted insertion after HTMT would shift them all. "3a"
+    // slots after the live HTMT (Table 3) without renumbering anything.
+    expect(cm).toMatchObject({ captionStyle: 'preamble', preambleLabel: '3a' })
+    // Companion bundle pin: the exported zip carries one PNG per built table (table_<id>.png), so the
+    // bundle list gains the entry directly after table_htmt.png - the filter in the bundle-line test
+    // below can never mask its absence.
+    expect(spec.bundleFiles.indexOf('table_correlation-matrix.png'))
+      .toBe(spec.bundleFiles.indexOf('table_htmt.png') + 1)
   })
   // U5-T2: Table 6, shown only when moderation ran; same conventions as the other ghost tables.
   it('Table 6 (conditional effects / simple slopes) thead matches the spec columns', () => {
@@ -213,8 +239,12 @@ describe('cbSem registry stays faithful to the amended output card (verbatim, ca
     // (simple-slopes -> interaction-plot), but the spec twin (docs/specs/telos_test_outputs.html) is
     // byte-pinned read-only, so its bundle line still carries the pre-R4 name. Content-preserving
     // one-token map before comparing - same discipline as the H1 byte-pin's documented replaces.
+    // R11 normalization (justified): the combined correlation matrix is a post-twin ADDITION (owner
+    // ruling), so the twin's bundle line cannot carry table_correlation-matrix.png. Drop exactly that
+    // entry before comparing - the dedicated R11 test above pins the entry and its position, so this
+    // filter can never mask its absence.
     const bundle = strip(card.match(/<div class="m bundle">(.*?)<\/div>/s)![1])
       .replace('figure_simple-slopes.png', 'figure_interaction-plot.png')
-    expect(bundle.split(' · ')).toEqual(spec.bundleFiles)
+    expect(bundle.split(' · ')).toEqual(spec.bundleFiles.filter((f) => f !== 'table_correlation-matrix.png'))
   })
 })

@@ -82,7 +82,7 @@ export const CATALOG: CatalogEntry[] = [
   e('chi-square-goodness-of-fit', 'Chi-square goodness-of-fit', 'Association', 'Categorical', 'available', 'χ² goodness-of-fit'),
   e('fishers-exact', "Fisher's exact", 'Association', 'Categorical', 'available'),
   e('simple-linear-regression', 'Simple linear regression', 'Regression & prediction', undefined, 'available', 'Simple regression'),
-  e('multiple-linear-regression', 'Multiple linear regression', 'Regression & prediction', undefined, 'available', 'Mult. regression'),
+  e('multiple-linear-regression', 'Multiple linear regression', 'Regression & prediction', undefined, 'available', 'Multiple regression'), // short per R10 (owner ruling): full word, not 'Mult.'
   e('logistic-regression', 'Logistic regression', 'Regression & prediction', undefined, 'available', 'Logistic'),
   e('poisson-negative-binomial', 'Poisson / negative binomial', 'Regression & prediction', undefined, 'available', 'Poisson / NB'),
   e('arima-sarima', 'ARIMA / SARIMA', 'Econometrics', 'Time series', 'available'),

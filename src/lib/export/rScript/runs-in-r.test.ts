@@ -268,7 +268,14 @@ const REPS: Rep[] = [
       ],
       paths: [{ from: 1, to: 2 }, { from: 2, to: 3 }, { from: 1, to: 3 }],
     },
-    expect: ['Table E1: EFA suitability', 'Table E2: EFA rotated factor loadings', 'Table 5: Fit indices', 'Table 7: Indirect effects'],
+    // R11 needles (native Rscript 2026-07-14, this exact config): the combined correlation matrix
+    // (script Table 4a = the app card's Table 3a) - full ind60 row pins a sqrt(AVE) diagonal (0.927),
+    // an off-diagonal latent correlation (0.448) and the composite Mean/SD pair (4.468/1.156, which
+    // also matches computeConstructStats' TS pins in runCbSem.test.ts); the dem60/dem65 needles pin
+    // the remaining two sqrt(AVE) diagonals (0.787, 0.814).
+    expect: ['Table E1: EFA suitability', 'Table E2: EFA rotated factor loadings', 'Table 5: Fit indices', 'Table 7: Indirect effects',
+      'Table 4a: Construct correlations, means & SDs (sqrt(AVE) diagonal)',
+      'ind60 0.927 0.448 0.555 4.468 1.156', 'dem60 0.448 0.787', 'dem65 0.555 0.978 0.814'],
   },
 
   // path-analysis: observed-only CB-SEM, canonical saturated single-mediator X → M → Y (df = 0).

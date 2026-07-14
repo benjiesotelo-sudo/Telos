@@ -234,9 +234,44 @@ describe("latentEmitters['cb-sem'] - H1 wiring: export emitter parity (Task 7)",
   // the parameterized structural `fit` - this changes the emitted script for EVERY cb-sem export,
   // including this default cell, and that change is accepted (correctness over byte-pin; see the
   // fix-wave report). Every other line stays byte-identical to the pre-H1 snapshot this test used to pin.
+  // Snapshot updated again by R11 (board-clearing slice, owner ruling): the combined correlation matrix
+  // block (Table 4a, directly after Table 4) is a deliberate ADDITION to every latent-mode cb-sem export.
   it('default (ML + listwise) setup emits a script byte-identical to the fix-wave snapshot (byte-pin)', () => {
     const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, H1_SETUP, { columns: [], rows: [] } as never)
     expect(r).toMatchSnapshot()
+  })
+
+  // R11 (board-clearing slice, owner ruling): analysis.R prints the SAME combined correlation matrix the
+  // app card renders - correlations from lavInspect(fit_rel, "cor.lv") (the SAME continuous reliability
+  // CFA as Table 4, mirroring cfaReliability.ts), sqrt(AVE) substituted on the diagonal, and construct
+  // composite Mean/SD (rowMeans over each construct's items on the listwise-complete rows, n-1 sd())
+  // appended as trailing columns. Labeled Table 4a so the pinned Table 5-9 headers never renumber.
+  it('R11: the exported script prints the combined correlation matrix (cor.lv, sqrt(AVE) diagonal, composite Mean/SD)', () => {
+    const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, H1_SETUP, { columns: [], rows: [] } as never)
+    expect(r).toContain('--- Table 4a: Construct correlations, means & SDs (sqrt(AVE) diagonal) ---')
+    expect(r).toContain('cor_lv <- lavInspect(fit_rel, "cor.lv")')
+    expect(r).toContain('diag(cm)[ci] <- sqrt(ave_cm[ci])')
+    expect(r).toContain('comp <- rowMeans(d_cm[, citems, drop = FALSE])')
+    expect(r).toContain('print(round(cbind(cm, Mean = cm_mean, SD = cm_sd), 3))')
+    // cm_names/cm_items follow the construct order (sanitized tokens), like every fitted-object index.
+    expect(r).toContain('cm_names <- c("A", "B")')
+    expect(r).toContain('cm_items_flat <- c("x1", "x2", "x3", "y1", "y2", "y3")')
+    expect(r).toContain('cm_items_lens <- c(3, 3)')
+  })
+
+  it('R11: path mode emits NO combined correlation matrix (no measurement model, matching the app card)', () => {
+    const pathSetup: TestSetup = {
+      roles: {}, options: { estimator: 'ML', nboot: 200, ciType: 'percentile' }, props: {}, blocked: null,
+      modelKind: 'path',
+      constructs: [
+        { id: 1, name: 'x1', items: ['x1'] },
+        { id: 2, name: 'y1', items: ['y1'] },
+      ],
+      paths: [{ from: 1, to: 2 }],
+    }
+    const r = latentEmitters['cb-sem']({ id: 'cb-sem' } as never, pathSetup, { columns: [], rows: [] } as never)
+    expect(r).not.toContain('Table 4a')
+    expect(r).not.toContain('cor.lv')
   })
 
   it('MLR + fiml emits the fit-argument fragment AND the student-readable comment block above the fit', () => {

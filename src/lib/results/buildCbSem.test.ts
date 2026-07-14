@@ -22,6 +22,7 @@ const SPEC = {
       { key: 'omega', label: 'ω' }, { key: 'alpha', label: 'α' }, { key: 'cr', label: 'CR' }, { key: 'ave', label: 'AVE' } ] },
     { id: 'fornell-larcker', title: 'Discriminant validity (Fornell–Larcker)', columns: [] },
     { id: 'htmt', title: 'Discriminant validity (HTMT)', columns: [] },
+    { id: 'correlation-matrix', title: 'Construct correlations, means & SDs (√AVE on the diagonal)', columns: [] },
     { id: 'fit-indices', title: 'Fit indices', columns: [] },
     { id: 'structural-paths', title: 'Structural paths, indirect effects & moderation', columns: [
       { key: 'h', label: 'H' }, { key: 'path', label: 'Path' }, { key: 'b', label: 'B' },
@@ -92,6 +93,13 @@ const base: CbSemResult = {
     [0.00001, 0.00001, null],
   ] as unknown as number[][],
   discriminantLabels: ['visual', 'textual', 'speed'],
+  // R11 (board-clearing slice, owner ruling): construct-level composite descriptives for the combined
+  // correlation matrix (Huang Table 3 arrangement) - one row per discriminant label, same order.
+  constructStats: [
+    { construct: 'visual', mean: 4.19, sd: 1.13 },
+    { construct: 'textual', mean: 3.06, sd: 1.19 },
+    { construct: 'speed', mean: 5.34, sd: 0.83 },
+  ],
   estimates: { paths: [{ from: 1, to: 2, beta: 0.448 }], loadings: { x1: 0.92, x2: 0.973 }, r2: { 2: 0.201, 3: 0.974 } },
   itemStats: [
     { construct: 'ind60', item: 'x1', mean: 5.05, sd: 1.14, n: 75 },
@@ -104,7 +112,7 @@ describe('buildCbSem', () => {
     const c = buildCbSem(SPEC, base)
     const ids = c.tables.map((t) => t.spec.id)
     expect(ids).toEqual([
-      'cfa-loadings', 'fornell-larcker', 'htmt', 'fit-indices', 'structural-paths',
+      'cfa-loadings', 'fornell-larcker', 'htmt', 'correlation-matrix', 'fit-indices', 'structural-paths',
     ])
 
     const t1 = c.tables.find((t) => t.spec.id === 'cfa-loadings')!
@@ -148,6 +156,47 @@ describe('buildCbSem', () => {
     expect(htmt.matrix!.cells[0][0]).toBeNull() // diagonal suppressed
   })
 
+  // R11 (board-clearing slice, owner ruling): combined correlation matrix, Huang Table 3 arrangement -
+  // latent correlations lower-triangle, sqrt(AVE) italic on the diagonal, construct-composite Mean/SD
+  // appended as trailing columns. Placed directly after HTMT; Fornell-Larcker and HTMT stay untouched.
+  it('R11: combined correlation matrix renders directly after HTMT with sqrt-AVE italic diagonal and Mean/SD columns', () => {
+    const c = buildCbSem(SPEC, base)
+    const ids = c.tables.map((t) => t.spec.id)
+    expect(ids.indexOf('correlation-matrix')).toBe(ids.indexOf('htmt') + 1)
+
+    const cm = c.tables.find((t) => t.spec.id === 'correlation-matrix')!
+    expect(cm.matrix!.rowLabels).toEqual(['visual', 'textual', 'speed'])
+    expect(cm.matrix!.colLabels).toEqual(['visual', 'textual', 'speed', 'Mean', 'SD'])
+    expect(cm.matrix!.diagonalStyle).toBe('italic')
+    // lowerOnly would blank EVERY appended Mean/SD cell (renderer nulls j > i) - the upper triangle is
+    // blanked via explicit null cells instead, exactly like the EFA matrix does its suppression.
+    expect(cm.matrix!.lowerOnly).toBeUndefined()
+    expect(cm.matrix!.cells[0]).toEqual(['.61', null, null, '4.19', '1.13']) // √AVE + Mean/SD appended
+    expect(cm.matrix!.cells[1]).toEqual(['.46', '.85', null, '3.06', '1.19']) // off-diagonal correlation
+    expect(cm.matrix!.cells[2]).toEqual(['.47', '.28', '.65', '5.34', '0.83'])
+    // No stars here - Fornell-Larcker (untouched) keeps the starred presentation.
+    expect(cm.matrix!.cellStars).toBeUndefined()
+
+    // Honesty note: states what the diagonal is and how Mean/SD are computed.
+    const note = c.notes!.find((n) => n.afterTableId === 'correlation-matrix')!
+    expect(note.text).toContain('√AVE')
+    expect(note.text).toMatch(/unweighted mean of its items/i)
+  })
+
+  it('R11: combined correlation matrix is omitted when constructStats are absent (older results) or < 2 constructs', () => {
+    const noStats = buildCbSem(SPEC, { ...base, constructStats: undefined })
+    expect(noStats.tables.map((t) => t.spec.id)).not.toContain('correlation-matrix')
+    const oneConstruct = buildCbSem(SPEC, {
+      ...base,
+      fornellLarcker: [[0.6087]],
+      htmt: [[1]],
+      corLvP: [[null]] as unknown as number[][],
+      discriminantLabels: ['visual'],
+      constructStats: [{ construct: 'visual', mean: 4.19, sd: 1.13 }],
+    })
+    expect(oneConstruct.tables.map((t) => t.spec.id)).not.toContain('correlation-matrix')
+  })
+
   it('falls back to numeric ids / lavaan label when name fields are absent', () => {
     const noNames: CbSemResult = {
       ...base,
@@ -173,7 +222,9 @@ describe('buildCbSem', () => {
     // R6 (board-clearing slice): 'Tradition' appended - the which-tradition-when explainer both SEM
     // cards now carry (CB = confirmatory/factor-based/global fit; PLS = prediction/composite/no global
     // fit by design). Pin updated in the same commit as the note, per the consistency-test discipline.
-    expect(c.notes!.map((n) => n.label)).toEqual(['Scope', 'Cutoffs', 'Estimator', 'Estimation', 'R²', 'Caution', 'Discriminant validity', 'Indirect effects', 'Moderation', 'Tradition'])
+    // R11: 'Correlation matrix' rides with the combined correlation matrix (base carries
+    // fornellLarcker + constructStats, so the table - and its honesty note - render here).
+    expect(c.notes!.map((n) => n.label)).toEqual(['Scope', 'Cutoffs', 'Estimator', 'Estimation', 'R²', 'Caution', 'Discriminant validity', 'Correlation matrix', 'Indirect effects', 'Moderation', 'Tradition'])
     expect(c.notes!.find((n) => n.label === 'Cutoffs')!.text).toContain('CFI/TLI ≥ .95')
     expect(c.notes!.find((n) => n.label === 'Discriminant validity')).toMatchObject({
       text: 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.',
@@ -1049,7 +1100,7 @@ describe('buildCbSem - EFA stage Tables E1/E2 (R1: render when the stage ran, om
     const c = buildCbSem(SPEC, withEfa)
     expect(c.tables.map((t) => t.spec.id)).toEqual([
       'efa-suitability', 'efa-loadings',
-      'cfa-loadings', 'fornell-larcker', 'htmt', 'fit-indices', 'structural-paths',
+      'cfa-loadings', 'fornell-larcker', 'htmt', 'correlation-matrix', 'fit-indices', 'structural-paths',
     ])
   })
 

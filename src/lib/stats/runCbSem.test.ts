@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { Engine } from '../webr/engine'
-import { runCbSem, computeItemStats, CB_SEM_DEFAULT_MISSING } from './runCbSem'
+import { runCbSem, computeItemStats, computeConstructStats, CB_SEM_DEFAULT_MISSING } from './runCbSem'
 import type { CbSemResult } from './runCbSem'
 import { CB_INTERACTION_POINTS_R } from './interactionPlot'
 import { isSaturated } from './semSaturation'
@@ -144,6 +144,15 @@ describe('runCbSem', () => {
     expect(result.fornellLarcker).toHaveLength(3)
     expect(result.htmt).toHaveLength(3)
     expect(result.discriminantLabels).toEqual(['ind60', 'dem60', 'dem65'])
+
+    // --- construct composite Mean/SD (R11 combined correlation matrix). Native Rscript 2026-07-14:
+    // comp <- rowMeans(d[, items]) on the complete-case fixture; mean/sd (n-1):
+    //   ind60 mean=4.468089 sd=1.156385 · dem60 mean=5.184188 sd=2.793625 · dem65 mean=4.588495 sd=2.703980
+    expect(result.constructStats!.map((s) => s.construct)).toEqual(['ind60', 'dem60', 'dem65'])
+    expect(result.constructStats![0].mean).toBeCloseTo(4.468089, 5)
+    expect(result.constructStats![0].sd).toBeCloseTo(1.156385, 5)
+    expect(result.constructStats![2].mean).toBeCloseTo(4.588495, 5)
+    expect(result.constructStats![2].sd).toBeCloseTo(2.703980, 5)
   }, 600_000)
 
   // Regression for the dead ciType mapping (design §U2-T3): a literal 'bca' string passed to lavaan's
@@ -469,6 +478,34 @@ describe('computeItemStats — item Mean/SD per missing-setting', () => {
     const untouched = computeItemStats(data, constructs, listwiseRows, String(untouchedOptions['missing'] ?? CB_SEM_DEFAULT_MISSING))
     const explicitListwise = computeItemStats(data, constructs, listwiseRows, 'listwise')
     expect(untouched).toEqual(explicitListwise)
+  })
+})
+
+// R11 (board-clearing slice, owner ruling): construct-level composite descriptives for the combined
+// correlation matrix. Definition (documented in CbSemResult.constructStats): a construct's composite
+// score per case is the UNWEIGHTED mean of its raw items (rowMeans), computed on the listwise-complete
+// rows over ALL used items - the SAME estimation sample cfaReliability.ts fits the discriminant
+// matrices on - with n-1 sample SD (R's sd()).
+describe('computeConstructStats — construct composite Mean/SD (R11)', () => {
+  // Reference values computed 2026-07-14 via native Rscript on tests/e2e/fixtures/scale.csv
+  // (HolzingerSwineford x1..x9, n=301, complete): comp <- rowMeans(d[, items]); mean(comp); sd(comp):
+  //   visual  (x1..x3) mean=4.424742 sd=0.876525
+  //   textual (x4..x6) mean=3.195671 sd=1.067524
+  //   speed   (x7..x9) mean=5.029034 sd=0.814568
+  it('matches native R rowMeans composites on the listwise sample (HolzingerSwineford)', () => {
+    const raw = loadCsvFixture(join(__dirname, '../../../tests/e2e/fixtures/scale.csv'))
+    const constructs: Construct[] = [
+      { id: 1, name: 'visual', items: ['x1', 'x2', 'x3'] },
+      { id: 2, name: 'textual', items: ['x4', 'x5', 'x6'] },
+      { id: 3, name: 'speed', items: ['x7', 'x8', 'x9'] },
+    ]
+    const usedCols = constructs.flatMap((c) => c.items)
+    const listwiseRows = raw.rows.filter((r) => usedCols.every((c) => typeof r[c] === 'number' && Number.isFinite(r[c] as number)))
+    const stats = computeConstructStats(constructs, listwiseRows)
+    expect(stats.map((s) => s.construct)).toEqual(['visual', 'textual', 'speed'])
+    expect(stats[0].mean).toBeCloseTo(4.424742, 5); expect(stats[0].sd).toBeCloseTo(0.876525, 5)
+    expect(stats[1].mean).toBeCloseTo(3.195671, 5); expect(stats[1].sd).toBeCloseTo(1.067524, 5)
+    expect(stats[2].mean).toBeCloseTo(5.029034, 5); expect(stats[2].sd).toBeCloseTo(0.814568, 5)
   })
 })
 

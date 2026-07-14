@@ -89,6 +89,21 @@ export const CB_SEM: TestSpec = {
       title: 'Discriminant validity (HTMT)',
       columns: [],
     },
+    // R11 (board-clearing slice, owner ruling; post-twin addition - the read-only spec twin predates
+    // it): combined correlation matrix, Huang Table 3 arrangement - construct-by-construct latent
+    // correlations (lower triangle), √AVE italic on the diagonal, construct-composite Mean and SD
+    // appended as trailing columns. Placed after HTMT; Fornell-Larcker/HTMT stay untouched.
+    // captionStyle 'preamble' + fixed label '3a' (the E1/E2 out-of-run device): the live card numbers
+    // tables by render order (measurement 1, FL 2, HTMT 3, fit 4, structural 5) and "Table 5" for the
+    // structural table is pinned across the rMap/notes/twin, so this table must not join the count.
+    {
+      id: 'correlation-matrix',
+      domId: 'cb-sem-correlation-matrix',
+      captionStyle: 'preamble',
+      preambleLabel: '3a',
+      title: 'Construct correlations, means & SDs (√AVE on the diagonal)',
+      columns: [],
+    },
     {
       id: 'structural-paths',
       domId: 'cb-sem-structural-paths',
@@ -139,6 +154,7 @@ export const CB_SEM: TestSpec = {
     'table_fit-indices.png',
     'table_fornell-larcker.png',
     'table_htmt.png',
+    'table_correlation-matrix.png',
     'table_structural-paths.png (when structural stage selected)',
     'table_conditional-effects.png (when moderation present)',
     'figure_path-diagram.png',

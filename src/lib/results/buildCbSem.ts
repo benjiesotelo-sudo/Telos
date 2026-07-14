@@ -30,6 +30,7 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
   const isPath = r.mode === 'path'
   const tables: BuiltTable[] = []
   let itemSampleNote: string | null = null
+  let corrMatrixNote: string | null = null // R11 combined correlation matrix - set iff its table renders
   const estimator = r.estimator ?? 'ML'
   const estimatorName = ESTIMATOR_NAMES[estimator]
   const missingSetting = String(r.missing ?? 'listwise')
@@ -161,6 +162,34 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
       rowLabels: r.discriminantLabels, colLabels: r.discriminantLabels, cells: htmtCells, lowerOnly: true,
     }
     tables.push({ spec: specTable(spec, 'htmt'), rows: [], matrix: htmtMatrix })
+
+    // R11 (board-clearing slice, owner ruling): combined correlation matrix, Huang Table 3 arrangement -
+    // the SAME latent correlations + √AVE diagonal as Fornell-Larcker (r.fornellLarcker, unstarred),
+    // with construct-composite Mean/SD appended as trailing columns (runner's constructStats; see its
+    // CbSemResult doc for the composite definition). Placed directly after HTMT; FL/HTMT stay untouched.
+    // NO lowerOnly flag: the renderer's lowerOnly blanks EVERY j > i cell, which would erase the
+    // appended Mean/SD columns - the upper triangle is blanked via explicit null cells instead.
+    // Gated on constructStats so older results (pre-R11 fixtures) simply omit the table.
+    if (r.constructStats?.length === r.discriminantLabels.length) {
+      const statByName = new Map(r.constructStats.map((s) => [s.construct, s]))
+      const corrCells = r.fornellLarcker.map((row, i) => {
+        const stat = statByName.get(r.discriminantLabels[i])
+        return [
+          ...row.map((val, j) => (j > i ? null : f01(val))),
+          stat ? f(stat.mean) : null,
+          stat ? f(stat.sd) : null,
+        ]
+      })
+      const corrMatrix: MatrixTable = {
+        kind: 'matrix', id: 'correlation-matrix', caption: specTable(spec, 'correlation-matrix').title,
+        rowLabels: r.discriminantLabels,
+        colLabels: [...r.discriminantLabels, 'Mean', 'SD'],
+        cells: corrCells, diagonalStyle: 'italic',
+      }
+      tables.push({ spec: specTable(spec, 'correlation-matrix'), rows: [], matrix: corrMatrix })
+      corrMatrixNote =
+        'Table 3a: the italic diagonal is √AVE; off-diagonal cells are the latent correlations (the same values the Fornell-Larcker comparison uses). Mean and SD are construct composites - each case scored as the unweighted mean of its items - computed on the listwise-complete rows.'
+    }
   }
 
   // T5: Fit indices - suppressed when saturated (df==0). One shared predicate from semSaturation.ts.
@@ -423,6 +452,9 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
     if (saturated) {
       notes = [{ label: 'Saturation', text: SATURATION_NOTE }]
       if (hasReliabilityTable) notes.push({ label: 'Reliability basis', text: RELIABILITY_BASIS_TEXT })
+      // R11: the combined correlation matrix renders regardless of saturation (like FL/HTMT), so its
+      // honesty note (what the diagonal is, how Mean/SD are computed) must too.
+      if (corrMatrixNote) notes.push({ label: 'Correlation matrix', text: corrMatrixNote, afterTableId: 'correlation-matrix' })
     } else {
       const r2Static = 'R² is filled once per endogenous (outcome) construct.'
       // Fix round (U3-T5 review findings, item 1): restore the dropped bootstrap-provenance clause
@@ -445,6 +477,8 @@ export function buildCbSem(spec: TestSpec, r: CbSemResult): CardContent {
         // Cross-references buildAve.ts's dedicated card, verbatim clause lift from the pre-T5 tableNote.
         { label: 'Discriminant validity', text: 'Discriminant validity also has its own card (AVE / convergent validity); it is included here so one run gives the complete measurement-model writeup.', afterTableId: 'htmt' },
       )
+      // R11: honesty note under the combined correlation matrix (Table 3a) - diagonal + Mean/SD provenance.
+      if (corrMatrixNote) notes.push({ label: 'Correlation matrix', text: corrMatrixNote, afterTableId: 'correlation-matrix' })
       if (ordinalPredictorsNoteText) notes.push({ label: 'Ordinal predictors', text: ordinalPredictorsNoteText })
       if (itemSampleNote) notes.push({ label: 'Item sample', text: itemSampleNote, afterTableId: 'cfa-loadings' })
       notes.push({ label: 'Indirect effects', text: 'The indirect-effects section of Table 5 appears only when the drawn structural paths form a chain (X → M → Y); each indirect effect is a lavaan defined effect with a bootstrapped 95% CI.', afterTableId: 'structural-paths' })

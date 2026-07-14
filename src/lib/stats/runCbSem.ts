@@ -70,6 +70,15 @@ export interface CbSemResult {
   htmt: number[][]
   corLvP: number[][]
   discriminantLabels: string[]
+  /** Construct-level composite descriptives for the R11 combined correlation matrix (board-clearing
+   *  slice, owner ruling - Huang Table 3 arrangement): per construct, the composite score of each case
+   *  is the UNWEIGHTED mean of its raw items (rowMeans), computed on the listwise-complete rows over
+   *  ALL used items - the SAME estimation sample cfaReliability.ts fits the discriminant matrices on -
+   *  with n-1 sample SD (matches R's sd()). Construct order = discriminantLabels order. Pure TS
+   *  assembly (computeConstructStats below), NO new R - the correlations + √AVE diagonal already live
+   *  in fornellLarcker. Optional so existing hand-built CbSemResult fixtures need no change; the
+   *  builder omits the table when absent. Empty/absent in path mode (no measurement model). */
+  constructStats?: ConstructStat[]
   estimates: {
     paths: Array<{ from: number; to: number; beta: number }>
     loadings: Record<string, number>
@@ -122,6 +131,23 @@ export interface CbSemResult {
 }
 
 export interface ItemStat { construct: string; item: string; mean: number; sd: number; n: number }
+export interface ConstructStat { construct: string; mean: number; sd: number }
+
+/** R11 combined correlation matrix's Mean/SD columns: one composite per construct = the unweighted
+ *  mean of its raw items per case (rowMeans), over the given listwise-complete rows (see the
+ *  CbSemResult.constructStats doc above for the full definition/provenance). */
+export function computeConstructStats(
+  constructs: Construct[],
+  listwiseRows: Record<string, unknown>[],
+): ConstructStat[] {
+  return constructs.map((c) => {
+    const composites = listwiseRows.map(
+      (row) => c.items.reduce((sum, item) => sum + (row[item] as number), 0) / c.items.length,
+    )
+    const { mean, sd } = sampleMeanSd(composites)
+    return { construct: c.name, mean, sd }
+  })
+}
 
 function sampleMeanSd(values: number[]): { mean: number; sd: number } {
   const n = values.length
@@ -667,6 +693,9 @@ export async function runCbSem(
     }),
   )
   const itemStats = isPath ? [] : computeItemStats(data, constructs, listwiseRows, fitArgs.missing)
+  // R11: composite Mean/SD always on the LISTWISE rows (the discriminant matrices' own CFA sample,
+  // cfaReliability.ts), independent of the fit's missing setting - unlike itemStats' per-item branch.
+  const constructStats = isPath ? undefined : computeConstructStats(constructs, listwiseRows)
 
   const nboot = Number(setup.options['nboot'] ?? 5000)
 
@@ -886,6 +915,7 @@ export async function runCbSem(
     htmt,
     corLvP,
     discriminantLabels,
+    constructStats,
     estimates: {
       paths: raw.estPaths,
       loadings: estLoadings,

@@ -657,6 +657,41 @@ export const latentEmitters: Record<string, Emitter> = {
         'print(round(rbind(CR = cr_vec, AVE = ave_vec[names(cr_vec)]), 3))',
         '',
       )
+
+      // R11 (board-clearing slice, owner ruling): the combined correlation matrix the app card renders
+      // as Table 3a - correlations from lavInspect(fit_rel, "cor.lv") (the SAME continuous reliability
+      // CFA as Table 4, mirroring cfaReliability.ts), sqrt(AVE) substituted on the diagonal, and
+      // construct-composite Mean/SD (rowMeans over each construct's items on the listwise-complete
+      // rows; sd() is the same n-1 sample SD computeConstructStats uses TS-side) appended as trailing
+      // columns. Labeled Table 4a HERE (the script's own numbering has reliability as Table 4) so the
+      // pinned Table 5-9 headers never renumber.
+      const cmNames = constructs.map((c) => rNameOf(c.id))
+      const cmItemsFlat = constructs.flatMap((c) => c.items.map(itemNameOf))
+      out.push(
+        '# ---- Table 4a: combined correlation matrix (the app card\'s Table 3a) ----',
+        `cm_names <- c(${cmNames.map((n) => `"${n}"`).join(', ')})`,
+        `cm_items_flat <- c(${cmItemsFlat.map((v) => `"${v}"`).join(', ')})`,
+        `cm_items_lens <- c(${constructs.map((c) => c.items.length).join(', ')})`,
+        'cor_lv <- lavInspect(fit_rel, "cor.lv")',
+        'cm <- cor_lv[cm_names, cm_names]',
+        'ave_cm <- ave_vec[cm_names]',
+        'for (ci in seq_along(cm_names)) diag(cm)[ci] <- sqrt(ave_cm[ci])',
+        '# Construct composites: each case scored as the unweighted mean of its items (rowMeans),',
+        '# on the listwise-complete rows - the same sample the reliability CFA above fits.',
+        'd_cm <- d[stats::complete.cases(d[, unique(cm_items_flat)]), , drop = FALSE]',
+        'cm_mean <- numeric(length(cm_names)); cm_sd <- numeric(length(cm_names))',
+        'item_start <- 1L',
+        'for (ci in seq_along(cm_names)) {',
+        '  len <- cm_items_lens[ci]',
+        '  citems <- cm_items_flat[item_start:(item_start + len - 1L)]',
+        '  item_start <- item_start + len',
+        '  comp <- rowMeans(d_cm[, citems, drop = FALSE])',
+        '  cm_mean[ci] <- mean(comp); cm_sd[ci] <- sd(comp)',
+        '}',
+        'cat("\\n--- Table 4a: Construct correlations, means & SDs (sqrt(AVE) diagonal) ---\\n")',
+        'print(round(cbind(cm, Mean = cm_mean, SD = cm_sd), 3))',
+        '',
+      )
     }
 
     // Fit-index names sourced from semFitArgs.ts's semFitMeasureNames - the SAME estimator-conditional
