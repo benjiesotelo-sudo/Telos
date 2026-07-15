@@ -33,7 +33,7 @@ footer{margin-top:56px;border-top:1px solid var(--hair);padding-top:12px;font-si
 <header>
 <div class="eyebrow">Telos · per-test documentation · single-file audit record</div>
 <h1>48 · path analysis</h1>
-<div class="meta">Generated 2026-07-14 · commit ccd8c66 · fully self-contained (all artifacts embedded) · verified against native R</div>
+<div class="meta">Generated 2026-07-15 · commit bc4a4a0 · fully self-contained (all artifacts embedded) · verified against native R</div>
 </header>
 <nav><a href="#config">1 Input</a><a href="#output">2 App output</a><a href="#rscript">3 R script</a><a href="#report">4 PDF report</a><a href="#artifacts">5 Tables &amp; figures</a><a href="#citations">6 Citations</a><a href="#manifest">7 Manifest</a></nav>
 
@@ -131,7 +131,7 @@ semPlot::semPaths(fit, what = <span class="str">"std"</span>, layout = <span cla
 
 <span class="com"># Note: this is the closest reproducible native-R rendering of the path diagram; the app's live</span>
 <span class="com"># canvas draws the same structural paths (see figure_path-diagram.png from the app export).</span></code></pre>
-<details open><summary>Script output (native R 4.6.0, run 2026-07-14)</summary>
+<details open><summary>Script output (native R 4.6.0, run 2026-07-15)</summary>
 <p class="hint">These numbers are produced independently of the app; the app's WebR results match them.</p>
 <pre><code>          used  (Mb) gc trigger  (Mb) limit (Mb) max used  (Mb)
 Ncells 3820512 204.1    7281520 388.9         NA  5395477 288.2
@@ -197,7 +197,7 @@ esg\_score $\rightarrow$ norm\_score $\rightarrow$ intent\_score &amp; $-$0.03 &
 
 Path analysis estimates a system of regressions among observed variables at once, letting one variable be both an outcome and a predictor (mediation). Structural paths: each B is the unstandardized effect, Std. $\beta$ the standardized effect, with z, p, and a 95\% CI; R\textsuperscript{2} is the variance explained in each endogenous variable. Indirect effects: the product of the paths through a mediator (e.g. X $\rightarrow$ M $\rightarrow$ Y), judged by its bootstrap 95\% CI - an interval excluding 0 indicates mediation. When df = 0 the model is saturated (it reproduces the data exactly), so fit indices are not informative and are omitted; only with extra constraints (df $&gt;$ 0) do global fit indices apply, and even then read RMSEA cautiously at small df / small N. All thresholds are heuristics, not pass/fail gates.
 
-A path model fit to the observed variables; the indirect effect of X on Y through M was significant, bootstrap 95\% CI excluding 0.
+A path model fit to the observed variables; the indirect effect of X on Y through M was significant, bootstrap 95\% CI excluding 0. Estimated with maximum likelihood.
 
 Statistical basis: Path model estimation (lavaan::sem, observed variables only) (Rosseel, Y. (2012). "lavaan: An R Package for Structural Equation Modeling." Journal of Statistical Software, 48(2), 1-36.); RMSEA interpreted cautiously at small df / small N for over-identified models (Kenny, D. A., Kaniskan, B., McCoach, D. B. (2015). "The performance of RMSEA in models with small degrees of freedom." Sociological Methods \&amp; Research, 44(3), 486-507.); Bootstrap percentile CIs for indirect (mediated) effects (MacKinnon, D. P., Lockwood, C. M., Williams, J. (2004). "Confidence limits for the indirect effect: Distribution of the product and resampling methods." Multivariate Behavioral Research, 39(1), 99-128.).
 
@@ -352,7 +352,7 @@ Tables are formatted per APA-7 (7th ed.); econometric methods follow each packag
 
 &gt; The three outputs (app card · PDF · LaTeX) are produced from the same run, so the tables, figures, and numbers should match.
 </code></pre></details>
-<ul class="mani"><li>1-input-config.png (92 KB)</li><li>2-app-output.png (347 KB)</li><li>3-pdf-report.pdf (386 KB)</li><li>4-latex-source.tex (3 KB)</li><li>5-latex-rendered.pdf (37 KB)</li><li>README.md (2 KB)</li><li>export/01_path-analysis/figure_path-diagram.png (43 KB)</li><li>export/01_path-analysis/table_indirect-effects.png (24 KB)</li><li>export/01_path-analysis/table_structural-paths.png (53 KB)</li><li>export/CITATIONS.txt (7 KB)</li><li>export/LICENSES.txt (3 KB)</li><li>export/analysis.R (4 KB)</li><li>export/cleaned.csv (79 KB)</li><li>export/figures/01_path-analysis/figure_path-diagram.png (43 KB)</li><li>export/references.bib (1 KB)</li><li>export/report.pdf (38 KB)</li><li>export/report.tex (3 KB)</li></ul></section>
+<ul class="mani"><li>1-input-config.png (92 KB)</li><li>2-app-output.png (347 KB)</li><li>3-pdf-report.pdf (386 KB)</li><li>4-latex-source.tex (3 KB)</li><li>5-latex-rendered.pdf (39 KB)</li><li>README.md (2 KB)</li><li>export/01_path-analysis/figure_path-diagram.png (43 KB)</li><li>export/01_path-analysis/table_indirect-effects.png (24 KB)</li><li>export/01_path-analysis/table_structural-paths.png (53 KB)</li><li>export/CITATIONS.txt (7 KB)</li><li>export/LICENSES.txt (3 KB)</li><li>export/analysis.R (4 KB)</li><li>export/cleaned.csv (79 KB)</li><li>export/figures/01_path-analysis/figure_path-diagram.png (43 KB)</li><li>export/references.bib (1 KB)</li><li>export/report.pdf (39 KB)</li><li>export/report.tex (3 KB)</li></ul></section>
 
 <footer>Telos test documentation · one file per test · every embedded artifact is generated by the real app driven by the documentation harness (tests/docs/document-tests.spec.ts) · statistics verified against native R.</footer>
 </div></body></html>

@@ -33,7 +33,7 @@ footer{margin-top:56px;border-top:1px solid var(--hair);padding-top:12px;font-si
 <header>
 <div class="eyebrow">Telos · per-test documentation · single-file audit record</div>
 <h1>08 · factorial anova</h1>
-<div class="meta">Generated 2026-07-14 · commit ccd8c66 · fully self-contained (all artifacts embedded) · verified against native R</div>
+<div class="meta">Generated 2026-07-15 · commit bc4a4a0 · fully self-contained (all artifacts embedded) · verified against native R</div>
 </header>
 <nav><a href="#config">1 Input</a><a href="#output">2 App output</a><a href="#rscript">3 R script</a><a href="#report">4 PDF report</a><a href="#artifacts">5 Tables &amp; figures</a><a href="#citations">6 Citations</a><a href="#manifest">7 Manifest</a></nav>
 
@@ -71,7 +71,7 @@ print(summary(pairs(emmeans::emmeans(m, ~ f1), adjust = <span class="str">"tukey
 print(summary(pairs(emmeans::emmeans(m, ~ f2), adjust = <span class="str">"tukey"</span>), infer = <span class="kw">TRUE</span>, level = 0.95))
 agg &lt;- aggregate(list(m = fad$y), by = list(a = fad$f1, b = fad$f2), FUN = mean)
 print(ggplot(agg, aes(a, m, group = b, colour = b)) + geom_line() + geom_point() + labs(x = <span class="kw">NULL</span>, y = <span class="kw">NULL</span>, colour = <span class="str">"gender"</span>))</code></pre>
-<details open><summary>Script output (native R 4.6.0, run 2026-07-14)</summary>
+<details open><summary>Script output (native R 4.6.0, run 2026-07-15)</summary>
 <p class="hint">These numbers are produced independently of the app; the app's WebR results match them.</p>
 <pre><code>+---+----------+---------------+----------+---------------+----------+---------------+---------+--------------+---------+--------------+---------+--------------+
 |   | Blended x Female (N=40)  | Flipped x Female (N=40)  | Lecture x Female (N=40)  | Blended x Male (N=40)  | Flipped x Male (N=40)  | Lecture x Male (N=40)  |

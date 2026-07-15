@@ -33,7 +33,7 @@ footer{margin-top:56px;border-top:1px solid var(--hair);padding-top:12px;font-si
 <header>
 <div class="eyebrow">Telos · per-test documentation · single-file audit record</div>
 <h1>31 · stationarity tests</h1>
-<div class="meta">Generated 2026-07-14 · commit ccd8c66 · fully self-contained (all artifacts embedded) · verified against native R</div>
+<div class="meta">Generated 2026-07-15 · commit bc4a4a0 · fully self-contained (all artifacts embedded) · verified against native R</div>
 </header>
 <nav><a href="#config">1 Input</a><a href="#output">2 App output</a><a href="#rscript">3 R script</a><a href="#report">4 PDF report</a><a href="#artifacts">5 Tables &amp; figures</a><a href="#citations">6 Citations</a><a href="#manifest">7 Manifest</a></nav>
 
@@ -79,7 +79,7 @@ print(ggplot(adf2, aes(x = lag, y = value)) +
   geom_hline(yintercept = 0, colour = <span class="str">"grey50"</span>) +
   geom_segment(aes(xend = lag, yend = 0), colour = <span class="str">"#0c447c"</span>) +
   facet_wrap(~panel, ncol = 1, scales = <span class="str">"free_y"</span>) + labs(x = <span class="str">"Lag"</span>, y = <span class="kw">NULL</span>) + theme_minimal())</code></pre>
-<details open><summary>Script output (native R 4.6.0, run 2026-07-14)</summary>
+<details open><summary>Script output (native R 4.6.0, run 2026-07-15)</summary>
 <p class="hint">These numbers are produced independently of the app; the app's WebR results match them.</p>
 <pre><code>
 	Augmented Dickey-Fuller Test
@@ -130,7 +130,7 @@ PP &amp; $-$13.17 &amp; 4 &amp; .354 &amp; non-stationary \\
 
 \includegraphics{figures/01_stationarity-tests/figure_acf.png}
 
-For ADF, a small p means stationary; for KPSS, a small p means non-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value. Method: R tseries package ADF/KPSS/PP (Dickey \&amp; Fuller; Kwiatkowski, Phillips, Schmidt \&amp; Shin, 1992; Phillips \&amp; Perron, 1988). Your significance threshold ($\alpha$) is 0.05.
+For ADF, a small p means stationary; for KPSS, a small p means non-stationary. If a series is non-stationary, difference it before modeling. The conclusion column states the verdict. Failing to reject is not proof of the null for either test (both have low power), so strengthen the verdict by also reading the ACF rather than relying on a single p-value. Method: R tseries package ADF/KPSS/PP (Dickey \&amp; Fuller; Kwiatkowski, Phillips, Schmidt \&amp; Shin, 1992; Phillips \&amp; Perron, 1988). Your significance threshold ($\alpha$) is 0.05. Tests run: ADF, KPSS, and Phillips--Perron.
 
 ADF gave $\tau$=$-$3.83, p = .020; KPSS gave LM=0.08, p $&gt;$ .100; Phillips--Perron gave Z=$-$13.17, p = .354 ($\alpha$=0.05).
 

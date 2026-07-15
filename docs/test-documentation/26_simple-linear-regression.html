@@ -33,7 +33,7 @@ footer{margin-top:56px;border-top:1px solid var(--hair);padding-top:12px;font-si
 <header>
 <div class="eyebrow">Telos · per-test documentation · single-file audit record</div>
 <h1>26 · simple linear regression</h1>
-<div class="meta">Generated 2026-07-14 · commit ccd8c66 · fully self-contained (all artifacts embedded) · verified against native R</div>
+<div class="meta">Generated 2026-07-15 · commit bc4a4a0 · fully self-contained (all artifacts embedded) · verified against native R</div>
 </header>
 <nav><a href="#config">1 Input</a><a href="#output">2 App output</a><a href="#rscript">3 R script</a><a href="#report">4 PDF report</a><a href="#artifacts">5 Tables &amp; figures</a><a href="#citations">6 Citations</a><a href="#manifest">7 Manifest</a></nav>
 
@@ -59,7 +59,7 @@ d &lt;- read.csv(<span class="str">"cleaned.csv"</span>, stringsAsFactors = <spa
 m &lt;- lm(exam_score ~ study_hours_per_week, data = d)
 modelsummary(list(<span class="str">"(1)"</span> = m), conf_level = 0.95, statistic = c(<span class="str">"std.error"</span>, <span class="str">"conf.int"</span>), stars = <span class="kw">FALSE</span>, fmt = 3, gof_map = c(<span class="str">"nobs"</span>, <span class="str">"r.squared"</span>, <span class="str">"adj.r.squared"</span>, <span class="str">"aic"</span>, <span class="str">"bic"</span>, <span class="str">"logLik"</span>, <span class="str">"rmse"</span>), output = <span class="str">"markdown"</span>)
 print(ggplot(d, aes(study_hours_per_week, exam_score)) + geom_point() + geom_smooth(method = <span class="str">"lm"</span>))</code></pre>
-<details open><summary>Script output (native R 4.6.0, run 2026-07-14)</summary>
+<details open><summary>Script output (native R 4.6.0, run 2026-07-15)</summary>
 <p class="hint">These numbers are produced independently of the app; the app's WebR results match them.</p>
 <pre><code>
 +----------------------+------------------+
