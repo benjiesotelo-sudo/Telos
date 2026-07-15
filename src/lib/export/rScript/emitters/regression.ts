@@ -43,7 +43,7 @@ export const regressionEmitters: Record<string, Emitter> = {
     const rhs = preds.join(' + ')
     return [
       `m <- lm(${y} ~ ${rhs}, data = d)`,
-      modelsummaryCall('m', { gof: 'lm' }),
+      modelsummaryCall('m', { gof: 'lm', level }),
       // standardized betas + VIF (display extras); ci= matches the chosen CI level (R1 gap-fix: the β CI now
       // reported in-app uses this same level, not the function's own 0.95 default).
       `print(parameters::standardise_parameters(m, method = "refit", ci = ${level}))`,

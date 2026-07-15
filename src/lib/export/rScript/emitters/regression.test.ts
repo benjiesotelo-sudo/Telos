@@ -339,3 +339,20 @@ describe('regression / econometrics emitters', () => {
     })
   })
 })
+
+// Owner verdict 2026-07-15 (board-clearing ratify item b): MLR's own coefficient table joins the
+// R2 class - the CI pill reaches modelsummary's conf_level, matching the app's confint(level=).
+describe('multiple-linear-regression - ci pill reaches the main coefficient table (ratify b)', () => {
+  const setup = (ci: string) => ({
+    roles: { outcome: ['y'], predictors: ['a', 'b'] },
+    options: { alpha: 0.05, ci, standardize: false }, props: {}, blocked: null,
+  })
+  const ds = { columns: [{ name: 'y' }, { name: 'a' }, { name: 'b' }], rows: [] }
+  it('threads conf_level and flips 95 to 90', async () => {
+    const { EMITTERS } = await import('./index')
+    const at = (ci: string) => EMITTERS['multiple-linear-regression'](undefined as never, setup(ci) as never, ds as never)
+    expect(at('95%')).toContain('conf_level = 0.95')
+    expect(at('90%')).toContain('conf_level = 0.9')
+    expect(at('90%')).not.toContain('conf_level = 0.95')
+  })
+})
